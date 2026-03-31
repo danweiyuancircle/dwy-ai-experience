@@ -15,8 +15,8 @@ const emit = defineEmits<ETransferEmits>()
 
 const leftFilter = ref('')
 const rightFilter = ref('')
-const leftChecked = ref<Set<string | number>>(new Set())
-const rightChecked = ref<Set<string | number>>(new Set())
+const leftChecked = ref<(string | number)[]>([])
+const rightChecked = ref<(string | number)[]>([])
 
 const selectedValues = computed(() => new Set(props.modelValue))
 
@@ -40,50 +40,69 @@ const filteredRight = computed(() =>
     : rightItems.value
 )
 
+function isLeftChecked(value: string | number) {
+  return leftChecked.value.includes(value)
+}
+
+function isRightChecked(value: string | number) {
+  return rightChecked.value.includes(value)
+}
+
 function moveRight() {
   const moved = [...leftChecked.value]
   const newValue = [...(props.modelValue ?? []), ...moved]
   emit('update:modelValue', newValue)
   emit('change', newValue, 'right', moved)
-  leftChecked.value = new Set()
+  leftChecked.value = []
 }
 
 function moveLeft() {
+  const movedSet = new Set(rightChecked.value)
   const moved = [...rightChecked.value]
-  const newValue = (props.modelValue ?? []).filter(v => !rightChecked.value.has(v))
+  const newValue = (props.modelValue ?? []).filter(v => !movedSet.has(v))
   emit('update:modelValue', newValue)
   emit('change', newValue, 'left', moved)
-  rightChecked.value = new Set()
+  rightChecked.value = []
 }
 
 function toggleLeft(value: string | number) {
-  if (leftChecked.value.has(value)) leftChecked.value.delete(value)
-  else leftChecked.value.add(value)
+  const idx = leftChecked.value.indexOf(value)
+  if (idx >= 0) leftChecked.value.splice(idx, 1)
+  else leftChecked.value.push(value)
 }
 
 function toggleRight(value: string | number) {
-  if (rightChecked.value.has(value)) rightChecked.value.delete(value)
-  else rightChecked.value.add(value)
+  const idx = rightChecked.value.indexOf(value)
+  if (idx >= 0) rightChecked.value.splice(idx, 1)
+  else rightChecked.value.push(value)
 }
 
 function toggleAllLeft(checked: boolean) {
-  if (checked) filteredLeft.value.filter(i => !i.disabled).forEach(i => leftChecked.value.add(i.value))
-  else leftChecked.value = new Set()
+  if (checked) {
+    const values = filteredLeft.value.filter(i => !i.disabled).map(i => i.value)
+    leftChecked.value = [...new Set([...leftChecked.value, ...values])]
+  } else {
+    leftChecked.value = []
+  }
 }
 
 function toggleAllRight(checked: boolean) {
-  if (checked) filteredRight.value.filter(i => !i.disabled).forEach(i => rightChecked.value.add(i.value))
-  else rightChecked.value = new Set()
+  if (checked) {
+    const values = filteredRight.value.filter(i => !i.disabled).map(i => i.value)
+    rightChecked.value = [...new Set([...rightChecked.value, ...values])]
+  } else {
+    rightChecked.value = []
+  }
 }
 
 const allLeftChecked = computed(() =>
   filteredLeft.value.length > 0 &&
-  filteredLeft.value.filter(i => !i.disabled).every(i => leftChecked.value.has(i.value))
+  filteredLeft.value.filter(i => !i.disabled).every(i => isLeftChecked(i.value))
 )
 
 const allRightChecked = computed(() =>
   filteredRight.value.length > 0 &&
-  filteredRight.value.filter(i => !i.disabled).every(i => rightChecked.value.has(i.value))
+  filteredRight.value.filter(i => !i.disabled).every(i => isRightChecked(i.value))
 )
 </script>
 
@@ -95,12 +114,12 @@ const allRightChecked = computed(() =>
         <input
           type="checkbox"
           :checked="allLeftChecked"
-          :indeterminate="leftChecked.size > 0 && !allLeftChecked"
+          :indeterminate="leftChecked.length > 0 && !allLeftChecked"
           class="rounded border-input"
           @change="toggleAllLeft(($event.target as HTMLInputElement).checked)"
         />
         <span class="text-sm font-medium flex-1">{{ props.titles[0] }}</span>
-        <span class="text-xs text-muted-foreground">{{ leftChecked.size }}/{{ filteredLeft.length }}</span>
+        <span class="text-xs text-muted-foreground">{{ leftChecked.length }}/{{ filteredLeft.length }}</span>
       </div>
       <div v-if="props.filterable" class="px-3 py-2 border-b">
         <input
@@ -117,15 +136,16 @@ const allRightChecked = computed(() =>
           :class="cn(
             'flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm cursor-default select-none',
             item.disabled ? 'opacity-50 pointer-events-none' : 'hover:bg-accent',
-            leftChecked.has(item.value) ? 'bg-accent/50' : '',
+            isLeftChecked(item.value) ? 'bg-accent/50' : '',
           )"
           @click="!item.disabled && toggleLeft(item.value)"
         >
           <input
             type="checkbox"
-            :checked="leftChecked.has(item.value)"
+            :checked="isLeftChecked(item.value)"
             :disabled="item.disabled"
             class="rounded border-input"
+            @click.stop
             @change.stop="toggleLeft(item.value)"
           />
           {{ item.label }}
@@ -136,14 +156,14 @@ const allRightChecked = computed(() =>
     <!-- Buttons -->
     <div class="flex flex-col items-center justify-center gap-2">
       <button
-        :disabled="leftChecked.size === 0"
+        :disabled="leftChecked.length === 0"
         class="flex items-center justify-center size-8 rounded-md border border-input bg-background shadow-xs hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
         @click="moveRight"
       >
         <ChevronRight class="size-4" />
       </button>
       <button
-        :disabled="rightChecked.size === 0"
+        :disabled="rightChecked.length === 0"
         class="flex items-center justify-center size-8 rounded-md border border-input bg-background shadow-xs hover:bg-accent disabled:opacity-50 disabled:cursor-not-allowed"
         @click="moveLeft"
       >
@@ -157,12 +177,12 @@ const allRightChecked = computed(() =>
         <input
           type="checkbox"
           :checked="allRightChecked"
-          :indeterminate="rightChecked.size > 0 && !allRightChecked"
+          :indeterminate="rightChecked.length > 0 && !allRightChecked"
           class="rounded border-input"
           @change="toggleAllRight(($event.target as HTMLInputElement).checked)"
         />
         <span class="text-sm font-medium flex-1">{{ props.titles[1] }}</span>
-        <span class="text-xs text-muted-foreground">{{ rightChecked.size }}/{{ filteredRight.length }}</span>
+        <span class="text-xs text-muted-foreground">{{ rightChecked.length }}/{{ filteredRight.length }}</span>
       </div>
       <div v-if="props.filterable" class="px-3 py-2 border-b">
         <input
@@ -179,15 +199,16 @@ const allRightChecked = computed(() =>
           :class="cn(
             'flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm cursor-default select-none',
             item.disabled ? 'opacity-50 pointer-events-none' : 'hover:bg-accent',
-            rightChecked.has(item.value) ? 'bg-accent/50' : '',
+            isRightChecked(item.value) ? 'bg-accent/50' : '',
           )"
           @click="!item.disabled && toggleRight(item.value)"
         >
           <input
             type="checkbox"
-            :checked="rightChecked.has(item.value)"
+            :checked="isRightChecked(item.value)"
             :disabled="item.disabled"
             class="rounded border-input"
+            @click.stop
             @change.stop="toggleRight(item.value)"
           />
           {{ item.label }}

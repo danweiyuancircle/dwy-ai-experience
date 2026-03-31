@@ -7,11 +7,10 @@ export default defineConfig({
   plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
-      // Resolve EUI JS from source for instant HMR during development
-      '@danweiyuan/eui/theme': resolve(__dirname, '../packages/eui/src/theme/index.css'),
-      '@danweiyuan/eui': resolve(__dirname, '../packages/eui/src/index.ts'),
-      // Internal alias for EUI components
-      '@': resolve(__dirname, '../packages/eui/src'),
+      '@danweiyuan/eui/theme': resolve(__dirname, '../eui/src/theme/index.css'),
+      '@danweiyuan/eui': resolve(__dirname, '../eui/src/index.ts'),
+      '@': resolve(__dirname, '../eui/src'),
     },
   },
+  assetsInclude: ['**/*.md'],
 })

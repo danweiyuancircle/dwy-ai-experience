@@ -58,7 +58,7 @@ function onUpdate(value: string | string[] | undefined) {
           class="data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down overflow-hidden text-sm"
         >
           <div class="pt-0 pb-4">
-            <slot :name="`panel-${item.key}`" :item="item" />
+            <slot :name="item.key" :item="item" />
           </div>
         </AccordionContent>
       </AccordionItem>
