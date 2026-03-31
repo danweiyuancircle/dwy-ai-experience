@@ -40,8 +40,24 @@ const router = createRouter({
     { path: '/eui/descriptions', component: () => import('./views/DescriptionsDemo.vue') },
     { path: '/eui/timeline', component: () => import('./views/TimelineDemo.vue') },
     { path: '/eui/statistic', component: () => import('./views/StatisticDemo.vue') },
-    { path: '/eui/business', component: () => import('./views/BusinessDemo.vue') },
-    { path: '/eui/misc', component: () => import('./views/MiscDemo.vue') },
+    { path: '/eui/typography', component: () => import('./views/TypographyDemo.vue') },
+    { path: '/eui/kbd', component: () => import('./views/KbdDemo.vue') },
+    { path: '/eui/separator', component: () => import('./views/SeparatorDemo.vue') },
+    { path: '/eui/spinner', component: () => import('./views/SpinnerDemo.vue') },
+    { path: '/eui/empty', component: () => import('./views/EmptyDemo.vue') },
+    { path: '/eui/label', component: () => import('./views/LabelDemo.vue') },
+    { path: '/eui/aspect-ratio', component: () => import('./views/AspectRatioDemo.vue') },
+    { path: '/eui/form-dialog', component: () => import('./views/FormDialogDemo.vue') },
+    { path: '/eui/confirm-dialog', component: () => import('./views/ConfirmDialogDemo.vue') },
+    { path: '/eui/data-page', component: () => import('./views/DataPageDemo.vue') },
+
+    // Blocks
+    { path: '/eui/blocks/sidebar-07', component: () => import('./views/blocks/Sidebar07.vue') },
+    { path: '/eui/blocks/dashboard-01', component: () => import('./views/blocks/Dashboard01.vue') },
+    { path: '/eui/blocks/login-01', component: () => import('./views/blocks/Login01.vue') },
+    { path: '/eui/blocks/login-02', component: () => import('./views/blocks/Login02.vue') },
+    { path: '/eui/blocks/login-04', component: () => import('./views/blocks/Login04.vue') },
+    { path: '/eui/blocks/otp-01', component: () => import('./views/blocks/Otp01.vue') },
 
     // Core
     { path: '/core', component: () => import('./views/core/CoreOverview.vue') },

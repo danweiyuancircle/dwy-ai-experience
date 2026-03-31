@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { inject, computed, provide } from 'vue'
+import { inject, computed, provide, watch } from 'vue'
 import { useId } from 'reka-ui'
-import { Field } from 'vee-validate'
+import { useField } from 'vee-validate'
 import { cn } from '@/utils/cn'
 import { FORM_ITEM_INJECTION_KEY } from '@/composables'
 import { FORM_CONTEXT_KEY } from './context'
@@ -23,6 +23,38 @@ const labelPosition = computed(() => {
 })
 
 const isTopLabel = computed(() => labelPosition.value === 'top')
+
+// Use vee-validate useField to sync with form schema validation
+const fieldState = props.prop
+  ? useField(() => props.prop!, undefined, {
+      syncVModel: false,
+      initialValue: formContext?.model?.value?.[props.prop!],
+    })
+  : null
+
+// Two-way sync between form model and vee-validate field
+if (fieldState && formContext?.model) {
+  // model → field
+  watch(
+    () => formContext.model?.value?.[props.prop!],
+    (newVal) => {
+      if (fieldState.value.value !== newVal) {
+        fieldState.value.value = newVal
+      }
+    },
+  )
+  // field → model (for resetForm)
+  watch(
+    () => fieldState.value.value,
+    (newVal) => {
+      if (formContext.model?.value && formContext.model.value[props.prop!] !== newVal) {
+        formContext.model.value[props.prop!] = newVal
+      }
+    },
+  )
+}
+
+const errorMessage = computed(() => fieldState?.errorMessage?.value)
 </script>
 
 <template>
@@ -34,71 +66,44 @@ const isTopLabel = computed(() => labelPosition.value === 'top')
       props.class,
     )"
   >
-    <template v-if="prop">
-      <Field
-        v-slot="{ field, errorMessage }"
-        :name="prop"
-        :validate-on-input="true"
+    <!-- Label -->
+    <label
+      v-if="label"
+      data-slot="form-label"
+      :data-error="!!errorMessage"
+      :for="`${id}-form-item`"
+      :class="cn(
+        'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
+        'data-[error=true]:text-destructive',
+        !isTopLabel && 'flex h-9 items-center',
+        labelPosition === 'right' && !isTopLabel && 'text-right',
+      )"
+      :style="resolvedLabelWidth ? { width: resolvedLabelWidth, minWidth: resolvedLabelWidth } : undefined"
+    >
+      <span v-if="required" class="text-destructive mr-1">*</span>
+      {{ label }}
+    </label>
+
+    <!-- Empty cell for grid when no label -->
+    <div v-if="!label && !isTopLabel" />
+
+    <!-- Control + error -->
+    <div>
+      <div
+        :id="`${id}-form-item`"
+        :aria-invalid="!!errorMessage"
+        :aria-describedby="errorMessage ? `${id}-form-item-message` : undefined"
       >
-        <!-- Label -->
-        <label
-          v-if="label"
-          data-slot="form-label"
-          :data-error="!!errorMessage"
-          :for="`${id}-form-item`"
-          :class="cn(
-            'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-            'data-[error=true]:text-destructive',
-            !isTopLabel && 'flex h-9 items-center',
-            labelPosition === 'right' && !isTopLabel && 'text-right',
-          )"
-          :style="resolvedLabelWidth ? { width: resolvedLabelWidth, minWidth: resolvedLabelWidth } : undefined"
-        >
-          <span v-if="required" class="text-destructive mr-1">*</span>
-          {{ label }}
-        </label>
-
-        <!-- Control -->
-        <div>
-          <div
-            :id="`${id}-form-item`"
-            :aria-invalid="!!errorMessage"
-            :aria-describedby="errorMessage ? `${id}-form-item-message` : undefined"
-          >
-            <slot v-bind="{ field, errorMessage }" />
-          </div>
-          <p
-            v-if="errorMessage"
-            :id="`${id}-form-item-message`"
-            data-slot="form-message"
-            :class="cn('text-destructive text-sm mt-1')"
-          >
-            {{ errorMessage }}
-          </p>
-        </div>
-      </Field>
-    </template>
-
-    <template v-else>
-      <!-- Label without validation -->
-      <label
-        v-if="label"
-        data-slot="form-label"
-        :class="cn(
-          'text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
-          !isTopLabel && 'flex h-9 items-center',
-          labelPosition === 'right' && !isTopLabel && 'text-right',
-        )"
-        :style="resolvedLabelWidth ? { width: resolvedLabelWidth, minWidth: resolvedLabelWidth } : undefined"
-      >
-        <span v-if="required" class="text-destructive mr-1">*</span>
-        {{ label }}
-      </label>
-
-      <!-- Control without validation -->
-      <div>
         <slot />
       </div>
-    </template>
+      <p
+        v-if="errorMessage"
+        :id="`${id}-form-item-message`"
+        data-slot="form-message"
+        :class="cn('text-destructive text-sm mt-1')"
+      >
+        {{ errorMessage }}
+      </p>
+    </div>
   </div>
 </template>

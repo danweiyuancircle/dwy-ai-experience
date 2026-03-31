@@ -29,7 +29,13 @@ export const modules: ModuleConfig[] = [
           { name: 'Alert 提示', path: '/eui/alert-badge' },
           { name: 'Card 卡片', path: '/eui/card' },
           { name: 'Avatar 头像', path: '/eui/avatar' },
-          { name: 'Typography 排版', path: '/eui/misc' },
+          { name: 'Typography 排版', path: '/eui/typography' },
+          { name: 'Kbd 键盘', path: '/eui/kbd' },
+          { name: 'Separator 分隔线', path: '/eui/separator' },
+          { name: 'Spinner 加载', path: '/eui/spinner' },
+          { name: 'Empty 空状态', path: '/eui/empty' },
+          { name: 'Label 标签', path: '/eui/label' },
+          { name: 'AspectRatio 宽高比', path: '/eui/aspect-ratio' },
         ],
       },
       {
@@ -86,8 +92,25 @@ export const modules: ModuleConfig[] = [
         items: [
           { name: 'Accordion 手风琴', path: '/eui/accordion' },
           { name: 'Transfer 穿梭框', path: '/eui/transfer' },
-          { name: 'Misc 杂项', path: '/eui/misc' },
-          { name: '业务组件', path: '/eui/business' },
+        ],
+      },
+      {
+        title: '业务 Business',
+        items: [
+          { name: 'FormDialog 表单弹窗', path: '/eui/form-dialog' },
+          { name: 'ConfirmDialog 确认弹窗', path: '/eui/confirm-dialog' },
+          { name: 'DataPage 数据页', path: '/eui/data-page' },
+        ],
+      },
+      {
+        title: 'Blocks 模板',
+        items: [
+          { name: 'Sidebar 折叠侧边栏', path: '/eui/blocks/sidebar-07' },
+          { name: 'Dashboard 仪表盘', path: '/eui/blocks/dashboard-01' },
+          { name: 'Login 居中卡片', path: '/eui/blocks/login-01' },
+          { name: 'Login 双栏图片', path: '/eui/blocks/login-02' },
+          { name: 'Login 卡片图片', path: '/eui/blocks/login-04' },
+          { name: 'OTP 验证码', path: '/eui/blocks/otp-01' },
         ],
       },
     ],
