@@ -1,3 +1,12 @@
+---
+paths:
+  - "**/*.vue"
+  - "**/*.ts"
+  - "**/*.tsx"
+  - "**/vite.config.*"
+  - "**/tsconfig*.json"
+---
+
 # Vue 3 + TypeScript + Vite + Pinia 代码规范
 
 所有 Vue / TypeScript 前端项目必须遵循以下规范。AI 生成或修改代码时，必须严格按照这些规则执行。

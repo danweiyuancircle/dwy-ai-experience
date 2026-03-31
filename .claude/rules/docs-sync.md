@@ -1,3 +1,13 @@
+---
+paths:
+  - "frontend/eui/src/**"
+  - "frontend/core/src/**"
+  - "backend/src/**"
+  - "claude-cli/src/**"
+  - "claude-cli/bin/**"
+  - "claude-cli/templates/**"
+---
+
 # 文档同步规则
 
 当代码发生变更时，必须同步更新所有关联文档。不允许只改代码不更新文档。

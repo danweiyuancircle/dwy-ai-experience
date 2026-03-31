@@ -1,3 +1,10 @@
+---
+paths:
+  - "**/*.py"
+  - "**/alembic/**"
+  - "**/pyproject.toml"
+---
+
 # 后端安全编码规范
 
 FastAPI + PostgreSQL + Redis + MinIO + DolphinDB 项目的安全编码规则。AI 生成或修改代码时，必须严格按照这些规则执行。

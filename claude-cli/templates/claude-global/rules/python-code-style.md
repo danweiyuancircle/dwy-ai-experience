@@ -3,6 +3,9 @@ name: python-code-style
 description: Python + FastAPI 代码规范
 type: claude-rule
 tags: [python, fastapi, code-style]
+paths:
+  - "**/*.py"
+  - "**/pyproject.toml"
 version: 1.0.0
 author: chances
 ---
