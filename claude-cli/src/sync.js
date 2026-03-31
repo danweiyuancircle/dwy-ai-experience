@@ -28,6 +28,14 @@ export async function syncClaude() {
     }
   }
 
+  // Sync CLAUDE.md
+  const claudeMdSrc = path.join(sourceDir, 'CLAUDE.md')
+  if (await fs.pathExists(claudeMdSrc)) {
+    await fs.copy(claudeMdSrc, path.join(targetDir, 'CLAUDE.md'))
+    syncedCount++
+    console.log(chalk.green('  ✓ CLAUDE.md'))
+  }
+
   const settingsSrc = path.join(sourceDir, 'settings.json')
   if (await fs.pathExists(settingsSrc)) {
     const settingsDest = path.join(targetDir, 'settings.json')
