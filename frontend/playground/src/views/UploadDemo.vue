@@ -6,6 +6,15 @@ const files1 = ref<any[]>([])
 const files2 = ref<any[]>([])
 const filesCard = ref<any[]>([])
 const filesDrag = ref<any[]>([])
+const filesValidated = ref<any[]>([])
+
+function beforeUpload(file: File) {
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) {
+    alert('文件大小不能超过 2MB！')
+  }
+  return isLt2M
+}
 </script>
 
 <template>
@@ -71,6 +80,25 @@ const filesDrag = ref<any[]>([])
       <EUpload v-model="files1" :limit="3" :multiple="true">
         <EButton variant="outline">最多 3 个文件</EButton>
       </EUpload>
+    </DemoBlock>
+
+    <DemoBlock
+      title="上传前校验"
+      description="通过 :before-upload 在上传前校验文件，超过 2MB 拒绝上传"
+      code='<EUpload v-model="files" :before-upload="beforeUpload">
+  <EButton>上传文件（限 2MB）</EButton>
+</EUpload>
+
+function beforeUpload(file: File) {
+  const isLt2M = file.size / 1024 / 1024 < 2
+  if (!isLt2M) alert(&apos;文件大小不能超过 2MB！&apos;)
+  return isLt2M
+}'
+    >
+      <EUpload v-model="filesValidated" :before-upload="beforeUpload">
+        <EButton variant="outline">上传文件（限 2MB）</EButton>
+      </EUpload>
+      <p class="text-sm text-muted-foreground mt-2">已选 {{ filesValidated.length }} 个文件（超过 2MB 的文件将被拒绝）</p>
     </DemoBlock>
   </div>
 </template>

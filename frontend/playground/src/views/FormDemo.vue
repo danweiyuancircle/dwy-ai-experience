@@ -35,6 +35,14 @@ function handleReset() {
   }
 }
 
+const inlineModel = reactive({ keyword: '', status: '' })
+
+const statusOptions = [
+  { label: '全部', value: '' },
+  { label: '启用', value: 'active' },
+  { label: '禁用', value: 'inactive' },
+]
+
 // Simple rules without Zod for demo
 const rules = {
   username: { required: true, min: 3, message: '用户名至少 3 个字符' },
@@ -125,6 +133,34 @@ const rules = {
         </EFormItem>
         <EFormItem>
           <EButton>提交</EButton>
+        </EFormItem>
+      </EForm>
+    </DemoBlock>
+
+    <DemoBlock
+      title="行内表单"
+      description="设置 inline 使表单项水平排列，适合搜索/筛选场景"
+      code='<EForm inline :model="model">
+  <EFormItem label="关键词">
+    <EInput v-model="model.keyword" placeholder="请输入关键词" />
+  </EFormItem>
+  <EFormItem label="状态">
+    <ESelect v-model="model.status" :options="statusOptions" placeholder="请选择" />
+  </EFormItem>
+  <EFormItem>
+    <EButton>搜索</EButton>
+  </EFormItem>
+</EForm>'
+    >
+      <EForm inline :model="inlineModel">
+        <EFormItem label="关键词">
+          <EInput v-model="inlineModel.keyword" placeholder="请输入关键词" />
+        </EFormItem>
+        <EFormItem label="状态">
+          <ESelect v-model="inlineModel.status" :options="statusOptions" placeholder="请选择" class="w-32" />
+        </EFormItem>
+        <EFormItem>
+          <EButton>搜索</EButton>
         </EFormItem>
       </EForm>
     </DemoBlock>

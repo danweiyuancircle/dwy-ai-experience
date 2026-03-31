@@ -7,6 +7,9 @@ const date2 = ref('')
 const time1 = ref('')
 const time2 = ref('')
 const dateDisabled = ref('2024-01-15')
+const range = ref<string[]>([])
+const monthValue = ref('')
+const yearValue = ref('')
 </script>
 
 <template>
@@ -63,6 +66,35 @@ const dateDisabled = ref('2024-01-15')
     >
       <div class="max-w-sm">
         <ETimePicker v-model="time2" :minuteStep="15" placeholder="分钟步长 15" />
+      </div>
+    </DemoBlock>
+
+    <DemoBlock
+      title="日期范围选择"
+      description="设置 type='daterange' 选择起止日期"
+      code='<EDatePicker v-model="range" type="daterange" start-placeholder="开始日期" end-placeholder="结束日期" />'
+    >
+      <div class="space-y-3 max-w-md">
+        <EDatePicker v-model="range" type="daterange" start-placeholder="开始日期" end-placeholder="结束日期" />
+        <p class="text-sm text-muted-foreground">当前值：{{ range && range.length ? range.join(' ~ ') : '(未选择)' }}</p>
+      </div>
+    </DemoBlock>
+
+    <DemoBlock
+      title="月份/年份选择"
+      description="设置 type='month' 或 type='year' 选择月份或年份"
+      code='<EDatePicker v-model="month" type="month" placeholder="选择月份" />
+<EDatePicker v-model="year" type="year" placeholder="选择年份" />'
+    >
+      <div class="flex gap-4 max-w-md">
+        <div class="flex-1 space-y-2">
+          <EDatePicker v-model="monthValue" type="month" placeholder="选择月份" />
+          <p class="text-sm text-muted-foreground">月份：{{ monthValue || '(未选择)' }}</p>
+        </div>
+        <div class="flex-1 space-y-2">
+          <EDatePicker v-model="yearValue" type="year" placeholder="选择年份" />
+          <p class="text-sm text-muted-foreground">年份：{{ yearValue || '(未选择)' }}</p>
+        </div>
       </div>
     </DemoBlock>
   </div>

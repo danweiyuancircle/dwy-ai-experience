@@ -5,10 +5,12 @@ import DemoBlock from '../components/DemoBlock.vue'
 const singleCheck = ref(false)
 const indeterminate = ref(true)
 const disabledCheck = ref(false)
+const checkboxGroupValue = ref<string[]>(['vue', 'react'])
 
 const radioValue = ref('vue')
 const radioValueVertical = ref('react')
 const radioDisabled = ref('angular')
+const radioButtonValue = ref('vue')
 
 const frameworks = [
   { label: 'Vue 3', value: 'vue' },
@@ -82,6 +84,28 @@ const frameworks = [
       code='<ERadio v-model="value" :options="options" :disabled="true" />'
     >
       <ERadio v-model="radioDisabled" :options="frameworks" :disabled="true" />
+    </DemoBlock>
+
+    <DemoBlock
+      title="复选框组"
+      description="通过 options 数组渲染复选框组，v-model 绑定已选值数组"
+      code='<ECheckbox v-model="checked" :options="options" />'
+    >
+      <div class="space-y-3">
+        <ECheckbox v-model="checkboxGroupValue" :options="frameworks" />
+        <p class="text-sm text-muted-foreground">已选：{{ checkboxGroupValue.join(', ') || '(未选择)' }}</p>
+      </div>
+    </DemoBlock>
+
+    <DemoBlock
+      title="按钮式单选"
+      description="设置 option-type=&quot;button&quot; 以按钮样式展示单选组"
+      code='<ERadio v-model="val" :options="options" option-type="button" />'
+    >
+      <div class="space-y-3">
+        <ERadio v-model="radioButtonValue" :options="frameworks" option-type="button" />
+        <p class="text-sm text-muted-foreground">当前选择：{{ radioButtonValue }}</p>
+      </div>
     </DemoBlock>
   </div>
 </template>

@@ -6,6 +6,7 @@ const page1 = ref(1)
 const page2 = ref(3)
 const page3 = ref(1)
 const pageSize3 = ref(20)
+const page4 = ref(1)
 </script>
 
 <template>
@@ -56,6 +57,23 @@ const pageSize3 = ref(20)
           :pageSizes="[10, 20, 50, 100]"
         />
         <p class="text-sm text-muted-foreground">当前页：{{ page3 }}，每页：{{ pageSize3 }} 条</p>
+      </div>
+    </DemoBlock>
+
+    <DemoBlock
+      title="带跳转分页"
+      description="设置 jumper 和 layout 启用页码跳转输入框"
+      code='<EPagination v-model="page" :total="500" jumper layout="total, prev, pager, next, jumper" />'
+    >
+      <div class="space-y-3">
+        <EPagination
+          v-model="page4"
+          :total="500"
+          jumper
+          layout="total, prev, pager, next, jumper"
+          :showTotal="true"
+        />
+        <p class="text-sm text-muted-foreground">当前页：{{ page4 }}</p>
       </div>
     </DemoBlock>
   </div>

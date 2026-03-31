@@ -4,6 +4,8 @@ import DemoBlock from '../components/DemoBlock.vue'
 
 const basicOpen = ref(false)
 const formOpen = ref(false)
+const dragOpen = ref(false)
+const fullOpen = ref(false)
 const drawerRight = ref(false)
 const drawerLeft = ref(false)
 const drawerTop = ref(false)
@@ -53,6 +55,34 @@ const formData = ref({ name: '', email: '' })
         <template #footer>
           <EButton variant="outline" @click="formOpen = false">取消</EButton>
           <EButton @click="formOpen = false">保存</EButton>
+        </template>
+      </EDialog>
+    </DemoBlock>
+
+    <DemoBlock
+      title="可拖拽对话框"
+      description="设置 draggable 允许拖拽移动对话框"
+      code='<EDialog :open="dragOpen" title="拖拽我" draggable>内容</EDialog>'
+    >
+      <EButton @click="dragOpen = true">打开可拖拽对话框</EButton>
+      <EDialog v-model:open="dragOpen" title="拖拽我" draggable>
+        <p class="text-muted-foreground">按住标题栏可以拖拽移动此对话框。</p>
+        <template #footer>
+          <EButton variant="outline" @click="dragOpen = false">关闭</EButton>
+        </template>
+      </EDialog>
+    </DemoBlock>
+
+    <DemoBlock
+      title="全屏对话框"
+      description="设置 fullscreen 使对话框占满全屏"
+      code='<EDialog :open="fullOpen" title="全屏" fullscreen>内容</EDialog>'
+    >
+      <EButton @click="fullOpen = true">打开全屏对话框</EButton>
+      <EDialog v-model:open="fullOpen" title="全屏对话框" fullscreen>
+        <p class="text-muted-foreground">这是一个全屏对话框，适用于需要大量展示空间的场景。</p>
+        <template #footer>
+          <EButton variant="outline" @click="fullOpen = false">关闭</EButton>
         </template>
       </EDialog>
     </DemoBlock>

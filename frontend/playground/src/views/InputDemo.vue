@@ -10,6 +10,7 @@ const readonly = ref('只读状态的值')
 const sizeSmall = ref('')
 const sizeLarge = ref('')
 const maxLen = ref('')
+const wordLimitVal = ref('')
 </script>
 
 <template>
@@ -83,6 +84,16 @@ const maxLen = ref('')
       <div class="max-w-sm">
         <EInput v-model="maxLen" :maxlength="20" placeholder="最多输入 20 个字符" />
         <p class="text-sm text-muted-foreground mt-2">{{ maxLen.length }}/20</p>
+      </div>
+    </DemoBlock>
+
+    <DemoBlock
+      title="字数统计"
+      description="设置 show-word-limit 配合 maxlength 显示字数统计"
+      code='<EInput v-model="val" :maxlength="50" show-word-limit placeholder="最多50字" />'
+    >
+      <div class="max-w-sm">
+        <EInput v-model="wordLimitVal" :maxlength="50" show-word-limit placeholder="最多50字" />
       </div>
     </DemoBlock>
   </div>

@@ -27,6 +27,25 @@ function toggleLoading() {
   loading.value = true
   setTimeout(() => (loading.value = false), 1500)
 }
+
+const expandColumns = [
+  { key: 'name', title: '姓名' },
+  { key: 'age', title: '年龄' },
+  { key: 'role', title: '角色' },
+]
+
+const summaryColumns = [
+  { key: 'name', title: '姓名' },
+  { key: 'age', title: '年龄', sortable: true },
+  { key: 'role', title: '角色' },
+  { key: 'status', title: '状态' },
+]
+
+function getRowClassName({ row }: { row: any }) {
+  if (row.status === '离职') return 'bg-red-50 dark:bg-red-950/20'
+  if (row.status === '休假') return 'bg-yellow-50 dark:bg-yellow-950/20'
+  return ''
+}
 </script>
 
 <template>
@@ -102,6 +121,42 @@ function toggleLoading() {
           </span>
         </template>
       </ETable>
+    </DemoBlock>
+
+    <DemoBlock
+      title="展开行"
+      description="设置 expandable 启用行展开，通过 #expand 插槽自定义展开内容"
+      code='<ETable :data="data" :columns="columns" expandable>
+  <template #expand="{ row }">
+    <pre>{{ JSON.stringify(row, null, 2) }}</pre>
+  </template>
+</ETable>'
+    >
+      <ETable :data="data" :columns="expandColumns" expandable row-key="id">
+        <template #expand="{ row }">
+          <div class="p-4 bg-muted/30">
+            <p class="text-sm font-medium mb-2">行详情</p>
+            <pre class="text-xs text-muted-foreground">{{ JSON.stringify(row, null, 2) }}</pre>
+          </div>
+        </template>
+      </ETable>
+    </DemoBlock>
+
+    <DemoBlock
+      title="合计行"
+      description="设置 show-summary 在表格底部显示合计行"
+      code='<ETable :data="data" :columns="columns" show-summary />'
+    >
+      <ETable :data="data" :columns="summaryColumns" show-summary row-key="id" />
+    </DemoBlock>
+
+    <DemoBlock
+      title="自定义行样式"
+      description="通过 :row-class-name 函数根据条件为行添加自定义样式"
+      code='<ETable :data="data" :columns="columns" :row-class-name="getRowClassName" />'
+    >
+      <ETable :data="data" :columns="columns" :row-class-name="getRowClassName" row-key="id" />
+      <p class="text-xs text-muted-foreground mt-2">离职行标红背景，休假行标黄背景</p>
     </DemoBlock>
   </div>
 </template>

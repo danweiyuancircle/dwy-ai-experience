@@ -101,5 +101,30 @@ const actionItems = [
         </EDropdown>
       </div>
     </DemoBlock>
+
+    <DemoBlock
+      title="悬浮触发"
+      description="设置 trigger=&quot;hover&quot; 鼠标悬浮时展开菜单"
+      code='<EDropdown :items="items" trigger="hover">
+  <EButton variant="outline">悬浮打开</EButton>
+</EDropdown>'
+    >
+      <EDropdown :items="basicItems" trigger="hover" @select="key => lastSelected = key">
+        <EButton variant="outline">悬浮打开</EButton>
+      </EDropdown>
+    </DemoBlock>
+
+    <DemoBlock
+      title="分裂按钮"
+      description="设置 split-button 将触发器分为操作按钮和下拉箭头两部分"
+      code='<EDropdown :items="items" split-button button-text="操作" />'
+    >
+      <EDropdown
+        :items="actionItems"
+        split-button
+        button-text="操作"
+        @select="key => lastSelected = key"
+      />
+    </DemoBlock>
   </div>
 </template>

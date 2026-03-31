@@ -61,5 +61,15 @@ const menuItems = [
         </div>
       </div>
     </DemoBlock>
+
+    <DemoBlock
+      title="手风琴菜单"
+      description="设置 unique-opened 保持同级只展开一个子菜单"
+      code='<EMenu v-model="activeKey" :items="menuItems" unique-opened :default-openeds="[&apos;users&apos;]" />'
+    >
+      <div class="border rounded-lg overflow-hidden" style="width: 220px">
+        <EMenu v-model="activeKey" :items="menuItems" unique-opened :default-openeds="['users']" />
+      </div>
+    </DemoBlock>
   </div>
 </template>

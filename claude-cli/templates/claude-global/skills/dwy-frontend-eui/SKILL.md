@@ -75,30 +75,30 @@ frontend/eui/src/components/{component-name}/types.ts
 
 | 组件 | 用途 | 关键 Props |
 |------|------|-----------|
-| EInput | 输入框 | v-model, type, placeholder, size, clearable, showPassword, disabled, readonly, maxlength |
-| ETextarea | 多行输入 | v-model, placeholder, rows, autoResize, maxlength, disabled |
-| ENumberField | 数字输入 | v-model, min, max, step, size, disabled |
-| ESelect | 下拉选择 | v-model, options(Option[]), placeholder, clearable, size, disabled |
+| EInput | 输入框 | v-model, type, placeholder, size, clearable, showPassword, disabled, readonly, maxlength, showWordLimit |
+| ETextarea | 多行输入 | v-model, placeholder, rows, autoResize, maxlength, disabled, showWordLimit, minRows, maxRows |
+| ENumberField | 数字输入 | v-model, min, max, step, size, disabled, precision, controlsPosition, placeholder, readonly |
+| ESelect | 下拉选择 | v-model, options(Option[]), placeholder, clearable, size, disabled, filterable, multiple, collapseTags, remote, remoteMethod, loading |
 | ENativeSelect | 原生 select | v-model, options(SelectOption[]), placeholder, disabled |
 | ECombobox | 组合框 | v-model, options(Option[]), placeholder, emptyText, disabled |
 | EAutocomplete | 自动补全 | v-model, fetchSuggestions(async fn), debounce, placeholder |
-| ECheckbox | 复选框 | v-model, label, disabled, indeterminate |
-| ERadio | 单选组 | v-model, options(Option[]), direction(horizontal/vertical), disabled |
+| ECheckbox | 复选框 | v-model, label, disabled, indeterminate, options(Option[]), direction(horizontal/vertical), border |
+| ERadio | 单选组 | v-model, options(Option[]), direction(horizontal/vertical), disabled, optionType(default/button), border, size |
 | ESwitch | 开关 | v-model, label, size, disabled |
 | ETagsInput | 标签输入 | v-model(string[]), placeholder, max, size, disabled |
-| EDatePicker | 日期选择 | v-model, placeholder, format, clearable, disabled |
+| EDatePicker | 日期选择 | v-model, type(date/daterange/month/year), placeholder, startPlaceholder, endPlaceholder, rangeSeparator, format, clearable, disabled, disabledDate, shortcuts(DatePickerShortcut[]) |
 | ETimePicker | 时间选择 | v-model, placeholder, format, hourStep, minuteStep, disabled |
 | EColorPicker | 颜色选择 | v-model, presets(string[]), showAlpha, disabled |
 | ERate | 评分 | v-model, max, allowHalf, showText, disabled |
 | ESlider | 滑块 | v-model(number[]), min, max, step, orientation, disabled |
-| ECascader | 级联选择 | v-model, options(CascaderOption[]), placeholder, filterable, clearable |
+| ECascader | 级联选择 | v-model, options(CascaderOption[]), placeholder, filterable, clearable, lazy, loadFn, multiple, collapseTags |
 | ETreeSelect | 树选择 | v-model, data(TreeNode[]), placeholder, multiple, checkable, disabled |
 | EMention | @提及输入 | v-model, options(MentionOption[]), prefix, loading, placeholder |
 | EInputOTP | OTP 验证码 | v-model, length, disabled, placeholder |
 | EPinInput | PIN 输入 | v-model(string[]), length, mask, otp, type(text/number) |
-| EUpload | 文件上传 | v-model(UploadFile[]), action, accept, multiple, limit, listType(text/picture/picture-card), drag |
+| EUpload | 文件上传 | v-model(UploadFile[]), action, accept, multiple, limit, listType(text/picture/picture-card), drag, beforeUpload, autoUpload, headers, withCredentials |
 | ETransfer | 穿梭框 | v-model, data(TransferItem[]), filterable, titles([string, string]) |
-| EForm | 表单容器 | model, rules(Zod/FormRule[]), labelWidth, labelPosition(left/right/top), size, disabled |
+| EForm | 表单容器 | model, rules(Zod/FormRule[]), labelWidth, labelPosition(left/right/top), size, disabled, inline |
 | EFormItem | 表单项 | （配合 EForm 使用） |
 | EField | 字段布局 | orientation(vertical/horizontal/responsive), invalid |
 | EInputGroup | 输入组 | 子组件 EInputGroupAddon(align) |
@@ -107,22 +107,22 @@ frontend/eui/src/components/{component-name}/types.ts
 
 | 组件 | 用途 | 关键 Props |
 |------|------|-----------|
-| ETable | 表格 | data, columns(TableColumn[]), loading, rowKey, striped, bordered, selectable, selectedKeys |
+| ETable | 表格 | data, columns(TableColumn[]), loading, rowKey, striped, bordered, selectable, selectedKeys, expandable, expandedRowKeys, rowClassName, showSummary, summaryMethod, virtual, virtualRowHeight, resizable |
 | EVirtualTable | 虚拟滚动表格 | columns(VirtualTableColumn[]), data, height, estimateRowHeight, rowKey, loading |
 | EDescriptions | 描述列表 | items(DescriptionItem[]), columns, bordered, title |
 | ETimeline | 时间线 | items(TimelineItem[]), reverse |
 | EStatistic | 统计数值 | title, value, prefix, suffix, precision |
-| ETree | 树形控件 | data(TreeNode[]), v-model, checkable, expandedKeys, defaultExpandAll |
+| ETree | 树形控件 | data(TreeNode[]), v-model, checkable, expandedKeys, defaultExpandAll, lazy, loadFn, draggable, filterMethod, filterQuery, checkStrictly |
 | ECalendar | 日历 | v-model, multiple, disabled, locale, minValue, maxValue |
 | ERangeCalendar | 日期范围日历 | v-model({start, end}), disabled, locale, minValue, maxValue |
-| EPagination | 分页 | v-model, total, pageSize, showSizeChanger, pageSizes, showTotal |
+| EPagination | 分页 | v-model, total, pageSize, showSizeChanger, pageSizes, showTotal, jumper, layout, disabled |
 | EBreadcrumb | 面包屑 | items(BreadcrumbItem[]), separator |
 
 ### 弹层与反馈
 
 | 组件 | 用途 | 关键 Props |
 |------|------|-----------|
-| EDialog | 对话框 | v-model:open, title, description, showClose, maxWidth |
+| EDialog | 对话框 | v-model:open, title, description, showClose, maxWidth, draggable, closeOnClickModal, closeOnPressEscape, fullscreen, destroyOnClose |
 | EDrawer | 抽屉 | v-model:open, title, description, direction(top/right/bottom/left), showClose |
 | ESheet | 侧边面板 | v-model:open, title, description, side(top/right/bottom/left), showClose |
 | EAlertDialog | 确认对话框 | v-model:open, title, description, confirmText, cancelText |
@@ -136,9 +136,9 @@ frontend/eui/src/components/{component-name}/types.ts
 
 | 组件 | 用途 | 关键 Props |
 |------|------|-----------|
-| ETabs | 标签页 | v-model, items(TabItem[]) |
-| EMenu | 侧边菜单 | v-model, items(MenuItem[]), collapsed |
-| EDropdown | 下拉菜单 | items(DropdownMenuItem[]), side, align, sideOffset |
+| ETabs | 标签页 | v-model, items(TabItem[]), closable, addable, tabPosition(top/bottom/left/right) |
+| EMenu | 侧边菜单 | v-model, items(MenuItem[]), collapsed, router, uniqueOpened, defaultOpeneds |
+| EDropdown | 下拉菜单 | items(DropdownMenuItem[]), side, align, sideOffset, trigger(click/hover), splitButton, buttonText, buttonVariant |
 | EAccordion | 手风琴 | v-model, items(AccordionItemOption[]), multiple, collapsible |
 | ECollapsible | 折叠面板 | v-model(boolean), disabled |
 | EStepper | 步骤条 | v-model, items(StepperItem[]), direction(horizontal/vertical) |
@@ -191,7 +191,7 @@ frontend/eui/src/components/{component-name}/types.ts
 | Composable | 用途 | 返回值 |
 |------------|------|--------|
 | useMessage() | 全局消息提示 | { success, warning, error, info } — 每个接收 string 或 MessageOptions |
-| useNotification() | 通知 | { success, warning, error, info } — 接收 NotificationOptions(title, message, position, duration) |
+| useNotification() | 通知 | { success, warning, error, info } — 接收 NotificationOptions(title, message, position, duration, onClick, closable) |
 | useMessageBox() | 对话确认 | { alert, confirm, prompt } — 返回 Promise<'confirm' \| 'cancel'> |
 | useTheme() | 主题管理 | { isDark, theme, setTheme, toggleDark, colorTheme, setColorTheme } |
 | useConfigProvider() | 读取全局配置 | { size, zIndex, locale } |
@@ -229,6 +229,8 @@ interface MenuItem {
   key: string
   label: string
   icon?: string
+  /** Route path for router mode (falls back to key if not provided) */
+  path?: string
   children?: MenuItem[]
   disabled?: boolean
 }
@@ -243,4 +245,13 @@ interface TableColumn<T = any> {
   align?: 'left' | 'center' | 'right'
   render?: (row: T, index: number) => any
 }
+
+type DatePickerType = 'date' | 'daterange' | 'month' | 'year'
+
+interface DatePickerShortcut {
+  text: string
+  value: Date | Date[] | (() => Date | Date[])
+}
+
+type TabPosition = 'top' | 'bottom' | 'left' | 'right'
 ```

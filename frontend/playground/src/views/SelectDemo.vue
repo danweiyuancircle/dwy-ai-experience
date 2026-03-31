@@ -8,6 +8,9 @@ const clearable = ref('vue')
 const disabled = ref('react')
 const sizeSm = ref('')
 const sizeLg = ref('')
+const searchValue = ref('')
+const multiValue = ref<string[]>([])
+const collapseValue = ref<string[]>([])
 
 const fruits = [
   { label: '苹果', value: 'apple' },
@@ -95,6 +98,39 @@ const frameworks = [
         <ESelect v-model="sizeSm" size="sm" :options="fruits" placeholder="小尺寸 sm" />
         <ESelect :options="fruits" placeholder="默认尺寸 default" />
         <ESelect v-model="sizeLg" size="lg" :options="fruits" placeholder="大尺寸 lg" />
+      </div>
+    </DemoBlock>
+
+    <DemoBlock
+      title="可搜索选择器"
+      description="设置 filterable 启用搜索过滤"
+      code='<ESelect v-model="searchValue" :options="options" filterable placeholder="输入搜索..." />'
+    >
+      <div class="space-y-3 max-w-sm">
+        <ESelect v-model="searchValue" :options="fruits" filterable placeholder="输入搜索..." />
+        <p class="text-sm text-muted-foreground">当前值：{{ searchValue || '(未选择)' }}</p>
+      </div>
+    </DemoBlock>
+
+    <DemoBlock
+      title="多选模式"
+      description="设置 multiple 启用多选"
+      code='<ESelect v-model="multiValue" :options="options" multiple placeholder="选择多个" />'
+    >
+      <div class="space-y-3 max-w-sm">
+        <ESelect v-model="multiValue" :options="fruits" multiple placeholder="选择多个" />
+        <p class="text-sm text-muted-foreground">已选：{{ multiValue.length > 0 ? multiValue.join(', ') : '(未选择)' }}</p>
+      </div>
+    </DemoBlock>
+
+    <DemoBlock
+      title="多选标签折叠"
+      description="设置 collapse-tags 折叠多选标签，节省空间"
+      code='<ESelect v-model="collapseValue" :options="options" multiple collapse-tags />'
+    >
+      <div class="space-y-3 max-w-sm">
+        <ESelect v-model="collapseValue" :options="fruits" multiple collapse-tags placeholder="选择多个（标签折叠）" />
+        <p class="text-sm text-muted-foreground">已选：{{ collapseValue.length > 0 ? collapseValue.join(', ') : '(未选择)' }}</p>
       </div>
     </DemoBlock>
   </div>

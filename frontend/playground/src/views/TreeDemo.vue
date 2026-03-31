@@ -77,6 +77,11 @@ const flatData = [
   { key: 'mobile', label: '移动端开发' },
   { key: 'devops', label: '运维工程师' },
 ]
+
+const filterQuery = ref('')
+const filterMethod = (query: string, node: { label: string }) => {
+  return node.label.toLowerCase().includes(query.toLowerCase())
+}
 </script>
 
 <template>
@@ -131,6 +136,31 @@ const flatData = [
       code='<ETree :data="data" :defaultExpandAll="true" />'
     >
       <ETree :data="orgData" :default-expand-all="true" />
+    </DemoBlock>
+
+    <DemoBlock
+      title="可拖拽树"
+      description="设置 draggable 启用节点拖拽排序"
+      code='<ETree :data="treeData" draggable defaultExpandAll />'
+    >
+      <ETree :data="treeData" draggable :default-expand-all="true" />
+    </DemoBlock>
+
+    <DemoBlock
+      title="可搜索树"
+      description="通过 filter-query 和 filter-method 实现节点搜索过滤"
+      code='<EInput v-model="filterQuery" placeholder="输入关键词搜索" />
+<ETree :data="treeData" :filter-query="filterQuery" :filter-method="filterMethod" defaultExpandAll />'
+    >
+      <div class="space-y-3">
+        <EInput v-model="filterQuery" placeholder="输入关键词搜索节点..." />
+        <ETree
+          :data="treeData"
+          :filter-query="filterQuery"
+          :filter-method="filterMethod"
+          :default-expand-all="true"
+        />
+      </div>
     </DemoBlock>
   </div>
 </template>
