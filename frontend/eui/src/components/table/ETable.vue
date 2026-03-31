@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { LoaderCircle, ArrowUpDown, ArrowUp, ArrowDown, ChevronRight } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
 import type { ETableProps, ETableEmits } from './types'
@@ -18,6 +18,9 @@ const props = withDefaults(defineProps<ETableProps>(), {
   expandable: false,
   expandedRowKeys: () => [],
   showSummary: false,
+  virtual: false,
+  virtualRowHeight: 48,
+  resizable: false,
 })
 
 const emit = defineEmits<ETableEmits>()
@@ -242,15 +245,143 @@ const summaryValues = computed<(string | number)[]>(() => {
     return values.reduce((sum: number, v) => sum + (v ?? 0), 0) as number
   })
 })
+
+// --- Virtual scrolling ---
+
+const virtualContainerRef = ref<HTMLElement | null>(null)
+const scrollTop = ref(0)
+const containerHeight = ref(0)
+const VIRTUAL_BUFFER = 5
+
+function handleVirtualScroll(event: Event) {
+  scrollTop.value = (event.target as HTMLElement).scrollTop
+}
+
+const totalHeight = computed(() => {
+  if (!props.virtual) return 0
+  return sortedData.value.length * props.virtualRowHeight
+})
+
+const virtualStartIndex = computed(() => {
+  if (!props.virtual) return 0
+  return Math.max(0, Math.floor(scrollTop.value / props.virtualRowHeight) - VIRTUAL_BUFFER)
+})
+
+const virtualEndIndex = computed(() => {
+  if (!props.virtual) return sortedData.value.length
+  const visibleCount = Math.ceil(containerHeight.value / props.virtualRowHeight)
+  return Math.min(sortedData.value.length, Math.floor(scrollTop.value / props.virtualRowHeight) + visibleCount + VIRTUAL_BUFFER)
+})
+
+const visibleRows = computed(() => {
+  if (!props.virtual) return sortedData.value
+  return sortedData.value.slice(virtualStartIndex.value, virtualEndIndex.value)
+})
+
+const virtualOffsetY = computed(() => {
+  return virtualStartIndex.value * props.virtualRowHeight
+})
+
+function initVirtualContainer() {
+  if (!props.virtual || !virtualContainerRef.value) return
+  containerHeight.value = virtualContainerRef.value.clientHeight
+}
+
+let resizeObserver: ResizeObserver | null = null
+
+onMounted(() => {
+  if (props.virtual && virtualContainerRef.value) {
+    initVirtualContainer()
+    resizeObserver = new ResizeObserver(() => {
+      if (virtualContainerRef.value) {
+        containerHeight.value = virtualContainerRef.value.clientHeight
+      }
+    })
+    resizeObserver.observe(virtualContainerRef.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+})
+
+// --- Column resize ---
+
+const columnWidths = ref<Record<string, number>>({})
+
+/** Get effective column width — local override or from column config */
+function getColumnWidth(column: TableColumn): number | string | undefined {
+  if (props.resizable && columnWidths.value[column.key]) {
+    return columnWidths.value[column.key]
+  }
+  return column.width
+}
+
+function getColumnStyle(column: TableColumn): Record<string, string | undefined> {
+  const w = getColumnWidth(column)
+  return {
+    width: w ? (typeof w === 'number' ? `${w}px` : w) : undefined,
+    minWidth: column.minWidth ? `${column.minWidth}px` : undefined,
+    ...getFixedStyle(column),
+  }
+}
+
+let resizeCol: string | null = null
+let resizeStartX = 0
+let resizeStartWidth = 0
+
+function onResizeMouseDown(event: MouseEvent, column: TableColumn) {
+  event.preventDefault()
+  event.stopPropagation()
+  resizeCol = column.key
+
+  // Determine current width
+  const currentWidth = columnWidths.value[column.key]
+  if (currentWidth) {
+    resizeStartWidth = currentWidth
+  } else if (column.width) {
+    resizeStartWidth = typeof column.width === 'number' ? column.width : parseFloat(column.width) || 100
+  } else {
+    // Measure actual rendered width from the th element
+    const th = (event.target as HTMLElement).closest('th')
+    resizeStartWidth = th ? th.offsetWidth : 100
+  }
+
+  resizeStartX = event.clientX
+  document.addEventListener('mousemove', onResizeMouseMove)
+  document.addEventListener('mouseup', onResizeMouseUp)
+  document.body.style.cursor = 'col-resize'
+  document.body.style.userSelect = 'none'
+}
+
+function onResizeMouseMove(event: MouseEvent) {
+  if (!resizeCol) return
+  const delta = event.clientX - resizeStartX
+  const newWidth = Math.max(50, resizeStartWidth + delta)
+  columnWidths.value[resizeCol] = newWidth
+}
+
+function onResizeMouseUp() {
+  resizeCol = null
+  document.removeEventListener('mousemove', onResizeMouseMove)
+  document.removeEventListener('mouseup', onResizeMouseUp)
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+}
 </script>
 
 <template>
   <div
+    ref="virtualContainerRef"
     data-slot="table-container"
     :class="cn(
       'relative w-full overflow-auto',
       bordered && 'rounded-md border',
     )"
+    v-on="virtual ? { scroll: handleVirtualScroll } : {}"
   >
     <!-- Loading overlay -->
     <div
@@ -265,13 +396,14 @@ const summaryValues = computed<(string | number)[]>(() => {
       :class="cn(
         'w-full caption-bottom text-sm',
         bordered && '[&_th]:border [&_td]:border',
+        resizable && 'table-fixed',
         props.class,
       )"
     >
       <!-- Header -->
       <thead
         data-slot="table-header"
-        :class="cn('[&_tr]:border-b')"
+        :class="cn('[&_tr]:border-b', virtual && 'sticky top-0 z-[2] bg-background')"
       >
         <tr
           data-slot="table-row"
@@ -311,13 +443,10 @@ const summaryValues = computed<(string | number)[]>(() => {
               column.align === 'right' && 'text-right',
               !column.align && 'text-left',
               column.sortable && 'cursor-pointer select-none hover:text-foreground',
+              resizable && 'relative',
               getFixedClass(column),
             )"
-            :style="{
-              width: column.width ? (typeof column.width === 'number' ? `${column.width}px` : column.width) : undefined,
-              minWidth: column.minWidth ? `${column.minWidth}px` : undefined,
-              ...getFixedStyle(column),
-            }"
+            :style="getColumnStyle(column)"
             @click="handleSort(column)"
           >
             <span class="inline-flex items-center gap-1">
@@ -326,6 +455,13 @@ const summaryValues = computed<(string | number)[]>(() => {
               <ArrowDown v-else-if="getSortDirection(column) === 'desc'" class="size-3.5 text-foreground" />
               <ArrowUpDown v-else-if="column.sortable" class="size-3.5 opacity-40" />
             </span>
+            <!-- Column resize handle -->
+            <span
+              v-if="resizable"
+              class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-primary/30"
+              @mousedown="onResizeMouseDown($event, column)"
+              @click.stop
+            />
           </th>
 
           <!-- Actions header -->
@@ -356,20 +492,29 @@ const summaryValues = computed<(string | number)[]>(() => {
           </td>
         </tr>
 
-        <!-- Data rows -->
+        <!-- Virtual scrolling spacer top -->
+        <tr v-if="virtual && sortedData.length > 0" aria-hidden="true">
+          <td
+            :colspan="(selectable ? 1 : 0) + (expandable ? 1 : 0) + columns.length + ($slots.actions ? 1 : 0)"
+            :style="{ height: `${virtualOffsetY}px`, padding: 0, border: 'none' }"
+          />
+        </tr>
+
+        <!-- Data rows (visible rows when virtual, all rows when not) -->
         <template
-          v-for="(row, rowIndex) in sortedData"
-          :key="getRowKey(row, rowIndex)"
+          v-for="(row, idx) in visibleRows"
+          :key="getRowKey(row, virtual ? virtualStartIndex + idx : idx)"
         >
           <tr
             data-slot="table-row"
-            :data-state="isRowSelected(row, rowIndex) ? 'selected' : undefined"
+            :data-state="isRowSelected(row, virtual ? virtualStartIndex + idx : idx) ? 'selected' : undefined"
             :class="cn(
               'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
-              striped && rowIndex % 2 === 1 && 'bg-muted/40',
-              getRowClassName(row, rowIndex),
+              striped && (virtual ? virtualStartIndex + idx : idx) % 2 === 1 && 'bg-muted/40',
+              getRowClassName(row, virtual ? virtualStartIndex + idx : idx),
             )"
-            @click="handleRowClick(row, rowIndex)"
+            :style="virtual ? { height: `${virtualRowHeight}px` } : undefined"
+            @click="handleRowClick(row, virtual ? virtualStartIndex + idx : idx)"
           >
             <!-- Selection checkbox -->
             <td
@@ -381,9 +526,9 @@ const summaryValues = computed<(string | number)[]>(() => {
             >
               <input
                 type="checkbox"
-                :checked="isRowSelected(row, rowIndex)"
+                :checked="isRowSelected(row, virtual ? virtualStartIndex + idx : idx)"
                 class="size-4 rounded border border-primary accent-primary"
-                @change="handleSelectRow(row, rowIndex)"
+                @change="handleSelectRow(row, virtual ? virtualStartIndex + idx : idx)"
               />
             </td>
 
@@ -393,12 +538,12 @@ const summaryValues = computed<(string | number)[]>(() => {
               data-slot="table-cell"
               :class="cn('w-10 px-2 text-center align-middle whitespace-nowrap bg-background')"
               :style="{ position: 'sticky', left: selectable ? '40px' : '0px', zIndex: 1 }"
-              @click.stop="toggleRowExpand(row, rowIndex)"
+              @click.stop="toggleRowExpand(row, virtual ? virtualStartIndex + idx : idx)"
             >
               <button
                 type="button"
                 class="inline-flex items-center justify-center rounded p-0.5 hover:bg-muted transition-transform duration-200"
-                :class="isRowExpanded(row, rowIndex) && 'rotate-90'"
+                :class="isRowExpanded(row, virtual ? virtualStartIndex + idx : idx) && 'rotate-90'"
               >
                 <ChevronRight class="size-4 text-muted-foreground" />
               </button>
@@ -420,7 +565,7 @@ const summaryValues = computed<(string | number)[]>(() => {
               <slot
                 :name="`cell-${column.key}`"
                 :row="row"
-                :index="rowIndex"
+                :index="virtual ? virtualStartIndex + idx : idx"
                 :value="row[column.key]"
               >
                 {{ row[column.key] }}
@@ -434,13 +579,13 @@ const summaryValues = computed<(string | number)[]>(() => {
               :class="cn('p-2 text-right align-middle whitespace-nowrap')"
               @click.stop
             >
-              <slot name="actions" :row="row" :index="rowIndex" />
+              <slot name="actions" :row="row" :index="virtual ? virtualStartIndex + idx : idx" />
             </td>
           </tr>
 
           <!-- Expanded content row -->
           <tr
-            v-if="expandable && isRowExpanded(row, rowIndex)"
+            v-if="expandable && isRowExpanded(row, virtual ? virtualStartIndex + idx : idx)"
             data-slot="table-row-expanded"
             :class="cn('border-b bg-muted/30')"
           >
@@ -448,10 +593,18 @@ const summaryValues = computed<(string | number)[]>(() => {
               :colspan="(selectable ? 1 : 0) + 1 + columns.length + ($slots.actions ? 1 : 0)"
               :class="cn('p-4')"
             >
-              <slot name="expand" :row="row" :index="rowIndex" />
+              <slot name="expand" :row="row" :index="virtual ? virtualStartIndex + idx : idx" />
             </td>
           </tr>
         </template>
+
+        <!-- Virtual scrolling spacer bottom -->
+        <tr v-if="virtual && sortedData.length > 0" aria-hidden="true">
+          <td
+            :colspan="(selectable ? 1 : 0) + (expandable ? 1 : 0) + columns.length + ($slots.actions ? 1 : 0)"
+            :style="{ height: `${totalHeight - virtualOffsetY - (visibleRows.length * virtualRowHeight)}px`, padding: 0, border: 'none' }"
+          />
+        </tr>
       </tbody>
 
       <!-- Summary footer -->

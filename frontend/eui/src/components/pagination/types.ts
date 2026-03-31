@@ -9,6 +9,9 @@ export interface EPaginationProps {
   showSizeChanger?: boolean
   pageSizes?: number[]
   showTotal?: boolean
+  jumper?: boolean
+  layout?: string
+  disabled?: boolean
 }
 
 export interface EPaginationEmits {

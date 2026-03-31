@@ -11,6 +11,8 @@ export interface EDialogProps {
   closeOnClickModal?: boolean
   closeOnPressEscape?: boolean
   fullscreen?: boolean
+  /** When true, unmount the default slot content when dialog closes (recreated on each open) */
+  destroyOnClose?: boolean
 }
 
 export interface EDialogEmits {

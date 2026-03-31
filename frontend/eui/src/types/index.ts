@@ -33,6 +33,8 @@ export interface MenuItem {
   key: string
   label: string
   icon?: string
+  /** Route path for router mode (falls back to key if not provided) */
+  path?: string
   children?: MenuItem[]
   disabled?: boolean
 }

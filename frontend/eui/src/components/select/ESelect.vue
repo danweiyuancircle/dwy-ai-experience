@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue'
-import { Check, ChevronDown, ChevronUp, X, Search } from 'lucide-vue-next'
+import { computed, ref, watch, nextTick } from 'vue'
+import { Check, ChevronDown, ChevronUp, X, Search, Loader2 } from 'lucide-vue-next'
 import {
   SelectRoot,
   SelectTrigger,
@@ -30,6 +30,8 @@ const props = withDefaults(defineProps<ESelectProps>(), {
   filterable: false,
   multiple: false,
   collapseTags: false,
+  remote: false,
+  loading: false,
 })
 
 const emit = defineEmits<ESelectEmits>()
@@ -68,11 +70,27 @@ function optionLabel(option: Record<string, any>): string {
   return option[props.labelKey] as string
 }
 
+/** Whether remote search mode is active */
+const isRemote = computed(() => props.remote && props.filterable)
+
 /** Check if an option label matches the current filter query (case-insensitive) */
 function matchesFilter(option: Record<string, any>): boolean {
   if (!props.filterable || !filterQuery.value) return true
+  // Skip local filtering in remote mode — options are managed externally
+  if (isRemote.value) return true
   return optionLabel(option).toLowerCase().includes(filterQuery.value.toLowerCase())
 }
+
+/** Debounce timer for remote search */
+let remoteDebounceTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(filterQuery, (query) => {
+  if (!isRemote.value || !props.remoteMethod) return
+  clearTimeout(remoteDebounceTimer)
+  remoteDebounceTimer = setTimeout(() => {
+    props.remoteMethod!(query)
+  }, 300)
+})
 
 /** Grouped options cast to the correct type */
 const groupedOptions = computed((): GroupedOption[] => {
@@ -329,9 +347,17 @@ const itemClass = 'focus:bg-accent focus:text-accent-foreground [&_svg:not([clas
         </div>
 
         <SelectViewport class="p-1 h-[var(--reka-select-trigger-height)] w-full min-w-[var(--reka-select-trigger-width)] scroll-my-1">
+          <!-- Loading spinner (remote mode) -->
+          <div
+            v-if="isRemote && loading"
+            class="py-6 flex items-center justify-center text-muted-foreground"
+          >
+            <Loader2 class="size-5 animate-spin" />
+          </div>
+
           <!-- No results message -->
           <div
-            v-if="filterable && !hasFilteredResults"
+            v-else-if="filterable && !hasFilteredResults"
             class="py-6 text-center text-sm text-muted-foreground"
           >
             No options found.
@@ -450,9 +476,17 @@ const itemClass = 'focus:bg-accent focus:text-accent-foreground [&_svg:not([clas
         </div>
 
         <SelectViewport class="p-1 h-[var(--reka-select-trigger-height)] w-full min-w-[var(--reka-select-trigger-width)] scroll-my-1">
+          <!-- Loading spinner (remote mode) -->
+          <div
+            v-if="isRemote && loading"
+            class="py-6 flex items-center justify-center text-muted-foreground"
+          >
+            <Loader2 class="size-5 animate-spin" />
+          </div>
+
           <!-- No results message -->
           <div
-            v-if="filterable && !hasFilteredResults"
+            v-else-if="filterable && !hasFilteredResults"
             class="py-6 text-center text-sm text-muted-foreground"
           >
             No options found.

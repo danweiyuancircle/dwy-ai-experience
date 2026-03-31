@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, getCurrentInstance } from 'vue'
 import { ChevronDown } from 'lucide-vue-next'
 import {
   CollapsibleRoot,
@@ -13,11 +13,25 @@ import type { MenuItem } from '@/types'
 const props = withDefaults(defineProps<EMenuProps>(), {
   items: () => [],
   collapsed: false,
+  router: false,
+  uniqueOpened: false,
+  defaultOpeneds: () => [],
 })
 
 const emit = defineEmits<EMenuEmits>()
 
-const expandedKeys = ref<Set<string>>(new Set())
+const expandedKeys = ref<Set<string>>(new Set(props.defaultOpeneds))
+
+/**
+ * Resolve the vue-router instance from the app's global properties.
+ * vue-router registers $router on globalProperties via app.use(router).
+ * This avoids a hard import dependency on the vue-router package.
+ */
+const routerInstance = props.router
+  ? (getCurrentInstance()?.appContext.config.globalProperties.$router as
+      | { push: (to: string) => void }
+      | undefined)
+  : undefined
 
 function isActive(key: string): boolean {
   return props.modelValue === key
@@ -32,14 +46,22 @@ function toggleExpand(key: string) {
   if (next.has(key)) {
     next.delete(key)
   } else {
+    if (props.uniqueOpened) {
+      // Close all other expanded sub-menus
+      next.clear()
+    }
     next.add(key)
   }
   expandedKeys.value = next
 }
 
-function handleSelect(key: string) {
-  emit('update:modelValue', key)
-  emit('select', key)
+function handleSelect(item: MenuItem) {
+  emit('update:modelValue', item.key)
+  emit('select', item.key)
+
+  if (props.router) {
+    routerInstance?.push(item.path || item.key)
+  }
 }
 
 function hasChildren(item: MenuItem): boolean {
@@ -100,7 +122,7 @@ function hasChildren(item: MenuItem): boolean {
                 isActive(child.key) && 'bg-primary/10 text-primary font-medium',
                 child.disabled && 'pointer-events-none opacity-50',
               )"
-              @click="handleSelect(child.key)"
+              @click="handleSelect(child)"
             >
               <component
                 :is="child.icon"
@@ -125,7 +147,7 @@ function hasChildren(item: MenuItem): boolean {
           collapsed ? 'justify-center px-0 py-2' : 'gap-2 px-3 py-2',
         )"
         :title="collapsed ? item.label : undefined"
-        @click="hasChildren(item) ? toggleExpand(item.key) : handleSelect(item.key)"
+        @click="hasChildren(item) ? toggleExpand(item.key) : handleSelect(item)"
       >
         <component
           :is="item.icon"

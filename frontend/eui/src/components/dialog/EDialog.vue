@@ -20,6 +20,7 @@ const props = withDefaults(defineProps<EDialogProps>(), {
   closeOnClickModal: true,
   closeOnPressEscape: true,
   fullscreen: false,
+  destroyOnClose: false,
 })
 
 const emit = defineEmits<EDialogEmits>()
@@ -147,7 +148,10 @@ function onPointerUp() {
           </slot>
         </div>
 
-        <slot />
+        <!-- destroyOnClose: unmount content when closed; otherwise always render -->
+        <div v-if="destroyOnClose ? localOpen : true" data-slot="dialog-body">
+          <slot />
+        </div>
 
         <div
           v-if="$slots.footer"

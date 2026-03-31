@@ -16,8 +16,13 @@ export interface EDropdownProps {
   side?: 'top' | 'right' | 'bottom' | 'left'
   align?: 'start' | 'center' | 'end'
   sideOffset?: number
+  trigger?: 'click' | 'hover'
+  splitButton?: boolean
+  buttonText?: string
+  buttonVariant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
 }
 
 export interface EDropdownEmits {
   (e: 'select', key: string): void
+  (e: 'click'): void
 }

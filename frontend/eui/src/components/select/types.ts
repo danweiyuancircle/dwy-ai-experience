@@ -17,6 +17,12 @@ export interface ESelectProps {
   multiple?: boolean
   /** When true and multiple is enabled, show first tag + "+N" instead of all tags */
   collapseTags?: boolean
+  /** When true (with filterable), skip local filtering and call remoteMethod instead */
+  remote?: boolean
+  /** Called with the search query when remote is true; caller should update options externally */
+  remoteMethod?: (query: string) => Promise<void>
+  /** When true, show a loading spinner in the dropdown (used with remote mode) */
+  loading?: boolean
 }
 
 export interface ESelectEmits {

@@ -22,6 +22,12 @@ export interface ETableProps {
   showSummary?: boolean
   /** Custom summary calculation; returns array of values aligned to columns */
   summaryMethod?: (data: Record<string, any>[], columns: TableColumn[]) => (string | number)[]
+  /** Enable virtual scrolling for large datasets */
+  virtual?: boolean
+  /** Row height in pixels for virtual scrolling calculation */
+  virtualRowHeight?: number
+  /** Enable column drag resize on header borders */
+  resizable?: boolean
 }
 
 export interface ETableEmits {

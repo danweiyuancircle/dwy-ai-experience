@@ -8,6 +8,10 @@ export interface ENumberFieldProps {
   step?: number
   disabled?: boolean
   size?: 'sm' | 'md' | 'lg'
+  precision?: number
+  controlsPosition?: 'default' | 'right'
+  placeholder?: string
+  readonly?: boolean
 }
 
 export interface ENumberFieldEmits {
