@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, onUnmounted } from 'vue'
 import DemoBlock from '../components/DemoBlock.vue'
+import ComponentDoc from '../components/ComponentDoc.vue'
+import PropsTable from '../components/PropsTable.vue'
 
 const staticVal = ref(65)
 const sliderVal = ref([65])
@@ -23,72 +25,101 @@ function startAnimation() {
 onUnmounted(() => {
   if (timer) clearInterval(timer)
 })
+
+const tocItems = [
+  { id: 'usage', label: '使用场景' },
+  { id: 'values', label: '不同进度值' },
+  { id: 'interactive', label: '可交互进度' },
+  { id: 'animation', label: '动画进度' },
+  { id: 'props', label: 'Props' },
+]
+
+const propsData = [
+  { name: 'modelValue', type: 'number', default: '0', description: '当前进度值（0-100）' },
+  { name: 'class', type: 'string', default: '-', description: '自定义 CSS 类名' },
+]
 </script>
 
 <template>
-  <div class="max-w-3xl">
-    <h1 class="text-2xl font-bold mb-2">Progress 进度条</h1>
-    <p class="text-muted-foreground mb-6">线性进度条组件，用于展示任务完成进度。</p>
+  <ComponentDoc
+    title="Progress 进度条"
+    description="线性进度条组件，用于展示任务完成进度。"
+    :toc-items="tocItems"
+  >
+    <section id="usage">
+      <h2 class="text-lg font-semibold mb-3">使用场景</h2>
+      <p class="text-muted-foreground text-sm leading-relaxed">适用于展示文件上传、数据处理、安装进度等需要告知用户当前完成状态的场景。通过 modelValue 设置 0-100 之间的进度百分比，支持配合定时器实现动画效果。</p>
+    </section>
 
-    <DemoBlock
-      title="不同进度值"
-      description="通过 modelValue 设置 0-100 的进度值"
-      code='<EProgress :modelValue="25" />
+    <section id="values">
+      <DemoBlock
+        title="不同进度值"
+        description="通过 modelValue 设置 0-100 的进度值"
+        code='<EProgress :modelValue="25" />
 <EProgress :modelValue="50" />
 <EProgress :modelValue="75" />
 <EProgress :modelValue="100" />'
-    >
-      <div class="space-y-4">
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-muted-foreground w-8">25%</span>
-          <EProgress :model-value="25" class="flex-1" />
+      >
+        <div class="space-y-4">
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-muted-foreground w-8">25%</span>
+            <EProgress :model-value="25" class="flex-1" />
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-muted-foreground w-8">50%</span>
+            <EProgress :model-value="50" class="flex-1" />
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-muted-foreground w-8">75%</span>
+            <EProgress :model-value="75" class="flex-1" />
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-sm text-muted-foreground w-8">100%</span>
+            <EProgress :model-value="100" class="flex-1" />
+          </div>
         </div>
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-muted-foreground w-8">50%</span>
-          <EProgress :model-value="50" class="flex-1" />
-        </div>
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-muted-foreground w-8">75%</span>
-          <EProgress :model-value="75" class="flex-1" />
-        </div>
-        <div class="flex items-center gap-3">
-          <span class="text-sm text-muted-foreground w-8">100%</span>
-          <EProgress :model-value="100" class="flex-1" />
-        </div>
-      </div>
-    </DemoBlock>
+      </DemoBlock>
+    </section>
 
-    <DemoBlock
-      title="可交互进度"
-      description="通过滑块动态调整进度值"
-    >
-      <div class="space-y-4">
-        <EProgress :model-value="sliderVal[0]" />
-        <div class="flex items-center gap-3">
-          <ESlider v-model="sliderVal" :min="0" :max="100" class="flex-1" />
-          <span class="text-sm font-medium w-12 text-right">{{ sliderVal[0] }}%</span>
+    <section id="interactive">
+      <DemoBlock
+        title="可交互进度"
+        description="通过滑块动态调整进度值"
+      >
+        <div class="space-y-4">
+          <EProgress :model-value="sliderVal[0]" />
+          <div class="flex items-center gap-3">
+            <ESlider v-model="sliderVal" :min="0" :max="100" class="flex-1" />
+            <span class="text-sm font-medium w-12 text-right">{{ sliderVal[0] }}%</span>
+          </div>
         </div>
-      </div>
-    </DemoBlock>
+      </DemoBlock>
+    </section>
 
-    <DemoBlock
-      title="动画进度"
-      description="模拟上传/处理进度动画效果"
-      code='// 通过定时器更新进度值来实现动画
+    <section id="animation">
+      <DemoBlock
+        title="动画进度"
+        description="模拟上传/处理进度动画效果"
+        code='// 通过定时器更新进度值来实现动画
 const progress = ref(0)
 const timer = setInterval(() => {
   progress.value = Math.min(100, progress.value + 2)
 }, 50)'
-    >
-      <div class="space-y-4">
-        <EProgress :model-value="animatedVal" />
-        <div class="flex items-center gap-3">
-          <EButton @click="startAnimation" :disabled="timer !== null">
-            {{ animatedVal === 100 ? '重新开始' : '开始动画' }}
-          </EButton>
-          <span class="text-sm text-muted-foreground">{{ animatedVal }}%</span>
+      >
+        <div class="space-y-4">
+          <EProgress :model-value="animatedVal" />
+          <div class="flex items-center gap-3">
+            <EButton @click="startAnimation" :disabled="timer !== null">
+              {{ animatedVal === 100 ? '重新开始' : '开始动画' }}
+            </EButton>
+            <span class="text-sm text-muted-foreground">{{ animatedVal }}%</span>
+          </div>
         </div>
-      </div>
-    </DemoBlock>
-  </div>
+      </DemoBlock>
+    </section>
+
+    <section id="props">
+      <PropsTable :data="propsData" />
+    </section>
+  </ComponentDoc>
 </template>

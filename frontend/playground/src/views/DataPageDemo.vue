@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import DemoBlock from '../components/DemoBlock.vue'
+import ComponentDoc from '../components/ComponentDoc.vue'
+import PropsTable from '../components/PropsTable.vue'
 
 const columns = [
   { key: 'id', title: 'ID' },
@@ -31,29 +33,61 @@ async function fetchUsers({ page, pageSize, keyword }: { page: number; pageSize:
     total: filtered.length,
   }
 }
+
+const tocItems = [
+  { id: 'usage', label: '使用场景' },
+  { id: 'basic', label: '基础用法' },
+  { id: 'props', label: 'Props' },
+  { id: 'slots', label: 'Slots' },
+]
+
+const propsData = [
+  { name: 'columns', type: 'TableColumn[]', description: '表格列定义（{ key, title, ... }）' },
+  { name: 'fetchFn', type: '(params: FetchParams) => Promise<FetchResult>', description: '数据获取函数，接收 { page, pageSize, keyword }，返回 { items, total }' },
+  { name: 'searchable', type: 'boolean', default: 'true', description: '是否显示搜索栏' },
+  { name: 'pageSize', type: 'number', default: '10', description: '每页条数' },
+  { name: 'class', type: 'string', description: '自定义 CSS 类名' },
+]
 </script>
 
 <template>
-  <div class="max-w-4xl">
-    <h1 class="text-2xl font-bold mb-2">EDataPage 数据页面</h1>
-    <p class="text-muted-foreground mb-6">集成搜索、表格、分页的完整数据列表页组件，传入 fetchFn 即可自动管理数据。</p>
+  <ComponentDoc
+    title="DataPage 数据页面"
+    description="集成搜索、表格、分页的完整数据列表页组件，传入 fetchFn 即可自动管理数据加载和分页。"
+    :toc-items="tocItems"
+  >
+    <section id="usage">
+      <h2 class="text-lg font-semibold mb-3">使用场景</h2>
+      <p class="text-muted-foreground text-sm leading-relaxed">适用于后台管理系统中的数据列表页面。只需提供列定义和数据获取函数，组件自动处理搜索、分页、加载状态。fetchFn 接收 { page, pageSize, keyword } 参数，返回 { items, total } 结构。组件内部自动管理翻页和关键词搜索。</p>
+    </section>
 
-    <DemoBlock
-      title="EDataPage 数据页面"
-      description="集成搜索、表格、分页的完整数据列表页组件，传入 fetchFn 即可自动管理数据"
-      code='<EDataPage
+    <section id="basic">
+      <DemoBlock
+        title="基础用法"
+        description="集成搜索、表格、分页的完整数据列表页组件，传入 fetchFn 即可自动管理数据"
+        code='<EDataPage
   :columns="columns"
   :fetchFn="fetchUsers"
   :searchable="true"
   :pageSize="5"
 />'
-    >
-      <EDataPage
-        :columns="columns"
-        :fetch-fn="fetchUsers"
-        :searchable="true"
-        :page-size="5"
-      />
-    </DemoBlock>
-  </div>
+      >
+        <EDataPage
+          :columns="columns"
+          :fetch-fn="fetchUsers"
+          :searchable="true"
+          :page-size="5"
+        />
+      </DemoBlock>
+    </section>
+
+    <section id="props">
+      <PropsTable :data="propsData" />
+    </section>
+
+    <section id="slots">
+      <h2 class="text-lg font-semibold mb-3">Slots</h2>
+      <p class="text-sm text-muted-foreground">该组件无自定义插槽。</p>
+    </section>
+  </ComponentDoc>
 </template>

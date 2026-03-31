@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import DemoBlock from '../components/DemoBlock.vue'
+import ComponentDoc from '../components/ComponentDoc.vue'
+import PropsTable from '../components/PropsTable.vue'
+import SlotsTable from '../components/SlotsTable.vue'
 
 const reversed = ref(false)
 
@@ -63,30 +66,67 @@ const systemTimeline = [
     type: 'warning' as const,
   },
 ]
+
+const tocItems = [
+  { id: 'usage', label: '使用场景' },
+  { id: 'order', label: '订单状态时间线' },
+  { id: 'reverse', label: '反向时间线' },
+  { id: 'props', label: 'Props' },
+  { id: 'slots', label: 'Slots' },
+]
+
+const propsData = [
+  { name: 'items', type: 'TimelineItem[]', default: '[]', description: '时间线数据数组，每项包含 title、content、timestamp、type' },
+  { name: 'reverse', type: 'boolean', default: 'false', description: '是否倒序显示（最新在上）' },
+  { name: 'class', type: 'string', default: '-', description: '自定义 CSS 类名' },
+]
+
+const slotsData = [
+  { name: 'default', description: '自定义时间线内容' },
+  { name: 'dot', description: '自定义时间节点图标' },
+]
 </script>
 
 <template>
-  <div class="max-w-3xl">
-    <h1 class="text-2xl font-bold mb-2">Timeline 时间线</h1>
-    <p class="text-muted-foreground mb-6">时间轴组件，用于展示有时间顺序的事件序列。</p>
+  <ComponentDoc
+    title="Timeline 时间线"
+    description="时间轴组件，用于展示有时间顺序的事件序列。"
+    :toc-items="tocItems"
+  >
+    <section id="usage">
+      <h2 class="text-lg font-semibold mb-3">使用场景</h2>
+      <p class="text-muted-foreground text-sm leading-relaxed">适用于展示按时间顺序排列的事件流，如订单状态跟踪、系统操作日志、项目里程碑等。通过 type 属性区分不同事件类型的颜色标识（primary/success/warning/danger），reverse 控制显示顺序。</p>
+    </section>
 
-    <DemoBlock
-      title="订单状态时间线"
-      description="不同类型（primary/success/warning/danger）对应不同颜色节点"
-      code='<ETimeline :items="timeline" />'
-    >
-      <ETimeline :items="orderTimeline" />
-    </DemoBlock>
+    <section id="order">
+      <DemoBlock
+        title="订单状态时间线"
+        description="不同类型（primary/success/warning/danger）对应不同颜色节点"
+        code='<ETimeline :items="timeline" />'
+      >
+        <ETimeline :items="orderTimeline" />
+      </DemoBlock>
+    </section>
 
-    <DemoBlock
-      title="反向时间线"
-      description="设置 reverse 倒序显示（最新在上）"
-      code='<ETimeline :items="timeline" :reverse="true" />'
-    >
-      <div class="space-y-3">
-        <ESwitch v-model="reversed" label="倒序显示（最新在上）" />
-        <ETimeline :items="systemTimeline" :reverse="reversed" />
-      </div>
-    </DemoBlock>
-  </div>
+    <section id="reverse">
+      <DemoBlock
+        title="反向时间线"
+        description="设置 reverse 倒序显示（最新在上）"
+        code='<ETimeline :items="timeline" :reverse="true" />'
+      >
+        <div class="space-y-3">
+          <ESwitch v-model="reversed" label="倒序显示（最新在上）" />
+          <ETimeline :items="systemTimeline" :reverse="reversed" />
+        </div>
+      </DemoBlock>
+    </section>
+
+    <section id="props">
+      <PropsTable :data="propsData" />
+    </section>
+
+    <section id="slots">
+      <SlotsTable :data="slotsData" />
+    </section>
+  </ComponentDoc>
 </template>
