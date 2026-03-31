@@ -1,0 +1,90 @@
+/* Color theme presets — apply by adding a class to <html>, e.g. class="theme-blue" */
+/* Default is Neutral (defined in tokens.css) */
+
+/* Blue theme */
+.theme-blue {
+  --primary: oklch(0.488 0.243 264.376);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.488 0.243 264.376);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+}
+.theme-blue.dark {
+  --primary: oklch(0.623 0.214 259.815);
+  --primary-foreground: oklch(0.205 0.042 265.755);
+}
+
+/* Green theme */
+.theme-green {
+  --primary: oklch(0.527 0.154 150.069);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.527 0.154 150.069);
+  --sidebar-primary: oklch(0.527 0.154 150.069);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+}
+.theme-green.dark {
+  --primary: oklch(0.696 0.17 162.48);
+  --primary-foreground: oklch(0.15 0.05 150.069);
+}
+
+/* Rose/Red theme */
+.theme-rose {
+  --primary: oklch(0.577 0.245 27.325);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.577 0.245 27.325);
+  --sidebar-primary: oklch(0.577 0.245 27.325);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+}
+.theme-rose.dark {
+  --primary: oklch(0.704 0.191 22.216);
+  --primary-foreground: oklch(0.15 0.05 27.325);
+}
+
+/* Orange theme */
+.theme-orange {
+  --primary: oklch(0.646 0.222 41.116);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.646 0.222 41.116);
+  --sidebar-primary: oklch(0.646 0.222 41.116);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+}
+.theme-orange.dark {
+  --primary: oklch(0.769 0.188 70.08);
+  --primary-foreground: oklch(0.15 0.05 41.116);
+}
+
+/* Violet/Purple theme */
+.theme-violet {
+  --primary: oklch(0.541 0.281 293.009);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.541 0.281 293.009);
+  --sidebar-primary: oklch(0.541 0.281 293.009);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+}
+.theme-violet.dark {
+  --primary: oklch(0.627 0.265 303.9);
+  --primary-foreground: oklch(0.15 0.05 293.009);
+}
+
+/* Slate theme (cool gray) */
+.theme-slate {
+  --primary: oklch(0.205 0.042 265.755);
+  --primary-foreground: oklch(0.985 0 0);
+  --ring: oklch(0.488 0.042 265.755);
+  --secondary: oklch(0.968 0.007 264.536);
+  --secondary-foreground: oklch(0.205 0.042 265.755);
+  --accent: oklch(0.968 0.007 264.536);
+  --accent-foreground: oklch(0.205 0.042 265.755);
+  --muted: oklch(0.968 0.007 264.536);
+  --muted-foreground: oklch(0.556 0.028 264.536);
+}
+.theme-slate.dark {
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 264.536);
+  --secondary-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.279 0.041 264.536);
+  --accent-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.279 0.041 264.536);
+  --muted-foreground: oklch(0.708 0.028 264.536);
+}

@@ -1,0 +1,18 @@
+<script setup lang="ts">
+import { MenubarRadioGroup } from 'reka-ui'
+import { cn } from '@/utils/cn'
+import type { EMenubarRadioGroupProps } from './types'
+
+const props = defineProps<EMenubarRadioGroupProps>()
+const emit = defineEmits<{ (e: 'update:modelValue', val: string): void }>()
+</script>
+
+<template>
+  <MenubarRadioGroup
+    :model-value="props.modelValue"
+    :class="cn(props.class)"
+    @update:model-value="emit('update:modelValue', $event as string)"
+  >
+    <slot />
+  </MenubarRadioGroup>
+</template>

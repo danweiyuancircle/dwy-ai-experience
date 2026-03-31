@@ -1,0 +1,29 @@
+{
+  "name": "create-dwy",
+  "version": "0.2.0",
+  "description": "Project scaffolding and Claude Code config sync CLI",
+  "type": "module",
+  "bin": {
+    "dwy": "./bin/index.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "templates"
+  ],
+  "keywords": ["cli", "scaffold", "fastapi", "vue"],
+  "license": "MIT",
+  "author": "danweiyuan",
+  "dependencies": {
+    "commander": "^12.0.0",
+    "inquirer": "^9.0.0",
+    "handlebars": "^4.7.0",
+    "fs-extra": "^11.0.0",
+    "chalk": "^5.0.0",
+    "simple-git": "^3.0.0"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  }
+}

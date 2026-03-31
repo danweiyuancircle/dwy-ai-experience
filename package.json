@@ -1,0 +1,15 @@
+{
+  "name": "dwy-shared",
+  "private": true,
+  "scripts": {
+    "build:eui": "pnpm -F @danweiyuan/eui build",
+    "build:core": "pnpm -F @danweiyuan/core build",
+    "build:cli": "echo 'cli has no build step'",
+    "build:frontend": "pnpm -F @danweiyuan/eui build && pnpm -F @danweiyuan/core build",
+    "test:backend": "cd backend && pytest tests/ -v",
+    "publish:eui": "pnpm -F @danweiyuan/eui publish --access public --no-git-checks",
+    "publish:core": "pnpm -F @danweiyuan/core publish --access public --no-git-checks",
+    "publish:cli": "cd claude-cli && npm publish --access public",
+    "publish:backend": "cd backend && uv build && uv publish"
+  }
+}

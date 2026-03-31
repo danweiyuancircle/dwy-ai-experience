@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.DS_Store
+*.tsbuildinfo
+
+# Python
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+.venv/
+.pytest_cache/
+.ruff_cache/
+
+# Environment
+.env
+*.env

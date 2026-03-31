@@ -1,0 +1,52 @@
+# {{projectName}}
+
+{{projectDescription}}
+
+## Tech Stack
+
+- Frontend: Vue 3 + TypeScript + Tailwind CSS 4 + Vite
+- Backend: Python 3.11 + FastAPI + SQLAlchemy 2.0 (async)
+- Database: PostgreSQL 16 + Redis 7
+- Shared: @danweiyuan/eui, @danweiyuan/core, danweiyuan-base
+
+## Commands
+
+### Development
+
+```bash
+# Infrastructure
+docker compose -f docker-compose.dev.yml up -d
+
+# Backend
+cd backend
+uv run uvicorn app.main:app --reload --port 8000
+
+# Frontend
+cd frontend
+pnpm dev
+```
+
+### Deploy
+
+```bash
+./deploy.sh              # Full deploy
+./deploy.sh --frontend   # Frontend only
+./deploy.sh --backend    # Backend only
+```
+
+### Test
+
+```bash
+cd backend && uv run pytest tests/ -v
+```
+
+## Architecture
+
+```
+frontend/ → Vue 3 SPA
+backend/  → FastAPI (src/app/)
+  routers/  → HTTP endpoints
+  services/ → Business logic
+  models/   → SQLAlchemy ORM
+  schemas/  → Pydantic request/response
+```

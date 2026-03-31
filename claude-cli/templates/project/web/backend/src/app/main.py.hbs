@@ -1,0 +1,40 @@
+"""{{projectDescription}} — FastAPI application entry point."""
+
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
+from danweiyuan_base.cache import close_redis, configure
+from danweiyuan_base.database import create_async_engine_factory, create_session_factory
+from danweiyuan_base.exceptions import register_exception_handlers
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app.config import settings
+from app.routers import health
+
+engine = create_async_engine_factory(settings.database_url)
+async_session_factory = create_session_factory(engine)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    """Application lifespan — startup and shutdown."""
+    configure(settings.redis_url)
+    yield
+    await engine.dispose()
+    await close_redis()
+
+
+app = FastAPI(title="{{projectName}}", version="0.1.0", lifespan=lifespan)
+
+register_exception_handlers(app)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["*"],
+)
+
+app.include_router(health.router)

@@ -1,0 +1,38 @@
+{
+  "name": "@danweiyuan/core",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Shared utilities, hooks, and helpers for danweiyuan projects",
+  "license": "MIT",
+  "author": "danweiyuan",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./src/index.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "peerDependencies": {
+    "axios": "^1.0.0",
+    "vue": "^3.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3",
+    "vite": "^8.0.3"
+  },
+  "scripts": {
+    "build": "vite build",
+    "test": "vitest run"
+  }
+}
