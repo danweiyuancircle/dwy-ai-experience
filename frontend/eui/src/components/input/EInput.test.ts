@@ -114,6 +114,6 @@ describe('EInput', () => {
 
   it('has data-slot attribute on wrapper', () => {
     const wrapper = mount(EInput)
-    expect(wrapper.attributes('data-slot')).toBe('input-wrapper')
+    expect(wrapper.attributes('data-slot')).toBe('input-root')
   })
 })
