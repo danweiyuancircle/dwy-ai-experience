@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { LoaderCircle, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-vue-next'
+import { LoaderCircle, ArrowUpDown, ArrowUp, ArrowDown, ChevronRight } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
 import type { ETableProps, ETableEmits } from './types'
 import type { TableColumn } from '@/types'
@@ -15,6 +15,9 @@ const props = withDefaults(defineProps<ETableProps>(), {
   emptyText: '暂无数据',
   selectable: false,
   selectedKeys: () => [],
+  expandable: false,
+  expandedRowKeys: () => [],
+  showSummary: false,
 })
 
 const emit = defineEmits<ETableEmits>()
@@ -115,6 +118,130 @@ function handleSelectRow(row: Record<string, any>, index: number) {
 function isRowSelected(row: Record<string, any>, index: number): boolean {
   return props.selectedKeys.includes(getRowKey(row, index))
 }
+
+// --- Fixed columns ---
+
+/** Resolve a column width to a numeric pixel value for sticky offset calculation */
+function resolveWidth(width: number | string | undefined): number {
+  if (width == null) return 0
+  if (typeof width === 'number') return width
+  const num = parseFloat(width)
+  return Number.isNaN(num) ? 0 : num
+}
+
+/** Columns fixed to the left, in their original order */
+const leftFixedColumns = computed(() =>
+  props.columns.filter((c) => c.fixed === 'left'),
+)
+
+/** Columns fixed to the right, in their original order */
+const rightFixedColumns = computed(() =>
+  props.columns.filter((c) => c.fixed === 'right'),
+)
+
+/** Map column key -> sticky left/right offset in px */
+const fixedOffsets = computed(() => {
+  const map: Record<string, { side: 'left' | 'right'; offset: number }> = {}
+
+  // Left fixed: accumulate from left to right
+  let leftAcc = 0
+  // Account for selectable checkbox column (w-10 = 40px) before left-fixed columns
+  if (props.selectable) {
+    leftAcc += 40
+  }
+  // Account for expandable column (w-10 = 40px) before left-fixed columns
+  if (props.expandable) {
+    leftAcc += 40
+  }
+  for (const col of leftFixedColumns.value) {
+    map[col.key] = { side: 'left', offset: leftAcc }
+    leftAcc += resolveWidth(col.width)
+  }
+
+  // Right fixed: accumulate from right to left
+  let rightAcc = 0
+  // Account for actions column if present — placed after right-fixed columns
+  // Actions column is after data columns, so it doesn't shift right-fixed offsets
+  const reversed = [...rightFixedColumns.value].reverse()
+  for (const col of reversed) {
+    map[col.key] = { side: 'right', offset: rightAcc }
+    rightAcc += resolveWidth(col.width)
+  }
+
+  return map
+})
+
+function getFixedStyle(column: TableColumn): Record<string, string> | undefined {
+  const info = fixedOffsets.value[column.key]
+  if (!info) return undefined
+  return {
+    position: 'sticky',
+    [info.side]: `${info.offset}px`,
+    zIndex: '1',
+  }
+}
+
+function getFixedClass(column: TableColumn): string {
+  const info = fixedOffsets.value[column.key]
+  if (!info) return ''
+
+  if (info.side === 'left') {
+    // Last left-fixed column gets the right shadow
+    const leftCols = leftFixedColumns.value
+    const isLast = leftCols[leftCols.length - 1]?.key === column.key
+    return cn('bg-background', isLast && 'shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]')
+  }
+
+  // First right-fixed column (in original order) gets the left shadow
+  const rightCols = rightFixedColumns.value
+  const isFirst = rightCols[0]?.key === column.key
+  return cn('bg-background', isFirst && 'shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]')
+}
+
+// --- Expandable rows ---
+
+function isRowExpanded(row: Record<string, any>, index: number): boolean {
+  return props.expandedRowKeys.includes(getRowKey(row, index))
+}
+
+function toggleRowExpand(row: Record<string, any>, index: number) {
+  const key = getRowKey(row, index)
+  const current = [...props.expandedRowKeys]
+  const idx = current.indexOf(key)
+  if (idx >= 0) {
+    current.splice(idx, 1)
+  } else {
+    current.push(key)
+  }
+  emit('update:expandedRowKeys', current)
+}
+
+// --- Row class name ---
+
+function getRowClassName(row: Record<string, any>, index: number): string {
+  if (!props.rowClassName) return ''
+  if (typeof props.rowClassName === 'function') return props.rowClassName(row, index)
+  return props.rowClassName
+}
+
+// --- Summary row ---
+
+const summaryValues = computed<(string | number)[]>(() => {
+  if (!props.showSummary) return []
+
+  if (props.summaryMethod) {
+    return props.summaryMethod(props.data, props.columns)
+  }
+
+  // Auto-sum: for each column, sum numeric values; first column shows "合计"
+  return props.columns.map((col, colIndex) => {
+    if (colIndex === 0) return '合计'
+    const values = props.data.map((row) => row[col.key])
+    const isNumeric = values.length > 0 && values.every((v) => v == null || typeof v === 'number')
+    if (!isNumeric) return ''
+    return values.reduce((sum: number, v) => sum + (v ?? 0), 0) as number
+  })
+})
 </script>
 
 <template>
@@ -154,7 +281,8 @@ function isRowSelected(row: Record<string, any>, index: number): boolean {
           <th
             v-if="selectable"
             data-slot="table-head"
-            :class="cn('text-muted-foreground h-10 w-10 px-2 text-center align-middle font-medium whitespace-nowrap')"
+            :class="cn('text-muted-foreground h-10 w-10 px-2 text-center align-middle font-medium whitespace-nowrap bg-background')"
+            :style="expandable ? undefined : { position: 'sticky', left: '0px', zIndex: 1 }"
           >
             <input
               type="checkbox"
@@ -164,6 +292,14 @@ function isRowSelected(row: Record<string, any>, index: number): boolean {
               @change="handleSelectAll"
             />
           </th>
+
+          <!-- Expandable header (empty placeholder) -->
+          <th
+            v-if="expandable"
+            data-slot="table-head"
+            :class="cn('text-muted-foreground h-10 w-10 px-2 text-center align-middle font-medium whitespace-nowrap bg-background')"
+            :style="{ position: 'sticky', left: selectable ? '40px' : '0px', zIndex: 1 }"
+          />
 
           <th
             v-for="column in columns"
@@ -175,10 +311,12 @@ function isRowSelected(row: Record<string, any>, index: number): boolean {
               column.align === 'right' && 'text-right',
               !column.align && 'text-left',
               column.sortable && 'cursor-pointer select-none hover:text-foreground',
+              getFixedClass(column),
             )"
             :style="{
               width: column.width ? (typeof column.width === 'number' ? `${column.width}px` : column.width) : undefined,
               minWidth: column.minWidth ? `${column.minWidth}px` : undefined,
+              ...getFixedStyle(column),
             }"
             @click="handleSort(column)"
           >
@@ -209,7 +347,7 @@ function isRowSelected(row: Record<string, any>, index: number): boolean {
         <!-- Empty state -->
         <tr v-if="!sortedData || sortedData.length === 0">
           <td
-            :colspan="(selectable ? 1 : 0) + columns.length + ($slots.actions ? 1 : 0)"
+            :colspan="(selectable ? 1 : 0) + (expandable ? 1 : 0) + columns.length + ($slots.actions ? 1 : 0)"
             :class="cn('p-4 whitespace-nowrap align-middle text-sm')"
           >
             <div class="flex items-center justify-center py-10 text-muted-foreground">
@@ -219,64 +357,148 @@ function isRowSelected(row: Record<string, any>, index: number): boolean {
         </tr>
 
         <!-- Data rows -->
-        <tr
+        <template
           v-for="(row, rowIndex) in sortedData"
           :key="getRowKey(row, rowIndex)"
-          data-slot="table-row"
-          :data-state="isRowSelected(row, rowIndex) ? 'selected' : undefined"
-          :class="cn(
-            'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
-            striped && rowIndex % 2 === 1 && 'bg-muted/40',
-          )"
-          @click="handleRowClick(row, rowIndex)"
         >
-          <!-- Selection checkbox -->
+          <tr
+            data-slot="table-row"
+            :data-state="isRowSelected(row, rowIndex) ? 'selected' : undefined"
+            :class="cn(
+              'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
+              striped && rowIndex % 2 === 1 && 'bg-muted/40',
+              getRowClassName(row, rowIndex),
+            )"
+            @click="handleRowClick(row, rowIndex)"
+          >
+            <!-- Selection checkbox -->
+            <td
+              v-if="selectable"
+              data-slot="table-cell"
+              :class="cn('w-10 px-2 text-center align-middle whitespace-nowrap bg-background')"
+              :style="expandable ? undefined : { position: 'sticky', left: '0px', zIndex: 1 }"
+              @click.stop
+            >
+              <input
+                type="checkbox"
+                :checked="isRowSelected(row, rowIndex)"
+                class="size-4 rounded border border-primary accent-primary"
+                @change="handleSelectRow(row, rowIndex)"
+              />
+            </td>
+
+            <!-- Expand toggle -->
+            <td
+              v-if="expandable"
+              data-slot="table-cell"
+              :class="cn('w-10 px-2 text-center align-middle whitespace-nowrap bg-background')"
+              :style="{ position: 'sticky', left: selectable ? '40px' : '0px', zIndex: 1 }"
+              @click.stop="toggleRowExpand(row, rowIndex)"
+            >
+              <button
+                type="button"
+                class="inline-flex items-center justify-center rounded p-0.5 hover:bg-muted transition-transform duration-200"
+                :class="isRowExpanded(row, rowIndex) && 'rotate-90'"
+              >
+                <ChevronRight class="size-4 text-muted-foreground" />
+              </button>
+            </td>
+
+            <!-- Data cells -->
+            <td
+              v-for="column in columns"
+              :key="column.key"
+              data-slot="table-cell"
+              :class="cn(
+                'p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+                column.align === 'center' && 'text-center',
+                column.align === 'right' && 'text-right',
+                getFixedClass(column),
+              )"
+              :style="getFixedStyle(column)"
+            >
+              <slot
+                :name="`cell-${column.key}`"
+                :row="row"
+                :index="rowIndex"
+                :value="row[column.key]"
+              >
+                {{ row[column.key] }}
+              </slot>
+            </td>
+
+            <!-- Actions cell -->
+            <td
+              v-if="$slots.actions"
+              data-slot="table-cell"
+              :class="cn('p-2 text-right align-middle whitespace-nowrap')"
+              @click.stop
+            >
+              <slot name="actions" :row="row" :index="rowIndex" />
+            </td>
+          </tr>
+
+          <!-- Expanded content row -->
+          <tr
+            v-if="expandable && isRowExpanded(row, rowIndex)"
+            data-slot="table-row-expanded"
+            :class="cn('border-b bg-muted/30')"
+          >
+            <td
+              :colspan="(selectable ? 1 : 0) + 1 + columns.length + ($slots.actions ? 1 : 0)"
+              :class="cn('p-4')"
+            >
+              <slot name="expand" :row="row" :index="rowIndex" />
+            </td>
+          </tr>
+        </template>
+      </tbody>
+
+      <!-- Summary footer -->
+      <tfoot
+        v-if="showSummary && sortedData && sortedData.length > 0"
+        data-slot="table-footer"
+        :class="cn('sticky bottom-0 bg-background border-t font-medium')"
+      >
+        <tr data-slot="table-row">
+          <!-- Selectable placeholder -->
           <td
             v-if="selectable"
             data-slot="table-cell"
             :class="cn('w-10 px-2 text-center align-middle whitespace-nowrap')"
-            @click.stop
-          >
-            <input
-              type="checkbox"
-              :checked="isRowSelected(row, rowIndex)"
-              class="size-4 rounded border border-primary accent-primary"
-              @change="handleSelectRow(row, rowIndex)"
-            />
-          </td>
+          />
 
-          <!-- Data cells -->
+          <!-- Expandable placeholder -->
           <td
-            v-for="column in columns"
+            v-if="expandable"
+            data-slot="table-cell"
+            :class="cn('w-10 px-2 text-center align-middle whitespace-nowrap')"
+          />
+
+          <!-- Summary cells -->
+          <td
+            v-for="(column, colIndex) in columns"
             :key="column.key"
             data-slot="table-cell"
             :class="cn(
-              'p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+              'p-2 align-middle whitespace-nowrap',
               column.align === 'center' && 'text-center',
               column.align === 'right' && 'text-right',
+              getFixedClass(column),
             )"
+            :style="getFixedStyle(column)"
           >
-            <slot
-              :name="`cell-${column.key}`"
-              :row="row"
-              :index="rowIndex"
-              :value="row[column.key]"
-            >
-              {{ row[column.key] }}
-            </slot>
+            {{ summaryValues[colIndex] }}
           </td>
 
-          <!-- Actions cell -->
+          <!-- Actions placeholder -->
           <td
             v-if="$slots.actions"
             data-slot="table-cell"
             :class="cn('p-2 text-right align-middle whitespace-nowrap')"
-            @click.stop
-          >
-            <slot name="actions" :row="row" :index="rowIndex" />
-          </td>
+          />
         </tr>
-      </tbody>
+      </tfoot>
     </table>
   </div>
 </template>

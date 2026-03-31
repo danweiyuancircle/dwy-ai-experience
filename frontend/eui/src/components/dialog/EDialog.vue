@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { X } from 'lucide-vue-next'
 import {
   DialogRoot,
@@ -16,6 +16,10 @@ import type { EDialogProps, EDialogEmits } from './types'
 
 const props = withDefaults(defineProps<EDialogProps>(), {
   showClose: true,
+  draggable: false,
+  closeOnClickModal: true,
+  closeOnPressEscape: true,
+  fullscreen: false,
 })
 
 const emit = defineEmits<EDialogEmits>()
@@ -30,8 +34,55 @@ watch(() => props.open, (val) => {
 watch(localOpen, (val) => {
   emit('update:open', val)
   if (val) emit('open')
-  else emit('close')
+  else {
+    emit('close')
+    // Reset drag position when dialog closes
+    dragOffset.x = 0
+    dragOffset.y = 0
+  }
 })
+
+// --- closeOnClickModal / closeOnPressEscape ---
+function onInteractOutside(event: Event) {
+  if (!props.closeOnClickModal) {
+    event.preventDefault()
+  }
+}
+
+function onEscapeKeyDown(event: KeyboardEvent) {
+  if (!props.closeOnPressEscape) {
+    event.preventDefault()
+  }
+}
+
+// --- Draggable ---
+const dragOffset = reactive({ x: 0, y: 0 })
+let isDragging = false
+let dragStart = { x: 0, y: 0 }
+let offsetStart = { x: 0, y: 0 }
+
+function onHeaderPointerDown(event: PointerEvent) {
+  if (!props.draggable) return
+  // Only drag on primary button
+  if (event.button !== 0) return
+  isDragging = true
+  dragStart = { x: event.clientX, y: event.clientY }
+  offsetStart = { x: dragOffset.x, y: dragOffset.y }
+  document.addEventListener('pointermove', onPointerMove)
+  document.addEventListener('pointerup', onPointerUp)
+}
+
+function onPointerMove(event: PointerEvent) {
+  if (!isDragging) return
+  dragOffset.x = offsetStart.x + (event.clientX - dragStart.x)
+  dragOffset.y = offsetStart.y + (event.clientY - dragStart.y)
+}
+
+function onPointerUp() {
+  isDragging = false
+  document.removeEventListener('pointermove', onPointerMove)
+  document.removeEventListener('pointerup', onPointerUp)
+}
 </script>
 
 <template>
@@ -59,14 +110,24 @@ watch(localOpen, (val) => {
         data-slot="dialog-content"
         :class="cn(
           'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
+          fullscreen && '!max-w-full !w-full !h-full !rounded-none !translate-x-0 !translate-y-0 !top-0 !left-0',
           props.class,
         )"
-        :style="maxWidth ? { maxWidth } : undefined"
+        :style="{
+          ...(maxWidth && !fullscreen ? { maxWidth } : {}),
+          ...(draggable && !fullscreen ? { transform: `translate(calc(-50% + ${dragOffset.x}px), calc(-50% + ${dragOffset.y}px))` } : {}),
+        }"
+        @interact-outside="onInteractOutside"
+        @escape-key-down="onEscapeKeyDown"
       >
         <div
           v-if="title || description || $slots.header"
           data-slot="dialog-header"
-          :class="cn('flex flex-col gap-2 text-center sm:text-left')"
+          :class="cn(
+            'flex flex-col gap-2 text-center sm:text-left',
+            draggable && !fullscreen && 'cursor-move select-none',
+          )"
+          @pointerdown="onHeaderPointerDown"
         >
           <slot name="header">
             <DialogTitle

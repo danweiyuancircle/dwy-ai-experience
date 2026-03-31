@@ -4,8 +4,10 @@ export interface UploadFile {
   uid: string
   name: string
   status: 'ready' | 'uploading' | 'success' | 'error'
+  percentage?: number
   url?: string
   raw?: File
+  /** @deprecated Use `percentage` instead */
   progress?: number
 }
 
@@ -19,6 +21,10 @@ export interface EUploadProps {
   disabled?: boolean
   listType?: 'text' | 'picture' | 'picture-card'
   drag?: boolean
+  beforeUpload?: (file: File) => boolean | Promise<boolean>
+  autoUpload?: boolean
+  headers?: Record<string, string>
+  withCredentials?: boolean
 }
 
 export interface EUploadEmits {
@@ -26,4 +32,5 @@ export interface EUploadEmits {
   (e: 'change', files: UploadFile[]): void
   (e: 'exceed', files: File[]): void
   (e: 'remove', file: UploadFile): void
+  (e: 'preview', file: UploadFile): void
 }

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Upload, X, File, CheckCircle, AlertCircle, LoaderCircle } from 'lucide-vue-next'
+import { Upload, X, File, CheckCircle, AlertCircle, LoaderCircle, Eye } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
+import { EProgress } from '@/components/progress'
 import type { EUploadProps, EUploadEmits, UploadFile } from './types'
 
 const props = withDefaults(defineProps<EUploadProps>(), {
@@ -10,6 +11,8 @@ const props = withDefaults(defineProps<EUploadProps>(), {
   disabled: false,
   listType: 'text',
   drag: false,
+  autoUpload: true,
+  withCredentials: false,
 })
 
 const emit = defineEmits<EUploadEmits>()
@@ -28,7 +31,7 @@ function openFilePicker() {
   inputRef.value?.click()
 }
 
-function handleFiles(rawFiles: File[]) {
+async function handleFiles(rawFiles: File[]) {
   if (props.disabled) return
 
   if (props.limit && files.value.length + rawFiles.length > props.limit) {
@@ -36,20 +39,37 @@ function handleFiles(rawFiles: File[]) {
     return
   }
 
-  const newFiles: UploadFile[] = rawFiles.map((raw) => ({
-    uid: generateUid(),
-    name: raw.name,
-    status: 'ready' as const,
-    raw,
-    url: raw.type.startsWith('image/') ? URL.createObjectURL(raw) : undefined,
-    progress: 0,
-  }))
+  const newFiles: UploadFile[] = []
+
+  for (const raw of rawFiles) {
+    // Run beforeUpload validation if provided
+    if (props.beforeUpload) {
+      try {
+        const result = await Promise.resolve(props.beforeUpload(raw))
+        if (result === false) continue
+      } catch {
+        continue
+      }
+    }
+
+    newFiles.push({
+      uid: generateUid(),
+      name: raw.name,
+      status: 'ready' as const,
+      raw,
+      url: raw.type.startsWith('image/') ? URL.createObjectURL(raw) : undefined,
+      percentage: 0,
+      progress: 0,
+    })
+  }
+
+  if (newFiles.length === 0) return
 
   const updated = [...files.value, ...newFiles]
   emit('update:modelValue', updated)
   emit('change', updated)
 
-  if (props.action) {
+  if (props.autoUpload && props.action) {
     for (const file of newFiles) {
       uploadFile(file)
     }
@@ -60,6 +80,7 @@ async function uploadFile(file: UploadFile) {
   if (!props.action || !file.raw) return
 
   file.status = 'uploading'
+  file.percentage = 0
   file.progress = 0
   emitFileListUpdate()
 
@@ -72,7 +93,9 @@ async function uploadFile(file: UploadFile) {
     await new Promise<void>((resolve, reject) => {
       xhr.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
-          file.progress = Math.round((e.loaded / e.total) * 100)
+          const pct = Math.round((e.loaded / e.total) * 100)
+          file.percentage = pct
+          file.progress = pct
           emitFileListUpdate()
         }
       })
@@ -80,6 +103,7 @@ async function uploadFile(file: UploadFile) {
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           file.status = 'success'
+          file.percentage = 100
           file.progress = 100
           emitFileListUpdate()
           resolve()
@@ -97,11 +121,32 @@ async function uploadFile(file: UploadFile) {
       })
 
       xhr.open('POST', props.action!)
+
+      // Set custom headers
+      if (props.headers) {
+        for (const [key, value] of Object.entries(props.headers)) {
+          xhr.setRequestHeader(key, value)
+        }
+      }
+
+      // Set withCredentials
+      xhr.withCredentials = props.withCredentials
+
       xhr.send(formData)
     })
   } catch {
     file.status = 'error'
     emitFileListUpdate()
+  }
+}
+
+/** Manually trigger upload for files in 'ready' status (used when autoUpload=false) */
+function submit() {
+  if (!props.action) return
+  for (const file of files.value) {
+    if (file.status === 'ready') {
+      uploadFile(file)
+    }
   }
 }
 
@@ -141,6 +186,10 @@ function removeFile(file: UploadFile) {
   emit('remove', file)
 }
 
+function onPreview(file: UploadFile) {
+  emit('preview', file)
+}
+
 function getStatusIcon(status: UploadFile['status']) {
   return {
     ready: File,
@@ -158,6 +207,8 @@ function getStatusColor(status: UploadFile['status']) {
     error: 'text-destructive',
   }[status]
 }
+
+defineExpose({ submit })
 </script>
 
 <template>
@@ -177,7 +228,7 @@ function getStatusColor(status: UploadFile['status']) {
       <div
         v-for="file in files"
         :key="file.uid"
-        class="relative size-24 overflow-hidden rounded-md border bg-muted"
+        class="group relative size-24 overflow-hidden rounded-md border bg-muted"
       >
         <img
           v-if="file.url"
@@ -191,12 +242,34 @@ function getStatusColor(status: UploadFile['status']) {
         >
           <component :is="getStatusIcon(file.status)" :class="cn('size-6', getStatusColor(file.status))" />
         </div>
-        <button
-          class="absolute right-1 top-1 flex size-4 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/80"
-          @click="removeFile(file)"
+        <!-- Progress overlay for uploading state -->
+        <div
+          v-if="file.status === 'uploading'"
+          class="absolute inset-0 flex items-center justify-center bg-black/40"
         >
-          <X class="size-3" />
-        </button>
+          <div class="w-16">
+            <EProgress :model-value="file.percentage ?? 0" class="h-1.5" />
+          </div>
+        </div>
+        <!-- Hover overlay with actions -->
+        <div
+          class="absolute inset-0 flex items-center justify-center gap-2 bg-black/50 opacity-0 transition-opacity group-hover:opacity-100"
+          :class="file.status === 'uploading' && 'hidden'"
+        >
+          <button
+            v-if="file.url"
+            class="flex size-6 items-center justify-center rounded-full text-white hover:text-white/80"
+            @click="onPreview(file)"
+          >
+            <Eye class="size-4" />
+          </button>
+          <button
+            class="flex size-6 items-center justify-center rounded-full text-white hover:text-white/80"
+            @click="removeFile(file)"
+          >
+            <X class="size-4" />
+          </button>
+        </div>
       </div>
 
       <!-- Add card -->
@@ -267,26 +340,41 @@ function getStatusColor(status: UploadFile['status']) {
       <li
         v-for="file in files"
         :key="file.uid"
-        class="flex items-center gap-2 rounded-md px-2 py-1 text-sm hover:bg-accent/50"
+        class="group flex flex-col gap-1 rounded-md px-2 py-1 hover:bg-accent/50"
       >
-        <!-- Thumbnail for picture mode -->
-        <img
-          v-if="listType === 'picture' && file.url"
-          :src="file.url"
-          :alt="file.name"
-          class="size-8 rounded object-cover"
+        <div class="flex items-center gap-2 text-sm">
+          <!-- Thumbnail for picture mode -->
+          <img
+            v-if="listType === 'picture' && file.url"
+            :src="file.url"
+            :alt="file.name"
+            class="size-8 shrink-0 cursor-pointer rounded object-cover"
+            @click="onPreview(file)"
+          />
+          <component
+            :is="getStatusIcon(file.status)"
+            :class="cn('size-4 shrink-0', getStatusColor(file.status))"
+          />
+          <span
+            class="flex-1 truncate"
+            :class="file.url && 'cursor-pointer hover:text-primary'"
+            @click="file.url ? onPreview(file) : undefined"
+          >
+            {{ file.name }}
+          </span>
+          <button
+            class="shrink-0 text-muted-foreground hover:text-destructive"
+            @click="removeFile(file)"
+          >
+            <X class="size-4" />
+          </button>
+        </div>
+        <!-- Progress bar for uploading files -->
+        <EProgress
+          v-if="file.status === 'uploading'"
+          :model-value="file.percentage ?? 0"
+          class="h-1.5"
         />
-        <component
-          :is="getStatusIcon(file.status)"
-          :class="cn('size-4 shrink-0', getStatusColor(file.status))"
-        />
-        <span class="flex-1 truncate">{{ file.name }}</span>
-        <button
-          class="shrink-0 text-muted-foreground hover:text-destructive"
-          @click="removeFile(file)"
-        >
-          <X class="size-4" />
-        </button>
       </li>
     </ul>
   </div>

@@ -12,6 +12,7 @@ export interface EInputProps {
   clearable?: boolean
   maxlength?: number
   showPassword?: boolean
+  showWordLimit?: boolean
 }
 
 export interface EInputEmits {

@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<EFormProps>(), {
   labelPosition: 'right',
   size: 'default',
   disabled: false,
+  inline: false,
 })
 
 const emit = defineEmits<EFormEmits>()
@@ -87,7 +88,7 @@ const validationSchema = computed(() => {
 // Deep clone initial values so reset works correctly
 const initialSnapshot = JSON.parse(JSON.stringify(props.model ?? {}))
 
-const { handleSubmit, resetForm, setErrors, validate: veeValidate, setFieldValue } = useForm({
+const { handleSubmit, resetForm, setErrors, validate: veeValidate, validateField: veeValidateField, setFieldValue } = useForm({
   validationSchema,
   initialValues: initialSnapshot,
 })
@@ -98,6 +99,11 @@ const onSubmit = handleSubmit((values) => {
 
 async function validate(): Promise<boolean> {
   const result = await veeValidate()
+  return result.valid
+}
+
+async function validateField(name: string): Promise<boolean> {
+  const result = await veeValidateField(name)
   return result.valid
 }
 
@@ -125,6 +131,7 @@ provide(FORM_CONTEXT_KEY, {
 
 defineExpose<EFormExpose>({
   validate,
+  validateField,
   resetFields,
   clearValidate,
 })
@@ -133,7 +140,10 @@ defineExpose<EFormExpose>({
 <template>
   <form
     data-slot="form"
-    :class="cn('space-y-4', props.class)"
+    :class="cn(
+      props.inline ? 'flex flex-wrap gap-4 items-start' : 'space-y-4',
+      props.class,
+    )"
     @submit.prevent="onSubmit"
   >
     <slot />

@@ -7,6 +7,10 @@ export interface EDialogProps {
   description?: string
   showClose?: boolean
   maxWidth?: string
+  draggable?: boolean
+  closeOnClickModal?: boolean
+  closeOnPressEscape?: boolean
+  fullscreen?: boolean
 }
 
 export interface EDialogEmits {

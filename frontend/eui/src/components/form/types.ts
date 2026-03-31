@@ -10,6 +10,7 @@ export interface EFormProps {
   labelPosition?: 'left' | 'right' | 'top'
   size?: Size
   disabled?: boolean
+  inline?: boolean
 }
 
 export interface EFormEmits {
@@ -18,6 +19,7 @@ export interface EFormEmits {
 
 export interface EFormExpose {
   validate: () => Promise<boolean>
+  validateField: (name: string) => Promise<boolean>
   resetFields: () => void
   clearValidate: () => void
 }

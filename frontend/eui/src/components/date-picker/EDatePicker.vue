@@ -14,18 +14,55 @@ import {
   CalendarNext,
   CalendarPrev,
   CalendarRoot,
+  RangeCalendarRoot,
+  RangeCalendarHeader,
+  RangeCalendarHeading,
+  RangeCalendarPrev,
+  RangeCalendarNext,
+  RangeCalendarGrid,
+  RangeCalendarGridHead,
+  RangeCalendarGridRow,
+  RangeCalendarHeadCell,
+  RangeCalendarGridBody,
+  RangeCalendarCell,
+  RangeCalendarCellTrigger,
+  MonthPickerRoot,
+  MonthPickerHeader,
+  MonthPickerHeading,
+  MonthPickerPrev,
+  MonthPickerNext,
+  MonthPickerGrid,
+  MonthPickerGridBody,
+  MonthPickerGridRow,
+  MonthPickerCell,
+  MonthPickerCellTrigger,
+  YearPickerRoot,
+  YearPickerHeader,
+  YearPickerHeading,
+  YearPickerPrev,
+  YearPickerNext,
+  YearPickerGrid,
+  YearPickerGridBody,
+  YearPickerGridRow,
+  YearPickerCell,
+  YearPickerCellTrigger,
   PopoverAnchor,
   PopoverContent,
   PopoverPortal,
   PopoverRoot,
   PopoverTrigger,
 } from 'reka-ui'
-import { getLocalTimeZone, parseDate, today, CalendarDate } from '@internationalized/date'
+import { CalendarDate } from '@internationalized/date'
+import type { DateValue } from '@internationalized/date'
 import { cn } from '@/utils/cn'
 import type { EDatePickerProps, EDatePickerEmits } from './types'
 
 const props = withDefaults(defineProps<EDatePickerProps>(), {
+  type: 'date',
   placeholder: 'Pick a date',
+  startPlaceholder: 'Start date',
+  endPlaceholder: 'End date',
+  rangeSeparator: '至',
   disabled: false,
   clearable: false,
   format: 'YYYY-MM-DD',
@@ -35,48 +72,240 @@ const emit = defineEmits<EDatePickerEmits>()
 
 const open = ref(false)
 
-/** Parse the incoming modelValue into a CalendarDate */
-const calendarValue = computed(() => {
-  if (!props.modelValue) return undefined
+// --- Helpers ---
+
+/** Convert a JS Date to CalendarDate */
+function toCalendarDate(d: Date): CalendarDate {
+  return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
+}
+
+/** Try to parse a string or Date into CalendarDate */
+function parseToCalendarDate(val: string | Date | undefined): CalendarDate | undefined {
+  if (!val) return undefined
   try {
-    const d = props.modelValue instanceof Date ? props.modelValue : new Date(props.modelValue)
+    const d = val instanceof Date ? val : new Date(val)
     if (isNaN(d.getTime())) return undefined
-    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
+    return toCalendarDate(d)
+  } catch {
+    return undefined
+  }
+}
+
+/** Convert CalendarDate to a JS Date */
+function calendarDateToDate(cd: CalendarDate): Date {
+  return new Date(cd.year, cd.month - 1, cd.day)
+}
+
+/** Format CalendarDate using the format prop (supports YYYY, MM, DD tokens) */
+function formatCalendarDate(date: CalendarDate, fmt?: string): string {
+  const f = fmt ?? props.format
+  const y = String(date.year)
+  const m = String(date.month).padStart(2, '0')
+  const d = String(date.day).padStart(2, '0')
+  return f.replace('YYYY', y).replace('MM', m).replace('DD', d)
+}
+
+/** Build isDateUnavailable matcher from disabledDate prop for CalendarRoot / RangeCalendarRoot */
+function isDateUnavailable(date: DateValue): boolean {
+  if (!props.disabledDate) return false
+  const jsDate = new Date(date.year, date.month - 1, date.day)
+  return props.disabledDate(jsDate)
+}
+
+// --- Computed format strings per type ---
+const effectiveFormat = computed(() => {
+  if (props.type === 'month') return 'YYYY-MM'
+  if (props.type === 'year') return 'YYYY'
+  return props.format
+})
+
+// --- Single date mode ---
+
+const calendarValue = computed(() => {
+  if (props.type !== 'date') return undefined
+  if (!props.modelValue || Array.isArray(props.modelValue)) return undefined
+  return parseToCalendarDate(props.modelValue as string | Date)
+})
+
+const displayValue = computed(() => {
+  if (props.type === 'date') {
+    if (!calendarValue.value) return ''
+    return formatCalendarDate(calendarValue.value, effectiveFormat.value)
+  }
+  if (props.type === 'daterange') {
+    return rangeDisplayValue.value
+  }
+  if (props.type === 'month') {
+    return monthDisplayValue.value
+  }
+  if (props.type === 'year') {
+    return yearDisplayValue.value
+  }
+  return ''
+})
+
+function onSelectDate(val: any) {
+  if (!val) return
+  const cd = val as CalendarDate
+  const str = formatCalendarDate(cd, effectiveFormat.value)
+  emit('update:modelValue', str)
+  emit('change', str)
+  open.value = false
+}
+
+// --- Date range mode ---
+
+const rangeCalendarValue = computed(() => {
+  if (props.type !== 'daterange') return undefined
+  if (!props.modelValue || !Array.isArray(props.modelValue)) return undefined
+  const [startVal, endVal] = props.modelValue as [string | Date, string | Date]
+  const startCd = parseToCalendarDate(startVal)
+  const endCd = parseToCalendarDate(endVal)
+  if (!startCd || !endCd) return undefined
+  return { start: startCd, end: endCd }
+})
+
+const rangeDisplayValue = computed(() => {
+  if (!rangeCalendarValue.value) return ''
+  const startStr = formatCalendarDate(rangeCalendarValue.value.start, effectiveFormat.value)
+  const endStr = formatCalendarDate(rangeCalendarValue.value.end, effectiveFormat.value)
+  return `${startStr} ${props.rangeSeparator} ${endStr}`
+})
+
+function onSelectRange(val: any) {
+  if (!val || !val.start || !val.end) return
+  const startStr = formatCalendarDate(val.start as CalendarDate, effectiveFormat.value)
+  const endStr = formatCalendarDate(val.end as CalendarDate, effectiveFormat.value)
+  emit('update:modelValue', [startStr, endStr])
+  emit('change', [startStr, endStr])
+  open.value = false
+}
+
+// --- Month mode ---
+
+const monthCalendarValue = computed(() => {
+  if (props.type !== 'month') return undefined
+  if (!props.modelValue || Array.isArray(props.modelValue)) return undefined
+  const val = props.modelValue as string | Date
+  try {
+    const d = val instanceof Date ? val : new Date(val + (typeof val === 'string' && val.length <= 7 ? '-01' : ''))
+    if (isNaN(d.getTime())) return undefined
+    return new CalendarDate(d.getFullYear(), d.getMonth() + 1, 1)
   } catch {
     return undefined
   }
 })
 
-/** Format CalendarDate using the format prop (supports YYYY, MM, DD tokens) */
-function formatDate(date: CalendarDate): string {
-  const y = String(date.year)
-  const m = String(date.month).padStart(2, '0')
-  const d = String(date.day).padStart(2, '0')
-  return props.format
-    .replace('YYYY', y)
-    .replace('MM', m)
-    .replace('DD', d)
-}
-
-/** Display string shown in the trigger */
-const displayValue = computed(() => {
-  if (!calendarValue.value) return ''
-  return formatDate(calendarValue.value)
+const monthDisplayValue = computed(() => {
+  if (!monthCalendarValue.value) return ''
+  return formatCalendarDate(monthCalendarValue.value, 'YYYY-MM')
 })
 
-function onSelect(val: any) {
+function onSelectMonth(val: any) {
   if (!val) return
-  const str = formatDate(val as CalendarDate)
+  const cd = val as CalendarDate
+  const str = formatCalendarDate(cd, 'YYYY-MM')
   emit('update:modelValue', str)
   emit('change', str)
   open.value = false
 }
+
+/** Build isMonthUnavailable matcher from disabledDate prop for MonthPickerRoot */
+function isMonthUnavailable(date: DateValue): boolean {
+  if (!props.disabledDate) return false
+  // Check if the first day of the month is disabled as a proxy
+  const jsDate = new Date(date.year, date.month - 1, 1)
+  return props.disabledDate(jsDate)
+}
+
+// --- Year mode ---
+
+const yearCalendarValue = computed(() => {
+  if (props.type !== 'year') return undefined
+  if (!props.modelValue || Array.isArray(props.modelValue)) return undefined
+  const val = props.modelValue as string | Date
+  try {
+    const d = val instanceof Date ? val : new Date(typeof val === 'string' && val.length === 4 ? `${val}-01-01` : val)
+    if (isNaN(d.getTime())) return undefined
+    return new CalendarDate(d.getFullYear(), 1, 1)
+  } catch {
+    return undefined
+  }
+})
+
+const yearDisplayValue = computed(() => {
+  if (!yearCalendarValue.value) return ''
+  return formatCalendarDate(yearCalendarValue.value, 'YYYY')
+})
+
+function onSelectYear(val: any) {
+  if (!val) return
+  const cd = val as CalendarDate
+  const str = formatCalendarDate(cd, 'YYYY')
+  emit('update:modelValue', str)
+  emit('change', str)
+  open.value = false
+}
+
+/** Build isYearUnavailable matcher from disabledDate prop for YearPickerRoot */
+function isYearUnavailable(date: DateValue): boolean {
+  if (!props.disabledDate) return false
+  const jsDate = new Date(date.year, 0, 1)
+  return props.disabledDate(jsDate)
+}
+
+// --- Shortcuts ---
+
+function onShortcutClick(shortcut: { text: string; value: Date | Date[] | (() => Date | Date[]) }) {
+  const resolved = typeof shortcut.value === 'function' ? shortcut.value() : shortcut.value
+
+  if (props.type === 'daterange' && Array.isArray(resolved)) {
+    const [start, end] = resolved
+    const startStr = formatCalendarDate(toCalendarDate(start), effectiveFormat.value)
+    const endStr = formatCalendarDate(toCalendarDate(end), effectiveFormat.value)
+    emit('update:modelValue', [startStr, endStr])
+    emit('change', [startStr, endStr])
+  } else if (!Array.isArray(resolved)) {
+    const cd = toCalendarDate(resolved)
+    if (props.type === 'month') {
+      const str = formatCalendarDate(cd, 'YYYY-MM')
+      emit('update:modelValue', str)
+      emit('change', str)
+    } else if (props.type === 'year') {
+      const str = formatCalendarDate(cd, 'YYYY')
+      emit('update:modelValue', str)
+      emit('change', str)
+    } else {
+      const str = formatCalendarDate(cd, effectiveFormat.value)
+      emit('update:modelValue', str)
+      emit('change', str)
+    }
+  }
+  open.value = false
+}
+
+// --- Clear ---
 
 function onClear(e: MouseEvent) {
   e.stopPropagation()
   emit('update:modelValue', undefined)
   emit('change', undefined)
 }
+
+const hasValue = computed(() => {
+  if (!props.modelValue) return false
+  if (Array.isArray(props.modelValue)) return props.modelValue.length === 2
+  return !!props.modelValue
+})
+
+const triggerPlaceholder = computed(() => {
+  if (props.type === 'daterange') {
+    return `${props.startPlaceholder} ${props.rangeSeparator} ${props.endPlaceholder}`
+  }
+  return props.placeholder
+})
+
+const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 0)
 </script>
 
 <template>
@@ -89,16 +318,17 @@ function onClear(e: MouseEvent) {
             'flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs ring-offset-background',
             'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            !displayValue && 'text-muted-foreground',
+            !hasValue && 'text-muted-foreground',
+            type === 'daterange' && 'min-w-[280px]',
             props.class,
           )"
         >
           <span class="flex items-center gap-2">
             <CalendarDays class="size-4 shrink-0 opacity-50" />
-            {{ displayValue || placeholder }}
+            {{ displayValue || triggerPlaceholder }}
           </span>
           <X
-            v-if="clearable && displayValue"
+            v-if="clearable && hasValue"
             class="size-4 shrink-0 opacity-50 hover:opacity-100"
             @click.stop="onClear"
           />
@@ -118,71 +348,280 @@ function onClear(e: MouseEvent) {
           'data-[side=bottom]:slide-in-from-top-2 data-[side=top]:slide-in-from-bottom-2',
         )"
       >
-        <CalendarRoot
-          v-slot="{ grid, weekDays }"
-          :model-value="calendarValue"
-          :disabled="disabled"
-          class="p-3"
-          @update:model-value="onSelect"
-        >
-          <CalendarHeader class="flex items-center justify-between">
-            <CalendarPrev
-              class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 disabled:pointer-events-none"
+        <div :class="cn('flex', hasShortcuts && 'flex-row')">
+          <!-- Shortcuts panel -->
+          <div
+            v-if="hasShortcuts"
+            class="flex flex-col gap-1 border-r p-2 min-w-[100px]"
+          >
+            <button
+              v-for="shortcut in shortcuts"
+              :key="shortcut.text"
+              class="rounded-md px-3 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+              @click="onShortcutClick(shortcut)"
             >
-              <ChevronLeft class="size-4" />
-            </CalendarPrev>
-            <CalendarHeading class="text-sm font-medium" />
-            <CalendarNext
-              class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 disabled:pointer-events-none"
-            >
-              <ChevronRight class="size-4" />
-            </CalendarNext>
-          </CalendarHeader>
+              {{ shortcut.text }}
+            </button>
+          </div>
 
-          <div class="mt-2 flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
-            <CalendarGrid v-for="month in grid" :key="month.value.toString()">
-              <CalendarGridHead>
-                <CalendarGridRow class="flex">
-                  <CalendarHeadCell
-                    v-for="day in weekDays"
-                    :key="day"
-                    class="w-8 rounded-md text-[0.8rem] font-normal text-muted-foreground"
+          <!-- Date picker (default) -->
+          <CalendarRoot
+            v-if="type === 'date'"
+            v-slot="{ grid, weekDays }"
+            :model-value="calendarValue"
+            :disabled="disabled"
+            :is-date-unavailable="disabledDate ? isDateUnavailable : undefined"
+            class="p-3"
+            @update:model-value="onSelectDate"
+          >
+            <CalendarHeader class="flex items-center justify-between">
+              <CalendarPrev
+                class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 disabled:pointer-events-none"
+              >
+                <ChevronLeft class="size-4" />
+              </CalendarPrev>
+              <CalendarHeading class="text-sm font-medium" />
+              <CalendarNext
+                class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 disabled:pointer-events-none"
+              >
+                <ChevronRight class="size-4" />
+              </CalendarNext>
+            </CalendarHeader>
+
+            <div class="mt-2 flex flex-col space-y-4 sm:flex-row sm:space-x-4 sm:space-y-0">
+              <CalendarGrid v-for="month in grid" :key="month.value.toString()">
+                <CalendarGridHead>
+                  <CalendarGridRow class="flex">
+                    <CalendarHeadCell
+                      v-for="day in weekDays"
+                      :key="day"
+                      class="w-8 rounded-md text-[0.8rem] font-normal text-muted-foreground"
+                    >
+                      {{ day }}
+                    </CalendarHeadCell>
+                  </CalendarGridRow>
+                </CalendarGridHead>
+                <CalendarGridBody>
+                  <CalendarGridRow
+                    v-for="(weekDates, index) in month.rows"
+                    :key="`week-${index}`"
+                    class="mt-2 flex w-full"
                   >
-                    {{ day }}
-                  </CalendarHeadCell>
-                </CalendarGridRow>
-              </CalendarGridHead>
-              <CalendarGridBody>
-                <CalendarGridRow
-                  v-for="(weekDates, index) in month.rows"
-                  :key="`week-${index}`"
-                  class="mt-2 flex w-full"
-                >
-                  <CalendarCell
-                    v-for="weekDate in weekDates"
-                    :key="weekDate.toString()"
-                    :date="weekDate"
-                    class="relative p-0 text-center text-sm"
+                    <CalendarCell
+                      v-for="weekDate in weekDates"
+                      :key="weekDate.toString()"
+                      :date="weekDate"
+                      class="relative p-0 text-center text-sm"
+                    >
+                      <CalendarCellTrigger
+                        :day="weekDate"
+                        :month="month.value"
+                        :class="cn(
+                          'inline-flex size-8 items-center justify-center rounded-md p-0 text-sm font-normal ring-offset-background transition-colors',
+                          'hover:bg-accent hover:text-accent-foreground',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          'data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground',
+                          'data-[today]:bg-accent data-[today]:text-accent-foreground',
+                          'data-[outside-view]:text-muted-foreground data-[outside-view]:opacity-50',
+                          'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                          'data-[unavailable]:pointer-events-none data-[unavailable]:text-muted-foreground data-[unavailable]:line-through data-[unavailable]:opacity-50',
+                        )"
+                      />
+                    </CalendarCell>
+                  </CalendarGridRow>
+                </CalendarGridBody>
+              </CalendarGrid>
+            </div>
+          </CalendarRoot>
+
+          <!-- Date range picker -->
+          <RangeCalendarRoot
+            v-else-if="type === 'daterange'"
+            v-slot="{ grid, weekDays }"
+            :model-value="rangeCalendarValue as any"
+            :disabled="disabled"
+            :number-of-months="2"
+            :is-date-unavailable="disabledDate ? isDateUnavailable : undefined"
+            class="p-3"
+            @update:model-value="onSelectRange"
+          >
+            <RangeCalendarHeader class="flex justify-center pt-1 relative items-center w-full px-8">
+              <RangeCalendarPrev
+                class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1 disabled:pointer-events-none"
+              >
+                <ChevronLeft class="size-4" />
+              </RangeCalendarPrev>
+              <RangeCalendarHeading class="text-sm font-medium" />
+              <RangeCalendarNext
+                class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1 disabled:pointer-events-none"
+              >
+                <ChevronRight class="size-4" />
+              </RangeCalendarNext>
+            </RangeCalendarHeader>
+
+            <div class="flex flex-col gap-y-4 mt-2 sm:flex-row sm:gap-x-4 sm:gap-y-0">
+              <RangeCalendarGrid v-for="month in grid" :key="month.value.toString()">
+                <RangeCalendarGridHead>
+                  <RangeCalendarGridRow class="flex">
+                    <RangeCalendarHeadCell
+                      v-for="day in weekDays"
+                      :key="day"
+                      class="w-8 rounded-md text-[0.8rem] font-normal text-muted-foreground"
+                    >
+                      {{ day }}
+                    </RangeCalendarHeadCell>
+                  </RangeCalendarGridRow>
+                </RangeCalendarGridHead>
+                <RangeCalendarGridBody>
+                  <RangeCalendarGridRow
+                    v-for="(weekDates, index) in month.rows"
+                    :key="`week-${index}`"
+                    class="mt-2 flex w-full"
                   >
-                    <CalendarCellTrigger
-                      :day="weekDate"
-                      :month="month.value"
+                    <RangeCalendarCell
+                      v-for="weekDate in weekDates"
+                      :key="weekDate.toString()"
+                      :date="weekDate"
                       :class="cn(
-                        'inline-flex size-8 items-center justify-center rounded-md p-0 text-sm font-normal ring-offset-background transition-colors',
+                        'relative p-0 text-center text-sm',
+                        'focus-within:relative focus-within:z-20',
+                        '[&:has([data-selected])]:bg-accent',
+                        'first:[&:has([data-selected])]:rounded-l-md last:[&:has([data-selected])]:rounded-r-md',
+                        '[&:has([data-selected][data-selection-end])]:rounded-r-md',
+                        '[&:has([data-selected][data-selection-start])]:rounded-l-md',
+                      )"
+                    >
+                      <RangeCalendarCellTrigger
+                        :day="weekDate"
+                        :month="month.value"
+                        :class="cn(
+                          'inline-flex size-8 items-center justify-center rounded-md p-0 text-sm font-normal ring-offset-background transition-colors',
+                          'hover:bg-accent hover:text-accent-foreground',
+                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          'data-[selected]:opacity-100',
+                          'data-[selection-start]:bg-primary data-[selection-start]:text-primary-foreground data-[selection-start]:hover:bg-primary',
+                          'data-[selection-end]:bg-primary data-[selection-end]:text-primary-foreground data-[selection-end]:hover:bg-primary',
+                          '[&[data-today]:not([data-selected])]:bg-accent [&[data-today]:not([data-selected])]:text-accent-foreground',
+                          'data-[outside-view]:text-muted-foreground data-[outside-view]:opacity-50',
+                          'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                          'data-[unavailable]:pointer-events-none data-[unavailable]:text-muted-foreground data-[unavailable]:line-through data-[unavailable]:opacity-50',
+                        )"
+                      />
+                    </RangeCalendarCell>
+                  </RangeCalendarGridRow>
+                </RangeCalendarGridBody>
+              </RangeCalendarGrid>
+            </div>
+          </RangeCalendarRoot>
+
+          <!-- Month picker -->
+          <MonthPickerRoot
+            v-else-if="type === 'month'"
+            v-slot="{ grid }"
+            :model-value="monthCalendarValue"
+            :disabled="disabled"
+            :is-month-unavailable="disabledDate ? isMonthUnavailable : undefined"
+            class="p-3"
+            @update:model-value="onSelectMonth"
+          >
+            <MonthPickerHeader class="flex items-center justify-between px-8 relative">
+              <MonthPickerPrev
+                class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1 disabled:pointer-events-none"
+              >
+                <ChevronLeft class="size-4" />
+              </MonthPickerPrev>
+              <MonthPickerHeading class="text-sm font-medium" />
+              <MonthPickerNext
+                class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1 disabled:pointer-events-none"
+              >
+                <ChevronRight class="size-4" />
+              </MonthPickerNext>
+            </MonthPickerHeader>
+
+            <MonthPickerGrid class="mt-2 w-full">
+              <MonthPickerGridBody>
+                <MonthPickerGridRow
+                  v-for="(row, rowIndex) in grid"
+                  :key="`month-row-${rowIndex}`"
+                  class="flex w-full justify-center gap-1 mt-1"
+                >
+                  <MonthPickerCell
+                    v-for="monthItem in row"
+                    :key="monthItem.toString()"
+                    :value="monthItem"
+                    class="relative p-0 text-center"
+                  >
+                    <MonthPickerCellTrigger
+                      :month="monthItem"
+                      :class="cn(
+                        'inline-flex h-8 w-16 items-center justify-center rounded-md text-sm font-normal transition-colors',
                         'hover:bg-accent hover:text-accent-foreground',
                         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-                        'data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground',
-                        'data-[today]:bg-accent data-[today]:text-accent-foreground',
-                        'data-[outside-view]:text-muted-foreground data-[outside-view]:opacity-50',
+                        'data-[selected]:bg-primary data-[selected]:text-primary-foreground',
                         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                        'data-[unavailable]:pointer-events-none data-[unavailable]:text-muted-foreground data-[unavailable]:line-through data-[unavailable]:opacity-50',
                       )"
                     />
-                  </CalendarCell>
-                </CalendarGridRow>
-              </CalendarGridBody>
-            </CalendarGrid>
-          </div>
-        </CalendarRoot>
+                  </MonthPickerCell>
+                </MonthPickerGridRow>
+              </MonthPickerGridBody>
+            </MonthPickerGrid>
+          </MonthPickerRoot>
+
+          <!-- Year picker -->
+          <YearPickerRoot
+            v-else-if="type === 'year'"
+            v-slot="{ grid }"
+            :model-value="yearCalendarValue"
+            :disabled="disabled"
+            :is-year-unavailable="disabledDate ? isYearUnavailable : undefined"
+            class="p-3"
+            @update:model-value="onSelectYear"
+          >
+            <YearPickerHeader class="flex items-center justify-between px-8 relative">
+              <YearPickerPrev
+                class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 absolute left-1 disabled:pointer-events-none"
+              >
+                <ChevronLeft class="size-4" />
+              </YearPickerPrev>
+              <YearPickerHeading class="text-sm font-medium" />
+              <YearPickerNext
+                class="inline-flex size-7 items-center justify-center rounded-md border bg-transparent p-0 opacity-50 hover:opacity-100 absolute right-1 disabled:pointer-events-none"
+              >
+                <ChevronRight class="size-4" />
+              </YearPickerNext>
+            </YearPickerHeader>
+
+            <YearPickerGrid class="mt-2 w-full">
+              <YearPickerGridBody>
+                <YearPickerGridRow
+                  v-for="(row, rowIndex) in grid"
+                  :key="`year-row-${rowIndex}`"
+                  class="flex w-full justify-center gap-1 mt-1"
+                >
+                  <YearPickerCell
+                    v-for="yearItem in row"
+                    :key="yearItem.toString()"
+                    :value="yearItem"
+                    class="relative p-0 text-center"
+                  >
+                    <YearPickerCellTrigger
+                      :year="yearItem"
+                      :class="cn(
+                        'inline-flex h-8 w-16 items-center justify-center rounded-md text-sm font-normal transition-colors',
+                        'hover:bg-accent hover:text-accent-foreground',
+                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                        'data-[selected]:bg-primary data-[selected]:text-primary-foreground',
+                        'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+                        'data-[unavailable]:pointer-events-none data-[unavailable]:text-muted-foreground data-[unavailable]:line-through data-[unavailable]:opacity-50',
+                      )"
+                    />
+                  </YearPickerCell>
+                </YearPickerGridRow>
+              </YearPickerGridBody>
+            </YearPickerGrid>
+          </YearPickerRoot>
+        </div>
       </PopoverContent>
     </PopoverPortal>
   </PopoverRoot>

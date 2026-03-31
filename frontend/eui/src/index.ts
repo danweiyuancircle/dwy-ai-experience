@@ -107,7 +107,7 @@ export {
   useSidebar,
 } from './components/sidebar'
 export { EDatePicker } from './components/date-picker'
-export type { EDatePickerProps, EDatePickerEmits } from './components/date-picker'
+export type { EDatePickerProps, EDatePickerEmits, DatePickerType, DatePickerShortcut } from './components/date-picker'
 export { EStepper } from './components/stepper'
 export type { EStepperProps, EStepperEmits, StepperItem } from './components/stepper'
 export { ECarousel, ECarouselItem } from './components/carousel'
