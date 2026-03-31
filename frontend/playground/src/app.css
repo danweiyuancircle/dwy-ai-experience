@@ -1,0 +1,4 @@
+@import "@danweiyuan/eui/theme";
+
+/* Tell Tailwind CSS 4 to scan EUI component source files for class names */
+@source "../../packages/eui/src";
