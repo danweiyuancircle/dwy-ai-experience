@@ -1,13 +1,19 @@
 #!/usr/bin/env node
 
+import { readFileSync } from 'fs'
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
 import { program } from 'commander'
 import { createProject } from '../src/create.js'
 import { syncClaude, syncProjectClaude } from '../src/sync.js'
 
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'))
+
 program
   .name('dwy')
   .description('Project scaffolding and Claude Code config sync')
-  .version('0.1.0')
+  .version(pkg.version)
 
 program
   .command('create [name]')
