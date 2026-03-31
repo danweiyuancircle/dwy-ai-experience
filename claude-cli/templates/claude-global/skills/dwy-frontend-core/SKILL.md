@@ -1,5 +1,5 @@
 ---
-name: core
+name: dwy-frontend-core
 description: "@danweiyuan/core 前端工具库速查。触发条件：需要 HTTP 请求封装、localStorage、表单校验、日期格式化、Vue composable 工具时。"
 ---
 

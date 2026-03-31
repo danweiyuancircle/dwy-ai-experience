@@ -1,5 +1,5 @@
 ---
-name: eui
+name: dwy-frontend-eui
 description: "@danweiyuan/eui Vue 3 组件库速查。触发条件：使用 Vue 3 构建页面、选择 UI 组件、查询 eui 组件 API 时。"
 ---
 

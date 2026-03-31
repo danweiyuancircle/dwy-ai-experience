@@ -1,5 +1,5 @@
 ---
-name: danweiyuan-base
+name: dwy-backend-base
 description: "danweiyuan-base FastAPI 后端基础设施速查。触发条件：使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理时。"
 ---
 
