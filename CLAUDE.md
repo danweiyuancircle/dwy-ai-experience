@@ -38,7 +38,7 @@ pnpm publish:cli                        # create-dwy → npm
 
 ### frontend/eui/ — `@danweiyuan/eui`
 
-Vue 3 组件库，~130 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风格 + Element Plus 式 API。
+Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风格 + Element Plus 式 API。
 
 - **构建**: Vite 8 → ES modules only，vite-plugin-dts 生成 .d.ts
 - **样式**: Tailwind CSS 4 (@tailwindcss/vite)，CSS 自定义属性做 design tokens
@@ -92,4 +92,4 @@ FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块：
 
 ### frontend/playground/
 
-eui 组件本地开发沙箱，Vite SPA + Vue Router，workspace 依赖 `@danweiyuan/eui`。
+Monorepo 文档门户，覆盖 EUI 组件 / Core 工具 / Backend / CLI / Claude Code 五个模块。Vite SPA + Vue Router + markdown-it + Fuse.js 全局搜索。支持 `--host` 局域网访问。

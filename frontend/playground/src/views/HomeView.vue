@@ -38,7 +38,7 @@ const moduleCards = [
 ]
 
 const stats = [
-  { label: 'EUI 组件', value: 91, suffix: '+' },
+  { label: 'EUI 组件', value: 89, suffix: '' },
   { label: 'Core 模块', value: 5, suffix: '' },
   { label: 'Backend 模块', value: 8, suffix: '' },
   { label: 'CLI 命令', value: 3, suffix: '' },
