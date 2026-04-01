@@ -10,6 +10,10 @@
     "publish:eui": "pnpm -F @danweiyuan/eui publish --access public --no-git-checks",
     "publish:core": "pnpm -F @danweiyuan/core publish --access public --no-git-checks",
     "publish:cli": "cd claude-cli && npm publish --access public",
-    "publish:backend": "cd backend && uv build && uv publish"
+    "publish:backend": "cd backend && uv build && uv publish",
+    "changelog": "changelogen"
+  },
+  "devDependencies": {
+    "changelogen": "^0.6.2"
   }
 }
