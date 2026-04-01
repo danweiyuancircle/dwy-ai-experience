@@ -9,7 +9,7 @@ const quickLinks = [
   { name: 'Button 按钮', path: '/eui/button', desc: '6 种变体，3 种尺寸，支持 loading 和图标' },
   { name: 'Form 表单', path: '/eui/form', desc: '完整表单验证，基于 Zod schema' },
   { name: 'Table 表格', path: '/eui/table', desc: '排序、选择、自定义列渲染' },
-  { name: 'Dialog 对话框', path: '/eui/dialog-drawer', desc: '对话框与抽屉组件' },
+  { name: 'Dialog 对话框', path: '/eui/dialog', desc: '对话框组件，支持拖拽和全屏' },
   { name: 'Select 选择器', path: '/eui/select', desc: '单选、分组、可搜索、可清除' },
   { name: '业务组件', path: '/eui/business', desc: 'EDataPage、EFormDialog、EConfirmDialog' },
 ]
@@ -26,7 +26,7 @@ const categories = [
   { label: '表单组件', count: 18, path: '/eui/input' },
   { label: '数据展示', count: 15, path: '/eui/table' },
   { label: '导航组件', count: 10, path: '/eui/tabs' },
-  { label: '反馈组件', count: 8, path: '/eui/dialog-drawer' },
+  { label: '反馈组件', count: 8, path: '/eui/dialog' },
   { label: '业务组件', count: 6, path: '/eui/business' },
 ]
 </script>

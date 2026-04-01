@@ -8,8 +8,6 @@ import SlotsTable from '../components/SlotsTable.vue'
 
 const date1 = ref('')
 const date2 = ref('')
-const time1 = ref('')
-const time2 = ref('')
 const dateDisabled = ref('2024-01-15')
 const range = ref<string[]>([])
 const monthValue = ref('')
@@ -20,18 +18,14 @@ const tocItems = [
   { id: 'date-basic', label: '日期选择' },
   { id: 'date-clearable', label: '可清除日期' },
   { id: 'date-disabled', label: '禁用日期' },
-  { id: 'time-basic', label: '时间选择' },
-  { id: 'time-step', label: '时间步长' },
   { id: 'date-range', label: '日期范围' },
   { id: 'month-year', label: '月份/年份' },
-  { id: 'date-props', label: 'DatePicker Props' },
-  { id: 'date-events', label: 'DatePicker Events' },
-  { id: 'time-props', label: 'TimePicker Props' },
-  { id: 'time-events', label: 'TimePicker Events' },
+  { id: 'props', label: 'Props' },
+  { id: 'events', label: 'Events' },
   { id: 'slots', label: 'Slots' },
 ]
 
-const datePickerPropsData = [
+const propsData = [
   { name: 'modelValue', type: "string | Date | [string, string] | [Date, Date]", description: '绑定值，范围模式为数组' },
   { name: 'type', type: "'date' | 'daterange' | 'month' | 'year'", default: "'date'", description: '选择器类型' },
   { name: 'placeholder', type: 'string', description: '占位提示文字' },
@@ -46,24 +40,9 @@ const datePickerPropsData = [
   { name: 'class', type: 'string', description: '自定义 CSS 类名' },
 ]
 
-const datePickerEventsData = [
+const eventsData = [
   { name: 'update:modelValue', params: "(value: string | [string, string] | undefined)", description: '日期变化时触发（用于 v-model）' },
   { name: 'change', params: "(value: string | [string, string] | undefined)", description: '日期变化时触发' },
-]
-
-const timePickerPropsData = [
-  { name: 'modelValue', type: 'string', description: '绑定值' },
-  { name: 'placeholder', type: 'string', description: '占位提示文字' },
-  { name: 'disabled', type: 'boolean', default: 'false', description: '是否禁用' },
-  { name: 'format', type: 'string', description: '显示格式，如 "HH:mm:ss"' },
-  { name: 'hourStep', type: 'number', description: '小时滚动步长' },
-  { name: 'minuteStep', type: 'number', description: '分钟滚动步长' },
-  { name: 'class', type: 'string', description: '自定义 CSS 类名' },
-]
-
-const timePickerEventsData = [
-  { name: 'update:modelValue', params: '(value: string)', description: '时间变化时触发（用于 v-model）' },
-  { name: 'change', params: '(value: string)', description: '时间变化时触发' },
 ]
 
 const slotsData = [
@@ -73,13 +52,13 @@ const slotsData = [
 
 <template>
   <ComponentDoc
-    title="DatePicker & TimePicker 日期/时间选择器"
-    description="日期和时间选择器组件，支持日期/月份/年份选择、日期范围、时间步长、禁用和可清除等特性。"
+    title="DatePicker 日期选择器"
+    description="日期选择器组件，支持日期/月份/年份选择、日期范围、禁用和可清除等特性。"
     :toc-items="tocItems"
   >
     <section id="usage">
       <h2 class="text-lg font-semibold mb-3">使用场景</h2>
-      <p class="text-muted-foreground text-sm leading-relaxed">DatePicker 适用于需要选择日期的场景，如预约时间、报告日期筛选、生日录入等；TimePicker 适用于选择具体时间点的场景，如会议时间设置、闹钟配置等。日期范围选择适合筛选时间段的业务需求。</p>
+      <p class="text-muted-foreground text-sm leading-relaxed">DatePicker 适用于需要选择日期的场景，如预约时间、报告日期筛选、生日录入等。日期范围选择适合筛选时间段的业务需求。</p>
     </section>
 
     <section id="date-basic">
@@ -119,31 +98,6 @@ const slotsData = [
       </DemoBlock>
     </section>
 
-    <section id="time-basic">
-      <DemoBlock
-        title="时间选择器"
-        description="基础时间选择，返回 HH:mm:ss 格式字符串"
-        code='<ETimePicker v-model="time" placeholder="选择时间" />'
-      >
-        <div class="space-y-3 max-w-sm">
-          <ETimePicker v-model="time1" placeholder="请选择时间" />
-          <p class="text-sm text-muted-foreground">当前值：{{ time1 || '(未选择)' }}</p>
-        </div>
-      </DemoBlock>
-    </section>
-
-    <section id="time-step">
-      <DemoBlock
-        title="时间步长设置"
-        description="通过 hourStep / minuteStep 设置小时和分钟步长"
-        code='<ETimePicker v-model="time" :hourStep="1" :minuteStep="15" />'
-      >
-        <div class="max-w-sm">
-          <ETimePicker v-model="time2" :minuteStep="15" placeholder="分钟步长 15" />
-        </div>
-      </DemoBlock>
-    </section>
-
     <section id="date-range">
       <DemoBlock
         title="日期范围选择"
@@ -177,24 +131,14 @@ const slotsData = [
       </DemoBlock>
     </section>
 
-    <section id="date-props">
+    <section id="props">
       <h2 class="text-lg font-semibold mb-3">DatePicker Props</h2>
-      <PropsTable :data="datePickerPropsData" />
+      <PropsTable :data="propsData" />
     </section>
 
-    <section id="date-events">
+    <section id="events">
       <h2 class="text-lg font-semibold mb-3">DatePicker Events</h2>
-      <EventsTable :data="datePickerEventsData" />
-    </section>
-
-    <section id="time-props">
-      <h2 class="text-lg font-semibold mb-3">TimePicker Props</h2>
-      <PropsTable :data="timePickerPropsData" />
-    </section>
-
-    <section id="time-events">
-      <h2 class="text-lg font-semibold mb-3">TimePicker Events</h2>
-      <EventsTable :data="timePickerEventsData" />
+      <EventsTable :data="eventsData" />
     </section>
 
     <section id="slots">
