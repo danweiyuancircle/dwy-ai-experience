@@ -101,3 +101,28 @@ Monorepo 文档门户，覆盖 EUI 组件 / Core 工具 / Backend / CLI / Claude
 - 单包变更必须带 scope：`feat(eui): add Image component`
 - 跨包变更省略 scope：`chore: upgrade Vite to 8.x`
 - 仅改一个包内的文件时拆成单独 commit，不混包提交
+
+## Release
+
+### 包列表
+
+| 包名 | scope | 版本文件 | 构建命令 | 发布命令 | 验证命令 |
+|------|-------|---------|---------|---------|---------|
+| @danweiyuan/eui | eui | frontend/eui/package.json | pnpm build:eui | pnpm publish:eui | npm view @danweiyuan/eui version |
+| @danweiyuan/core | core | frontend/core/package.json | pnpm build:core | pnpm publish:core | npm view @danweiyuan/core version |
+| danweiyuan-base | backend | backend/pyproject.toml | — | pnpm publish:backend | pip index versions danweiyuan-base |
+| create-dwy | cli | claude-cli/package.json | — | pnpm publish:cli | npm view create-dwy version |
+
+### 依赖顺序
+
+多包发版时按此顺序：core → eui → backend → cli
+
+### Tag 命名
+
+- 单包：`@danweiyuan/eui@1.3.0`、`create-dwy@0.6.0`
+- 多包同时发布：每个包各打一个 tag
+
+### CHANGELOG
+
+- 命令：`pnpm changelog`
+- 工具：changelogen
