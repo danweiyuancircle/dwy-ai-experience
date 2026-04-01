@@ -93,3 +93,11 @@ FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块：
 ### frontend/playground/
 
 Monorepo 文档门户，覆盖 EUI 组件 / Core 工具 / Backend / CLI / Claude Code 五个模块。Vite SPA + Vue Router + markdown-it + Fuse.js 全局搜索。支持 `--host` 局域网访问。
+
+## Git Commit Scope
+
+本项目的 scope 枚举：`eui` | `core` | `backend` | `cli` | `playground`
+
+- 单包变更必须带 scope：`feat(eui): add Image component`
+- 跨包变更省略 scope：`chore: upgrade Vite to 8.x`
+- 仅改一个包内的文件时拆成单独 commit，不混包提交
