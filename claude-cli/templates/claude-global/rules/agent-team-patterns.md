@@ -127,7 +127,7 @@ Agent-2 (worktree) → 前端页面 + API 调用
 | 多 Agent 改同一文件 | 冲突、覆盖 | 串行修改或拆分文件职责 |
 | 无上下文的 Agent | 产出质量差 | prompt 必须自包含 |
 | 链式依赖硬并行 | B 依赖 A 的输出却并行 | 识别依赖，串行执行 |
-| 10+ Agent 同时派出 | 难以管理、context 爆炸 | 单批最多 5 个 Agent |
+| 超过 5 个 Agent 同时派出 | 难以管理、context 爆炸 | 单批最多 5 个 Agent |
 | 跳过 review 直接提交 | 质量无保障 | 遵循 review 闭环 |
 
 ## 四、Agent 数量指南

@@ -713,3 +713,26 @@ import { UserInfo, getUsers } from '@/api/user'
 | `reactive()` 用于简单值 | `ref()` 用于所有场景 |
 | 解构 store 不用 `storeToRefs` | 响应式值必须用 `storeToRefs` |
 | 手写 CSS 为主 | Tailwind 工具类为主 |
+
+## 代码自检（写代码时强制执行）
+
+**每次生成或修改 Vue/TypeScript 代码后，必须逐条验证以下清单。任何一条未通过 → STOP，立即修正后再继续。**
+
+| # | 检查项 | 违规即 STOP |
+|---|--------|------------|
+| 1 | 使用 `<script setup lang="ts">`，不是 Options API | ✓ |
+| 2 | Props 用 `defineProps<{}>()`，Emits 用 `defineEmits<{}>()` | ✓ |
+| 3 | 无 `any` 类型（除非有注释说明原因） | ✓ |
+| 4 | `ref()` 复杂类型有泛型标注（`ref<T>` 而非 `ref(null)`） | ✓ |
+| 5 | Pinia 使用 Setup Store，不是 Options Store | ✓ |
+| 6 | Store 解构用 `storeToRefs`（响应式值），方法直接解构 | ✓ |
+| 7 | 类型导入用 `import type { ... }` | ✓ |
+| 8 | 路由组件使用 `() => import()` 懒加载 | ✓ |
+| 9 | API 调用通过 `api/` 模块，未在组件中直接 `axios.get` | ✓ |
+| 10 | 布尔变量有 `is/has/can/should` 前缀 | ✓ |
+| 11 | 样式以 Tailwind 为主，非必要不写 scoped CSS | ✓ |
+| 12 | 无 `v-if` + `v-for` 同元素 | ✓ |
+| 13 | 模板无复杂表达式，已提取为 `computed` | ✓ |
+| 14 | 枚举用联合类型 `type X = 'a' | 'b'`，不用 `enum` | ✓ |
+
+**不执行自检就提交代码 = 违规。**

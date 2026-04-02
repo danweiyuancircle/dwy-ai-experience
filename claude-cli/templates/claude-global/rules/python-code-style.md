@@ -845,6 +845,29 @@ user = cache.get_user(user_id)
 async def create_user(body: UserCreate) -> UserResponse:
     """根据提交的信息创建新用户，邮箱不可重复。"""
     ...
+
+## 代码自检（写代码时强制执行）
+
+**每次生成或修改 Python 代码后，必须逐条验证以下清单。任何一条未通过 → STOP，立即修正后再继续。**
+
+| # | 检查项 | 违规即 STOP |
+|---|--------|------------|
+| 1 | 所有公开函数有参数 + 返回值类型标注 | ✓ |
+| 2 | 无 `Any` 类型（除非有注释说明原因） | ✓ |
+| 3 | 使用 `list[int]` / `str \| None` 等现代语法，不用 `typing.List` / `Optional` | ✓ |
+| 4 | service 层不抛 `HTTPException`，只抛业务异常 | ✓ |
+| 5 | 无裸 `except:` 或 `except Exception: pass` | ✓ |
+| 6 | 路由函数只做参数接收 → 调用 service → 返回结果，无业务逻辑 | ✓ |
+| 7 | HTTP 请求用 `httpx`，不用 `requests` | ✓ |
+| 8 | 日志用 `%s` 占位符或 structlog，不用 f-string | ✓ |
+| 9 | 生命周期用 `lifespan`，不用 `@app.on_event` | ✓ |
+| 10 | 无可变默认参数 `def f(items=[])` | ✓ |
+| 11 | Pydantic Schema 请求/响应分离，不复用 | ✓ |
+| 12 | 嵌套不超过 3 层，函数体不超过 50 行 | ✓ |
+| 13 | 所有模块/类/函数有 docstring（Google 风格） | ✓ |
+| 14 | 依赖通过 `Depends()` 注入，不在路由中直接创建 | ✓ |
+
+**不执行自检就提交代码 = 违规。**
 ```
 
 ## 十九、安全编码

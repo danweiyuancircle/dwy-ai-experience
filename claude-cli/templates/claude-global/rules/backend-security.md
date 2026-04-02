@@ -581,19 +581,29 @@ async def export_users(request: Request): ...
 
 ## 十五、违规检测清单
 
-AI 在编写或审查代码时，必须检查以下违规模式：
+**AI 在编写或审查代码时，必须检查以下违规模式。检测到违规时按严重程度执行对应动作：**
+
+### 严重程度与动作
+
+| 严重程度 | 动作 |
+|---------|------|
+| **致命** | **立即 STOP，不得继续编写或提交代码。** 必须修正后重新检查，修正前不执行任何其他操作。 |
+| **高** | 必须修正后才能继续。向用户说明违规点和修正方案。 |
+| **中** | 提示用户存在风险，建议修正。用户确认后可继续。 |
+
+### 检查清单
 
 | 检查项 | 违规模式 | 严重程度 |
 |--------|---------|---------|
+| 密码明文 | `password` 字段出现在 Response Schema | **致命 → STOP** |
+| 密码弱存储 | 使用 MD5/SHA 而非 bcrypt | **致命 → STOP** |
+| SQL 拼接 | f-string 拼接 SQL 语句 | **致命 → STOP** |
+| 命令注入 | 直接执行 shell 命令或 `shell=True` | **致命 → STOP** |
+| DolphinDB 拼接 | 用户输入直接进 DolphinDB 脚本 | **致命 → STOP** |
 | 自增 ID 暴露 | 路由参数为 `int` 类型的 ID | 高 |
-| 密码明文 | `password` 字段出现在 Response Schema | 致命 |
-| 密码弱存储 | 使用 MD5/SHA 而非 bcrypt | 致命 |
 | 无认证接口 | 数据接口无 `Depends(get_current_user)` | 高 |
-| SQL 拼接 | `f"SELECT ... {user_input}"` | 致命 |
-| 命令注入 | `os.system()` / `subprocess(shell=True)` | 致命 |
 | 全量返回 | 列表接口无分页限制 | 高 |
 | 错误回显 | `str(exception)` 返回给客户端 | 高 |
+| 文件名不安全 | 使用用户原始文件名做存储路径 | 高 |
 | 物理删除 | `session.delete()` 用于业务数据 | 中 |
 | Redis 无 TTL | `redis.set()` 没有 `ex` 参数 | 中 |
-| 文件名不安全 | 使用用户原始文件名做存储路径 | 高 |
-| DolphinDB 拼接 | 用户输入直接进 DolphinDB 脚本 | 致命 |
