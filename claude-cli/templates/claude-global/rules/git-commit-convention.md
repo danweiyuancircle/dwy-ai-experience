@@ -56,15 +56,15 @@ scope 使用规则：
 
 **subject 强制要求：**
 
-- 英文，小写字母开头
+- **中文**描述
 - 不加句号
 - ≤ 72 字符
-- 祈使语气：`add`、`fix`、`remove` ✓ / `added`、`fixes`、`removed` ✗
+- 用简洁的动宾短语：`添加`、`修复`、`移除`、`重构`、`升级`
 
 **body（可选）：**
 
 - 空一行后写
-- 只写 why（动机、背景），不复述 what
+- 中文，只写 why（动机、背景），不复述 what
 - 破坏性变更加 `BREAKING CHANGE:` 前缀
 
 ### Step 4: 自检验证
@@ -73,7 +73,7 @@ scope 使用规则：
 
 - [ ] type 在枚举表中？
 - [ ] scope 符合项目 CLAUDE.md 定义（或正确省略）？
-- [ ] subject 是英文、小写开头、无句号、≤ 72 字符、祈使语气？
+- [ ] subject 是中文、无句号、≤ 72 字符、简洁动宾短语？
 - [ ] 一个 commit 只做一件事，没有混合不同 type 的变更？
 - [ ] 没有混合不同 scope 的独立变更？
 
@@ -83,25 +83,24 @@ scope 使用规则：
 
 | 错误 | 正确 |
 |------|------|
-| `feat: Add user login` | `feat: add user login`（小写开头） |
-| `fix(eui): fixed button style.` | `fix(eui): fix button style`（祈使语气、无句号） |
-| `feat: add login and fix logout bug` | 拆成两个 commit |
-| `update: change config` | `update` 不在 type 枚举中，应为 `chore` |
-| `feat(auth): add JWT refresh`（项目 scope 枚举无 auth） | 使用项目定义的 scope 值 |
+| `feat: add user login`（英文） | `feat: 添加用户登录功能`（中文） |
+| `fix(eui): 修复了按钮样式。` | `fix(eui): 修复按钮样式`（无句号、不用「了」） |
+| `feat: 添加登录功能并修复登出 bug` | 拆成两个 commit |
+| `update: 修改配置` | `update` 不在 type 枚举中，应为 `chore` |
+| `feat(auth): 添加 JWT 刷新`（项目 scope 枚举无 auth） | 使用项目定义的 scope 值 |
 
 ## 正确示例
 
 ```
-feat(eui): add Image component with lazy loading
+feat(eui): 添加 Image 组件，支持懒加载
 
-fix: correct token refresh race condition
+fix: 修复 token 刷新竞态条件
 
-refactor(backend): extract pagination into shared utility
+refactor(backend): 提取分页逻辑为共享工具
 
-chore: upgrade Vite to 8.x across all packages
+chore: 升级 Vite 至 8.x
 
-feat(eui)!: rename EDialog open prop to v-model:open
+feat(eui)!: 重命名 EDialog open 属性为 v-model:open
 
-BREAKING CHANGE: EDialog no longer accepts `visible` prop.
-Use `v-model:open` instead.
+BREAKING CHANGE: EDialog 不再接受 `visible` 属性，请改用 `v-model:open`。
 ```
