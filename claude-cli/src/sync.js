@@ -43,7 +43,16 @@ export async function syncClaude() {
 
     if (await fs.pathExists(settingsDest)) {
       const existing = await fs.readJson(settingsDest)
-      const merged = { ...existing, ...newSettings }
+      // 两层深合并：顶层 key merge + dict value 二级 merge
+      const merged = { ...existing }
+      for (const [key, value] of Object.entries(newSettings)) {
+        if (key in merged && typeof merged[key] === 'object' && !Array.isArray(merged[key])
+            && typeof value === 'object' && !Array.isArray(value)) {
+          merged[key] = { ...merged[key], ...value }
+        } else {
+          merged[key] = value
+        }
+      }
       await fs.writeJson(settingsDest, merged, { spaces: 2 })
       console.log(chalk.green('  ✓ settings.json — merged'))
     } else {
