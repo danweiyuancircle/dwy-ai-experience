@@ -1,6 +1,6 @@
 {
   "name": "create-dwy",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "description": "Project scaffolding and Claude Code config sync CLI",
   "type": "module",
   "bin": {
