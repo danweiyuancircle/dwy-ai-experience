@@ -7,6 +7,12 @@ description: "@danweiyuan/eui Vue 3 组件库速查。触发条件：使用 Vue 
 
 基于 Reka-ui 原语层 + shadcn-vue 设计风格 + Element Plus 式 API 的 Vue 3 组件库。
 
+## 集成指南
+
+新项目集成 EUI 时，读取同目录下的 `eui-integration-guide.md`，包含完整的安装、Vite 配置、样式引入、组件注册、主题切换等步骤。
+
+---
+
 ## 安装与引入
 
 ```bash
