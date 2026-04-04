@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from './index'
+import { phoneSchema, emailSchema, idCardSchema, urlSchema, requiredSchema, minLengthSchema, maxLengthSchema } from './schemas'
+
+// ============================================================
+// Original validator function tests (21 tests)
+// ============================================================
 
 describe('isPhone', () => {
   it('accepts valid Chinese mobile numbers', () => {
@@ -122,5 +127,143 @@ describe('maxLength', () => {
 
   it('fails when string exceeds maximum', () => {
     expect(maxLength('abcd', 3)).toBe(false)
+  })
+})
+
+// ============================================================
+// Schema tests
+// ============================================================
+
+describe('phoneSchema', () => {
+  it('safeParse succeeds for valid phone', () => {
+    const result = phoneSchema.safeParse('13812345678')
+    expect(result.success).toBe(true)
+  })
+
+  it('safeParse fails with correct message for invalid phone', () => {
+    const result = phoneSchema.safeParse('123')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('请输入正确的手机号')
+    }
+  })
+})
+
+describe('emailSchema', () => {
+  it('safeParse succeeds for valid email', () => {
+    const result = emailSchema.safeParse('user@example.com')
+    expect(result.success).toBe(true)
+  })
+
+  it('safeParse fails with correct message for invalid email', () => {
+    const result = emailSchema.safeParse('not-email')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('请输入正确的邮箱')
+    }
+  })
+})
+
+describe('idCardSchema', () => {
+  it('safeParse succeeds for valid ID card', () => {
+    const result = idCardSchema.safeParse('420681199901011234')
+    expect(result.success).toBe(true)
+  })
+
+  it('safeParse fails with correct message for invalid ID card', () => {
+    const result = idCardSchema.safeParse('123')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('请输入正确的身份证号')
+    }
+  })
+})
+
+describe('urlSchema', () => {
+  it('safeParse succeeds for valid URL', () => {
+    const result = urlSchema.safeParse('https://example.com')
+    expect(result.success).toBe(true)
+  })
+
+  it('safeParse succeeds for ftp URL', () => {
+    const result = urlSchema.safeParse('ftp://files.example.com/doc.pdf')
+    expect(result.success).toBe(true)
+  })
+
+  it('safeParse fails with correct message for invalid URL', () => {
+    const result = urlSchema.safeParse('not-a-url')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('请输入正确的 URL')
+    }
+  })
+})
+
+describe('requiredSchema', () => {
+  it('safeParse succeeds for non-empty value', () => {
+    expect(requiredSchema.safeParse('hello').success).toBe(true)
+    expect(requiredSchema.safeParse(0).success).toBe(true)
+    expect(requiredSchema.safeParse([1]).success).toBe(true)
+  })
+
+  it('safeParse fails with correct message for empty value', () => {
+    const result = requiredSchema.safeParse(null)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('此项为必填')
+    }
+  })
+
+  it('safeParse fails for whitespace-only strings', () => {
+    expect(requiredSchema.safeParse('   ').success).toBe(false)
+  })
+
+  it('safeParse fails for empty arrays', () => {
+    expect(requiredSchema.safeParse([]).success).toBe(false)
+  })
+})
+
+describe('minLengthSchema', () => {
+  it('creates schema that succeeds when string meets minimum', () => {
+    const schema = minLengthSchema(3)
+    expect(schema.safeParse('abc').success).toBe(true)
+    expect(schema.safeParse('abcd').success).toBe(true)
+  })
+
+  it('creates schema that fails when string is too short', () => {
+    const schema = minLengthSchema(3)
+    const result = schema.safeParse('ab')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('最少 3 个字符')
+    }
+  })
+
+  it('respects different min values', () => {
+    expect(minLengthSchema(1).safeParse('').success).toBe(false)
+    expect(minLengthSchema(5).safeParse('hello').success).toBe(true)
+    expect(minLengthSchema(5).safeParse('hi').success).toBe(false)
+  })
+})
+
+describe('maxLengthSchema', () => {
+  it('creates schema that succeeds when string is within maximum', () => {
+    const schema = maxLengthSchema(3)
+    expect(schema.safeParse('abc').success).toBe(true)
+    expect(schema.safeParse('ab').success).toBe(true)
+  })
+
+  it('creates schema that fails when string exceeds maximum', () => {
+    const schema = maxLengthSchema(3)
+    const result = schema.safeParse('abcd')
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('最多 3 个字符')
+    }
+  })
+
+  it('respects different max values', () => {
+    expect(maxLengthSchema(10).safeParse('short').success).toBe(true)
+    expect(maxLengthSchema(2).safeParse('abc').success).toBe(false)
   })
 })

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { formatRelativeTime, formatDate, formatDateTime, formatTime } from './index'
+import { formatRelativeTime, formatDate, formatDateTime, formatTime, formatBy } from './index'
 
 describe('formatDate', () => {
   it('formats Date object to YYYY-MM-DD', () => {
@@ -79,13 +79,11 @@ describe('formatRelativeTime', () => {
     expect(formatRelativeTime(new Date(2025, 0, 1, 12, 0, 0))).toBe('7 天前')
   })
 
-  it('returns formatted date for >= 30 days ago', () => {
+  it('returns YYYY-MM-DD for >= 30 days ago', () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date(2025, 3, 1, 12, 0, 0))
     const result = formatRelativeTime(new Date(2025, 0, 1, 12, 0, 0))
-    // toLocaleDateString('zh-CN') format
-    expect(result).toBeTruthy()
-    expect(result).not.toContain('天前')
+    expect(result).toBe('2025-01-01')
   })
 
   it('accepts timestamp number input', () => {
@@ -101,5 +99,24 @@ describe('formatRelativeTime', () => {
     vi.setSystemTime(now)
     const str = new Date(2025, 0, 1, 12, 0, 0).toISOString()
     expect(formatRelativeTime(str)).toBe('30 分钟前')
+  })
+})
+
+describe('formatBy', () => {
+  it('formats with custom template', () => {
+    const d = new Date(2025, 5, 15, 14, 30, 45)
+    expect(formatBy(d, 'YYYY/MM/DD')).toBe('2025/06/15')
+    expect(formatBy(d, 'HH:mm:ss')).toBe('14:30:45')
+    expect(formatBy(d, 'YYYY年MM月DD日')).toBe('2025年06月15日')
+  })
+
+  it('formats timestamp number with template', () => {
+    const ts = new Date(2025, 0, 1, 8, 5).getTime()
+    expect(formatBy(ts, 'MM-DD HH:mm')).toBe('01-01 08:05')
+  })
+
+  it('formats ISO string with template', () => {
+    const d = new Date(2025, 5, 15, 14, 30)
+    expect(formatBy(d.toISOString(), 'YYYY-MM-DD')).toMatch(/^2025-06-1[45]$/) // timezone dependent
   })
 })

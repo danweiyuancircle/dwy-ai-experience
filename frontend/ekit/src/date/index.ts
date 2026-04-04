@@ -1,48 +1,57 @@
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import 'dayjs/locale/zh-cn'
+
+dayjs.extend(relativeTime)
+dayjs.locale('zh-cn')
+
+export { dayjs }
+
+type DateInput = string | number | Date
+
 /**
  * Format a date string or timestamp to relative time (Chinese).
  * "刚刚", "5 分钟前", "3 小时前", "2 天前", or formatted date.
  */
-export function formatRelativeTime(dateInput: string | number | Date): string {
+export function formatRelativeTime(dateInput: DateInput): string {
   if (!dateInput) return ''
-  const date = typeof dateInput === 'string' || typeof dateInput === 'number'
-    ? new Date(dateInput)
-    : dateInput
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffMin = Math.floor(diffMs / 60000)
+  const target = dayjs(dateInput)
+  const now = dayjs()
+  const diffMin = now.diff(target, 'minute')
 
   if (diffMin < 1) return '刚刚'
   if (diffMin < 60) return `${diffMin} 分钟前`
-  const diffHour = Math.floor(diffMin / 60)
+  const diffHour = now.diff(target, 'hour')
   if (diffHour < 24) return `${diffHour} 小时前`
-  const diffDay = Math.floor(diffHour / 24)
+  const diffDay = now.diff(target, 'day')
   if (diffDay < 30) return `${diffDay} 天前`
-  return date.toLocaleDateString('zh-CN')
+  return target.format('YYYY-MM-DD')
 }
 
 /**
  * Format date to YYYY-MM-DD
  */
-export function formatDate(dateInput: string | number | Date): string {
-  const d = new Date(dateInput)
-  const y = d.getFullYear()
-  const m = String(d.getMonth() + 1).padStart(2, '0')
-  const day = String(d.getDate()).padStart(2, '0')
-  return `${y}-${m}-${day}`
+export function formatDate(dateInput: DateInput): string {
+  return dayjs(dateInput).format('YYYY-MM-DD')
 }
 
 /**
  * Format date to YYYY-MM-DD HH:mm:ss
  */
-export function formatDateTime(dateInput: string | number | Date): string {
-  const d = new Date(dateInput)
-  return `${formatDate(d)} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`
+export function formatDateTime(dateInput: DateInput): string {
+  return dayjs(dateInput).format('YYYY-MM-DD HH:mm:ss')
 }
 
 /**
  * Format time to HH:mm
  */
-export function formatTime(dateInput: string | number | Date): string {
-  const d = new Date(dateInput)
-  return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+export function formatTime(dateInput: DateInput): string {
+  return dayjs(dateInput).format('HH:mm')
+}
+
+/**
+ * Format date with custom template
+ */
+export function formatBy(dateInput: DateInput, template: string): string {
+  return dayjs(dateInput).format(template)
 }

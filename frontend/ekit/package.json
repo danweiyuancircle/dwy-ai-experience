@@ -14,6 +14,7 @@
       "types": "./src/index.ts"
     }
   },
+  "sideEffects": false,
   "files": [
     "dist",
     "src",
@@ -28,6 +29,9 @@
     "vue": "^3.4.0"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
+    "@types/js-cookie": "^3.0.6",
+    "@types/qs": "^6.15.0",
     "@vue/test-utils": "^2.4.6",
     "jsdom": "^26.1.0",
     "typescript": "^5.9.3",
@@ -37,5 +41,13 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run"
+  },
+  "dependencies": {
+    "@vueuse/core": "^14.2.1",
+    "dayjs": "^1.11.20",
+    "file-saver": "^2.0.5",
+    "js-cookie": "^3.0.5",
+    "qs": "^6.15.0",
+    "zod": "^3.25.76"
   }
 }
