@@ -1,5 +1,11 @@
 # @danweiyuan/eui
 
+## 1.2.1
+
+### Patch Changes
+
+- 主题 CSS 内置 `@source` 指令，消费者 `@import "@danweiyuan/eui/theme"` 后自动扫描组件类名，无需手动配置
+
 ## 1.0.1
 
 ### Patch Changes
