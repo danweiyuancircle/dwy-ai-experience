@@ -30,7 +30,7 @@ cd backend && ruff check src/ && ruff format --check src/
 # 发布
 pnpm build:eui && pnpm publish:eui      # @danweiyuan/eui → npm
 pnpm build:ekit && pnpm publish:ekit    # @danweiyuan/ekit → npm
-pnpm publish:eapi                       # danweiyuan-eapi → PyPI (uv build && uv publish)
+source .key && pnpm publish:eapi        # danweiyuan-eapi → PyPI (uv build && uv publish)
 pnpm publish:cli                        # create-dwy → npm
 ```
 
@@ -126,3 +126,8 @@ Monorepo 文档门户，覆盖 EUI 组件 / EKit 工具 / Backend / CLI / Claude
 
 - 命令：`pnpm changelog`
 - 工具：changelogen
+
+### PyPI 凭证
+
+- Token 存储在项目根目录 `.key` 文件中（已 gitignore）
+- 发布 eapi 前需先加载：`source .key`
