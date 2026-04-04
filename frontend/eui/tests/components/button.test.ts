@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import EButton from './EButton.vue'
+import EButton from '@/components/button/EButton.vue'
 
 describe('EButton', () => {
   it('renders a button element by default', () => {

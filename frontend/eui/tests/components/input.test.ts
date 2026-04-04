@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import EInput from './EInput.vue'
+import EInput from '@/components/input/EInput.vue'
 
 describe('EInput', () => {
   it('renders an input element', () => {

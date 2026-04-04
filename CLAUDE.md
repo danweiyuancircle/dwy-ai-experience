@@ -113,7 +113,7 @@ eui、ekit、eapi 三个基础库被多个项目依赖，变更必须严格遵�
 
 | 包 | 测试命令 | 测试文件规范 | 用例文档 |
 |----|---------|-------------|---------|
-| eui | `cd frontend/eui && pnpm vitest run` | `src/components/{name}/{name}.test.ts` | `frontend/eui/TEST_CASES.md` |
+| eui | `cd frontend/eui && pnpm vitest run` | `tests/components/{name}.test.ts` | `frontend/eui/TEST_CASES.md` |
 | ekit | `cd frontend/ekit && pnpm vitest run` | `src/{module}/{module}.test.ts` | `frontend/ekit/TEST_CASES.md` |
 | eapi | `cd backend && pytest tests/ -v` | `tests/test_{module}.py` | `backend/TEST_CASES.md` |
 

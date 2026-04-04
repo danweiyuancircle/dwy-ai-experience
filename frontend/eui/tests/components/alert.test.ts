@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
-import EAlert from './EAlert.vue'
+import EAlert from '@/components/alert/EAlert.vue'
 
 describe('EAlert', () => {
   it('renders with role="alert"', () => {
