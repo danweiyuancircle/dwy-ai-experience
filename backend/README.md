@@ -1,11 +1,11 @@
-# danweiyuan-base
+# danweiyuan-eapi
 
 Lightweight FastAPI infrastructure package for shared use across projects.
 
 ## Install
 
 ```bash
-pip install danweiyuan-base
+pip install danweiyuan-eapi
 ```
 
 ## Modules

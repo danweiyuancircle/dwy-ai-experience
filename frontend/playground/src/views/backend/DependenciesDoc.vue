@@ -5,7 +5,7 @@ const content = `
 ## dependencies — FastAPI 依赖注入
 
 \`\`\`python
-from danweiyuan_base.dependencies import create_get_db
+from danweiyuan_eapi.dependencies import create_get_db
 \`\`\`
 
 ### create_get_db(session_factory)
@@ -32,8 +32,8 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
 
 \`\`\`python
 # database.py
-from danweiyuan_base.database import create_async_engine_factory, create_session_factory
-from danweiyuan_base.dependencies import create_get_db
+from danweiyuan_eapi.database import create_async_engine_factory, create_session_factory
+from danweiyuan_eapi.dependencies import create_get_db
 
 engine = create_async_engine_factory(settings.database_url)
 session_factory = create_session_factory(engine)

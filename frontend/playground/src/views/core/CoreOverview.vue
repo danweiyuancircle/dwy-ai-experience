@@ -36,7 +36,7 @@ const modules = [
 <template>
   <div class="max-w-4xl">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold mb-2">@danweiyuan/core</h1>
+      <h1 class="text-3xl font-bold mb-2">@danweiyuan/ekit</h1>
       <p class="text-muted-foreground text-lg">
         Vue 3 项目通用工具库，包含 5 个模块：request、storage、validators、date、hooks。
       </p>
@@ -46,7 +46,7 @@ const modules = [
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">安装</h2>
       <div class="border rounded-lg p-4 bg-muted/50">
-        <code class="text-sm">pnpm add @danweiyuan/core</code>
+        <code class="text-sm">pnpm add @danweiyuan/ekit</code>
         <p class="text-xs text-muted-foreground mt-2">peerDependencies: axios ^1.0.0, vue ^3.4.0</p>
       </div>
     </div>
@@ -55,7 +55,7 @@ const modules = [
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">按需导入</h2>
       <div class="border rounded-lg p-4 bg-muted/50">
-        <pre class="text-sm leading-relaxed"><code>import { createRequest, useStorage, isPhone, formatDate, useDebounce } from '@danweiyuan/core'</code></pre>
+        <pre class="text-sm leading-relaxed"><code>import { createRequest, useStorage, isPhone, formatDate, useDebounce } from '@danweiyuan/ekit'</code></pre>
       </div>
     </div>
 
@@ -83,7 +83,7 @@ const modules = [
     <div>
       <h2 class="text-xl font-semibold mb-4">源码</h2>
       <p class="text-sm text-muted-foreground">
-        每个模块源码在 <code class="text-xs px-1.5 py-0.5 rounded bg-muted">frontend/core/src/{module}/index.ts</code>，函数简短可直接阅读。
+        每个模块源码在 <code class="text-xs px-1.5 py-0.5 rounded bg-muted">frontend/ekit/src/{module}/index.ts</code>，函数简短可直接阅读。
       </p>
     </div>
   </div>

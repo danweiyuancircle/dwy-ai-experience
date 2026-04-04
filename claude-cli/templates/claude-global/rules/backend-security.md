@@ -61,7 +61,7 @@ class UserResponse(BaseModel):
 
 ```python
 # ✅ 正确 — bcrypt 存储
-from danweiyuan_base.security import hash_password, verify_password
+from danweiyuan_eapi.security import hash_password, verify_password
 
 hashed = hash_password("user_password")   # 存储到数据库
 is_valid = verify_password("input", hashed)  # 验证时比对

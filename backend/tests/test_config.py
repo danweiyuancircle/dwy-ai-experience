@@ -1,8 +1,8 @@
-"""Tests for danweiyuan_base.config."""
+"""Tests for danweiyuan_eapi.config."""
 
 import pytest
 
-from danweiyuan_base.config import BaseSettings
+from danweiyuan_eapi.config import BaseSettings
 
 
 class TestBaseSettings:

@@ -1,5 +1,5 @@
 [project]
-name = "danweiyuan-base"
+name = "danweiyuan-eapi"
 version = "0.1.0"
 description = "Lightweight FastAPI infrastructure — exceptions, database, config, security, cache, pagination"
 requires-python = ">=3.11"
@@ -38,7 +38,7 @@ line-length = 120
 select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "RUF"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["danweiyuan_base"]
+known-first-party = ["danweiyuan_eapi"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

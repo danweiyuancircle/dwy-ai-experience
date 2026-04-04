@@ -1,10 +1,10 @@
-"""Tests for danweiyuan_base.exceptions."""
+"""Tests for danweiyuan_eapi.exceptions."""
 
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from danweiyuan_base.exceptions import (
+from danweiyuan_eapi.exceptions import (
     AppError,
     AuthenticationError,
     BusinessError,

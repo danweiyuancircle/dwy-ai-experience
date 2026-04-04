@@ -1,11 +1,11 @@
-# @danweiyuan/core
+# @danweiyuan/ekit
 
 Vue 3 通用工具库：HTTP 请求插件、本地存储、日期格式化、表单校验、常用 Hooks。不包含 UI 组件，可独立用于任意 Vue 3 项目。
 
 ## 安装
 
 ```bash
-npm install @danweiyuan/core
+npm install @danweiyuan/ekit
 ```
 
 **Peer dependencies:** `vue ^3.4`, `axios ^1.0`
@@ -23,8 +23,8 @@ import {
   headerPlugin,
   unwrapPlugin,
   refreshTokenPlugin,
-} from '@danweiyuan/core'
-import type { RequestPlugin, CreateRequestOptions } from '@danweiyuan/core'
+} from '@danweiyuan/ekit'
+import type { RequestPlugin, CreateRequestOptions } from '@danweiyuan/ekit'
 ```
 
 #### `createRequest(options?: CreateRequestOptions): AxiosInstance`
@@ -69,7 +69,7 @@ interface RequestPlugin {
 ### storage — 本地存储
 
 ```ts
-import { useStorage, storage } from '@danweiyuan/core'
+import { useStorage, storage } from '@danweiyuan/ekit'
 ```
 
 #### `useStorage<T>(key: string, defaultValue: T): Ref<T>`
@@ -97,7 +97,7 @@ token.value = 'abc123' // 自动持久化
 ### date — 日期格式化
 
 ```ts
-import { formatRelativeTime, formatDate, formatDateTime, formatTime } from '@danweiyuan/core'
+import { formatRelativeTime, formatDate, formatDateTime, formatTime } from '@danweiyuan/ekit'
 ```
 
 所有函数接受 `string | number | Date`。
@@ -114,7 +114,7 @@ import { formatRelativeTime, formatDate, formatDateTime, formatTime } from '@dan
 ### validators — 表单校验
 
 ```ts
-import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@danweiyuan/core'
+import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@danweiyuan/ekit'
 ```
 
 | 函数 | 签名 | 说明 |
@@ -132,7 +132,7 @@ import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } f
 ### hooks — Vue Composables
 
 ```ts
-import { useDebounce, useClickOutside, useEventListener } from '@danweiyuan/core'
+import { useDebounce, useClickOutside, useEventListener } from '@danweiyuan/ekit'
 ```
 
 #### `useDebounce<T>(value: Ref<T>, delay?: number): Ref<T>`

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const skills = [
   { name: 'dwy-frontend-eui', title: '@danweiyuan/eui', desc: 'Vue 3 组件库速查 — 89 组件完整 API', path: '/claude/skills/dwy-frontend-eui' },
-  { name: 'dwy-frontend-core', title: '@danweiyuan/core', desc: '前端工具库速查 — request/storage/validators/date/hooks', path: '/claude/skills/dwy-frontend-core' },
-  { name: 'dwy-backend-base', title: 'danweiyuan-base', desc: 'FastAPI 后端基础设施速查 — 8 模块全异步', path: '/claude/skills/dwy-backend-base' },
+  { name: 'dwy-frontend-ekit', title: '@danweiyuan/ekit', desc: '前端工具库速查 — request/storage/validators/date/hooks', path: '/claude/skills/dwy-frontend-ekit' },
+  { name: 'dwy-backend-eapi', title: 'danweiyuan-eapi', desc: 'FastAPI 后端基础设施速查 — 8 模块全异步', path: '/claude/skills/dwy-backend-eapi' },
 ]
 
 const rules = [

@@ -5,7 +5,7 @@ const content = `
 ## pagination — 分页工具
 
 \`\`\`python
-from danweiyuan_base.pagination import PaginationParams, paginate, OffsetLimit
+from danweiyuan_eapi.pagination import PaginationParams, paginate, OffsetLimit
 \`\`\`
 
 ### PaginationParams
@@ -28,8 +28,8 @@ stmt = select(User).offset(offset_limit.offset).limit(offset_limit.limit)
 ### 完整使用示例
 
 \`\`\`python
-from danweiyuan_base.pagination import PaginationParams, paginate
-from danweiyuan_base.response import paginated
+from danweiyuan_eapi.pagination import PaginationParams, paginate
+from danweiyuan_eapi.response import paginated
 
 @router.get("/users")
 async def list_users(

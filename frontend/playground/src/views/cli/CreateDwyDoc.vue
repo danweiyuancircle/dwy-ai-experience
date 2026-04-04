@@ -39,8 +39,8 @@ dwy create [name]
 
 选择 \`web\` 模板后，脚手架会生成以下结构：
 
-- **frontend/** — Vue 3 前端项目（含 @danweiyuan/eui + @danweiyuan/core）
-- **backend/** — FastAPI 后端项目（含 danweiyuan-base）
+- **frontend/** — Vue 3 前端项目（含 @danweiyuan/eui + @danweiyuan/ekit）
+- **backend/** — FastAPI 后端项目（含 danweiyuan-eapi）
 - **docker-compose.yml** — 生产部署配置
 - **docker-compose.dev.yml** — 本地开发配置（PostgreSQL + Redis）
 - **.claude/** — 项目级 Claude Code 配置

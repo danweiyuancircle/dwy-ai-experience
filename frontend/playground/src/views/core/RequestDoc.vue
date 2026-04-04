@@ -5,7 +5,7 @@ const content = `
 ## request — Axios 插件化封装
 
 \`\`\`ts
-import { createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin } from '@danweiyuan/core'
+import { createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin } from '@danweiyuan/ekit'
 \`\`\`
 
 ### createRequest(options?)

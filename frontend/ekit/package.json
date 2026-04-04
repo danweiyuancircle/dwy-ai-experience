@@ -1,5 +1,5 @@
 {
-  "name": "@danweiyuan/core",
+  "name": "@danweiyuan/ekit",
   "version": "0.1.0",
   "type": "module",
   "description": "Shared utilities, hooks, and helpers for danweiyuan projects",

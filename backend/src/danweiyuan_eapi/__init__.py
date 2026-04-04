@@ -1,4 +1,4 @@
-"""danweiyuan-base — Lightweight FastAPI infrastructure.
+"""danweiyuan-eapi — Lightweight FastAPI infrastructure.
 
 Modules:
     config        — BaseSettings with required fields

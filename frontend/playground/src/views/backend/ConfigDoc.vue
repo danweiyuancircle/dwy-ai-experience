@@ -5,7 +5,7 @@ const content = `
 ## config — Pydantic Settings
 
 \`\`\`python
-from danweiyuan_base.config import BaseSettings
+from danweiyuan_eapi.config import BaseSettings
 \`\`\`
 
 子类化后使用，从 \`.env\` 或环境变量读取配置。
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
 \`\`\`python
 # config.py
-from danweiyuan_base.config import BaseSettings
+from danweiyuan_eapi.config import BaseSettings
 
 class Settings(BaseSettings):
     app_name: str = "My API"

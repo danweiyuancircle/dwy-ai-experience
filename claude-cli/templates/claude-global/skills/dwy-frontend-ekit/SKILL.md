@@ -1,33 +1,33 @@
 ---
-name: dwy-frontend-core
-description: "@danweiyuan/core 前端工具库速查。触发条件：需要 HTTP 请求封装、localStorage、表单校验、日期格式化、Vue composable 工具时。"
+name: dwy-frontend-ekit
+description: "@danweiyuan/ekit 前端工具库速查。触发条件：需要 HTTP 请求封装、localStorage、表单校验、日期格式化、Vue composable 工具时。"
 ---
 
-# @danweiyuan/core 工具库速查
+# @danweiyuan/ekit 工具库速查
 
 Vue 3 项目通用工具库，包含 5 个模块：request、storage、validators、date、hooks。
 
 ## 安装
 
 ```bash
-pnpm add @danweiyuan/core
+pnpm add @danweiyuan/ekit
 # peerDependencies: axios ^1.0.0, vue ^3.4.0
 ```
 
 ```ts
-import { createRequest, useStorage, isPhone, formatDate, useDebounce } from '@danweiyuan/core'
+import { createRequest, useStorage, isPhone, formatDate, useDebounce } from '@danweiyuan/ekit'
 ```
 
 ## 查阅源码
 
-每个模块源码在 `frontend/core/src/{module}/index.ts`，函数简短可直接阅读。
+每个模块源码在 `frontend/ekit/src/{module}/index.ts`，函数简短可直接阅读。
 
 ---
 
 ## request — Axios 插件化封装
 
 ```ts
-import { createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin } from '@danweiyuan/core'
+import { createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin } from '@danweiyuan/ekit'
 ```
 
 ### createRequest(options?)
@@ -89,7 +89,7 @@ refreshTokenPlugin({
 ## storage — localStorage 封装
 
 ```ts
-import { useStorage, storage } from '@danweiyuan/core'
+import { useStorage, storage } from '@danweiyuan/ekit'
 ```
 
 ### useStorage(key, defaultValue) — 响应式
@@ -115,7 +115,7 @@ const config = useStorage<{ theme: string }>('config', { theme: 'light' })
 ## validators — 校验函数
 
 ```ts
-import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@danweiyuan/core'
+import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@danweiyuan/ekit'
 ```
 
 | 函数 | 签名 | 规则 |
@@ -133,7 +133,7 @@ import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } f
 ## date — 日期格式化
 
 ```ts
-import { formatDate, formatDateTime, formatTime, formatRelativeTime } from '@danweiyuan/core'
+import { formatDate, formatDateTime, formatTime, formatRelativeTime } from '@danweiyuan/ekit'
 ```
 
 所有函数接收 `string | number | Date` 类型输入。
@@ -150,7 +150,7 @@ import { formatDate, formatDateTime, formatTime, formatRelativeTime } from '@dan
 ## hooks — Vue Composables
 
 ```ts
-import { useDebounce, useClickOutside, useEventListener } from '@danweiyuan/core'
+import { useDebounce, useClickOutside, useEventListener } from '@danweiyuan/ekit'
 ```
 
 ### useDebounce(value, delay?)

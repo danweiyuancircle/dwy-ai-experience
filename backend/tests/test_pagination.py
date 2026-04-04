@@ -1,8 +1,8 @@
-"""Tests for danweiyuan_base.pagination."""
+"""Tests for danweiyuan_eapi.pagination."""
 
 import pytest
 
-from danweiyuan_base.pagination import OffsetLimit, PaginationParams, paginate
+from danweiyuan_eapi.pagination import OffsetLimit, PaginationParams, paginate
 
 
 class TestPaginate:

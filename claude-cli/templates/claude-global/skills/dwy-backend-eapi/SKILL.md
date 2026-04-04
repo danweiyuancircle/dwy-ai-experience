@@ -1,41 +1,41 @@
 ---
-name: dwy-backend-base
-description: "danweiyuan-base FastAPI 后端基础设施速查。触发条件：使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理时。"
+name: dwy-backend-eapi
+description: "danweiyuan-eapi FastAPI 后端基础设施速查。触发条件：使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理时。"
 ---
 
-# danweiyuan-base 后端基础设施速查
+# danweiyuan-eapi 后端基础设施速查
 
 FastAPI 项目基础设施包，Python 3.11+，全异步。8 个扁平模块，无子包。
 
 ## 安装
 
 ```bash
-pip install danweiyuan-base
+pip install danweiyuan-eapi
 # 或
-uv add danweiyuan-base
+uv add danweiyuan-eapi
 ```
 
 ```python
-from danweiyuan_base.config import BaseSettings
-from danweiyuan_base.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
-from danweiyuan_base.security import hash_password, verify_password, create_token, decode_token
-from danweiyuan_base.exceptions import NotFoundError, BusinessError, register_exception_handlers
-from danweiyuan_base.response import success, fail, paginated
-from danweiyuan_base.pagination import PaginationParams, paginate
-from danweiyuan_base.cache import configure as configure_redis, get_redis, close_redis
-from danweiyuan_base.dependencies import create_get_db
+from danweiyuan_eapi.config import BaseSettings
+from danweiyuan_eapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
+from danweiyuan_eapi.security import hash_password, verify_password, create_token, decode_token
+from danweiyuan_eapi.exceptions import NotFoundError, BusinessError, register_exception_handlers
+from danweiyuan_eapi.response import success, fail, paginated
+from danweiyuan_eapi.pagination import PaginationParams, paginate
+from danweiyuan_eapi.cache import configure as configure_redis, get_redis, close_redis
+from danweiyuan_eapi.dependencies import create_get_db
 ```
 
 ## 查阅源码
 
-每个模块在 `backend/src/danweiyuan_base/{module}.py`，单文件设计可直接阅读。
+每个模块在 `backend/src/danweiyuan_eapi/{module}.py`，单文件设计可直接阅读。
 
 ---
 
 ## config — Pydantic Settings
 
 ```python
-from danweiyuan_base.config import BaseSettings
+from danweiyuan_eapi.config import BaseSettings
 ```
 
 子类化后使用，从 `.env` 或环境变量读取配置。
@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 ## database — 异步 SQLAlchemy
 
 ```python
-from danweiyuan_base.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
+from danweiyuan_eapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
 ```
 
 ### 模型定义
@@ -93,7 +93,7 @@ session_factory = create_session_factory(engine)
 ## dependencies — FastAPI 依赖注入
 
 ```python
-from danweiyuan_base.dependencies import create_get_db
+from danweiyuan_eapi.dependencies import create_get_db
 ```
 
 ### create_get_db(session_factory)
@@ -113,7 +113,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
 ## security — JWT + bcrypt
 
 ```python
-from danweiyuan_base.security import hash_password, verify_password, create_token, decode_token
+from danweiyuan_eapi.security import hash_password, verify_password, create_token, decode_token
 ```
 
 所有函数无状态，密钥通过参数传入。
@@ -138,7 +138,7 @@ payload = decode_token(token, settings.secret_key)  # {"sub": "1", "exp": ...} �
 ## exceptions — 异常体系
 
 ```python
-from danweiyuan_base.exceptions import (
+from danweiyuan_eapi.exceptions import (
     AppError, NotFoundError, BusinessError, PermissionDeniedError, AuthenticationError,
     register_exception_handlers,
 )
@@ -175,7 +175,7 @@ register_exception_handlers(app)
 ## response — 统一响应
 
 ```python
-from danweiyuan_base.response import success, fail, paginated
+from danweiyuan_eapi.response import success, fail, paginated
 ```
 
 | 函数 | 签名 | 返回结构 |
@@ -201,7 +201,7 @@ async def list_users(params: PaginationParams = Depends(), service=Depends(get_u
 ## pagination — 分页工具
 
 ```python
-from danweiyuan_base.pagination import PaginationParams, paginate, OffsetLimit
+from danweiyuan_eapi.pagination import PaginationParams, paginate, OffsetLimit
 ```
 
 ### PaginationParams
@@ -226,7 +226,7 @@ stmt = select(User).offset(offset_limit.offset).limit(offset_limit.limit)
 ## cache — 异步 Redis
 
 ```python
-from danweiyuan_base import cache
+from danweiyuan_eapi import cache
 ```
 
 | 函数 | 签名 | 说明 |
@@ -255,7 +255,7 @@ val = await redis.get("key")
 
 ```python
 # config.py
-from danweiyuan_base.config import BaseSettings
+from danweiyuan_eapi.config import BaseSettings
 
 class Settings(BaseSettings):
     app_name: str = "My API"
@@ -263,16 +263,16 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # database.py
-from danweiyuan_base.database import Base, create_async_engine_factory, create_session_factory
-from danweiyuan_base.dependencies import create_get_db
+from danweiyuan_eapi.database import Base, create_async_engine_factory, create_session_factory
+from danweiyuan_eapi.dependencies import create_get_db
 
 engine = create_async_engine_factory(settings.database_url)
 session_factory = create_session_factory(engine)
 get_db = create_get_db(session_factory)
 
 # main.py
-from danweiyuan_base.exceptions import register_exception_handlers
-from danweiyuan_base import cache
+from danweiyuan_eapi.exceptions import register_exception_handlers
+from danweiyuan_eapi import cache
 
 app = FastAPI(lifespan=lifespan)
 register_exception_handlers(app)

@@ -33,7 +33,7 @@ importers:
         specifier: ^3.0.0
         version: 3.33.0
 
-  frontend/core:
+  frontend/ekit:
     dependencies:
       axios:
         specifier: ^1.0.0
@@ -142,9 +142,9 @@ importers:
 
   frontend/playground:
     dependencies:
-      '@danweiyuan/core':
+      '@danweiyuan/ekit':
         specifier: workspace:*
-        version: link:../core
+        version: link:../ekit
       '@danweiyuan/eui':
         specifier: workspace:*
         version: link:../eui

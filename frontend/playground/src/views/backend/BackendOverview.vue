@@ -14,7 +14,7 @@ const modules = [
 <template>
   <div class="max-w-4xl">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold mb-2">danweiyuan-base</h1>
+      <h1 class="text-3xl font-bold mb-2">danweiyuan-eapi</h1>
       <p class="text-muted-foreground text-lg">
         FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块，无子包。
       </p>
@@ -24,9 +24,9 @@ const modules = [
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">安装</h2>
       <ECard>
-        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>pip install danweiyuan-base
+        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>pip install danweiyuan-eapi
 # 或
-uv add danweiyuan-base</code></pre>
+uv add danweiyuan-eapi</code></pre>
       </ECard>
     </div>
 
@@ -51,14 +51,14 @@ uv add danweiyuan-base</code></pre>
     <div>
       <h2 class="text-xl font-semibold mb-4">快速导入</h2>
       <ECard>
-        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>from danweiyuan_base.config import BaseSettings
-from danweiyuan_base.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
-from danweiyuan_base.security import hash_password, verify_password, create_token, decode_token
-from danweiyuan_base.exceptions import NotFoundError, BusinessError, register_exception_handlers
-from danweiyuan_base.response import success, fail, paginated
-from danweiyuan_base.pagination import PaginationParams, paginate
-from danweiyuan_base.cache import configure as configure_redis, get_redis, close_redis
-from danweiyuan_base.dependencies import create_get_db</code></pre>
+        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>from danweiyuan_eapi.config import BaseSettings
+from danweiyuan_eapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
+from danweiyuan_eapi.security import hash_password, verify_password, create_token, decode_token
+from danweiyuan_eapi.exceptions import NotFoundError, BusinessError, register_exception_handlers
+from danweiyuan_eapi.response import success, fail, paginated
+from danweiyuan_eapi.pagination import PaginationParams, paginate
+from danweiyuan_eapi.cache import configure as configure_redis, get_redis, close_redis
+from danweiyuan_eapi.dependencies import create_get_db</code></pre>
       </ECard>
     </div>
   </div>

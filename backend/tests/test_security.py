@@ -1,6 +1,6 @@
-"""Tests for danweiyuan_base.security."""
+"""Tests for danweiyuan_eapi.security."""
 
-from danweiyuan_base.security import create_token, decode_token, hash_password, verify_password
+from danweiyuan_eapi.security import create_token, decode_token, hash_password, verify_password
 
 
 class TestPasswordHashing:

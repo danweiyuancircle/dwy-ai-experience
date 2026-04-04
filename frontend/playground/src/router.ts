@@ -92,24 +92,24 @@ const router = createRouter({
     { path: '/eui/blocks/login-04', component: () => import('./views/blocks/Login04.vue') },
     { path: '/eui/blocks/otp-01', component: () => import('./views/blocks/Otp01.vue') },
 
-    // Core
-    { path: '/core', component: () => import('./views/core/CoreOverview.vue') },
-    { path: '/core/request', component: () => import('./views/core/RequestDoc.vue') },
-    { path: '/core/storage', component: () => import('./views/core/StorageDoc.vue') },
-    { path: '/core/validators', component: () => import('./views/core/ValidatorsDoc.vue') },
-    { path: '/core/date', component: () => import('./views/core/DateDoc.vue') },
-    { path: '/core/hooks', component: () => import('./views/core/HooksDoc.vue') },
+    // EKit (Core)
+    { path: '/ekit', component: () => import('./views/core/CoreOverview.vue') },
+    { path: '/ekit/request', component: () => import('./views/core/RequestDoc.vue') },
+    { path: '/ekit/storage', component: () => import('./views/core/StorageDoc.vue') },
+    { path: '/ekit/validators', component: () => import('./views/core/ValidatorsDoc.vue') },
+    { path: '/ekit/date', component: () => import('./views/core/DateDoc.vue') },
+    { path: '/ekit/hooks', component: () => import('./views/core/HooksDoc.vue') },
 
-    // Backend
-    { path: '/backend', component: () => import('./views/backend/BackendOverview.vue') },
-    { path: '/backend/config', component: () => import('./views/backend/ConfigDoc.vue') },
-    { path: '/backend/database', component: () => import('./views/backend/DatabaseDoc.vue') },
-    { path: '/backend/security', component: () => import('./views/backend/SecurityDoc.vue') },
-    { path: '/backend/exceptions', component: () => import('./views/backend/ExceptionsDoc.vue') },
-    { path: '/backend/response', component: () => import('./views/backend/ResponseDoc.vue') },
-    { path: '/backend/pagination', component: () => import('./views/backend/PaginationDoc.vue') },
-    { path: '/backend/cache', component: () => import('./views/backend/CacheDoc.vue') },
-    { path: '/backend/dependencies', component: () => import('./views/backend/DependenciesDoc.vue') },
+    // EApi (Backend)
+    { path: '/eapi', component: () => import('./views/backend/BackendOverview.vue') },
+    { path: '/eapi/config', component: () => import('./views/backend/ConfigDoc.vue') },
+    { path: '/eapi/database', component: () => import('./views/backend/DatabaseDoc.vue') },
+    { path: '/eapi/security', component: () => import('./views/backend/SecurityDoc.vue') },
+    { path: '/eapi/exceptions', component: () => import('./views/backend/ExceptionsDoc.vue') },
+    { path: '/eapi/response', component: () => import('./views/backend/ResponseDoc.vue') },
+    { path: '/eapi/pagination', component: () => import('./views/backend/PaginationDoc.vue') },
+    { path: '/eapi/cache', component: () => import('./views/backend/CacheDoc.vue') },
+    { path: '/eapi/dependencies', component: () => import('./views/backend/DependenciesDoc.vue') },
 
     // CLI
     { path: '/cli', component: () => import('./views/cli/CliOverview.vue') },

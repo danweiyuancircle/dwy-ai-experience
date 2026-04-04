@@ -15,13 +15,13 @@ cd backend && uv venv && uv pip install -e ".[dev]"   # 后端依赖
 
 # 构建
 pnpm build:eui                    # @danweiyuan/eui (Vite)
-pnpm build:core                   # @danweiyuan/core (Vite)
-pnpm build:frontend               # 同时构建 eui + core
+pnpm build:ekit                   # @danweiyuan/ekit (Vite)
+pnpm build:frontend               # 同时构建 eui + ekit
 
 # 测试
 cd frontend/eui && pnpm vitest run                    # eui 全部测试
 cd frontend/eui && pnpm vitest run src/components/button  # eui 单个组件测试
-pnpm test:backend                                     # 后端全部测试 (pytest -v)
+pnpm test:eapi                                        # 后端全部测试 (pytest -v)
 cd backend && pytest tests/test_security.py -v        # 后端单个模块测试
 
 # Lint（仅后端）
@@ -29,8 +29,8 @@ cd backend && ruff check src/ && ruff format --check src/
 
 # 发布
 pnpm build:eui && pnpm publish:eui      # @danweiyuan/eui → npm
-pnpm build:core && pnpm publish:core    # @danweiyuan/core → npm
-pnpm publish:backend                    # danweiyuan-base → PyPI (uv build && uv publish)
+pnpm build:ekit && pnpm publish:ekit    # @danweiyuan/ekit → npm
+pnpm publish:eapi                       # danweiyuan-eapi → PyPI (uv build && uv publish)
 pnpm publish:cli                        # create-dwy → npm
 ```
 
@@ -49,7 +49,7 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 - **路径别名**: `@/` → `./src/`
 - **测试**: Vitest + jsdom
 
-### frontend/core/ — `@danweiyuan/core`
+### frontend/ekit/ — `@danweiyuan/ekit`
 
 轻量工具库，5 个模块：
 
@@ -63,7 +63,7 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 
 request 模块的 401 刷新 token 逻辑会自动重试失败请求，响应 unwrap 约定格式 `{ code, data, message }`。
 
-### backend/ — `danweiyuan-base`
+### backend/ — `danweiyuan-eapi`
 
 FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块：
 
@@ -92,11 +92,11 @@ FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块：
 
 ### frontend/playground/
 
-Monorepo 文档门户，覆盖 EUI 组件 / Core 工具 / Backend / CLI / Claude Code 五个模块。Vite SPA + Vue Router + markdown-it + Fuse.js 全局搜索。支持 `--host` 局域网访问。
+Monorepo 文档门户，覆盖 EUI 组件 / EKit 工具 / Backend / CLI / Claude Code 五个模块。Vite SPA + Vue Router + markdown-it + Fuse.js 全局搜索。支持 `--host` 局域网访问。
 
 ## Git Commit Scope
 
-本项目的 scope 枚举：`eui` | `core` | `backend` | `cli` | `playground`
+本项目的 scope 枚举：`eui` | `ekit` | `eapi` | `cli` | `playground`
 
 - 单包变更必须带 scope：`feat(eui): add Image component`
 - 跨包变更省略 scope：`chore: upgrade Vite to 8.x`
@@ -109,13 +109,13 @@ Monorepo 文档门户，覆盖 EUI 组件 / Core 工具 / Backend / CLI / Claude
 | 包名 | scope | 版本文件 | 构建命令 | 发布命令 | 验证命令 |
 |------|-------|---------|---------|---------|---------|
 | @danweiyuan/eui | eui | frontend/eui/package.json | pnpm build:eui | pnpm publish:eui | npm view @danweiyuan/eui version |
-| @danweiyuan/core | core | frontend/core/package.json | pnpm build:core | pnpm publish:core | npm view @danweiyuan/core version |
-| danweiyuan-base | backend | backend/pyproject.toml | — | pnpm publish:backend | pip index versions danweiyuan-base |
+| @danweiyuan/ekit | ekit | frontend/ekit/package.json | pnpm build:ekit | pnpm publish:ekit | npm view @danweiyuan/ekit version |
+| danweiyuan-eapi | eapi | backend/pyproject.toml | — | pnpm publish:eapi | pip index versions danweiyuan-eapi |
 | create-dwy | cli | claude-cli/package.json | — | pnpm publish:cli | npm view create-dwy version |
 
 ### 依赖顺序
 
-多包发版时按此顺序：core → eui → backend → cli
+多包发版时按此顺序：ekit → eui → eapi → cli
 
 ### Tag 命名
 

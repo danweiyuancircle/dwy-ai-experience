@@ -8,16 +8,16 @@ const moduleCards = [
     badgeVariant: 'default' as const,
   },
   {
-    title: 'Core 工具',
+    title: 'EKit 工具',
     desc: '前端通用工具库 — request / storage / validators / date / hooks',
-    path: '/core',
+    path: '/ekit',
     badge: '5 模块',
     badgeVariant: 'secondary' as const,
   },
   {
-    title: 'Backend',
+    title: 'EApi',
     desc: 'FastAPI 基础设施包 — 配置 / 数据库 / 安全 / 异常 / 响应 / 缓存',
-    path: '/backend',
+    path: '/eapi',
     badge: 'Python 3.11+',
     badgeVariant: 'secondary' as const,
   },
@@ -39,8 +39,8 @@ const moduleCards = [
 
 const stats = [
   { label: 'EUI 组件', value: 89, suffix: '' },
-  { label: 'Core 模块', value: 5, suffix: '' },
-  { label: 'Backend 模块', value: 8, suffix: '' },
+  { label: 'EKit 模块', value: 5, suffix: '' },
+  { label: 'EApi 模块', value: 8, suffix: '' },
   { label: 'CLI 命令', value: 3, suffix: '' },
   { label: 'Claude Skills', value: 3, suffix: '' },
 ]
@@ -90,11 +90,11 @@ const stats = [
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <ECard>
           <div class="font-medium mb-2">前端</div>
-          <pre class="text-sm font-mono bg-muted rounded-md p-3 overflow-x-auto"><code>pnpm add @danweiyuan/eui @danweiyuan/core</code></pre>
+          <pre class="text-sm font-mono bg-muted rounded-md p-3 overflow-x-auto"><code>pnpm add @danweiyuan/eui @danweiyuan/ekit</code></pre>
         </ECard>
         <ECard>
           <div class="font-medium mb-2">后端</div>
-          <pre class="text-sm font-mono bg-muted rounded-md p-3 overflow-x-auto"><code>uv add danweiyuan-base</code></pre>
+          <pre class="text-sm font-mono bg-muted rounded-md p-3 overflow-x-auto"><code>uv add danweiyuan-eapi</code></pre>
         </ECard>
         <ECard>
           <div class="font-medium mb-2">脚手架</div>

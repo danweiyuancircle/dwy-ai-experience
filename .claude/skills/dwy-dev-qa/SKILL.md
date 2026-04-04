@@ -40,9 +40,9 @@ cd backend && ruff check src/
 ```bash
 # 前端
 cd frontend/eui && pnpm vitest run
-cd frontend/core && pnpm vitest run
+cd frontend/ekit && pnpm vitest run
 # 后端
-pnpm -w run test:backend
+pnpm -w run test:eapi
 ```
 
 **有失败 → 修复代码或测试，不进入下一步。**
@@ -93,11 +93,11 @@ pnpm -w run test:backend
 ```bash
 # 全部前端测试
 cd frontend/eui && pnpm vitest run
-cd frontend/core && pnpm vitest run
+cd frontend/ekit && pnpm vitest run
 # 全部后端测试
-pnpm -w run test:backend
+pnpm -w run test:eapi
 # 构建验证
-pnpm build:eui && pnpm build:core
+pnpm build:eui && pnpm build:ekit
 ```
 
 **任何失败 → 回到第 5 步修复。**

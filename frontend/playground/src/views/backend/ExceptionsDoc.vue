@@ -5,7 +5,7 @@ const content = `
 ## exceptions — 异常体系
 
 \`\`\`python
-from danweiyuan_base.exceptions import (
+from danweiyuan_eapi.exceptions import (
     AppError, NotFoundError, BusinessError, PermissionDeniedError, AuthenticationError,
     register_exception_handlers,
 )
