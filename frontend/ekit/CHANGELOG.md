@@ -1,5 +1,35 @@
 # @danweiyuan/ekit
 
+## 0.2.0
+
+### Minor Changes — 基于开源库扩展 7 个模块
+
+**重构模块：**
+
+- **date** — 用 dayjs 重构，新增 `formatBy()` 自定义格式 + 导出配置好的 `dayjs` 实例（zh-cn locale + relativeTime 插件）
+- **validators** — 用 zod 重构，新增 7 个 zod schema 导出（`phoneSchema`、`emailSchema`、`idCardSchema`、`urlSchema`、`requiredSchema`、`minLengthSchema`、`maxLengthSchema`）
+
+**新增模块：**
+
+- **copy** — `copyText()` + `useClipboard()` composable（浏览器 Clipboard API）
+- **cookie** — `useCookie()` composable + `cookie` 对象（基于 js-cookie）
+- **qs** — `stringify()` + `parse()`（基于 qs 库，默认 arrayFormat: repeat）
+- **file** — `downloadFile()` + `saveBlob()` + `formatFileSize()`（基于 file-saver + axios 集成）
+- **hooks/vueuse** — 从 @vueuse/core 精选 re-export：`useThrottle`、`useWindowSize`、`useMediaQuery`、`useIntersectionObserver`、`useResizeObserver`
+
+**新增依赖：**
+
+| 库 | 版本 | 用途 |
+|----|------|------|
+| dayjs | ^1.11.20 | 日期处理 |
+| zod | ^3.25.76 | 表单校验 schema |
+| js-cookie | ^3.0.5 | Cookie 管理 |
+| qs | ^6.15.0 | URL query string |
+| file-saver | ^2.0.5 | 文件下载保存 |
+| @vueuse/core | ^14.2.1 | Vue composable 工具集 |
+
+139 个测试全部通过。
+
 ## 0.1.0
 
 首次发布。从 `@danweiyuan/core` 重命名而来，统一 "e = easy" 命名体系。

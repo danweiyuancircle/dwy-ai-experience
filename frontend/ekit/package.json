@@ -1,6 +1,6 @@
 {
   "name": "@danweiyuan/ekit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Shared utilities, hooks, and helpers for danweiyuan projects",
   "license": "MIT",
