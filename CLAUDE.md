@@ -100,20 +100,26 @@ Monorepo 文档门户，覆盖 EUI 组件 / EKit 工具 / Backend / CLI / Claude
 - 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-frontend-eui/eui-integration-guide.md`
 - playground 的 `EuiIntegrationDoc.vue` 通过 `?raw` 导入同一文件，无需额外同步
 
-## ekit 开发规范
+## 基础库开发规范
 
-ekit 是基础工具库，被多个项目依赖，变更必须严格遵循以下流程：
+eui、ekit、eapi 三个基础库被多个项目依赖，变更必须严格遵循以下流程：
 
 ### 变更流程（强制）
 
-1. **先改测试** — 新增/修改/删除模块前，先在对应 `src/{module}/{module}.test.ts` 中增删用例
+1. **先改测试** — 新增/修改/删除模块前，先在对应测试文件中增删用例
 2. **再写代码** — 实现功能，确保新增测试通过
-3. **全量回测** — `cd frontend/ekit && pnpm vitest run`，所有用例必须全部通过
-4. **同步文档** — 更新 `frontend/ekit/TEST_CASES.md`，保持用例清单与实际测试一致
+3. **全量回测** — 运行对应包的全量测试，所有用例必须全部通过
+4. **同步文档** — 更新对应包的 `TEST_CASES.md`，保持用例清单与实际测试一致
+
+| 包 | 测试命令 | 测试文件规范 | 用例文档 |
+|----|---------|-------------|---------|
+| eui | `cd frontend/eui && pnpm vitest run` | `src/components/{name}/{name}.test.ts` | `frontend/eui/TEST_CASES.md` |
+| ekit | `cd frontend/ekit && pnpm vitest run` | `src/{module}/{module}.test.ts` | `frontend/ekit/TEST_CASES.md` |
+| eapi | `cd backend && pytest tests/ -v` | `tests/test_{module}.py` | `backend/TEST_CASES.md` |
 
 ### 禁止事项
 
-- **禁止**不写测试就提交 ekit 代码变更
+- **禁止**不写测试就提交基础库代码变更
 - **禁止** `TEST_CASES.md` 与实际测试文件不同步
 - **禁止**删除模块时不删除对应测试
 - **禁止**新增模块时不创建测试文件
