@@ -136,12 +136,12 @@ eui、ekit、eapi 三个基础库被多个项目依赖，变更必须严格遵�
 
 ### 包列表
 
-| 包名 | scope | 版本文件 | 构建命令 | 发布命令 | 验证命令 |
-|------|-------|---------|---------|---------|---------|
-| @danweiyuan/eui | eui | frontend/eui/package.json | pnpm build:eui | pnpm publish:eui | npm view @danweiyuan/eui version |
-| @danweiyuan/ekit | ekit | frontend/ekit/package.json | pnpm build:ekit | pnpm publish:ekit | npm view @danweiyuan/ekit version |
-| danweiyuan-eapi | eapi | backend/pyproject.toml | — | pnpm publish:eapi | pip index versions danweiyuan-eapi |
-| create-dwy | cli | claude-cli/package.json | — | pnpm publish:cli | npm view create-dwy version |
+| 包名 | scope | 版本文件 | 测试命令 | 构建命令 | 发布命令 | 验证命令 |
+|------|-------|---------|---------|---------|---------|---------|
+| @danweiyuan/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | pnpm publish:eui | npm view @danweiyuan/eui version |
+| @danweiyuan/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | pnpm publish:ekit | npm view @danweiyuan/ekit version |
+| danweiyuan-eapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | source .key && pnpm publish:eapi | pip index versions danweiyuan-eapi |
+| create-dwy | cli | claude-cli/package.json | — | — | pnpm publish:cli | npm view create-dwy version |
 
 ### 依赖顺序
 
