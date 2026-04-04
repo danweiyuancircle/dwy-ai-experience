@@ -16,3 +16,6 @@ build/
 .env
 *.env
 .superpowers/
+
+# Keys
+.key
