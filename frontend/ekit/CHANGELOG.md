@@ -1,5 +1,13 @@
 # @danweiyuan/ekit
 
+## 0.2.1
+
+### Patch Changes
+
+- 修复类型导出：types 从源码 .ts 改为编译后的 .d.ts，消费者不再需要安装 @types/js-cookie、@types/file-saver、@types/qs
+- 修复 CookieAttributes 类型导入方式（命名空间导出）
+- 新增 vite.config.ts 构建配置，使用 vite-plugin-dts 生成声明文件
+
 ## 0.2.0
 
 ### Minor Changes — 基于开源库扩展 7 个模块

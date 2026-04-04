@@ -1,9 +1,8 @@
 import { ref, watch } from 'vue'
 import type { Ref } from 'vue'
 import Cookies from 'js-cookie'
-import type { CookieAttributes } from 'js-cookie'
 
-export type { CookieAttributes }
+export type CookieAttributes = Cookies.CookieAttributes
 
 /**
  * Simple get/set/remove for cookies with JSON support.

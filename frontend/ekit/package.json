@@ -1,17 +1,17 @@
 {
   "name": "@danweiyuan/ekit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Shared utilities, hooks, and helpers for danweiyuan projects",
   "license": "MIT",
   "author": "danweiyuan",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
-  "types": "./src/index.ts",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "import": "./dist/index.js",
-      "types": "./src/index.ts"
+      "types": "./dist/index.d.ts"
     }
   },
   "sideEffects": false,
@@ -33,6 +33,7 @@
     "@types/js-cookie": "^3.0.6",
     "@types/qs": "^6.15.0",
     "@vue/test-utils": "^2.4.6",
+    "vite-plugin-dts": "^4.0.0",
     "jsdom": "^26.1.0",
     "typescript": "^5.9.3",
     "vite": "^8.0.3",
