@@ -22,6 +22,13 @@ export const modules: ModuleConfig[] = [
     prefix: '/eui',
     categories: [
       {
+        title: '开始 Getting Started',
+        items: [
+          { name: '概览', path: '/eui' },
+          { name: '集成指南', path: '/eui/integration' },
+        ],
+      },
+      {
         title: '基础 Basic',
         items: [
           { name: 'Button 按钮', path: '/eui/button' },

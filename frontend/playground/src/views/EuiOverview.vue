@@ -57,7 +57,7 @@ const categories = [
 # 全局注册
 import { createApp } from 'vue'
 import EUI from '@danweiyuan/eui'
-import '@danweiyuan/eui/styles'
+import '@danweiyuan/eui/theme'
 
 const app = createApp(App)
 app.use(EUI)</code></pre>
