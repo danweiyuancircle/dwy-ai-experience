@@ -1,6 +1,6 @@
 ---
-name: dwy-post-publish
-description: "dwy-cli 发版后自动更新本地全局 CLI。触发条件：执行了 pnpm publish:cli 或 npm publish（在 claude-cli 目录下）后。"
+name: dwy-cli-sync-local
+description: "CLI 发版后同步本地全局 dwy 命令。触发条件：执行了 pnpm publish:cli 或 npm publish（在 claude-cli 目录下）后。"
 ---
 
 # DWY CLI 发版后更新本地
