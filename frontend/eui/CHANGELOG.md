@@ -1,5 +1,11 @@
 # @danweiyuan/eui
 
+## 1.2.2
+
+### Patch Changes
+
+- 移除 vaul-vue 依赖，EDrawer 用 reka-ui Dialog 重写，解决 @vueuse/core v10/v14 版本冲突导致 Vite 8 构建失败
+
 ## 1.2.1
 
 ### Patch Changes
