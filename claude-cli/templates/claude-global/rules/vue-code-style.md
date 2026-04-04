@@ -36,9 +36,16 @@ frontend/
 │   ├── App.vue             # 根组件
 │   ├── main.ts             # 应用入口
 │   └── style.css           # 全局样式（Tailwind 入口）
+├── tests/                  # 测试文件（独立目录，禁止放在 src/ 内）
+│   ├── utils/              # 对应 src/utils/
+│   ├── stores/             # 对应 src/stores/
+│   ├── api/                # 对应 src/api/
+│   ├── router/             # 对应 src/router/
+│   └── components/         # 对应 src/components/
 ├── index.html
 ├── package.json
 ├── vite.config.ts
+├── vitest.config.ts        # 测试配置（独立文件）
 ├── tsconfig.json
 ├── tsconfig.app.json
 └── .npmrc
@@ -693,7 +700,100 @@ import type { UserInfo } from '@/types/user'
 import { UserInfo, getUsers } from '@/api/user'
 ```
 
-## 十三、常见反模式（禁止）
+## 十三、测试规范（Vitest）
+
+### 强制规则
+- 使用 **Vitest** 作为测试框架，配合 **@vue/test-utils** + **happy-dom**
+- 测试文件**必须放在项目根目录的 `tests/` 目录**，按模块镜像 `src/` 结构，**禁止**放在 `src/` 内
+- `tsconfig.app.json` 的 `include` **只包含 `src/`**，确保打包不携带测试文件
+- 测试文件命名：`*.test.ts`
+
+### 依赖安装
+
+```bash
+pnpm add -D vitest @vue/test-utils happy-dom
+```
+
+### package.json 脚本
+
+```json
+{
+  "scripts": {
+    "test": "vitest",
+    "test:run": "vitest run"
+  }
+}
+```
+
+### vitest.config.ts（独立文件，不写在 vite.config.ts 中）
+
+```typescript
+import { fileURLToPath } from 'node:url'
+import { defineConfig } from 'vitest/config'
+import vue from '@vitejs/plugin-vue'
+
+export default defineConfig({
+  plugins: [vue()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+    },
+  },
+  test: {
+    environment: 'happy-dom',
+    include: ['tests/**/*.test.ts'],
+  },
+})
+```
+
+### 目录结构与导入
+
+```
+tests/
+├── utils/format.test.ts        # 测试 src/utils/format.ts
+├── stores/auth.test.ts         # 测试 src/stores/auth.ts
+├── api/client.test.ts          # 测试 src/api/client.ts
+└── router/index.test.ts        # 测试 src/router/index.ts
+```
+
+测试文件中通过 `@` 别名导入源码，**禁止**使用相对路径回溯到 `src/`：
+
+```typescript
+// ✅ 使用 @ 别名
+import { formatBytes } from '@/utils/format'
+import { useAuthStore } from '@/stores/auth'
+
+// ❌ 禁止相对路径回溯
+import { formatBytes } from '../../src/utils/format'
+```
+
+### 打包隔离
+
+`tsconfig.app.json` 的 `include` 只包含 `src/`，确保 `tests/` 不会被 `vue-tsc` 编译和打包：
+
+```json
+{
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
+}
+```
+
+**禁止**在 `tsconfig.app.json` 中 include `tests/`。
+
+### 禁止的写法
+
+```
+# ❌ 测试文件放在 src/ 内
+src/utils/format.test.ts
+src/stores/__tests__/auth.test.ts
+src/components/Button.test.ts
+
+# ✅ 测试文件放在独立 tests/ 目录
+tests/utils/format.test.ts
+tests/stores/auth.test.ts
+tests/components/Button.test.ts
+```
+
+## 十四、常见反模式（禁止）
 
 | 反模式 | 正确做法 |
 |--------|---------|
@@ -713,6 +813,8 @@ import { UserInfo, getUsers } from '@/api/user'
 | `reactive()` 用于简单值 | `ref()` 用于所有场景 |
 | 解构 store 不用 `storeToRefs` | 响应式值必须用 `storeToRefs` |
 | 手写 CSS 为主 | Tailwind 工具类为主 |
+| 测试文件放在 `src/` 内 | 放在独立 `tests/` 目录 |
+| 测试中用相对路径回溯 `../../src/` | 用 `@` 别名导入 |
 
 ## 代码自检（写代码时强制执行）
 
@@ -734,5 +836,7 @@ import { UserInfo, getUsers } from '@/api/user'
 | 12 | 无 `v-if` + `v-for` 同元素 | ✓ |
 | 13 | 模板无复杂表达式，已提取为 `computed` | ✓ |
 | 14 | 枚举用联合类型 `type X = 'a' | 'b'`，不用 `enum` | ✓ |
+| 15 | 测试文件在 `tests/` 目录，不在 `src/` 内 | ✓ |
+| 16 | `tsconfig.app.json` 的 include 不包含 `tests/` | ✓ |
 
 **不执行自检就提交代码 = 违规。**
