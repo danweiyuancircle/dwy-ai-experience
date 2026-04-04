@@ -94,6 +94,12 @@ FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块：
 
 Monorepo 文档门户，覆盖 EUI 组件 / EKit 工具 / Backend / CLI / Claude Code 五个模块。Vite SPA + Vue Router + markdown-it + Fuse.js 全局搜索。支持 `--host` 局域网访问。
 
+## 文档同步约束
+
+- `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件
+- 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-frontend-eui/eui-integration-guide.md`
+- playground 的 `EuiIntegrationDoc.vue` 通过 `?raw` 导入同一文件，无需额外同步
+
 ## Git Commit Scope
 
 本项目的 scope 枚举：`eui` | `ekit` | `eapi` | `cli` | `playground`
