@@ -541,14 +541,14 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
             <MonthPickerGrid class="mt-2 w-full">
               <MonthPickerGridBody>
                 <MonthPickerGridRow
-                  v-for="(row, rowIndex) in grid"
+                  v-for="(row, rowIndex) in grid.rows"
                   :key="`month-row-${rowIndex}`"
                   class="flex w-full justify-center gap-1 mt-1"
                 >
                   <MonthPickerCell
                     v-for="monthItem in row"
                     :key="monthItem.toString()"
-                    :value="monthItem"
+                    :date="monthItem"
                     class="relative p-0 text-center"
                   >
                     <MonthPickerCellTrigger
@@ -595,14 +595,14 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
             <YearPickerGrid class="mt-2 w-full">
               <YearPickerGridBody>
                 <YearPickerGridRow
-                  v-for="(row, rowIndex) in grid"
+                  v-for="(row, rowIndex) in grid.rows"
                   :key="`year-row-${rowIndex}`"
                   class="flex w-full justify-center gap-1 mt-1"
                 >
                   <YearPickerCell
                     v-for="yearItem in row"
                     :key="yearItem.toString()"
-                    :value="yearItem"
+                    :date="yearItem"
                     class="relative p-0 text-center"
                   >
                     <YearPickerCellTrigger
