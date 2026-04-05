@@ -98,7 +98,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 
     <div class="flex flex-1 overflow-hidden">
       <!-- Sidebar -->
-      <aside class="w-56 border-r overflow-y-auto bg-background shrink-0">
+      <aside class="w-56 border-r overflow-y-auto overscroll-contain bg-background shrink-0">
         <nav class="p-2" v-if="currentModule">
           <div v-for="cat in currentModule.categories" :key="cat.title" class="mb-3">
             <h3 class="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{{ cat.title }}</h3>
@@ -116,7 +116,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
       </aside>
 
       <!-- Main Content -->
-      <main class="flex-1 overflow-y-auto p-8">
+      <main class="flex-1 overflow-y-auto overscroll-contain p-8">
         <router-view />
       </main>
     </div>
