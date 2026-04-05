@@ -8,6 +8,7 @@ import {
   X,
 } from 'lucide-vue-next'
 import { Toaster as Sonner } from 'vue-sonner'
+import 'vue-sonner/style.css'
 import { reactiveOmit } from '@vueuse/core'
 import { cn } from '@/utils/cn'
 import type { EToastProps } from './types'

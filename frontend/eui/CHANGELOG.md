@@ -1,5 +1,12 @@
 # @danweiyuan/eui
 
+## 1.2.4
+
+### Patch Changes
+
+- 修复 EToast 消费者项目中 toast 不显示的问题：vue-sonner 从 external 改为内联打包，CSS 样式自动包含
+- vue-sonner 从 dependencies 移至 devDependencies，消费者不再需要手动安装
+
 ## 1.2.3
 
 ### Patch Changes
