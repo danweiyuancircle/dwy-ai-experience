@@ -9,6 +9,7 @@ Modules:
     cache         — Async Redis connection manager
     response      — Unified API response helpers
     pagination    — PaginationParams + paginate helper
+    tasks         — Async task processing system (ARQ-based, install with [tasks] extra)
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

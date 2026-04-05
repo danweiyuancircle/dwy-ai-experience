@@ -1,6 +1,6 @@
 # danweiyuan-eapi 测试用例清单
 
-> 回测基准：48 个测试用例，8 个测试文件。版本变更后必须全部通过。
+> 回测基准：90 个测试用例，9 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd backend && python -m pytest tests/ -v`
 
@@ -167,6 +167,119 @@
 
 ---
 
+## 9. tasks 模块（42 个）
+
+`tests/test_tasks.py`
+
+### TaskModel（5 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | Task 自动生成 ID | id 以 `task_` 开头，长度 37 |
+| 2 | 默认状态为 PENDING | 新建 Task status = "pending" |
+| 3 | 默认进度为 0 | 新建 Task progress = 0 |
+| 4 | 默认 result 为 None | 新建 Task result is None |
+| 5 | params 作为 JSON 存储 | dict 存入后正确取出 |
+
+### TaskStatus（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 6 | 状态枚举值 | pending/running/success/failed/canceled 均存在 |
+| 7 | StrEnum 兼容字符串 | 可用于 f-string 拼接 |
+
+### Schemas（3 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 8 | TaskCreate 校验有效输入 | task_type 和 params 正确赋值 |
+| 9 | TaskResponse 从 ORM 对象构造 | model_validate 成功，字段映射正确 |
+| 10 | TaskListResponse 结构 | items 列表 + total 计数 |
+
+### Service — create_task（3 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 11 | 创建任务返回带 ID 的 Task | id 以 `task_` 开头，status = PENDING |
+| 12 | 创建的任务持久化到数据库 | 可通过 select 查到 |
+| 13 | 创建的任务有初始日志 | logs 包含"任务已创建" |
+
+### Service — get_task（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 14 | 查询已存在的任务 | 返回正确的 Task 对象 |
+| 15 | 查询不存在的任务返回 None | 未找到时返回 None |
+
+### Service — list_tasks（5 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 16 | 空列表 | 无任务时返回 ([], 0) |
+| 17 | 返回所有任务 | 3 个任务全部返回 |
+| 18 | 分页 | page=1, page_size=2 返回 2 条，total=5 |
+| 19 | 按 status 筛选 | 只返回 RUNNING 状态的任务 |
+| 20 | 按 task_type 筛选 | 只返回指定类型的任务 |
+
+### Service — update_task_status（3 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 21 | 更新状态 | status 正确变更 |
+| 22 | 更新状态同时设置 result | status 和 result 同时更新 |
+| 23 | 更新不存在的任务无异常 | 静默忽略 |
+
+### Service — update_task_progress（3 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 24 | 更新进度 | progress 正确设置 |
+| 25 | 进度上限 100 | 传入 150 被截断为 100 |
+| 26 | 进度下限 0 | 传入 -10 被截断为 0 |
+
+### Service — append_task_log（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 27 | 追加日志 | logs 包含消息内容 |
+| 28 | 多条日志按序保留 | first 在 second 之前 |
+
+### TaskRegistry（5 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 29 | 注册并获取 | register 后 get 返回同一函数 |
+| 30 | 获取未注册类型返回 None | get("nonexistent") = None |
+| 31 | 列出所有类型 | list_types 返回排序列表 |
+| 32 | has 检查 | has("exists") = True, has("nope") = False |
+| 33 | 重复注册抛出 ValueError | 同一 task_type 注册两次报错 |
+
+### Pool（5 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 34 | 解析标准 redis URL | host、port、database 正确 |
+| 35 | 解析带密码的 URL | password 正确提取 |
+| 36 | 解析最小 URL 使用默认值 | host=localhost, port=6379, db=0 |
+| 37 | 未 configure 时 get_redis_settings 抛出 RuntimeError | 错误消息匹配 "not configured" |
+| 38 | configure 存储设置 | get_redis_settings 返回正确的 host/port/db |
+
+### WorkerFactory（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 39 | 生成 WorkerSettings 类 | 包含 functions、max_jobs、job_timeout、redis_settings 属性 |
+| 40 | 使用自定义 task_* 配置 | TASK_MAX_JOBS=10 → max_jobs=10 |
+
+### Config 集成（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 41 | task_* 字段有默认值 | task_max_jobs=5, task_job_timeout=3600, task_failure_ttl=86400 |
+| 42 | task_* 字段可从环境变量覆盖 | 设置 TASK_MAX_JOBS=8 后读取到 8 |
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -174,7 +287,7 @@
 cd backend && python -m pytest tests/ -v
 
 # 2. 期望结果
-# 48 passed
+# 90 passed
 
 # 3. 单模块测试（调试用）
 python -m pytest tests/test_config.py -v
@@ -185,4 +298,5 @@ python -m pytest tests/test_response.py -v
 python -m pytest tests/test_pagination.py -v
 python -m pytest tests/test_cache.py -v
 python -m pytest tests/test_dependencies.py -v
+python -m pytest tests/test_tasks.py -v
 ```
