@@ -202,6 +202,37 @@ const { isDark, toggleDark, colorTheme, setColorTheme } = useTheme()
 
 ## 7. Composables
 
+### useToast
+
+轻量 toast 通知。需要在根组件挂载 `<EToast />` 容器：
+
+```vue
+<!-- App.vue -->
+<template>
+  <router-view />
+  <EToast rich-colors />
+</template>
+```
+
+使用：
+
+```ts
+import { useToast } from '@danweiyuan/eui'
+
+const toast = useToast()
+
+toast.success('操作成功')
+toast.error('操作失败')
+toast.warning('警告信息')
+toast.info('提示信息')
+
+// 带描述
+toast.success('保存成功', { description: '数据已持久化' })
+
+// 自定义时长（毫秒）
+toast.info('处理中...', { duration: 5000 })
+```
+
 ### useMessage
 
 ```ts
