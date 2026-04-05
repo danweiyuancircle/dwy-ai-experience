@@ -108,7 +108,6 @@ const searchItems: SearchItem[] = [
   { title: 'prefer-open-source', module: 'Claude Code', path: '/claude/rules/prefer-open-source', content: '优先开源方案 rule' },
   { title: 'pre-git-commit', module: 'Claude Code', path: '/claude/hooks/pre-git-commit-sensitive-check', content: '提交前敏感信息检查 hook' },
   // Blocks
-  { title: 'Sidebar 折叠侧边栏', module: 'EUI 组件', path: '/eui/blocks/sidebar-07', content: 'sidebar 折叠 图标 block 模板' },
   { title: 'Dashboard 仪表盘', module: 'EUI 组件', path: '/eui/blocks/dashboard-01', content: 'dashboard 仪表盘 统计 图表 block' },
   { title: 'Login 居中卡片', module: 'EUI 组件', path: '/eui/blocks/login-01', content: 'login 登录 卡片 block' },
   { title: 'Login 双栏图片', module: 'EUI 组件', path: '/eui/blocks/login-02', content: 'login 登录 双栏 图片 block' },

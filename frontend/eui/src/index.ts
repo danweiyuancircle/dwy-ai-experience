@@ -91,21 +91,6 @@ export {
   ECommandShortcut,
   useCommand,
 } from './components/command'
-export {
-  ESidebarProvider,
-  ESidebar,
-  ESidebarTrigger,
-  ESidebarContent,
-  ESidebarHeader,
-  ESidebarFooter,
-  ESidebarGroup,
-  ESidebarGroupLabel,
-  ESidebarGroupContent,
-  ESidebarMenu,
-  ESidebarMenuItem,
-  ESidebarMenuButton,
-  useSidebar,
-} from './components/sidebar'
 export { EDatePicker } from './components/date-picker'
 export type { EDatePickerProps, EDatePickerEmits, DatePickerType, DatePickerShortcut } from './components/date-picker'
 export { EStepper } from './components/stepper'
@@ -291,20 +276,6 @@ import {
   ECommandSeparator,
   ECommandShortcut,
 } from './components/command'
-import {
-  ESidebarProvider,
-  ESidebar,
-  ESidebarTrigger,
-  ESidebarContent,
-  ESidebarHeader,
-  ESidebarFooter,
-  ESidebarGroup,
-  ESidebarGroupLabel,
-  ESidebarGroupContent,
-  ESidebarMenu,
-  ESidebarMenuItem,
-  ESidebarMenuButton,
-} from './components/sidebar'
 import { EDatePicker } from './components/date-picker'
 import { EStepper } from './components/stepper'
 import { ECarousel, ECarouselItem } from './components/carousel'
@@ -424,18 +395,6 @@ const components: Record<string, any> = {
   ECommandItem,
   ECommandSeparator,
   ECommandShortcut,
-  ESidebarProvider,
-  ESidebar,
-  ESidebarTrigger,
-  ESidebarContent,
-  ESidebarHeader,
-  ESidebarFooter,
-  ESidebarGroup,
-  ESidebarGroupLabel,
-  ESidebarGroupContent,
-  ESidebarMenu,
-  ESidebarMenuItem,
-  ESidebarMenuButton,
   EDatePicker,
   EStepper,
   ECarousel,

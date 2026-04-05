@@ -259,7 +259,6 @@ frontend/eui/src/components/{component-name}/types.ts
 
 | 组件 | 子组件 | 用途 |
 |------|--------|------|
-| ESidebar | ESidebarProvider, ESidebar, ESidebarTrigger, ESidebarContent, ESidebarHeader, ESidebarFooter, ESidebarGroup, ESidebarGroupLabel, ESidebarGroupContent, ESidebarMenu, ESidebarMenuItem, ESidebarMenuButton | 侧边栏。Provider(defaultOpen, v-model:open) |
 | ECommand | ECommandInput, ECommandList, ECommandEmpty, ECommandGroup, ECommandItem, ECommandSeparator, ECommandShortcut | 命令面板（配合 useCommand） |
 | ENavigationMenu | ENavigationMenuList, ENavigationMenuItem, ENavigationMenuTrigger, ENavigationMenuContent, ENavigationMenuLink, ENavigationMenuViewport | 导航菜单 |
 | EMenubar | EMenubarMenu, EMenubarTrigger, EMenubarContent, EMenubarItem, EMenubarSeparator, EMenubarCheckboxItem, EMenubarRadioGroup, EMenubarRadioItem, EMenubarSub, EMenubarSubTrigger, EMenubarSubContent | 菜单栏 |

@@ -85,7 +85,6 @@ const router = createRouter({
     { path: '/eui/mention', component: () => import('./views/MentionDemo.vue') },
 
     // Blocks
-    { path: '/eui/blocks/sidebar-07', component: () => import('./views/blocks/Sidebar07.vue') },
     { path: '/eui/blocks/dashboard-01', component: () => import('./views/blocks/Dashboard01.vue') },
     { path: '/eui/blocks/login-01', component: () => import('./views/blocks/Login01.vue') },
     { path: '/eui/blocks/login-02', component: () => import('./views/blocks/Login02.vue') },
