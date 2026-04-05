@@ -99,6 +99,9 @@ Monorepo 文档门户，覆盖 EUI 组件 / EKit 工具 / Backend / CLI / Claude
 - `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件
 - 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-frontend-eui/eui-integration-guide.md`
 - playground 的 `EuiIntegrationDoc.vue` 通过 `?raw` 导入同一文件，无需额外同步
+- `docs/tasks-integration-guide.md` 是 Tasks 集成指南的唯一源文件
+- 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-backend-eapi/tasks-integration-guide.md`
+- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `claude-cli/templates/claude-global/skills/dwy-backend-eapi/SKILL.md` 中的 tasks 章节
 
 ## 基础库开发规范
 

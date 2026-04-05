@@ -1,18 +1,20 @@
 ---
 name: dwy-backend-eapi
-description: "danweiyuan-eapi FastAPI 后端基础设施速查。触发条件：使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理时。"
+description: "danweiyuan-eapi FastAPI 后端基础设施速查。触发条件：使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理、耗时任务处理时。"
 ---
 
 # danweiyuan-eapi 后端基础设施速查
 
-FastAPI 项目基础设施包，Python 3.11+，全异步。8 个扁平模块，无子包。
+FastAPI 项目基础设施包，Python 3.11+，全异步。9 个模块。
+
+> **Tasks 集成指南：** 详见同目录 [tasks-integration-guide.md](tasks-integration-guide.md)
 
 ## 安装
 
 ```bash
 pip install danweiyuan-eapi
-# 或
-uv add danweiyuan-eapi
+# 需要任务处理时
+pip install danweiyuan-eapi[tasks]
 ```
 
 ```python
@@ -24,6 +26,9 @@ from danweiyuan_eapi.response import success, fail, paginated
 from danweiyuan_eapi.pagination import PaginationParams, paginate
 from danweiyuan_eapi.cache import configure as configure_redis, get_redis, close_redis
 from danweiyuan_eapi.dependencies import create_get_db
+
+# 任务模块 (需安装 [tasks] extra)
+from danweiyuan_eapi.tasks import setup_tasks, task_router, register, TaskContext, TaskStatus, create_worker_settings
 ```
 
 ## 查阅源码
@@ -55,6 +60,9 @@ class Settings(BaseSettings):
 | access_token_expire_minutes | int | `30` | Token 过期分钟 |
 | debug | bool | `False` | 调试模式 |
 | allowed_origins | list[str] | `[]` | CORS 允许域名 |
+| task_max_jobs | int | `5` | Worker 最大并发任务数 |
+| task_job_timeout | int | `3600` | 单个任务超时秒数 |
+| task_failure_ttl | int | `86400` | 失败任务 Redis 保留秒数 |
 
 ---
 
@@ -277,3 +285,54 @@ from danweiyuan_eapi import cache
 app = FastAPI(lifespan=lifespan)
 register_exception_handlers(app)
 ```
+
+---
+
+## tasks — 异步任务处理 (需 `[tasks]` extra)
+
+```python
+from danweiyuan_eapi.tasks import setup_tasks, task_router, register, TaskContext
+```
+
+基于 ARQ 的全异步耗时任务系统。3 步接入：注册任务 → setup + 挂载路由 → 启动 Worker。
+
+### 快速示例
+
+```python
+# 1. 注册任务
+@register("process_data")
+async def process_data(ctx: TaskContext, params: dict):
+    await ctx.log("开始处理")
+    await ctx.update_progress(50, "处理中...")
+    if await ctx.is_cancelled():
+        return
+    return {"result": "ok"}  # 框架自动设为 SUCCESS
+
+# 2. FastAPI 接入
+await setup_tasks(app, settings, session_factory)
+app.include_router(task_router)
+
+# 3. Worker: arq app.worker.WorkerSettings
+```
+
+### 公共 API
+
+| 导出项 | 用途 |
+|--------|------|
+| `setup_tasks(app, settings, session_factory)` | lifespan 中调用, 初始化 |
+| `task_router` | 开箱即用 APIRouter (提交/查询/列表/取消) |
+| `register(task_type)` | 装饰器, 注册异步任务 |
+| `TaskContext` | 任务函数上下文 (db/log/progress/cancel) |
+| `TaskStatus` | 枚举: PENDING/RUNNING/SUCCESS/FAILED/CANCELED |
+| `create_worker_settings(settings, session_factory)` | 生成 ARQ Worker 配置 |
+
+### API 接口
+
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | `/tasks` | 提交任务 |
+| GET | `/tasks/{task_id}` | 查询状态 |
+| GET | `/tasks` | 列表 (分页 + 筛选) |
+| POST | `/tasks/{task_id}/cancel` | 取消任务 |
+
+> **完整文档：** [tasks-integration-guide.md](tasks-integration-guide.md) — 包含 TaskContext API、数据模型、Worker 配置、取消机制等详细说明。
