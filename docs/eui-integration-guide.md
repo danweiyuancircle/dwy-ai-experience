@@ -22,6 +22,14 @@ pnpm add -D tailwindcss @tailwindcss/vite tw-animate-css
 | `@tailwindcss/vite` | `^4.0.0` | Vite 插件 |
 | `tw-animate-css` | `^1.0.0` | 动画工具类 |
 
+### 已知问题：vue-sonner 需手动安装
+
+`vue-sonner` 已声明在 EUI 的 `dependencies` 中，但 pnpm 的严格依赖提升策略可能导致它无法被项目正确解析。如果使用 Toast 组件时遇到模块找不到的错误，需手动安装：
+
+```bash
+pnpm add vue-sonner
+```
+
 ## 2. 配置 Vite
 
 ```ts
