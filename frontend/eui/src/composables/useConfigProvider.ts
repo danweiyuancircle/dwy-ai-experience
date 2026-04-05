@@ -9,6 +9,7 @@ export const CONFIG_PROVIDER_KEY = Symbol() as InjectionKey<{
 }>
 
 const defaultLocale: Record<string, string> = {
+  name: 'zh-CN',
   confirm: '确定',
   cancel: '取消',
   close: '关闭',

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useTheme } from '@danweiyuan/eui'
+import { useTheme, EConfigProvider } from '@danweiyuan/eui'
 import { Toaster as EToastRoot } from 'vue-sonner'
 import { Sun, Moon, Search } from 'lucide-vue-next'
 import SearchDialog from './components/SearchDialog.vue'
@@ -42,6 +42,7 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 </script>
 
 <template>
+  <EConfigProvider>
   <div class="flex flex-col h-screen">
     <!-- Top Nav -->
     <header class="flex items-center h-12 border-b bg-background px-4 shrink-0">
@@ -123,4 +124,5 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
     <EToastRoot position="top-right" :rich-colors="true" />
     <SearchDialog v-model:open="searchOpen" />
   </div>
+  </EConfigProvider>
 </template>

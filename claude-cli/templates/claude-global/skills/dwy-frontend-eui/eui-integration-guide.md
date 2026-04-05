@@ -82,7 +82,91 @@ import { EButton, EInput, ETable } from '@danweiyuan/eui'
 
 适合对打包体积敏感的场景，支持 Tree-shaking。
 
-## 5. 主题配置（可选）
+## 5. 全局配置 EConfigProvider（必须）
+
+**EConfigProvider 是使用 EUI 的前置条件。** 必须在 App 根组件用 `<EConfigProvider>` 包裹整个应用，否则以下功能不生效：
+
+- **国际化** — 日期选择器、日历等组件将显示英文而非中文
+- **全局尺寸** — 无法统一控制所有组件的尺寸
+- **弹层层级** — Dialog/Drawer/Popover 等弹层 z-index 无法统一管理
+- **UI 文案** — 确定/取消/暂无数据等通用文案无法全局配置
+
+### 基础用法
+
+```vue
+<!-- App.vue -->
+<script setup lang="ts">
+import { EConfigProvider } from '@danweiyuan/eui'
+</script>
+
+<template>
+  <EConfigProvider>
+    <RouterView />
+  </EConfigProvider>
+</template>
+```
+
+使用默认配置即可满足中文项目需求，无需传任何 props。
+
+### Props
+
+| Prop | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| size | `'sm' \| 'default' \| 'lg'` | `'default'` | 所有组件的全局尺寸 |
+| zIndex | `number` | `2000` | 弹层组件的基准 z-index |
+| locale | `Record<string, string>` | 见下方 | 国际化配置 |
+
+### locale 配置
+
+locale 是一个扁平的键值对象，`name` 字段为 BCP 47 语言标签，控制日期类组件的本地化显示；其余字段为 UI 通用文案。
+
+| 字段 | 默认值 | 说明 |
+|------|--------|------|
+| name | `'zh-CN'` | BCP 47 语言标签，控制 EDatePicker、ECalendar 等组件的月份名、星期名、年份格式 |
+| confirm | `'确定'` | 确认按钮文案 |
+| cancel | `'取消'` | 取消按钮文案 |
+| close | `'关闭'` | 关闭按钮文案 |
+| loading | `'加载中...'` | 加载状态文案 |
+| empty | `'暂无数据'` | 空状态文案 |
+| search | `'搜索'` | 搜索占位文案 |
+| selectPlaceholder | `'请选择'` | 选择器默认占位文案 |
+| inputPlaceholder | `'请输入'` | 输入框默认占位文案 |
+
+### 自定义配置示例
+
+```vue
+<EConfigProvider
+  size="sm"
+  :z-index="3000"
+  :locale="{
+    name: 'en-US',
+    confirm: 'OK',
+    cancel: 'Cancel',
+    close: 'Close',
+    loading: 'Loading...',
+    empty: 'No data',
+    search: 'Search',
+    selectPlaceholder: 'Please select',
+    inputPlaceholder: 'Please input',
+  }"
+>
+  <RouterView />
+</EConfigProvider>
+```
+
+### 嵌套覆盖
+
+EConfigProvider 支持嵌套，内层配置覆盖外层，适用于局部区域需要不同配置的场景：
+
+```vue
+<EConfigProvider>                                          <!-- 全局中文 -->
+  <EConfigProvider :locale="{ name: 'en-US', ... }">      <!-- 局部英文 -->
+    <EDatePicker type="month" />                           <!-- 显示英文月份 -->
+  </EConfigProvider>
+</EConfigProvider>
+```
+
+## 6. 主题配置（可选）
 
 ### 暗色模式 + 主题切换
 
@@ -116,7 +200,7 @@ const { isDark, toggleDark, colorTheme, setColorTheme } = useTheme()
 | `violet` | 紫色 |
 | `slate` | 石板灰 |
 
-## 6. Composables
+## 7. Composables
 
 ### useMessage
 

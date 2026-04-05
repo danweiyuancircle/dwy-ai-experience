@@ -35,6 +35,107 @@ import '@danweiyuan/eui/theme/dark'     // 暗色模式（可选）
 import '@danweiyuan/eui/theme/tokens'   // 仅 design tokens（可选）
 ```
 
+### 全局配置 EConfigProvider（必须）
+
+**EConfigProvider 是使用 EUI 的前置条件。** 必须在 App 根组件用 `<EConfigProvider>` 包裹整个应用，否则以下功能不生效：
+
+- 国际化（日期选择器、月份/年份选择器等显示为英文而非中文）
+- 全局组件尺寸统一控制
+- 弹层 z-index 统一管理
+- 组件内部 UI 文案（确定/取消/暂无数据等）
+
+#### 基础用法
+
+```vue
+<!-- App.vue -->
+<script setup lang="ts">
+import { EConfigProvider } from '@danweiyuan/eui'
+</script>
+
+<template>
+  <EConfigProvider>
+    <RouterView />
+  </EConfigProvider>
+</template>
+```
+
+使用默认配置即可满足中文项目需求，无需传任何 props。
+
+#### Props
+
+| Prop | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| size | `'sm' \| 'default' \| 'lg'` | `'default'` | 所有组件的全局尺寸 |
+| zIndex | `number` | `2000` | 弹层组件（Dialog/Drawer/Popover 等）的基准 z-index |
+| locale | `Record<string, string>` | 见下方 | 国际化配置 |
+
+#### locale 配置
+
+locale 是一个扁平的键值对象，包含两部分内容：
+
+| 字段 | 默认值 | 说明 |
+|------|--------|------|
+| name | `'zh-CN'` | **BCP 47 语言标签**，控制日期选择器（EDatePicker）、日历（ECalendar）等组件的本地化显示（月份名、星期名、年份格式等） |
+| confirm | `'确定'` | 确认按钮文案 |
+| cancel | `'取消'` | 取消按钮文案 |
+| close | `'关闭'` | 关闭按钮文案 |
+| loading | `'加载中...'` | 加载状态文案 |
+| empty | `'暂无数据'` | 空状态文案 |
+| search | `'搜索'` | 搜索占位文案 |
+| selectPlaceholder | `'请选择'` | 选择器默认占位文案 |
+| inputPlaceholder | `'请输入'` | 输入框默认占位文案 |
+
+#### 自定义配置示例
+
+```vue
+<!-- 英文项目 -->
+<EConfigProvider
+  size="sm"
+  :z-index="3000"
+  :locale="{
+    name: 'en-US',
+    confirm: 'OK',
+    cancel: 'Cancel',
+    close: 'Close',
+    loading: 'Loading...',
+    empty: 'No data',
+    search: 'Search',
+    selectPlaceholder: 'Please select',
+    inputPlaceholder: 'Please input',
+  }"
+>
+  <RouterView />
+</EConfigProvider>
+```
+
+#### 嵌套覆盖
+
+EConfigProvider 支持嵌套，内层配置覆盖外层。适用于局部区域需要不同配置的场景：
+
+```vue
+<EConfigProvider>                                          <!-- 全局中文 -->
+  <EConfigProvider :locale="{ name: 'en-US', ... }">      <!-- 局部英文 -->
+    <EDatePicker type="month" />                           <!-- 显示英文月份 -->
+  </EConfigProvider>
+</EConfigProvider>
+```
+
+#### 实现原理
+
+EConfigProvider 内部做了两件事：
+1. 通过 Vue `provide/inject` 向子树注入 size、zIndex、locale 配置，EUI 组件通过 `useConfigProvider()` 读取
+2. 包裹 reka-ui 的 `ConfigProvider`，将 `locale.name` 透传为 reka-ui 的全局 locale，所有基于 reka-ui 的日期类组件自动继承
+
+#### 不使用 EConfigProvider 的后果
+
+| 功能 | 不包裹时的表现 |
+|------|--------------|
+| EDatePicker 月份/星期 | 显示英文（Jan、Feb、Mon、Tue） |
+| ECalendar 月份/星期 | 显示英文 |
+| 组件尺寸 | 各组件使用各自默认值，无法统一控制 |
+| 弹层 z-index | 各组件使用各自默认值，可能层级混乱 |
+| UI 文案 | useConfigProvider() 使用内部默认值（中文），但不保证一致性 |
+
 ## 命名约定
 
 - 组件前缀 `E`：`EButton`, `EInput`, `EDialog`
@@ -168,7 +269,7 @@ frontend/eui/src/components/{component-name}/types.ts
 
 | 组件 | 用途 | 关键 Props |
 |------|------|-----------|
-| EConfigProvider | 全局配置注入 | size, zIndex, locale(Record) |
+| EConfigProvider | **必须**包裹 App 根组件，提供国际化/尺寸/层级全局配置 | size, zIndex, locale(Record, 含 name 字段为 BCP 47 语言标签，默认 zh-CN) |
 | EToggle | 切换按钮 | v-model, variant(default/outline), size, disabled |
 | EToggleGroup | 切换按钮组 | v-model, type(single/multiple), variant, size, disabled |
 | EButtonGroup | 按钮组 | orientation(horizontal/vertical) |
