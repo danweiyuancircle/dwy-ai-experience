@@ -26,9 +26,13 @@ describe('EToast', () => {
     const { useToast } = await import('@/components/toast/index')
     expect(typeof useToast).toBe('function')
     const toast = useToast()
+    // toast 本身可直接调用
+    expect(typeof toast).toBe('function')
+    // 也支持类型方法
     expect(typeof toast.success).toBe('function')
     expect(typeof toast.error).toBe('function')
     expect(typeof toast.warning).toBe('function')
     expect(typeof toast.info).toBe('function')
+    expect(typeof toast.promise).toBe('function')
   })
 })

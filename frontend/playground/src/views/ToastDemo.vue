@@ -3,7 +3,9 @@ import { ref } from 'vue'
 import DemoBlock from '../components/DemoBlock.vue'
 import ComponentDoc from '../components/ComponentDoc.vue'
 import PropsTable from '../components/PropsTable.vue'
-import { toast } from '@danweiyuan/eui'
+import { useToast } from '@danweiyuan/eui'
+
+const toast = useToast()
 
 const position = ref<'top-right' | 'top-center' | 'bottom-right' | 'bottom-center'>('top-right')
 
@@ -73,15 +75,16 @@ const propsData = [
       <p class="text-muted-foreground text-sm leading-relaxed">适用于操作后的全局反馈提示，如表单提交成功、接口请求失败、系统警告等场景。通过 toast 函数式调用触发，支持 promise 自动处理异步状态、自定义操作按钮、多位置显示。需在页面中挂载 EToast 组件。</p>
     </section>
 
-    <!-- EToast 必须在页面中挂载 -->
+    <!-- EToast 挂载在 demo 内，支持动态切换 position -->
     <EToast :position="position" rich-colors />
 
     <section id="types">
       <DemoBlock
         title="消息类型"
         description="点击按钮触发不同类型的 Toast 通知"
-        code='import { toast } from "@danweiyuan/eui"
+        code='import { useToast } from "@danweiyuan/eui"
 
+const toast = useToast()
 toast.success("操作成功！")
 toast.error("操作失败！")
 toast.warning("注意")

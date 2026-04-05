@@ -121,7 +121,6 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
       </main>
     </div>
 
-    <EToastRoot position="top-right" :rich-colors="true" />
     <SearchDialog v-model:open="searchOpen" />
   </div>
   </EConfigProvider>
