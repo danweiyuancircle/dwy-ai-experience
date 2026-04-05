@@ -1,5 +1,11 @@
 # @danweiyuan/eui
 
+## 1.2.5
+
+### Patch Changes
+
+- 修复 EToast 样式不生效：vue-sonner CSS 通过 theme/index.css 自动引入，消费者无需额外操作
+
 ## 1.2.4
 
 ### Patch Changes

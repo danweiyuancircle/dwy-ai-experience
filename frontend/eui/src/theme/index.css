@@ -1,6 +1,7 @@
 @import './tokens.css';
 @import './dark.css';
 @import './presets.css';
+@import 'vue-sonner/style.css';
 
 /* 让消费者 @import 主题后自动扫描组件类名，无需手动配置 @source */
 @source "../../dist";
