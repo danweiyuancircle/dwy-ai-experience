@@ -24,7 +24,30 @@
 
 ## 回归测试
 
-每次代码改动后，必须运行相关包的全量测试。**不通过不提交。**
+### 开发中：只跑受影响的测试
+
+每次代码改动后，只运行受影响的测试文件，提高开发效率：
+
+```bash
+# 后端：只跑改动涉及的测试文件
+uv run pytest tests/test_factor.py -v          # 改了 factor 相关代码
+uv run pytest tests/test_tick.py tests/test_upload.py -v  # 改了多个模块
+
+# 前端：只跑对应目录
+pnpm vitest run tests/stores/               # 改了 store
+pnpm vitest run tests/utils/format.test.ts   # 改了单个工具函数
+```
+
+判断"受影响的测试"的规则：
+- 改了 `services/xxx.py` → 跑 `tests/test_xxx.py`
+- 改了 `routers/xxx.py` → 跑 `tests/test_xxx.py`
+- 改了 `schemas/` 或 `models/` → 跑引用了它们的测试
+- 改了 `conftest.py` 或公共依赖 → 全量回归
+- 不确定影响范围 → 全量回归
+
+### 提交前：跑受影响的测试即可
+
+提交前确保受影响的测试通过即可，不要求全量回归。全量测试留给 CI 或手动触发。
 
 ## TEST_CASES.md
 
