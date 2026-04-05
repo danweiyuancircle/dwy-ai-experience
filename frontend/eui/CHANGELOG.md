@@ -1,5 +1,14 @@
 # @danweiyuan/eui
 
+## 1.2.3
+
+### Patch Changes
+
+- Toast 组件新增 `useToast` composable 封装，替代直接暴露 vue-sonner 的 `toast` 函数
+- 移除 Sidebar 组件（改用 EMenu + EAdminLayout 构建布局）
+- EConfigProvider 支持国际化，透传 locale 到 reka-ui
+- 修复 DatePicker 月份/年份选择器渲染错误
+
 ## 1.2.2
 
 ### Patch Changes

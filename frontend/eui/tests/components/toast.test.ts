@@ -22,8 +22,13 @@ describe('EToast', () => {
     expect(wrapper.exists()).toBe(true)
   })
 
-  it('exports toast function from index', async () => {
-    const { toast } = await import('@/components/toast/index')
-    expect(typeof toast).toBe('function')
+  it('exports useToast from index', async () => {
+    const { useToast } = await import('@/components/toast/index')
+    expect(typeof useToast).toBe('function')
+    const toast = useToast()
+    expect(typeof toast.success).toBe('function')
+    expect(typeof toast.error).toBe('function')
+    expect(typeof toast.warning).toBe('function')
+    expect(typeof toast.info).toBe('function')
   })
 })
