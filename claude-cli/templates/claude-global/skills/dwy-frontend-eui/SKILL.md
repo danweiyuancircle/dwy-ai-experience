@@ -185,7 +185,7 @@ frontend/eui/src/components/{component-name}/types.ts
 | EInput | 输入框 | v-model, type, placeholder, size, clearable, showPassword, disabled, readonly, maxlength, showWordLimit |
 | ETextarea | 多行输入 | v-model, placeholder, rows, autoResize, maxlength, disabled, showWordLimit, minRows, maxRows |
 | ENumberField | 数字输入 | v-model, min, max, step, size, disabled, precision, controlsPosition, placeholder, readonly |
-| ESelect | 下拉选择 | v-model, options(Option[]), placeholder, clearable, size, disabled, filterable, multiple, collapseTags, remote, remoteMethod, loading |
+| ESelect | 下拉选择 | v-model, options(Option[]), placeholder, clearable, size, disabled, filterable, multiple, collapseTags, remote, remoteMethod, loading。**注意：option.value 不能为空字符串**，reka-ui 不支持 |
 | ENativeSelect | 原生 select | v-model, options(SelectOption[]), placeholder, disabled |
 | ECombobox | 组合框 | v-model, options(Option[]), placeholder, emptyText, disabled |
 | EAutocomplete | 自动补全 | v-model, fetchSuggestions(async fn), debounce, placeholder |

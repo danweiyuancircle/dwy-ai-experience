@@ -8,8 +8,10 @@ import SlotsTable from '../components/SlotsTable.vue'
 
 const basic = ref(false)
 const withLabel = ref(true)
+const darkMode = ref(false)
 const disabled = ref(false)
 const sizeSm = ref(true)
+const sizeDefault = ref(false)
 const sizeLg = ref(false)
 
 const tocItems = [
@@ -73,7 +75,7 @@ const slotsData = [
       >
         <div class="space-y-3">
           <ESwitch v-model="withLabel" label="接收通知" />
-          <ESwitch v-model="basic" label="暗色模式" />
+          <ESwitch v-model="darkMode" label="暗色模式" />
         </div>
       </DemoBlock>
     </section>
@@ -102,7 +104,7 @@ const slotsData = [
       >
         <div class="space-y-3">
           <ESwitch v-model="sizeSm" size="sm" label="小号 sm" />
-          <ESwitch v-model="basic" label="默认尺寸 default" />
+          <ESwitch v-model="sizeDefault" label="默认尺寸 default" />
           <ESwitch v-model="sizeLg" size="lg" label="大号 lg" />
         </div>
       </DemoBlock>

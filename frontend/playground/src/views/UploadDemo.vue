@@ -11,13 +11,11 @@ const files2 = ref<any[]>([])
 const filesCard = ref<any[]>([])
 const filesDrag = ref<any[]>([])
 const filesValidated = ref<any[]>([])
+const filesMaxSize = ref<any[]>([])
 
 function beforeUpload(file: File) {
-  const isLt2M = file.size / 1024 / 1024 < 2
-  if (!isLt2M) {
-    alert('文件大小不能超过 2MB！')
-  }
-  return isLt2M
+  const isImage = file.type.startsWith('image/')
+  return isImage
 }
 
 const tocItems = [
@@ -27,6 +25,7 @@ const tocItems = [
   { id: 'picture-card', label: '图片卡片' },
   { id: 'drag', label: '拖拽上传' },
   { id: 'limit', label: '数量限制' },
+  { id: 'max-size', label: '文件大小限制' },
   { id: 'before-upload', label: '上传前校验' },
   { id: 'props', label: 'Props' },
   { id: 'events', label: 'Events' },
@@ -39,6 +38,7 @@ const propsData = [
   { name: 'accept', type: 'string', description: '接受的文件类型，如 "image/*"' },
   { name: 'multiple', type: 'boolean', default: 'false', description: '是否允许多选文件' },
   { name: 'limit', type: 'number', description: '最多可上传文件数' },
+  { name: 'maxSize', type: 'number', description: '单个文件最大大小（MB），超出自动拦截并提示' },
   { name: 'disabled', type: 'boolean', default: 'false', description: '是否禁用' },
   { name: 'listType', type: "'text' | 'picture' | 'picture-card'", default: "'text'", description: '文件列表展示模式' },
   { name: 'drag', type: 'boolean', default: 'false', description: '是否启用拖拽上传' },
@@ -144,24 +144,35 @@ const slotsData = [
       </DemoBlock>
     </section>
 
+    <section id="max-size">
+      <DemoBlock
+        title="文件大小限制"
+        description="设置 maxSize 限制单个文件大小（MB），超出自动拦截并显示提示"
+        code='<EUpload v-model="files" :max-size="2" :multiple="true">
+  <EButton>上传文件（单个不超过 2MB）</EButton>
+</EUpload>'
+      >
+        <EUpload v-model="filesMaxSize" :max-size="2" :multiple="true">
+          <EButton variant="outline">上传文件（单个不超过 2MB）</EButton>
+        </EUpload>
+      </DemoBlock>
+    </section>
+
     <section id="before-upload">
       <DemoBlock
         title="上传前校验"
-        description="通过 :before-upload 在上传前校验文件，超过 2MB 拒绝上传"
+        description="通过 beforeUpload 自定义校验逻辑，返回 false 拒绝上传并自动提示"
         code='<EUpload v-model="files" :before-upload="beforeUpload">
-  <EButton>上传文件（限 2MB）</EButton>
+  <EButton>仅允许图片</EButton>
 </EUpload>
 
 function beforeUpload(file: File) {
-  const isLt2M = file.size / 1024 / 1024 < 2
-  if (!isLt2M) alert(&apos;文件大小不能超过 2MB！&apos;)
-  return isLt2M
+  return file.type.startsWith("image/")
 }'
       >
         <EUpload v-model="filesValidated" :before-upload="beforeUpload">
-          <EButton variant="outline">上传文件（限 2MB）</EButton>
+          <EButton variant="outline">仅允许图片文件</EButton>
         </EUpload>
-        <p class="text-sm text-muted-foreground mt-2">已选 {{ filesValidated.length }} 个文件（超过 2MB 的文件将被拒绝）</p>
       </DemoBlock>
     </section>
 

@@ -42,7 +42,7 @@ function handleReset() {
 const inlineModel = reactive({ keyword: '', status: '' })
 
 const statusOptions = [
-  { label: '全部', value: '' },
+  { label: '全部', value: 'all' },
   { label: '启用', value: 'active' },
   { label: '禁用', value: 'inactive' },
 ]
@@ -159,9 +159,9 @@ const slotsData = [
             <ETextarea v-model="model.bio" placeholder="请输入个人简介（可选）" />
           </EFormItem>
           <EFormItem>
-            <div class="flex gap-2">
-              <EButton @click="handleSubmit">提交验证</EButton>
+            <div class="flex justify-end gap-2">
               <EButton variant="outline" @click="handleReset">重置表单</EButton>
+              <EButton @click="handleSubmit">提交验证</EButton>
             </div>
           </EFormItem>
         </EForm>
@@ -191,7 +191,10 @@ const slotsData = [
             <EInput placeholder="请输入城市" />
           </EFormItem>
           <EFormItem>
-            <EButton>提交</EButton>
+            <div class="flex justify-end gap-2">
+              <EButton variant="outline">重置</EButton>
+              <EButton>提交</EButton>
+            </div>
           </EFormItem>
         </EForm>
       </DemoBlock>
