@@ -11,6 +11,11 @@ description: "@danweiyuan/eui Vue 3 组件库速查。触发条件：使用 Vue 
 
 新项目集成 EUI 时，读取同目录下的 `eui-integration-guide.md`，包含完整的安装、Vite 配置、样式引入、组件注册、主题切换等步骤。
 
+## 设计风格规范
+
+- **中后台页面**：读取同目录下的 `eui-design-guide.md`，包含颜色系统、布局规范、排版规范、组件使用规范、交互规范等。
+- **落地页/营销页**：读取同目录下的 `eui-landing-design-guide.md`，包含 Hero、功能展示、社会证明、定价、FAQ 等 Section 模板和动画规范。
+
 ---
 
 ## 安装与引入
