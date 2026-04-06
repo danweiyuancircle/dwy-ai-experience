@@ -60,10 +60,7 @@ const eventsData = [
         description="最简单的分页控件"
         code='<EPagination v-model="page" :total="100" />'
       >
-        <div class="space-y-3">
-          <EPagination v-model="page1" :total="100" />
-          <p class="text-sm text-muted-foreground">当前页：{{ page1 }}</p>
-        </div>
+        <EPagination v-model="page1" :total="100" />
       </DemoBlock>
     </section>
 
@@ -73,10 +70,7 @@ const eventsData = [
         description="设置 showTotal 显示数据总条数"
         code='<EPagination v-model="page" :total="250" :pageSize="10" showTotal />'
       >
-        <div class="space-y-3">
-          <EPagination v-model="page2" :total="250" :pageSize="10" :showTotal="true" />
-          <p class="text-sm text-muted-foreground">当前页：{{ page2 }}</p>
-        </div>
+        <EPagination v-model="page2" :total="250" :pageSize="10" :showTotal="true" />
       </DemoBlock>
     </section>
 
@@ -92,17 +86,14 @@ const eventsData = [
   showTotal
 />'
       >
-        <div class="space-y-3">
-          <EPagination
-            v-model="page3"
-            :total="500"
-            v-model:pageSize="pageSize3"
-            :showSizeChanger="true"
-            :showTotal="true"
-            :pageSizes="[10, 20, 50, 100]"
-          />
-          <p class="text-sm text-muted-foreground">当前页：{{ page3 }}，每页：{{ pageSize3 }} 条</p>
-        </div>
+        <EPagination
+          v-model="page3"
+          :total="500"
+          v-model:pageSize="pageSize3"
+          :showSizeChanger="true"
+          :showTotal="true"
+          :pageSizes="[10, 20, 50, 100]"
+        />
       </DemoBlock>
     </section>
 
@@ -112,16 +103,13 @@ const eventsData = [
         description="设置 jumper 和 layout 启用页码跳转输入框"
         code='<EPagination v-model="page" :total="500" jumper layout="total, prev, pager, next, jumper" />'
       >
-        <div class="space-y-3">
-          <EPagination
-            v-model="page4"
-            :total="500"
-            jumper
-            layout="total, prev, pager, next, jumper"
-            :showTotal="true"
-          />
-          <p class="text-sm text-muted-foreground">当前页：{{ page4 }}</p>
-        </div>
+        <EPagination
+          v-model="page4"
+          :total="500"
+          jumper
+          layout="total, prev, pager, next, jumper"
+          :showTotal="true"
+        />
       </DemoBlock>
     </section>
 

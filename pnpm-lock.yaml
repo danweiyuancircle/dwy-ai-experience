@@ -170,11 +170,11 @@ importers:
   frontend/playground:
     dependencies:
       '@danweiyuan/ekit':
-        specifier: ^0.2.1
-        version: 0.2.1(axios@1.14.0)(vue@3.5.31(typescript@5.9.3))
+        specifier: workspace:^
+        version: link:../ekit
       '@danweiyuan/eui':
-        specifier: ^1.2.5
-        version: 1.2.5(tailwindcss@4.2.2)(vue@3.5.31(typescript@5.9.3))
+        specifier: workspace:^
+        version: link:../eui
       fuse.js:
         specifier: ^7.1.0
         version: 7.1.0
@@ -262,18 +262,6 @@ packages:
   '@csstools/css-tokenizer@3.0.4':
     resolution: {integrity: sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw==}
     engines: {node: '>=18'}
-
-  '@danweiyuan/ekit@0.2.1':
-    resolution: {integrity: sha512-xs9+vM+ybkNisjmoE7ReSkaVtRDJhkkckuso2cOAltWdqOLaQFV1SpVysywV3lu5MuETHfIAQ6/cPbl1g/8/qA==}
-    peerDependencies:
-      axios: ^1.0.0
-      vue: ^3.4.0
-
-  '@danweiyuan/eui@1.2.5':
-    resolution: {integrity: sha512-hFm/cSofrujfTqh0d130IVvD4DUofZG0SQj0FbIVsN0sGs0vFxIBS69eRvMkNUs5Nb8zHdTuLx7QWT+9wONC1Q==}
-    peerDependencies:
-      tailwindcss: ^4.0.0
-      vue: ^3.5.0
 
   '@emnapi/core@1.9.1':
     resolution: {integrity: sha512-mukuNALVsoix/w1BJwFzwXBN/dHeejQtuVzcDsfOEsdpCumXb/E9j8w11h5S54tT1xhifGfbbSm/ICrObRb3KA==}
@@ -2537,38 +2525,6 @@ snapshots:
       '@csstools/css-tokenizer': 3.0.4
 
   '@csstools/css-tokenizer@3.0.4': {}
-
-  '@danweiyuan/ekit@0.2.1(axios@1.14.0)(vue@3.5.31(typescript@5.9.3))':
-    dependencies:
-      '@vueuse/core': 14.2.1(vue@3.5.31(typescript@5.9.3))
-      axios: 1.14.0
-      dayjs: 1.11.20
-      file-saver: 2.0.5
-      js-cookie: 3.0.5
-      qs: 6.15.0
-      vue: 3.5.31(typescript@5.9.3)
-      zod: 3.25.76
-
-  '@danweiyuan/eui@1.2.5(tailwindcss@4.2.2)(vue@3.5.31(typescript@5.9.3))':
-    dependencies:
-      '@floating-ui/vue': 1.1.11(vue@3.5.31(typescript@5.9.3))
-      '@internationalized/date': 3.12.0
-      '@tanstack/vue-table': 8.21.3(vue@3.5.31(typescript@5.9.3))
-      '@vee-validate/zod': 4.15.1(vue@3.5.31(typescript@5.9.3))(zod@3.25.76)
-      '@vueuse/core': 14.2.1(vue@3.5.31(typescript@5.9.3))
-      class-variance-authority: 0.7.1
-      clsx: 2.1.1
-      embla-carousel: 8.6.0
-      embla-carousel-vue: 8.6.0(vue@3.5.31(typescript@5.9.3))
-      lucide-vue-next: 1.0.0(vue@3.5.31(typescript@5.9.3))
-      reka-ui: 2.9.2(vue@3.5.31(typescript@5.9.3))
-      tailwind-merge: 3.5.0
-      tailwindcss: 4.2.2
-      vee-validate: 4.15.1(vue@3.5.31(typescript@5.9.3))
-      vue: 3.5.31(typescript@5.9.3)
-      zod: 3.25.76
-    transitivePeerDependencies:
-      - '@vue/composition-api'
 
   '@emnapi/core@1.9.1':
     dependencies:

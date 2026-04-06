@@ -8,6 +8,7 @@ import SlotsTable from '../components/SlotsTable.vue'
 
 const basicOpen = ref(false)
 const formOpen = ref(false)
+const scrollOpen = ref(false)
 const dragOpen = ref(false)
 const fullOpen = ref(false)
 
@@ -17,6 +18,7 @@ const tocItems = [
   { id: 'usage', label: '使用场景' },
   { id: 'basic-dialog', label: '基础对话框' },
   { id: 'form-dialog', label: '带表单的对话框' },
+  { id: 'scroll-dialog', label: '长内容可滚动对话框' },
   { id: 'draggable-dialog', label: '可拖拽对话框' },
   { id: 'fullscreen-dialog', label: '全屏对话框' },
   { id: 'props', label: 'Props' },
@@ -89,7 +91,7 @@ const slotsData = [
       >
         <EButton @click="formOpen = true">打开表单对话框</EButton>
         <EDialog v-model:open="formOpen" title="新建用户" max-width="500px">
-          <div class="space-y-4">
+          <div class="space-y-4 mt-4 mr-4 mb-4">
             <EFormItem label="姓名">
               <EInput v-model="formData.name" placeholder="请输入姓名" />
             </EFormItem>
@@ -100,6 +102,59 @@ const slotsData = [
           <template #footer>
             <EButton variant="outline" @click="formOpen = false">取消</EButton>
             <EButton @click="formOpen = false">保存</EButton>
+          </template>
+        </EDialog>
+      </DemoBlock>
+    </section>
+
+    <section id="scroll-dialog">
+      <DemoBlock
+        title="长内容可滚动对话框"
+        description="内容超出视口时，body 区域自动滚动，header 和 footer 固定不动"
+      >
+        <EButton @click="scrollOpen = true">打开长内容对话框</EButton>
+        <EDialog v-model:open="scrollOpen" title="任务详情" max-width="600px">
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-medium mb-1">任务 ID</h4>
+              <p class="text-sm text-muted-foreground">task_8796a0206ef34d23ab667cf65fbf950d</p>
+            </div>
+            <div>
+              <h4 class="font-medium mb-1">参数</h4>
+              <pre class="text-sm bg-muted p-3 rounded-md overflow-x-auto">{
+  "local_path": "/data/tick/20050104.ftr",
+  "skip_dates": [],
+  "overwrite_dates": ["2005-01-04"]
+}</pre>
+            </div>
+            <div>
+              <h4 class="font-medium mb-1">结果</h4>
+              <pre class="text-sm bg-muted p-3 rounded-md overflow-x-auto">{
+  "rows_uploaded": 706923,
+  "files_processed": 1,
+  "dates_overwritten": ["2005-01-04"]
+}</pre>
+            </div>
+            <div>
+              <h4 class="font-medium mb-1">执行日志</h4>
+              <pre class="text-sm bg-muted p-3 rounded-md overflow-x-auto whitespace-pre-wrap">[2026-04-06 16:20:31] 任务已创建, 等待执行
+[2026-04-06 16:20:32] 任务开始执行
+[2026-04-06 16:20:32] 开始上传: /data/tick/20050104.ftr
+[2026-04-06 16:20:32] 找到 1 个文件
+[2026-04-06 16:20:32] 已删除 1 个日期的旧数据
+[2026-04-06 16:20:37] 文件 20050104.ftr: 706923 行
+[2026-04-06 16:20:37] 任务执行成功
+[2026-04-06 16:21:00] 数据校验完成
+[2026-04-06 16:21:05] 索引重建完成
+[2026-04-06 16:21:10] 缓存已刷新</pre>
+            </div>
+            <div>
+              <h4 class="font-medium mb-1">额外信息</h4>
+              <p class="text-sm text-muted-foreground">这是一段额外的内容，用于演示当对话框内容超出视口高度时，body 区域会自动出现滚动条，而标题和底部按钮保持固定不动。</p>
+            </div>
+          </div>
+          <template #footer>
+            <EButton variant="outline" @click="scrollOpen = false">关闭</EButton>
           </template>
         </EDialog>
       </DemoBlock>

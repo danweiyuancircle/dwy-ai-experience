@@ -5,6 +5,8 @@ import ComponentDoc from '../components/ComponentDoc.vue'
 import PropsTable from '../components/PropsTable.vue'
 import SlotsTable from '../components/SlotsTable.vue'
 
+const multilineCode = `<EWatermark :content="['丹微元科技', '内部文档']">`
+
 const customContent = ref('自定义水印')
 const customFontSize = ref(16)
 const customRotate = ref(-30)
@@ -67,7 +69,7 @@ const slotsData = [
       <DemoBlock
         title="多行水印"
         description="content 传入数组时显示多行水印文字"
-        code="<EWatermark :content=\"['丹微元科技', '内部文档']\">"
+        :code="multilineCode"
       >
         <EWatermark :content="['丹微元科技', '内部文档']">
           <div class="h-48 rounded-lg border p-6 flex items-center justify-center">
