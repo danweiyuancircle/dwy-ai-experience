@@ -18,6 +18,8 @@ export interface EUploadProps {
   accept?: string
   multiple?: boolean
   limit?: number
+  /** 单个文件最大大小（MB），超出自动拦截并提示 */
+  maxSize?: number
   disabled?: boolean
   listType?: 'text' | 'picture' | 'picture-card'
   drag?: boolean

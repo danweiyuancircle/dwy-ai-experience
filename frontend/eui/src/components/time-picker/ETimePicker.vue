@@ -3,10 +3,12 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { Clock } from 'lucide-vue-next'
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui'
 import { cn } from '@/utils/cn'
+import { useConfigProvider } from '@/composables/useConfigProvider'
 import type { ETimePickerProps, ETimePickerEmits } from './types'
 
+const { locale } = useConfigProvider()
+
 const props = withDefaults(defineProps<ETimePickerProps>(), {
-  placeholder: 'Select time',
   disabled: false,
   hourStep: 1,
   minuteStep: 1,
@@ -106,7 +108,7 @@ function scrollToActive(el: HTMLElement | null, value: number) {
         )"
       >
         <Clock class="size-4 shrink-0 opacity-50" />
-        {{ displayValue || placeholder }}
+        {{ displayValue || placeholder || locale.timePickerPlaceholder }}
       </button>
     </PopoverTrigger>
 
@@ -124,7 +126,7 @@ function scrollToActive(el: HTMLElement | null, value: number) {
         <div class="flex gap-2">
           <!-- Hours column -->
           <div class="flex flex-col items-center gap-1">
-            <span class="text-xs font-medium text-muted-foreground pb-1">HH</span>
+            <span class="text-xs font-medium text-muted-foreground pb-1">{{ locale.timePickerHour }}</span>
             <div
               ref="hourListRef"
               class="h-[180px] overflow-y-auto scroll-smooth no-scrollbar"
@@ -150,7 +152,7 @@ function scrollToActive(el: HTMLElement | null, value: number) {
 
           <!-- Minutes column -->
           <div class="flex flex-col items-center gap-1">
-            <span class="text-xs font-medium text-muted-foreground pb-1">MM</span>
+            <span class="text-xs font-medium text-muted-foreground pb-1">{{ locale.timePickerMinute }}</span>
             <div
               ref="minuteListRef"
               class="h-[180px] overflow-y-auto scroll-smooth no-scrollbar"
@@ -178,7 +180,7 @@ function scrollToActive(el: HTMLElement | null, value: number) {
             class="rounded-md bg-primary px-3 py-1 text-xs text-primary-foreground hover:bg-primary/90"
             @click="open = false"
           >
-            OK
+            {{ locale.confirm }}
           </button>
         </div>
       </PopoverContent>

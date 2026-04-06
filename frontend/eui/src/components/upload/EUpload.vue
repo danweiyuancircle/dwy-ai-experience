@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { Upload, X, File, CheckCircle, AlertCircle, LoaderCircle, Eye } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
 import { EProgress } from '@/components/progress'
+import { useConfigProvider } from '@/composables/useConfigProvider'
 import type { EUploadProps, EUploadEmits, UploadFile } from './types'
+
+const { locale } = useConfigProvider()
 
 const props = withDefaults(defineProps<EUploadProps>(), {
   modelValue: () => [],
@@ -19,6 +22,20 @@ const emit = defineEmits<EUploadEmits>()
 
 const inputRef = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
+const tipMessage = ref('')
+const previewUrl = ref('')
+const previewOverlayRef = ref<HTMLElement | null>(null)
+
+watch(previewUrl, (val) => {
+  if (val) nextTick(() => previewOverlayRef.value?.focus())
+})
+let tipTimer: ReturnType<typeof setTimeout> | null = null
+
+function showTip(msg: string) {
+  tipMessage.value = msg
+  if (tipTimer) clearTimeout(tipTimer)
+  tipTimer = setTimeout(() => { tipMessage.value = '' }, 3000)
+}
 
 const files = computed(() => props.modelValue ?? [])
 
@@ -35,6 +52,7 @@ async function handleFiles(rawFiles: File[]) {
   if (props.disabled) return
 
   if (props.limit && files.value.length + rawFiles.length > props.limit) {
+    showTip(locale.value.uploadExceed.replace('{limit}', String(props.limit)))
     emit('exceed', rawFiles)
     return
   }
@@ -42,12 +60,25 @@ async function handleFiles(rawFiles: File[]) {
   const newFiles: UploadFile[] = []
 
   for (const raw of rawFiles) {
+    // Check file size limit
+    if (props.maxSize && raw.size > props.maxSize * 1024 * 1024) {
+      const sizeStr = raw.size < 1024 * 1024
+        ? `${(raw.size / 1024).toFixed(1)}KB`
+        : `${(raw.size / 1024 / 1024).toFixed(1)}MB`
+      showTip(locale.value.uploadSizeExceed.replace('{name}', raw.name).replace('{size}', sizeStr).replace('{maxSize}', String(props.maxSize)))
+      continue
+    }
+
     // Run beforeUpload validation if provided
     if (props.beforeUpload) {
       try {
         const result = await Promise.resolve(props.beforeUpload(raw))
-        if (result === false) continue
+        if (result === false) {
+          showTip(locale.value.uploadValidationFailed.replace('{name}', raw.name))
+          continue
+        }
       } catch {
+        showTip(locale.value.uploadValidationFailed.replace('{name}', raw.name))
         continue
       }
     }
@@ -187,6 +218,7 @@ function removeFile(file: UploadFile) {
 }
 
 function onPreview(file: UploadFile) {
+  if (file.url) previewUrl.value = file.url
   emit('preview', file)
 }
 
@@ -288,7 +320,7 @@ defineExpose({ submit })
         @drop="onDrop"
       >
         <Upload class="size-5" />
-        <span class="text-xs">Upload</span>
+        <span class="text-xs">{{ locale.uploadCard }}</span>
       </button>
     </div>
 
@@ -313,11 +345,11 @@ defineExpose({ submit })
       <div v-if="drag" class="flex flex-col items-center gap-2 text-muted-foreground">
         <Upload class="size-8" />
         <p class="text-sm">
-          Drag files here or
+          {{ locale.uploadDrag }}
           <button
             class="text-primary underline"
             @click.stop="openFilePicker"
-          >click to upload</button>
+          >{{ locale.uploadDragLink }}</button>
         </p>
         <p v-if="accept" class="text-xs opacity-70">{{ accept }}</p>
       </div>
@@ -331,7 +363,7 @@ defineExpose({ submit })
         )"
       >
         <Upload class="size-4" />
-        <span>Click to upload</span>
+        <span>{{ locale.uploadClick }}</span>
       </button>
     </div>
 
@@ -377,5 +409,41 @@ defineExpose({ submit })
         />
       </li>
     </ul>
+
+    <!-- Inline tip message -->
+    <p v-if="tipMessage" class="text-xs text-destructive">{{ tipMessage }}</p>
+
+    <!-- Image preview overlay -->
+    <Teleport to="body">
+      <Transition
+        enter-active-class="duration-200 ease-out"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="duration-150 ease-in"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div
+          v-if="previewUrl"
+          class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80"
+          @click="previewUrl = ''"
+          @keydown.esc="previewUrl = ''"
+          tabindex="0"
+          ref="previewOverlayRef"
+        >
+          <button
+            class="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+            @click.stop="previewUrl = ''"
+          >
+            <X class="size-6" />
+          </button>
+          <img
+            :src="previewUrl"
+            class="max-h-[90vh] max-w-[90vw] object-contain animate-in zoom-in-95 duration-200"
+            @click.stop
+          />
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
