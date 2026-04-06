@@ -2,51 +2,44 @@
 
 {{projectDescription}}
 
-## Tech Stack
-
-- Frontend: Vue 3 + TypeScript + Tailwind CSS 4 + Vite
-- Backend: Python 3.11 + FastAPI + SQLAlchemy 2.0 (async)
-- Database: PostgreSQL 16 + Redis 7
-- Shared: @danweiyuan/eui, @danweiyuan/ekit, danweiyuan-eapi
-
 ## Commands
 
-### Development
-
 ```bash
-# Infrastructure
-docker compose -f docker-compose.dev.yml up -d
+# 安装依赖
+pnpm install
 
-# Backend
-cd backend
-uv run uvicorn app.main:app --reload --port 8000
-
-# Frontend
-cd frontend
+# 开发
 pnpm dev
-```
 
-### Deploy
+# 构建
+pnpm build
 
-```bash
-./deploy.sh              # Full deploy
-./deploy.sh --frontend   # Frontend only
-./deploy.sh --backend    # Backend only
-```
-
-### Test
-
-```bash
-cd backend && uv run pytest tests/ -v
+# 类型检查
+pnpm typecheck
 ```
 
 ## Architecture
 
-```
-frontend/ → Vue 3 SPA
-backend/  → FastAPI (src/app/)
-  routers/  → HTTP endpoints
-  services/ → Business logic
-  models/   → SQLAlchemy ORM
-  schemas/  → Pydantic request/response
-```
+pnpm monorepo 前端项目，基于 Vue 3 + TypeScript。
+
+| 目录 | 说明 |
+|---|---|
+| apps/web/ | 主应用 |
+| packages/ | 共享包（按需添加） |
+
+### apps/web/ 结构
+
+| 目录 | 说明 |
+|---|---|
+| views/ | 页面组件（一个路由对应一个文件） |
+| components/ | 可复用业务组件 |
+| composables/ | 组合式函数（use* 开头） |
+| layouts/ | 布局组件 |
+| stores/ | Pinia 状态管理 |
+| router/ | Vue Router 配置 |
+| api/ | API 请求模块 |
+| types/ | 共享类型定义 |
+
+## Git Commit Scope
+
+本项目的 scope 枚举：`web` | `shared`

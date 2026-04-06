@@ -6,7 +6,8 @@ import { renderTemplate, chalk, PACKAGE_ROOT } from './utils.js'
 export async function createProject(name) {
   console.log(chalk.blue('Creating a new project...\n'))
 
-  const answers = await inquirer.prompt([
+  // Step 1: common questions
+  const common = await inquirer.prompt([
     {
       type: 'input',
       name: 'projectName',
@@ -25,42 +26,57 @@ export async function createProject(name) {
       name: 'template',
       message: '选择项目模板:',
       choices: [
-        { name: 'web     — Vue + FastAPI', value: 'web' },
-        { name: 'mobile  — 移动端 + FastAPI (预留)', value: 'mobile', disabled: '即将推出' },
-        { name: 'backend — 纯 FastAPI 服务 (预留)', value: 'backend', disabled: '即将推出' },
+        { name: 'web      — Vue 3 前端 (pnpm monorepo, eui + ekit + Tailwind)', value: 'web' },
+        { name: 'backend  — FastAPI 后端 (eapi + PostgreSQL + Redis + Docker)', value: 'backend' },
+        { name: 'mobile   — 移动端 (暂未实现)', value: 'mobile', disabled: '即将推出' },
       ],
     },
-    {
-      type: 'confirm',
-      name: 'includeDolphindb',
-      message: '需要 DolphinDB 吗?',
-      default: false,
-    },
-    {
-      type: 'input',
-      name: 'sshAlias',
-      message: 'SSH 部署别名:',
-      default: (a) => `${a.projectName}-server`,
-    },
-    {
-      type: 'input',
-      name: 'devDbPort',
-      message: '本地开发 DB 端口:',
-      default: '5432',
-    },
-    {
-      type: 'input',
-      name: 'devRedisPort',
-      message: '本地开发 Redis 端口:',
-      default: '6379',
-    },
-    {
-      type: 'input',
-      name: 'backendPort',
-      message: '生产 Backend 端口:',
-      default: '8001',
-    },
   ])
+
+  // Step 2: template-specific questions
+  let extra = {}
+
+  if (common.template === 'backend') {
+    extra = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'sshAlias',
+        message: 'SSH 部署别名:',
+        default: `${common.projectName}-server`,
+      },
+      {
+        type: 'input',
+        name: 'devDbPort',
+        message: '本地开发 DB 端口:',
+        default: '5432',
+      },
+      {
+        type: 'input',
+        name: 'devRedisPort',
+        message: '本地开发 Redis 端口:',
+        default: '6379',
+      },
+      {
+        type: 'input',
+        name: 'backendPort',
+        message: '生产 Backend 端口:',
+        default: '8001',
+      },
+    ])
+  }
+
+  if (common.template === 'web') {
+    extra = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'apiProxy',
+        message: 'API 代理地址 (后端):',
+        default: 'http://127.0.0.1:8000',
+      },
+    ])
+  }
+
+  const answers = { ...common, ...extra }
 
   const context = {
     ...answers,
@@ -87,7 +103,15 @@ export async function createProject(name) {
   console.log(chalk.gray('Next steps:'))
   console.log(chalk.gray(`  cd ${context.projectName}`))
   console.log(chalk.gray('  git init && git add . && git commit -m "init"'))
-  console.log(chalk.gray('  docker compose -f docker-compose.dev.yml up -d'))
-  console.log(chalk.gray('  cd backend && uv venv && uv pip install -e ".[dev]"'))
-  console.log(chalk.gray('  cd frontend && pnpm install && pnpm dev'))
+
+  if (context.template === 'backend') {
+    console.log(chalk.gray('  docker compose -f docker-compose.dev.yml up -d'))
+    console.log(chalk.gray('  uv venv && uv pip install -e ".[dev]"'))
+    console.log(chalk.gray('  uvicorn app.main:app --reload'))
+  }
+
+  if (context.template === 'web') {
+    console.log(chalk.gray('  pnpm install'))
+    console.log(chalk.gray('  pnpm dev'))
+  }
 }

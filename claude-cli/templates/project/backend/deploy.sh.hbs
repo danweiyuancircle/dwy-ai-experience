@@ -1,0 +1,18 @@
+#!/bin/bash
+set -euo pipefail
+
+PROJECT="{{projectName}}"
+SSH_ALIAS="{{sshAlias}}"
+REMOTE_DIR="/opt/$PROJECT"
+
+echo "Deploying $PROJECT..."
+
+git push origin master
+
+ssh $SSH_ALIAS "cd $REMOTE_DIR && git pull"
+
+ssh $SSH_ALIAS "cd $REMOTE_DIR && docker compose -f docker-compose.prod.yml exec backend alembic upgrade head"
+
+ssh $SSH_ALIAS "cd $REMOTE_DIR && docker compose -f docker-compose.prod.yml up -d --build backend"
+
+ssh $SSH_ALIAS "curl -sf http://127.0.0.1:{{backendPort}}/api/health" && echo "Deploy success" || echo "Health check failed"

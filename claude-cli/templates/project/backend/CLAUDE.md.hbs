@@ -1,0 +1,40 @@
+# {{projectName}}
+
+{{projectDescription}}
+
+## Commands
+
+```bash
+# 开发环境
+docker compose -f docker-compose.dev.yml up -d    # 启动 PostgreSQL + Redis
+uv venv && uv pip install -e ".[dev]"              # 安装依赖
+uvicorn app.main:app --reload                       # 启动开发服务器
+
+# 数据库迁移
+alembic revision --autogenerate -m "描述"           # 生成迁移
+alembic upgrade head                                 # 执行迁移
+
+# 测试
+pytest tests/ -v
+
+# Lint
+ruff check src/ && ruff format --check src/
+
+# 部署
+./deploy.sh
+```
+
+## Architecture
+
+FastAPI 后端服务，基于 danweiyuan-eapi 基础设施。
+
+| 层 | 目录 | 职责 |
+|---|---|---|
+| routers | src/app/routers/ | 接收请求、调用 service、返回响应 |
+| services | src/app/services/ | 业务逻辑 |
+| models | src/app/models/ | ORM 模型 |
+| schemas | src/app/schemas/ | Pydantic 请求/响应 |
+
+## Git Commit Scope
+
+本项目的 scope 枚举：`api` | `model` | `service` | `config`

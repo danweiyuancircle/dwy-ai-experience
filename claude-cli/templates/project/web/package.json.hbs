@@ -1,0 +1,16 @@
+{
+  "name": "{{projectName}}",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm -F @{{projectName}}/web dev",
+    "build": "pnpm -F @{{projectName}}/web build",
+    "typecheck": "pnpm -F @{{projectName}}/web typecheck",
+    "preview": "pnpm -F @{{projectName}}/web preview"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=9"
+  }
+}
