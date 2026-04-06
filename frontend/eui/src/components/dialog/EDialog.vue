@@ -110,7 +110,7 @@ function onPointerUp() {
       <DialogContent
         data-slot="dialog-content"
         :class="cn(
-          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] max-h-[calc(100vh-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
+          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] max-h-[calc(100vh-2rem)] overflow-y-auto translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
           fullscreen && '!max-w-full !w-full !h-full !rounded-none !translate-x-0 !translate-y-0 !top-0 !left-0',
           props.class,
         )"
@@ -149,7 +149,7 @@ function onPointerUp() {
         </div>
 
         <!-- destroyOnClose: unmount content when closed; otherwise always render -->
-        <div v-if="destroyOnClose ? localOpen : true" data-slot="dialog-body" class="overflow-y-auto min-h-0">
+        <div v-if="destroyOnClose ? localOpen : true" data-slot="dialog-body" class="min-h-0">
           <slot />
         </div>
 
