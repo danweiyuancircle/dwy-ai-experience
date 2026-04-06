@@ -1,6 +1,6 @@
 [project]
 name = "danweiyuan-eapi"
-version = "0.2.4"
+version = "0.2.6"
 description = "Lightweight FastAPI infrastructure — exceptions, database, config, security, cache, pagination"
 requires-python = ">=3.11"
 license = {text = "MIT"}

@@ -3,8 +3,10 @@
 All helpers are stateless — pass secrets and algorithm as parameters.
 """
 
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from typing import Any
+
+from danweiyuan_eapi import dt
 
 import bcrypt
 from jose import JWTError, jwt
@@ -31,7 +33,7 @@ def create_token(
 ) -> str:
     """Encode *data* as a signed JWT with the given expiration."""
     to_encode = data.copy()
-    expire = datetime.now(UTC) + timedelta(minutes=expires_minutes)
+    expire = dt.utc_now() + timedelta(minutes=expires_minutes)
     to_encode["exp"] = expire
     return jwt.encode(to_encode, secret, algorithm=algorithm)
 

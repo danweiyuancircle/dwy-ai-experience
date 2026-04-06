@@ -1,10 +1,9 @@
 """Task CRUD operations and state transitions."""
 
-from datetime import datetime, timezone
-
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from danweiyuan_eapi import dt
 from danweiyuan_eapi.tasks.model import Task, TaskStatus
 from danweiyuan_eapi.tasks.schema import TaskCreate
 
@@ -107,7 +106,7 @@ async def update_task_status(
     task.status = status
     if result is not None:
         task.result = result
-    task.updated_at = datetime.now()
+    task.updated_at = dt.now()
     await session.commit()
 
 
@@ -143,4 +142,4 @@ async def append_task_log(session: AsyncSession, task_id: str, message: str) -> 
 
 def _now_str() -> str:
     """Return current time formatted as a string."""
-    return datetime.now(tz=timezone.utc).strftime("%Y-%m-%d %H:%M:%S")
+    return dt.now_str()
