@@ -36,37 +36,37 @@ function onUpdate(val: number | undefined) {
     )"
     @update:model-value="onUpdate"
   >
-    <template v-for="(item, index) in items" :key="index">
-      <StepperItem
-        v-slot="{ state }"
-        :step="index + 1"
-        :class="cn(
-          'flex items-center gap-2 group data-[disabled]:pointer-events-none',
-          direction === 'vertical' ? 'flex-row' : 'flex-col',
-        )"
-      >
-        <StepperTrigger class="flex flex-col items-center gap-1 rounded-md p-1 text-center">
-          <StepperIndicator
-            :class="cn(
-              'inline-flex size-8 items-center justify-center rounded-full text-muted-foreground/50',
-              'group-data-[disabled]:text-muted-foreground group-data-[disabled]:opacity-50',
-              'group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground',
-              'group-data-[state=completed]:bg-accent group-data-[state=completed]:text-accent-foreground',
-            )"
-          >
-            <Check v-if="state === 'completed'" class="size-4" />
-            <span v-else>{{ index + 1 }}</span>
-          </StepperIndicator>
-          <div class="flex flex-col items-center">
-            <StepperTitle class="text-sm font-semibold whitespace-nowrap">
-              {{ item.title }}
-            </StepperTitle>
-            <StepperDescription v-if="item.description" class="text-xs text-muted-foreground">
-              {{ item.description }}
-            </StepperDescription>
-          </div>
-        </StepperTrigger>
-      </StepperItem>
+    <StepperItem
+      v-for="(item, index) in items"
+      :key="index"
+      v-slot="{ state }"
+      :step="index + 1"
+      :class="cn(
+        'flex items-center gap-2 group data-[disabled]:pointer-events-none',
+        direction === 'vertical' ? 'flex-row' : 'flex-col flex-1',
+      )"
+    >
+      <StepperTrigger class="flex flex-col items-center gap-1 rounded-md p-1 text-center">
+        <StepperIndicator
+          :class="cn(
+            'inline-flex size-8 items-center justify-center rounded-full text-muted-foreground/50',
+            'group-data-[disabled]:text-muted-foreground group-data-[disabled]:opacity-50',
+            'group-data-[state=active]:bg-primary group-data-[state=active]:text-primary-foreground',
+            'group-data-[state=completed]:bg-accent group-data-[state=completed]:text-accent-foreground',
+          )"
+        >
+          <Check v-if="state === 'completed'" class="size-4" />
+          <span v-else>{{ index + 1 }}</span>
+        </StepperIndicator>
+        <div class="flex flex-col items-center">
+          <StepperTitle class="text-sm font-semibold whitespace-nowrap">
+            {{ item.title }}
+          </StepperTitle>
+          <StepperDescription v-if="item.description" class="text-xs text-muted-foreground">
+            {{ item.description }}
+          </StepperDescription>
+        </div>
+      </StepperTrigger>
 
       <StepperSeparator
         v-if="index < items.length - 1"
@@ -75,6 +75,6 @@ function onUpdate(val: number | undefined) {
           direction === 'vertical' ? 'h-8 w-px ml-4' : 'h-px flex-1 self-center',
         )"
       />
-    </template>
+    </StepperItem>
   </StepperRoot>
 </template>

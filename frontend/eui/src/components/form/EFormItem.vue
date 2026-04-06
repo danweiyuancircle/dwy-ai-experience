@@ -91,6 +91,7 @@ const errorMessage = computed(() => fieldState?.errorMessage?.value)
     <div>
       <div
         :id="`${id}-form-item`"
+        :class="cn(!isTopLabel && 'min-h-9 flex items-center w-full [&>*]:w-full')"
         :aria-invalid="!!errorMessage"
         :aria-describedby="errorMessage ? `${id}-form-item-message` : undefined"
       >
