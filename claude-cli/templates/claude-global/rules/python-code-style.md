@@ -866,6 +866,7 @@ async def create_user(body: UserCreate) -> UserResponse:
 | 12 | 嵌套不超过 3 层，函数体不超过 50 行 | ✓ |
 | 13 | 所有模块/类/函数有 docstring（Google 风格） | ✓ |
 | 14 | 依赖通过 `Depends()` 注入，不在路由中直接创建 | ✓ |
+| 15 | 项目依赖 eapi 时，未重复实现 eapi 已有功能 | ✓ |
 
 **不执行自检就提交代码 = 违规。**
 ```
@@ -898,4 +899,37 @@ SECRET_KEY = "my-super-secret-key"
 
 # ✅ 环境变量
 SECRET_KEY = settings.secret_key
+```
+
+## 二十、danweiyuan-eapi 优先使用
+
+### 适用条件
+
+项目依赖中包含 `danweiyuan-eapi` 时，以下规则生效。
+
+### 强制规则
+
+编写 FastAPI 后端代码时，**必须优先使用 eapi 已有的类和函数**，禁止重复实现。
+
+| 需求 | 使用 eapi | 禁止自建 |
+|------|----------|---------|
+| 配置管理 | `danweiyuan_eapi.config.BaseSettings` | 自写 Pydantic Settings 基类 |
+| ORM 基类 | `danweiyuan_eapi.database.Base` + `TimestampMixin` | 自定义 DeclarativeBase |
+| 异步引擎 | `create_async_engine_factory()` + `create_session_factory()` | 手动创建 engine/session |
+| 依赖注入 | `create_get_db(session_factory)` | 手写 get_db 生成器 |
+| 密码哈希 | `hash_password()` / `verify_password()` | 直接调用 bcrypt |
+| JWT | `create_token()` / `decode_token()` | 直接调用 python-jose |
+| 异常体系 | `NotFoundError` / `BusinessError` / `register_exception_handlers()` | 自定义异常 + 手写 handler |
+| 响应格式 | `success()` / `fail()` / `paginated()` | 自定义响应包装函数 |
+| 分页 | `PaginationParams` + `paginate()` | 自写分页参数类 |
+| Redis 缓存 | `cache.configure()` / `cache.get_redis()` | 手动管理 Redis 连接 |
+| 异步任务 | `tasks.setup_tasks()` / `@register` / `TaskContext` (需 `[tasks]` extra) | 手写 ARQ/Celery 集成 |
+
+### 决策流程
+
+```
+需要某项基础设施功能
+  → 1. 检查 eapi 是否已提供（查阅 dwy-backend-eapi skill）
+    → 已提供：直接使用，不重复实现
+    → 未提供：自行实现，代码注释中说明 eapi 不覆盖此功能
 ```
