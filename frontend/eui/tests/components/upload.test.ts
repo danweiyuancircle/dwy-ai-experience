@@ -41,20 +41,20 @@ describe('EUpload', () => {
 
   it('renders drag area when drag prop is true', () => {
     const wrapper = mount(EUpload, { props: { drag: true } })
-    expect(wrapper.text()).toContain('Drag files here')
+    expect(wrapper.text()).toContain('将文件拖拽到此处')
   })
 
   it('renders click to upload button when drag is false', () => {
     const wrapper = mount(EUpload, { props: { drag: false } })
-    expect(wrapper.text()).toContain('Click to upload')
+    expect(wrapper.text()).toContain('点击上传')
   })
 
   it('renders picture-card layout when listType is picture-card', () => {
     const wrapper = mount(EUpload, { props: { listType: 'picture-card' } })
     // Should render the add card button with "Upload" text
-    expect(wrapper.text()).toContain('Upload')
+    expect(wrapper.text()).toContain('上传')
     // Should not render the text/picture trigger area
-    expect(wrapper.text()).not.toContain('Click to upload')
+    expect(wrapper.text()).not.toContain('点击上传')
   })
 
   it('renders file list for text listType', () => {

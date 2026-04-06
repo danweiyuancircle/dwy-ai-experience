@@ -17,7 +17,7 @@ describe('ETimePicker', () => {
 
   it('shows default placeholder text', () => {
     const wrapper = mount(ETimePicker)
-    expect(wrapper.text()).toContain('Select time')
+    expect(wrapper.text()).toContain('请选择时间')
   })
 
   it('displays modelValue when provided', () => {
