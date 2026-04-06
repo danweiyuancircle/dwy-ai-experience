@@ -19,3 +19,12 @@ build/
 
 # Keys
 .key
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Backend docs (requirement documents)
+backend/docs/
+
+# uv lock (library should not lock dependencies)
+backend/uv.lock
