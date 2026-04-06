@@ -816,6 +816,65 @@ tests/components/Button.test.ts
 | 测试文件放在 `src/` 内 | 放在独立 `tests/` 目录 |
 | 测试中用相对路径回溯 `../../src/` | 用 `@` 别名导入 |
 
+## 十五、代码简约原则
+
+### 核心思想
+
+代码只写**必要的逻辑**，不写"以防万一"的冗余代码。信任 TypeScript 类型系统和框架保证，只在系统边界（用户输入、外部 API）做校验。
+
+### 禁止的冗余模式
+
+```typescript
+// ❌ 不必要的 fallback — 类型已保证
+const name = props.title ?? ''       // props.title 声明为 string，不可能是 null
+const items = data.value || []       // ref<Item[]>([]) 初始就是数组
+
+// ✅ 直接使用
+const name = props.title
+const items = data.value
+
+// ❌ 不必要的可选链 — 值一定存在
+const id = user?.id                  // user 来自必传 prop，不可能是 undefined
+
+// ✅ 直接访问
+const id = user.id
+
+// ❌ 不必要的条件渲染守卫
+<div v-if="list">                    // list 是 ref<Item[]>([])，永远为真值
+  <div v-for="item in list" ...>
+
+// ✅ 直接渲染
+<div v-for="item in list" ...>
+
+// ❌ 不必要的空函数 fallback
+const onClick = props.onSubmit ?? (() => {})
+
+// ✅ 条件调用
+props.onSubmit?.()
+
+// ❌ 不必要的 try-catch 吞异常
+try {
+  await api.getUsers()
+} catch {
+  // 空 catch，bug 永远不会被发现
+}
+
+// ✅ 让异常暴露或给用户反馈
+try {
+  await api.getUsers()
+} catch {
+  toast.error('加载失败')
+}
+```
+
+### 判断标准
+
+写每一行防御代码前问自己：**这个情况在当前上下文下真的会发生吗？**
+
+- 如果**会** → 写防御，加注释说明触发条件
+- 如果**不会** → 不写，信任上游保证
+- 如果**不确定** → 查看类型定义和调用链确认，不要"以防万一"
+
 ## 代码自检（写代码时强制执行）
 
 **每次生成或修改 Vue/TypeScript 代码后，必须逐条验证以下清单。任何一条未通过 → STOP，立即修正后再继续。**

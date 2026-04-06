@@ -933,3 +933,64 @@ SECRET_KEY = settings.secret_key
     → 已提供：直接使用，不重复实现
     → 未提供：自行实现，代码注释中说明 eapi 不覆盖此功能
 ```
+
+## 二十一、代码简约原则
+
+### 核心思想
+
+代码只写**必要的逻辑**，不写"以防万一"的冗余代码。信任内部代码和框架保证，只在系统边界（用户输入、外部 API）做校验。
+
+### 禁止的冗余模式
+
+```python
+# ❌ 不必要的 fallback — 值已经有明确来源
+name = user.name or ""           # user.name 不可能是 None
+result = data.get("key", None)   # get 默认就返回 None
+
+# ✅ 直接使用
+name = user.name
+result = data.get("key")
+
+# ❌ 不必要的类型转换 — 值已经是目标类型
+count = int(params.page)         # Pydantic 已校验为 int
+text = str(title)                # title 声明为 str
+
+# ✅ 直接使用
+count = params.page
+text = title
+
+# ❌ 不必要的条件检查 — 逻辑上不可能走到 else
+if task:
+    return task
+else:
+    return None                  # 上面已经 return 了
+
+# ✅ 直接返回
+return task
+
+# ❌ 不必要的默认值 — 调用方已保证传值
+def process(data: dict = None):  # 所有调用方都传了 data
+    if data is None:
+        data = {}
+
+# ✅ 去掉默认值和检查
+def process(data: dict):
+    ...
+
+# ❌ 不必要的异常兜底 — 掩盖真正的 bug
+try:
+    result = calculate(x)
+except Exception:
+    result = 0                   # 吞掉异常，bug 永远不会被发现
+
+# ✅ 让异常暴露，或只捕获预期的异常
+result = calculate(x)
+```
+
+### 判断标准
+
+写每一行防御代码前问自己：**这个情况在当前上下文下真的会发生吗？**
+
+- 如果**会** → 写防御，加注释说明什么情况下触发
+- 如果**不会** → 不写，信任上游保证
+- 如果**不确定** → 查看调用链确认，不要"以防万一"
