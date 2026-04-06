@@ -70,10 +70,12 @@ def create_worker_settings(
             redis=ctx["redis"],
         )
 
+    from arq.worker import func as arq_func
+
     class WorkerSettings:
         """ARQ WorkerSettings generated from eapi BaseSettings."""
 
-        functions = [_task_executor]
+        functions = [arq_func(_task_executor, name="_task_executor")]
         max_jobs = settings.task_max_jobs
         job_timeout = settings.task_job_timeout
         # ARQ reads this attribute name
