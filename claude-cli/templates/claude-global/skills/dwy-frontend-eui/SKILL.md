@@ -229,7 +229,7 @@ frontend/eui/src/components/{component-name}/types.ts
 
 | 组件 | 用途 | 关键 Props |
 |------|------|-----------|
-| EDialog | 对话框 | v-model:open, title, description, showClose, maxWidth, draggable, closeOnClickModal, closeOnPressEscape, fullscreen, destroyOnClose |
+| EDialog | 对话框 | v-model:open, title, description, showClose, maxWidth, draggable, closeOnClickModal, closeOnPressEscape, fullscreen, destroyOnClose。内容超出视口时 body 自动滚动，header/footer 固定 |
 | EDrawer | 抽屉 | v-model:open, title, description, direction(top/right/bottom/left), showClose |
 | ESheet | 侧边面板 | v-model:open, title, description, side(top/right/bottom/left), showClose |
 | EAlertDialog | 确认对话框 | v-model:open, title, description, confirmText, cancelText |
