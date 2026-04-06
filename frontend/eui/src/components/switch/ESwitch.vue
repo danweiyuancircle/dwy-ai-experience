@@ -10,6 +10,14 @@ const props = withDefaults(defineProps<ESwitchProps>(), {
 
 const emit = defineEmits<ESwitchEmits>()
 
+const checked = computed({
+  get: () => props.modelValue ?? false,
+  set: (val: boolean) => {
+    emit('update:modelValue', val)
+    emit('change', val)
+  },
+})
+
 const sizeClass = computed(() => {
   if (props.size === 'sm') return 'h-[0.9rem] w-6'
   if (props.size === 'lg') return 'h-[1.4rem] w-10'
@@ -21,15 +29,10 @@ const thumbSizeClass = computed(() => {
   if (props.size === 'lg') return 'size-5'
   return 'size-4'
 })
-
-function onUpdate(value: boolean) {
-  emit('update:modelValue', value)
-  emit('change', value)
-}
 </script>
 
 <template>
-  <label
+  <div
     data-slot="switch-wrapper"
     :class="cn(
       'flex items-center gap-2',
@@ -37,15 +40,14 @@ function onUpdate(value: boolean) {
     )"
   >
     <SwitchRoot
+      v-model="checked"
       data-slot="switch"
-      :checked="modelValue"
       :disabled="disabled"
       :class="cn(
         'peer data-[state=checked]:bg-primary data-[state=unchecked]:bg-input focus-visible:border-ring focus-visible:ring-ring/50 dark:data-[state=unchecked]:bg-input/80 inline-flex shrink-0 items-center rounded-full border border-transparent shadow-xs transition-all outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
         sizeClass,
         props.class,
       )"
-      @update:checked="onUpdate"
     >
       <SwitchThumb
         data-slot="switch-thumb"
@@ -58,5 +60,5 @@ function onUpdate(value: boolean) {
     <slot>
       <span v-if="label" class="text-sm leading-none select-none">{{ label }}</span>
     </slot>
-  </label>
+  </div>
 </template>

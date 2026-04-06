@@ -46,6 +46,7 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 - **主题系统**: `src/theme/` 导出 tokens.css（设计变量）、dark.css（暗色模式）、presets.css（Tailwind 预设），通过 package.json exports 单独引入
 - **Composables**: `src/composables/` — useConfigProvider, useFormField, useMessage, useNotification, useMessageBox, useTheme
 - **关键依赖**: reka-ui, @floating-ui/vue, @tanstack/vue-table, vee-validate + zod, class-variance-authority + tailwind-merge
+- **reka-ui 绑定约定**: reka-ui 组件统一用 `v-model`（`modelValue` / `update:modelValue`），**不是** `:checked` / `@update:checked`。封装 reka-ui 原语时必须用 `v-model` 或 writable computed 绑定
 - **路径别名**: `@/` → `./src/`
 - **测试**: Vitest + jsdom
 
