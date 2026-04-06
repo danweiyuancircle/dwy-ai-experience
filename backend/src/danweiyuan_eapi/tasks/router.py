@@ -17,7 +17,7 @@ from danweiyuan_eapi.tasks import pool
 from danweiyuan_eapi.tasks.model import TaskStatus
 from danweiyuan_eapi.tasks.registry import registry
 from danweiyuan_eapi.tasks.schema import TaskCreate, TaskListResponse, TaskResponse
-from danweiyuan_eapi.tasks.service import create_task, get_task, list_tasks
+from danweiyuan_eapi.tasks.service import append_task_log, create_task, get_task, list_tasks, update_task_progress, update_task_status
 
 task_router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -150,4 +150,44 @@ async def cancel_task(
     arq_pool = await pool.get_pool()
     await arq_pool.set(f"task_cancel:{task_id}", b"1", ex=7200)
 
+    return success(data=TaskResponse.model_validate(task).model_dump(mode="json"))
+
+
+@task_router.post("/{task_id}/retry", summary="重试任务")
+async def retry_task(
+    task_id: str,
+    db: AsyncSession = Depends(_db_dependency),
+) -> dict:
+    """Retry a failed or canceled task.
+
+    Resets status to PENDING, clears result, resets progress, and re-enqueues to ARQ.
+
+    Args:
+        task_id: The task's unique identifier.
+        db: Injected database session.
+
+    Returns:
+        Unified success response with updated task info.
+    """
+    task = await get_task(db, task_id)
+    if not task:
+        raise NotFoundError("任务")
+
+    retryable_states = {TaskStatus.FAILED, TaskStatus.CANCELED}
+    if task.status not in retryable_states:
+        raise BusinessError(f"只有失败或已取消的任务可以重试, 当前状态为 {task.status.value}", code="TASK_NOT_RETRYABLE")
+
+    # Reset task state
+    await update_task_status(db, task_id, TaskStatus.PENDING)
+    await update_task_progress(db, task_id, 0)
+    await append_task_log(db, task_id, "任务重试, 重新入队")
+    task.result = None
+    await db.commit()
+
+    # Re-enqueue
+    arq_pool = await pool.get_pool()
+    await arq_pool.enqueue_job("_task_executor", task.id, task.task_type, task.params)
+
+    # Refresh to get latest state
+    await db.refresh(task)
     return success(data=TaskResponse.model_validate(task).model_dump(mode="json"))
