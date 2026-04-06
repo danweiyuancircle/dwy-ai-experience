@@ -234,7 +234,7 @@ frontend/eui/src/components/{component-name}/types.ts
 
 | 组件 | 用途 | 关键 Props |
 |------|------|-----------|
-| EDialog | 对话框 | v-model:open, title, description, showClose, maxWidth, draggable, closeOnClickModal, closeOnPressEscape, fullscreen, destroyOnClose。内容超出视口时 body 自动滚动，header/footer 固定 |
+| EDialog | 对话框 | v-model:open, title, description, showClose, maxWidth, draggable, closeOnClickModal, closeOnPressEscape, fullscreen, destroyOnClose。内容超出视口时 body 自动滚动，header/footer 固定。**注意：body 区域有 `overflow-y-auto`，首尾位置的 input/select 等表单控件的 focus-ring 会被裁切，需在内容区域添加 `p-1` 或 `py-1` padding 规避** |
 | EDrawer | 抽屉 | v-model:open, title, description, direction(top/right/bottom/left), showClose |
 | ESheet | 侧边面板 | v-model:open, title, description, side(top/right/bottom/left), showClose |
 | EAlertDialog | 确认对话框 | v-model:open, title, description, confirmText, cancelText |
