@@ -72,13 +72,45 @@ def create_worker_settings(
 
     from arq.worker import func as arq_func
 
+    async def _on_startup(ctx: dict) -> None:
+        """Worker 启动时恢复未完成的任务。
+
+        扫描 PostgreSQL 中 pending/running 状态的任务，重新入队到 ARQ。
+        running 状态的任务说明上次 Worker 中断，重置为 pending 后重新执行。
+        """
+        from sqlalchemy import select
+
+        from danweiyuan_eapi.tasks.model import Task, TaskStatus
+        from danweiyuan_eapi.tasks.service import append_task_log, update_task_status
+
+        redis = ctx["redis"]
+        async with _session_factory() as session:
+            result = await session.execute(
+                select(Task).where(Task.status.in_([TaskStatus.PENDING, TaskStatus.RUNNING]))
+            )
+            stale_tasks = list(result.scalars().all())
+
+        if not stale_tasks:
+            return
+
+        for task in stale_tasks:
+            if task.status == TaskStatus.RUNNING:
+                async with _session_factory() as session:
+                    await update_task_status(session, task.id, TaskStatus.PENDING)
+                    await append_task_log(session, task.id, "Worker 重启，任务重新入队")
+
+            await redis.enqueue_job("_task_executor", task.id, task.task_type, task.params)
+
+        import logging
+        logging.getLogger(__name__).info("恢复了 %d 个未完成的任务", len(stale_tasks))
+
     class WorkerSettings:
         """ARQ WorkerSettings generated from eapi BaseSettings."""
 
         functions = [arq_func(_task_executor, name="_task_executor")]
         max_jobs = settings.task_max_jobs
         job_timeout = settings.task_job_timeout
-        # ARQ reads this attribute name
+        on_startup = _on_startup
         redis_settings = _redis_settings
 
     return WorkerSettings
