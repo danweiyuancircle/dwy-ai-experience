@@ -45,7 +45,7 @@ const summaryColumns = [
   { key: 'status', title: '状态' },
 ]
 
-function getRowClassName({ row }: { row: any }) {
+function getRowClassName(row: any) {
   if (row.status === '离职') return 'bg-red-50 dark:bg-red-950/20'
   if (row.status === '休假') return 'bg-yellow-50 dark:bg-yellow-950/20'
   return ''
