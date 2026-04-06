@@ -1,5 +1,21 @@
 # @danweiyuan/eui
 
+## 1.2.9
+
+### Patch Changes
+
+- **ESwitch**: 修复 v-model 不生效问题（根因：reka-ui 用 modelValue 而非 checked）
+- **EDialog**: flex 布局 + overflow-hidden 解决内容溢出和 focus ring 裁切
+- **EUpload**: 新增 maxSize 文件大小限制、内聚图片预览（动画 + ESC 关闭）、友好错误提示
+- **ETimePicker**: HH/MM/OK 改为 locale 中文
+- **EPagination**: 移除 w-full 避免独占整行
+- **EInputGroup**: 内部 input 去除独立边框圆角，focus-within 统一管理
+- **ERate**: 统一三种星星状态 DOM 结构防止 hover 抖动
+- **ETagsInput**: 输入重复值时显示友好提示
+- **EFormItem**: 控件区域 min-h-9 flex 对齐 Switch 等矮组件，子元素 w-full
+- **EStepper**: StepperSeparator 移入 StepperItem 内部修复渲染错误
+- **EConfigProvider**: defaultLocale 单一源头，merge 而非替换用户 locale
+
 ## 1.2.5
 
 ### Patch Changes
