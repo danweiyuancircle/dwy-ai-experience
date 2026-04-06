@@ -124,7 +124,7 @@ function hasLayout(item: string): boolean {
         :items-per-page="pageSize"
         :sibling-count="siblingCount"
         :disabled="disabled"
-        :class="cn('mx-auto flex w-full justify-center')"
+        :class="cn('flex justify-center')"
         @update:page="onPageChange"
       >
         <PaginationList

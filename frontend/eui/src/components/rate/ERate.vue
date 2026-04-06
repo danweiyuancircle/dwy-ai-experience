@@ -60,23 +60,14 @@ function handleMouseLeave() {
       @mousemove="handleMouseMove($event, index - 1)"
       @click="handleClick(index - 1, props.allowHalf && hoverValue === index - 0.5)"
     >
-      <!-- Full star -->
-      <Star
-        v-if="starFill(index - 1) === 'full'"
-        class="size-5 fill-yellow-400 text-yellow-400"
-      />
-      <!-- Half star (clip) -->
-      <span v-else-if="starFill(index - 1) === 'half'" class="relative inline-flex">
-        <Star class="size-5 text-muted-foreground" />
-        <span class="absolute inset-0 overflow-hidden w-1/2">
+      <span class="relative inline-flex size-5">
+        <!-- Base star (always rendered) -->
+        <Star class="size-5" :class="starFill(index - 1) === 'full' ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'" />
+        <!-- Half overlay -->
+        <span v-if="starFill(index - 1) === 'half'" class="absolute inset-0 overflow-hidden w-1/2">
           <Star class="size-5 fill-yellow-400 text-yellow-400" />
         </span>
       </span>
-      <!-- Empty star -->
-      <Star
-        v-else
-        class="size-5 text-muted-foreground"
-      />
     </button>
     <span v-if="props.showText" class="ml-2 text-sm text-muted-foreground">
       {{ displayValue }} / {{ props.max }}

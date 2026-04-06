@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { X } from 'lucide-vue-next'
 import {
   TagsInputRoot,
@@ -18,6 +18,9 @@ const props = withDefaults(defineProps<ETagsInputProps>(), {
 
 const emit = defineEmits<ETagsInputEmits>()
 
+const invalidMessage = ref('')
+let invalidTimer: ReturnType<typeof setTimeout> | null = null
+
 const inputSizeClass = computed(() => {
   if (props.size === 'sm') return 'text-xs min-h-8'
   if (props.size === 'lg') return 'text-base min-h-10'
@@ -27,6 +30,14 @@ const inputSizeClass = computed(() => {
 function onUpdate(value: string[]) {
   emit('update:modelValue', value)
   emit('change', value)
+}
+
+function onInvalid(payload: string) {
+  invalidMessage.value = `"${payload}" 已存在`
+  if (invalidTimer) clearTimeout(invalidTimer)
+  invalidTimer = setTimeout(() => {
+    invalidMessage.value = ''
+  }, 2000)
 }
 </script>
 
@@ -44,6 +55,7 @@ function onUpdate(value: string[]) {
       props.class,
     )"
     @update:model-value="onUpdate"
+    @invalid="onInvalid"
   >
     <TagsInputItem
       v-for="item in modelValue"
@@ -61,4 +73,5 @@ function onUpdate(value: string[]) {
       class="text-sm min-h-5 focus:outline-none flex-1 bg-transparent px-1"
     />
   </TagsInputRoot>
+  <p v-if="invalidMessage" class="mt-1 text-xs text-destructive">{{ invalidMessage }}</p>
 </template>
