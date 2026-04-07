@@ -1,5 +1,17 @@
 # @danweiyuan/eui
 
+## 1.2.10
+
+### Patch Changes
+
+- **安全修复**: useNotification/useMessageBox innerHTML XSS 漏洞，添加 escapeHtml 转义
+- **EInput**: password 类型自动设置 autocomplete="off" / spellcheck="false" / autocorrect="off"
+- **EPinInput**: mask 默认值改为 true（安全优先）
+- **EDialog**: destroyOnClose 默认值改为 true（关闭即销毁，释放内存）
+- **EDrawer**: 新增 destroyOnClose prop，默认 true
+- **EPopover**: 新增 destroyOnClose prop，默认 true
+- 移除 LoginLayout 组件
+
 ## 1.2.9
 
 ### Patch Changes
