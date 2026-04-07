@@ -145,6 +145,37 @@ onMounted(() => {
 | 事件处理函数 | `handle` + 动作 | `handleLogin`、`handleDelete` |
 | 布尔变量 | `is/has/can/should` 前缀 | `isLoading`、`hasPermission` |
 
+### 禁止魔法字符串
+
+同一个字符串字面量在文件内出现 2 次及以上时，**必须**提取为常量。
+
+```typescript
+// ❌ 魔法字符串散落多处，改一处漏一处
+storage.set('access_token', token)
+// ...
+const t = storage.get('access_token')
+
+// ✅ 提取为常量
+const ACCESS_TOKEN_KEY = 'access_token'
+storage.set(ACCESS_TOKEN_KEY, token)
+const t = storage.get(ACCESS_TOKEN_KEY)
+
+// ❌ 事件名、路由路径、storage key 等重复字面量
+emit('update:modelValue', value)
+router.push('/dashboard')
+localStorage.getItem('theme')
+
+// ✅ 跨文件共享的 key 放到专门的常量文件
+// constants/storage-keys.ts
+export const STORAGE_KEYS = {
+  ACCESS_TOKEN: 'access_token',
+  REFRESH_TOKEN: 'refresh_token',
+  THEME: 'theme',
+} as const
+```
+
+**判断标准：** 同一字符串在同一文件出现 ≥ 2 次 → 提取为常量。跨文件使用的 key → 提取到 `constants/` 目录共享。
+
 ### 禁止的写法
 
 ```typescript

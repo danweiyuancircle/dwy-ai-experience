@@ -133,6 +133,33 @@ known-first-party = ["app"]
 | 路由函数 | `snake_case` 动词开头 | `create_user()`、`list_orders()` |
 | Pydantic Schema | `PascalCase` + 用途后缀 | `UserCreate`、`UserResponse`、`UserUpdate` |
 
+### 禁止魔法字符串
+
+同一个字符串字面量在文件内出现 2 次及以上时，**必须**提取为常量。
+
+```python
+# ❌ 魔法字符串散落多处
+redis.set("user:token:123", token)
+cached = redis.get("user:token:123")
+
+# ✅ 提取为常量
+USER_TOKEN_KEY = "user:token:{user_id}"
+redis.set(USER_TOKEN_KEY.format(user_id=123), token)
+cached = redis.get(USER_TOKEN_KEY.format(user_id=123))
+
+# ❌ cache key、队列名、header 名等重复字面量
+request.headers.get("X-Request-Id")
+response.headers["X-Request-Id"] = rid
+
+# ✅ 跨模块共享的 key 放到常量模块
+# constants.py
+HEADER_REQUEST_ID = "X-Request-Id"
+CACHE_PREFIX_USER = "user:"
+TASK_QUEUE_DEFAULT = "default"
+```
+
+**判断标准：** 同一字符串在同一文件出现 ≥ 2 次 → 提取为常量。跨模块使用的 key → 提取到 `constants.py` 共享。
+
 ### 禁止的写法
 
 ```python

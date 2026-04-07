@@ -287,7 +287,31 @@ final _cache = <String, dynamic>{};
 void _handleError(Object error) { ... }
 ```
 
-### 3.4 目录和包命名
+### 3.4 禁止魔法字符串
+
+同一个字符串字面量在文件内出现 2 次及以上时，**必须**提取为常量。
+
+```dart
+// ❌ 魔法字符串散落多处
+await secureStorage.write(key: 'access_token', value: token);
+final t = await secureStorage.read(key: 'access_token');
+
+// ✅ 提取为常量
+const _accessTokenKey = 'access_token';
+await secureStorage.write(key: _accessTokenKey, value: token);
+final t = await secureStorage.read(key: _accessTokenKey);
+
+// ✅ 跨文件共享的 key 放到常量文件
+// core/constants/storage_keys.dart
+class StorageKeys {
+  StorageKeys._();
+  static const accessToken = 'access_token';
+  static const refreshToken = 'refresh_token';
+  static const theme = 'theme';
+}
+```
+
+### 3.5 目录和包命名
 
 ```
 features/user_management/     # snake_case
