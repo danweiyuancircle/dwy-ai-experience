@@ -595,26 +595,42 @@ class ErrorInterceptor extends Interceptor {
 
 ## 七、环境变量管理
 
-### 7.1 后端（eapi BaseSettings）
+### 7.1 后端（eapi BaseSettings + 嵌套分组）
+
+**必须使用嵌套模型分组配置**，禁止所有字段平铺。同一服务/SDK 的多个字段拆成独立 `BaseModel`。
 
 ```python
 # app/config.py
+from pydantic import BaseModel
 from danweiyuan_eapi.config import BaseSettings
 
-class Settings(BaseSettings):
-    # eapi 内置：database_url, redis_url, secret_key, jwt_algorithm,
-    #           access_token_expire_minutes, debug, allowed_origins,
-    #           task_max_jobs, task_job_timeout, task_failure_ttl
+class OssConfig(BaseModel):
+    endpoint: str = ""
+    access_key: str = ""
+    secret_key: str = ""
+    bucket: str = ""
 
-    # 项目专属字段
+class Settings(BaseSettings):
+    # eapi 内置字段保持顶层：database_url, redis_url, secret_key, ...
+
+    # 项目专属 — 嵌套分组
     app_name: str = "My App"
-    oss_endpoint: str = ""
-    oss_access_key: str = ""
-    oss_secret_key: str = ""
-    oss_bucket: str = ""
+    oss: OssConfig = OssConfig()
 ```
 
-从 `.env` 文件自动读取，字段名对应 `UPPER_SNAKE_CASE` 环境变量。
+**`.env` 中用 `__` 双下划线分隔层级：**
+
+```bash
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/mydb
+OSS__ENDPOINT=http://localhost:9000
+OSS__ACCESS_KEY=minioadmin
+OSS__SECRET_KEY=minioadmin
+OSS__BUCKET=my-app
+```
+
+**代码中通过属性链访问：** `settings.oss.endpoint`，禁止 `settings.oss_endpoint`。
+
+详细规则见 `python-code-style.md` 第十二节。
 
 ### 7.2 前端（Vite）
 

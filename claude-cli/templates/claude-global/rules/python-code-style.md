@@ -531,37 +531,87 @@ app.add_middleware(
 
 ### 强制规则
 - 使用 Pydantic Settings 管理配置
+- **必须使用嵌套模型分组**，禁止所有字段平铺在一个类中
 
 ```python
 # config.py
+from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+# 按领域拆分为独立的配置类（普通 BaseModel，不是 BaseSettings）
+class OssConfig(BaseModel):
+    endpoint: str = ""
+    access_key: str = ""
+    secret_key: str = ""
+    bucket: str = ""
+
+class AliyunSmsConfig(BaseModel):
+    access_key_id: str = ""
+    access_key_secret: str = ""
+    sign_name: str = ""
+    template_code: str = ""
+
+# 主 Settings 类组合嵌套模型
 class Settings(BaseSettings):
-    # 应用
-    app_name: str = "My API"
-    debug: bool = False
+    # eapi 内置字段（继承 BaseSettings 时自动包含）
+    # database_url, redis_url, secret_key, ...
 
-    # 数据库
-    database_url: str
-    db_pool_size: int = 5
-
-    # Redis
-    redis_url: str = "redis://localhost:6379"
-
-    # 认证
-    secret_key: str
-    access_token_expire_minutes: int = 30
-
-    # CORS
-    allowed_origins: list[str] = ["http://localhost:3000"]
+    # 项目专属 — 嵌套分组
+    app_name: str = "My App"
+    oss: OssConfig = OssConfig()
+    aliyun_sms: AliyunSmsConfig = AliyunSmsConfig()
 
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        env_nested_delimiter="__",  # 关键：启用嵌套分隔符
     )
 
 settings = Settings()
 ```
+
+**`.env` 文件中用 `__` 分隔层级：**
+
+```bash
+# 基础字段（eapi 内置）
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/mydb
+REDIS_URL=redis://localhost:6379/0
+SECRET_KEY=your-secret-key
+
+# 嵌套字段 — 用双下划线 __ 分隔
+OSS__ENDPOINT=http://localhost:9000
+OSS__ACCESS_KEY=minioadmin
+OSS__SECRET_KEY=minioadmin
+OSS__BUCKET=my-app
+
+ALIYUN_SMS__ACCESS_KEY_ID=AKID123
+ALIYUN_SMS__ACCESS_KEY_SECRET=secret456
+ALIYUN_SMS__SIGN_NAME=我的应用
+ALIYUN_SMS__TEMPLATE_CODE=SMS_123456
+```
+
+**代码中通过属性链访问：**
+
+```python
+# ✅ 分组清晰
+settings.oss.endpoint
+settings.oss.bucket
+settings.aliyun_sms.access_key_id
+
+# ❌ 禁止扁平命名
+settings.oss_endpoint
+settings.oss_access_key
+settings.aliyun_sms_access_key_id
+```
+
+### 分组原则
+
+| 场景 | 做法 |
+|------|------|
+| eapi 内置字段（database_url 等） | 保持顶层，不嵌套 |
+| 同一服务/SDK 的多个配置 | 拆成独立 `BaseModel` 嵌套 |
+| 只有 1 个字段 | 保持顶层，不必嵌套 |
+| 3 个以上同前缀字段 | 必须嵌套 |
 
 - **禁止**在代码中硬编码配置值（数据库地址、密钥、端口等）
 - **禁止**在模块顶层执行副作用（网络请求、数据库连接、文件读取）
