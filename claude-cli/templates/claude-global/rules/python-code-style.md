@@ -331,56 +331,33 @@ async def get_user(
 
 ### 统一异常体系
 
+直接使用 `danweiyuan-eapi` 提供的异常体系，禁止自造异常基类：
+
 ```python
-# exceptions.py
-from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse
+# 从 eapi 导入（禁止自定义 AppError 子类体系）
+from danweiyuan_eapi.exceptions import (
+    AppError,               # 基类
+    NotFoundError,          # 404 — NotFoundError("用户") → {"code": "NOT_FOUND", "message": "用户不存在"}
+    BusinessError,          # 422 — BusinessError("余额不足", code="INSUFFICIENT_BALANCE")
+    PermissionDeniedError,  # 403 — PermissionDeniedError()
+    AuthenticationError,    # 401 — AuthenticationError()
+    register_exception_handlers,  # 一次性注册全部 handler
+)
 
-# 业务异常基类
-class AppError(Exception):
-    def __init__(self, message: str, code: str = "UNKNOWN_ERROR") -> None:
-        self.message = message
-        self.code = code
+# main.py 中注册
+from danweiyuan_eapi.exceptions import register_exception_handlers
+register_exception_handlers(app)
+```
 
-class NotFoundError(AppError):
-    def __init__(self, resource: str, resource_id: int | str) -> None:
-        super().__init__(
-            message=f"{resource} 不存在",
-            code="NOT_FOUND",
-        )
-        self.resource = resource
-        self.resource_id = resource_id
+项目如需扩展异常，必须继承 `AppError`：
 
-class BusinessError(AppError):
-    """业务规则校验失败"""
-    pass
+```python
+# app/exceptions.py — 项目级异常（继承 eapi AppError）
+from danweiyuan_eapi.exceptions import AppError
 
-class PermissionDeniedError(AppError):
-    """权限不足"""
-    pass
-
-# 注册异常处理器
-def register_exception_handlers(app: FastAPI) -> None:
-    @app.exception_handler(NotFoundError)
-    async def not_found_handler(request: Request, exc: NotFoundError) -> JSONResponse:
-        return JSONResponse(
-            status_code=status.HTTP_404_NOT_FOUND,
-            content={"code": exc.code, "message": exc.message},
-        )
-
-    @app.exception_handler(BusinessError)
-    async def business_error_handler(request: Request, exc: BusinessError) -> JSONResponse:
-        return JSONResponse(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            content={"code": exc.code, "message": exc.message},
-        )
-
-    @app.exception_handler(PermissionDeniedError)
-    async def permission_denied_handler(request: Request, exc: PermissionDeniedError) -> JSONResponse:
-        return JSONResponse(
-            status_code=status.HTTP_403_FORBIDDEN,
-            content={"code": exc.code, "message": exc.message},
-        )
+class QuotaExceededError(AppError):
+    def __init__(self) -> None:
+        super().__init__(message="配额已用尽", code="QUOTA_EXCEEDED")
 ```
 
 ### 强制规则
@@ -404,7 +381,7 @@ class UserService:
     async def get_by_id(self, user_id: int) -> User:
         user = await self.db.get(User, user_id)
         if not user:
-            raise NotFoundError("用户", user_id)
+            raise NotFoundError("用户")
         return user
 ```
 
