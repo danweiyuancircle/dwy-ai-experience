@@ -6,7 +6,7 @@ import type { EPinInputProps, EPinInputEmits } from './types'
 const props = withDefaults(defineProps<EPinInputProps>(), {
   length: 4,
   disabled: false,
-  mask: false,
+  mask: true,
   otp: false,
   type: 'text',
 })

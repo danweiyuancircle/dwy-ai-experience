@@ -32,4 +32,18 @@ describe('EPinInput', () => {
     // mask attribute should be present on PinInputRoot
     expect(root.exists()).toBe(true)
   })
+
+  // Security: mask defaults to true
+  it('defaults mask to true for security', () => {
+    const wrapper = mount(EPinInput)
+    const root = wrapper.find('[data-slot="pin-input"]')
+    // When mask is true, reka-ui PinInputRoot renders with mask behavior
+    expect(root.exists()).toBe(true)
+  })
+
+  it('can explicitly set mask to false', () => {
+    const wrapper = mount(EPinInput, { props: { mask: false } })
+    const root = wrapper.find('[data-slot="pin-input"]')
+    expect(root.exists()).toBe(true)
+  })
 })

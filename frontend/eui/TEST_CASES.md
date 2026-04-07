@@ -140,7 +140,7 @@
 
 ---
 
-## 5. EInput 组件（18 个）
+## 5. EInput 组件（21 个）
 
 `src/components/input/EInput.test.ts`
 
@@ -192,6 +192,55 @@
 | 17 | 切换密码可见性 | 点击 toggle 后 type 在 password/text 间切换 |
 | 18 | 再次切换恢复隐藏 | 第二次点击后 type 恢复为 password |
 
+### 安全属性
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 19 | password 类型设置 autocomplete="off" | `type="password"` 时 input 有 `autocomplete="off"` |
+| 20 | password 类型设置 spellcheck="false" | `type="password"` 时 input 有 `spellcheck="false"` |
+| 21 | password 类型设置 autocorrect="off" | `type="password"` 时 input 有 `autocorrect="off"` |
+
+---
+
+## 6. escapeHtml 工具函数（7 个）
+
+`tests/utils/escape.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 转义 & | `&` → `&amp;` |
+| 2 | 转义 < > | `<script>` → `&lt;script&gt;` |
+| 3 | 转义 " | `"` → `&quot;` |
+| 4 | 转义 ' | `'` → `&#039;` |
+| 5 | 组合转义 | `<img src="x" onerror='alert(1)'>` 全部转义 |
+| 6 | 无特殊字符不变 | 普通文本原样返回 |
+| 7 | 空字符串 | 返回空字符串 |
+
+---
+
+## 7. useNotification XSS 防护（4 个）
+
+`tests/composables/useNotification.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 渲染通知标题 | title 正常显示 |
+| 2 | 标题 XSS 防护 | `<img onerror=...>` 作为 title 时被转义为纯文本，不创建 img 元素 |
+| 3 | 消息 XSS 防护 | `<script>` 作为 message 时被转义为纯文本，不创建 script 元素 |
+| 4 | 不会双重转义 | `Hello & World` 正常显示 & 符号 |
+
+---
+
+## 8. useMessageBox XSS 防护（3 个）
+
+`tests/composables/useMessageBox.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 标题 XSS 防护 | `<b>title</b>` 作为 title 时被转义为纯文本，不创建 b 元素 |
+| 2 | 消息 XSS 防护 | `<script>` 作为 message 时被转义为纯文本，不创建 script 元素 |
+| 3 | 按钮文字安全 | 默认按钮文字为"确定"/"取消" |
+
 ---
 
 ## 回测检查清单
@@ -201,8 +250,8 @@
 cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
-# Test Files  5 passed (5)
-# Tests       58 passed (58)
+# Test Files  91 passed (91)
+# Tests       698 passed (698)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run src/utils/cn.test.ts

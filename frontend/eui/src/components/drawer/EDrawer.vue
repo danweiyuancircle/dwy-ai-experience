@@ -17,6 +17,7 @@ import type { EDrawerProps, EDrawerEmits } from './types'
 const props = withDefaults(defineProps<EDrawerProps>(), {
   direction: 'bottom',
   showClose: true,
+  destroyOnClose: true,
 })
 
 const emit = defineEmits<EDrawerEmits>()
@@ -96,7 +97,7 @@ watch(localOpen, (val) => {
         </div>
 
         <!-- Body -->
-        <div class="flex-1 overflow-auto px-4">
+        <div v-if="destroyOnClose ? localOpen : true" class="flex-1 overflow-auto px-4">
           <slot />
         </div>
 

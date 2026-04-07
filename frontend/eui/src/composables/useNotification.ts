@@ -10,6 +10,8 @@ export interface NotificationOptions {
   closable?: boolean
 }
 
+import { escapeHtml } from '@/utils/escape'
+
 let seed = 0
 
 function getContainer(position: string): HTMLElement {
@@ -70,8 +72,8 @@ function showNotification(options: NotificationOptions) {
   }
 
   // Build inner HTML
-  const titleHtml = `<div class="font-medium text-sm">${options.title}</div>`
-  const messageHtml = options.message ? `<div class="text-muted-foreground text-sm mt-1">${options.message}</div>` : ''
+  const titleHtml = `<div class="font-medium text-sm">${escapeHtml(options.title)}</div>`
+  const messageHtml = options.message ? `<div class="text-muted-foreground text-sm mt-1">${escapeHtml(options.message)}</div>` : ''
 
   const closeButtonHtml = closable
     ? `<button data-notification-close class="absolute top-2 right-2 text-muted-foreground hover:text-foreground transition-colors p-0.5 rounded-sm" aria-label="Close">

@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<EDialogProps>(), {
   closeOnClickModal: true,
   closeOnPressEscape: true,
   fullscreen: false,
-  destroyOnClose: false,
+  destroyOnClose: true,
 })
 
 const emit = defineEmits<EDialogEmits>()

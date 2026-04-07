@@ -116,4 +116,25 @@ describe('EInput', () => {
     const wrapper = mount(EInput)
     expect(wrapper.attributes('data-slot')).toBe('input-root')
   })
+
+  // Security: password field attributes
+  it('sets autocomplete="off" for password type', () => {
+    const wrapper = mount(EInput, { props: { type: 'password' } })
+    expect(wrapper.find('input').attributes('autocomplete')).toBe('off')
+  })
+
+  it('sets spellcheck="false" for password type', () => {
+    const wrapper = mount(EInput, { props: { type: 'password' } })
+    expect(wrapper.find('input').attributes('spellcheck')).toBe('false')
+  })
+
+  it('sets autocorrect="off" for password type', () => {
+    const wrapper = mount(EInput, { props: { type: 'password' } })
+    expect(wrapper.find('input').attributes('autocorrect')).toBe('off')
+  })
+
+  it('does not set autocomplete for text type', () => {
+    const wrapper = mount(EInput, { props: { type: 'text' } })
+    expect(wrapper.find('input').attributes('autocomplete')).toBeUndefined()
+  })
 })

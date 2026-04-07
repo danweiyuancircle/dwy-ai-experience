@@ -7,6 +7,8 @@ export interface EPopoverProps {
   sideOffset?: number
   align?: PopoverContentProps['align']
   open?: boolean
+  /** When true (default), unmount the default slot content when popover closes */
+  destroyOnClose?: boolean
 }
 
 export interface EPopoverEmits {

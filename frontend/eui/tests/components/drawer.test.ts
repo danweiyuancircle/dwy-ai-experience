@@ -59,4 +59,15 @@ describe('EDrawer', () => {
     const wrapper = mount(EDrawer, { props: { direction: 'top' } })
     expect(wrapper.exists()).toBe(true)
   })
+
+  // Security: destroyOnClose
+  it('accepts destroyOnClose prop without error', () => {
+    const wrapper = mount(EDrawer, { props: { destroyOnClose: true } })
+    expect(wrapper.exists()).toBe(true)
+  })
+
+  it('accepts destroyOnClose=false to preserve content on close', () => {
+    const wrapper = mount(EDrawer, { props: { destroyOnClose: false } })
+    expect(wrapper.exists()).toBe(true)
+  })
 })

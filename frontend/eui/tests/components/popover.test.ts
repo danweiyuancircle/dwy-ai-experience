@@ -60,4 +60,21 @@ describe('EPopover', () => {
     })
     expect(wrapper.exists()).toBe(true)
   })
+
+  // Security: destroyOnClose
+  it('accepts destroyOnClose prop without error', () => {
+    const wrapper = mount(EPopover, {
+      props: { destroyOnClose: true },
+      slots: { trigger: '<button>Open</button>' },
+    })
+    expect(wrapper.exists()).toBe(true)
+  })
+
+  it('accepts destroyOnClose=false to preserve content on close', () => {
+    const wrapper = mount(EPopover, {
+      props: { destroyOnClose: false },
+      slots: { trigger: '<button>Open</button>' },
+    })
+    expect(wrapper.exists()).toBe(true)
+  })
 })

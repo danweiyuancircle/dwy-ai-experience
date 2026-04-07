@@ -7,6 +7,7 @@ import type { EPopoverProps, EPopoverEmits } from './types'
 const props = withDefaults(defineProps<EPopoverProps>(), {
   align: 'center',
   sideOffset: 4,
+  destroyOnClose: true,
 })
 
 const emit = defineEmits<EPopoverEmits>()
@@ -40,7 +41,9 @@ watch(localOpen, (val) => {
           )
         "
       >
-        <slot />
+        <template v-if="destroyOnClose ? localOpen : true">
+          <slot />
+        </template>
       </PopoverContent>
     </PopoverPortal>
   </PopoverRoot>

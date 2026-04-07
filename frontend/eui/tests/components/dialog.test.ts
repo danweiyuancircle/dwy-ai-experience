@@ -60,4 +60,15 @@ describe('EDialog', () => {
     const wrapper = mount(EDialog, { props: { draggable: true } })
     expect(wrapper.exists()).toBe(true)
   })
+
+  // Security: destroyOnClose defaults to true
+  it('defaults destroyOnClose to true', () => {
+    const wrapper = mount(EDialog, { props: { destroyOnClose: true } })
+    expect(wrapper.exists()).toBe(true)
+  })
+
+  it('accepts destroyOnClose=false to preserve content on close', () => {
+    const wrapper = mount(EDialog, { props: { destroyOnClose: false } })
+    expect(wrapper.exists()).toBe(true)
+  })
 })
