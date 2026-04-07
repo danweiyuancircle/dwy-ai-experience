@@ -291,7 +291,6 @@ frontend/eui/src/components/{component-name}/types.ts
 | EFormDialog | 表单弹窗 | v-model:open, title, size, loading, confirmText, cancelText |
 | EConfirmDialog | 确认弹窗 | v-model:open, title, message, type(info/warning/error), confirmText, cancelText |
 | EAdminLayout | 后台管理布局 | logo, title, menuItems(MenuItem[]), v-model:activeKey, v-model:collapsed, headerHeight, sidebarWidth |
-| ELoginLayout | 登录页布局 | title, logo, background |
 | EAIChat | AI 对话 | messages(ChatMessage[]), loading, placeholder |
 | ETimetableGrid | 课程表/时间表 | data(TimetableItem[]), startHour, endHour, days |
 

@@ -28,3 +28,4 @@ backend/docs/
 
 # uv lock (library should not lock dependencies)
 backend/uv.lock
+.playwright-mcp/

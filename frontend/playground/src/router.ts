@@ -68,7 +68,6 @@ const router = createRouter({
     { path: '/eui/tree-select', component: () => import('./views/TreeSelectDemo.vue') },
     { path: '/eui/virtual-table', component: () => import('./views/VirtualTableDemo.vue') },
     { path: '/eui/admin-layout', component: () => import('./views/AdminLayoutDemo.vue') },
-    { path: '/eui/login-layout', component: () => import('./views/LoginLayoutDemo.vue') },
     { path: '/eui/ai-chat', component: () => import('./views/AIChatDemo.vue') },
     { path: '/eui/timetable-grid', component: () => import('./views/TimetableGridDemo.vue') },
     { path: '/eui/chart', component: () => import('./views/ChartDemo.vue') },
@@ -85,7 +84,6 @@ const router = createRouter({
     { path: '/eui/mention', component: () => import('./views/MentionDemo.vue') },
 
     // Blocks
-    { path: '/eui/blocks/dashboard-01', component: () => import('./views/blocks/Dashboard01.vue') },
     { path: '/eui/blocks/login-01', component: () => import('./views/blocks/Login01.vue') },
     { path: '/eui/blocks/login-02', component: () => import('./views/blocks/Login02.vue') },
     { path: '/eui/blocks/login-04', component: () => import('./views/blocks/Login04.vue') },

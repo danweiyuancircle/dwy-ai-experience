@@ -226,8 +226,6 @@ export { EConfirmDialog } from './components/confirm-dialog'
 export type { EConfirmDialogProps, EConfirmDialogEmits, ConfirmDialogType } from './components/confirm-dialog'
 export { EAdminLayout } from './components/admin-layout'
 export type { EAdminLayoutProps, EAdminLayoutEmits } from './components/admin-layout'
-export { ELoginLayout } from './components/login-layout'
-export type { ELoginLayoutProps } from './components/login-layout'
 export { EAIChat } from './components/ai-chat'
 export type { EAIChatProps, EAIChatEmits, ChatMessage } from './components/ai-chat'
 export { ETimetableGrid } from './components/timetable-grid'
@@ -350,7 +348,6 @@ import { EDataPage } from './components/data-page'
 import { EFormDialog } from './components/form-dialog'
 import { EConfirmDialog } from './components/confirm-dialog'
 import { EAdminLayout } from './components/admin-layout'
-import { ELoginLayout } from './components/login-layout'
 import { EAIChat } from './components/ai-chat'
 import { ETimetableGrid } from './components/timetable-grid'
 
@@ -469,7 +466,6 @@ const components: Record<string, any> = {
   EFormDialog,
   EConfirmDialog,
   EAdminLayout,
-  ELoginLayout,
   EAIChat,
   ETimetableGrid,
 }

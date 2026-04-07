@@ -128,13 +128,11 @@ export const modules: ModuleConfig[] = [
           { name: 'ConfirmDialog 确认弹窗', path: '/eui/confirm-dialog' },
           { name: 'DataPage 数据页', path: '/eui/data-page' },
           { name: 'AdminLayout 管理布局', path: '/eui/admin-layout' },
-          { name: 'LoginLayout 登录布局', path: '/eui/login-layout' },
         ],
       },
       {
         title: 'Blocks 模板',
         items: [
-          { name: 'Dashboard 仪表盘', path: '/eui/blocks/dashboard-01' },
           { name: 'Login 居中卡片', path: '/eui/blocks/login-01' },
           { name: 'Login 双栏图片', path: '/eui/blocks/login-02' },
           { name: 'Login 卡片图片', path: '/eui/blocks/login-04' },
