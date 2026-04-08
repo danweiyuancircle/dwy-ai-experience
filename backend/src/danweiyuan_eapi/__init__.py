@@ -10,6 +10,7 @@ Modules:
     response      — Unified API response helpers
     pagination    — PaginationParams + paginate helper
     tasks         — Async task processing system (ARQ-based, install with [tasks] extra)
+    masking       — PII data masking utilities
 """
 
 __version__ = "0.2.0"
