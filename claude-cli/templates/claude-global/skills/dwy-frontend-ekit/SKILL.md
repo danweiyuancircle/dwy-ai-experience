@@ -133,7 +133,7 @@ import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } f
 ## date — 日期格式化
 
 ```ts
-import { formatDate, formatDateTime, formatTime, formatRelativeTime } from '@danweiyuan/ekit'
+import { formatDate, formatDateTime, formatTime, formatRelativeTime, formatBy } from '@danweiyuan/ekit'
 ```
 
 所有函数接收 `string | number | Date` 类型输入。
@@ -143,7 +143,8 @@ import { formatDate, formatDateTime, formatTime, formatRelativeTime } from '@dan
 | formatDate | `YYYY-MM-DD` | `2025-03-15` |
 | formatDateTime | `YYYY-MM-DD HH:mm:ss` | `2025-03-15 14:30:00` |
 | formatTime | `HH:mm` | `14:30` |
-| formatRelativeTime | 中文相对时间 | `刚刚` / `5 分钟前` / `3 小时前` / `7 天前` / 超过 30 天返回 `toLocaleDateString('zh-CN')` |
+| formatRelativeTime | 中文相对时间 | `刚刚` / `5 分钟前` / `3 小时前` / `7 天前` / 超过 30 天返回 `YYYY-MM-DD` |
+| formatBy | 自定义 dayjs 模板 | `formatBy(date, 'YYYY年MM月DD日')` → `2025年03月15日` |
 
 ---
 

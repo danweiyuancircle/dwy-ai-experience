@@ -215,6 +215,10 @@ frontend/eui/src/components/{component-name}/types.ts
 | EField | 字段布局 | orientation(vertical/horizontal/responsive), invalid |
 | EInputGroup | 输入组 | 子组件 EInputGroupAddon(align) |
 
+#### 表单强制约束
+
+**禁止使用原生 `<form>` 标签，所有表单必须使用 `<EForm>` 组件。** EForm 内置 vee-validate 校验、provide/inject 上下文传递、统一的 label 布局和 reset/validate API，原生 `<form>` 无法与 EUI 表单体系集成。
+
 ### 数据展示
 
 | 组件 | 用途 | 关键 Props |

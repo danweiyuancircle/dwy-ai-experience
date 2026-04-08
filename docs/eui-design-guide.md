@@ -109,9 +109,12 @@ neutral（默认）| blue | green | rose | orange | violet | slate
 | 表格 | `<ETable>` | `<table>` |
 | 弹窗 | `<EDialog>` | 自定义 modal |
 | 轻提示 | `useMessage()` / `toast()` | `alert()` |
+| 表单 | `<EForm>` | `<form>` |
 | 确认框 | `<EConfirmDialog>` | `confirm()` |
 
 ### 表单
+
+> **禁止使用原生 `<form>` 标签。** 所有表单必须使用 `<EForm>` 组件，EForm 内置 vee-validate 校验、provide/inject 上下文传递、统一的 label 布局和 reset/validate API，原生 `<form>` 无法与 EUI 表单体系集成。
 
 ```vue
 <!-- 标准表单 -->
@@ -244,7 +247,7 @@ AI 生成页面代码后，逐条验证：
 |---|--------|
 | 1 | 颜色只用语义 token（bg-primary/text-foreground 等），不写死色值 |
 | 2 | 图标只用 lucide-vue-next，无 emoji |
-| 3 | 表单控件用 EUI 组件，不用原生 HTML |
+| 3 | 表单必须用 EForm，表单控件用 EUI 组件，禁止原生 `<form>` 和原生 HTML 控件 |
 | 4 | 按钮操作区右对齐，次要在前主要在后 |
 | 5 | 弹窗指定 maxWidth，不让内容无限撑开 |
 | 6 | 可交互元素有 hover 反馈和 cursor-pointer |

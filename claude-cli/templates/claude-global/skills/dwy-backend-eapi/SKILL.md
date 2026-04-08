@@ -5,7 +5,7 @@ description: "danweiyuan-eapi FastAPI 后端基础设施速查。触发条件：
 
 # danweiyuan-eapi 后端基础设施速查
 
-FastAPI 项目基础设施包，Python 3.11+，全异步。9 个模块。
+FastAPI 项目基础设施包，Python 3.11+，全异步。10 个模块。
 
 > **Tasks 集成指南：** 详见同目录 [tasks-integration-guide.md](tasks-integration-guide.md)
 
@@ -26,6 +26,7 @@ from danweiyuan_eapi.response import success, fail, paginated
 from danweiyuan_eapi.pagination import PaginationParams, paginate
 from danweiyuan_eapi.cache import configure as configure_redis, get_redis, close_redis
 from danweiyuan_eapi.dependencies import create_get_db
+from danweiyuan_eapi import dt
 
 # 任务模块 (需安装 [tasks] extra)
 from danweiyuan_eapi.tasks import setup_tasks, task_router, register, TaskContext, TaskStatus, create_worker_settings
@@ -256,6 +257,34 @@ redis = await cache.get_redis()
 await redis.set("key", "value", ex=3600)
 val = await redis.get("key")
 ```
+
+---
+
+## dt — 全局时间工具
+
+```python
+from danweiyuan_eapi import dt
+```
+
+业务时间统一 Asia/Shanghai，**禁止在业务代码中直接使用 `datetime.now()`**，统一通过 `dt` 模块访问。
+
+| 函数 | 签名 | 说明 |
+|------|------|------|
+| dt.now | `() -> datetime` | 当前中国时间（naive，用于数据库存储） |
+| dt.now_str | `(fmt="%Y-%m-%d %H:%M:%S") -> str` | 格式化的当前中国时间字符串 |
+| dt.today | `() -> date` | 当前中国日期 |
+| dt.timestamp | `() -> float` | 当前 Unix 时间戳（秒） |
+| dt.utc_now | `() -> datetime` | 当前 UTC 时间（aware，用于 JWT exp 等协议字段） |
+
+```python
+dt.now()          # datetime(2026, 4, 8, 14, 30, 0) — naive, Asia/Shanghai
+dt.now_str()      # "2026-04-08 14:30:00"
+dt.today()        # date(2026, 4, 8)
+dt.timestamp()    # 1775625000.0
+dt.utc_now()      # datetime(2026, 4, 8, 6, 30, 0, tzinfo=UTC) — aware
+```
+
+常量：`dt.TZ`（Asia/Shanghai）、`dt.UTC`。
 
 ---
 
