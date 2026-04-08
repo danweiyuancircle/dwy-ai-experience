@@ -32,3 +32,6 @@ export { useDebounce, useClickOutside, useEventListener } from './hooks'
 
 // Hooks (vueuse)
 export { useThrottle, useWindowSize, useMediaQuery, useIntersectionObserver, useResizeObserver } from './hooks/vueuse'
+
+// Masking
+export { maskPhone, maskEmail, maskIdCard, maskBankCard, maskName, maskAddress, maskIp, maskLicensePlate, maskText } from './masking'

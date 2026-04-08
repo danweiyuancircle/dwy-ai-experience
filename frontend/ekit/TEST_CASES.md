@@ -1,6 +1,6 @@
 # @danweiyuan/ekit 测试用例清单
 
-> 回测基准：139 个测试用例，10 个测试文件。版本变更后必须全部通过。
+> 回测基准：188 个测试用例，11 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd frontend/ekit && pnpm vitest run`
 
@@ -248,6 +248,24 @@
 
 ---
 
+## 11. masking 模块（49 个）
+
+`src/masking/masking.test.ts`
+
+| 函数 | 用例数 | 测试要点 |
+|------|--------|---------|
+| maskPhone | 6 | 标准号码、空字符串、长度错误、非数字、不同号段 |
+| maskEmail | 6 | 标准邮箱、空字符串、无@、单字符用户名、多字符、多@符号 |
+| maskIdCard | 5 | 18位、末位X、空字符串、格式不匹配、15位原样返回 |
+| maskBankCard | 5 | 16位、19位、空字符串、位数太短、非数字 |
+| maskName | 5 | 2字、3字、4字、空字符串、单字 |
+| maskAddress | 7 | 省市区、省市、自治区、直辖市、不匹配长/短地址、空字符串 |
+| maskIp | 4 | 标准IPv4、空字符串、非IP、只有3段 |
+| maskLicensePlate | 4 | 标准7位、新能源8位、空字符串、格式不匹配 |
+| maskText | 7 | 默认参数、自定义start/end、自定义maskChar、空字符串、长度不足、start=0、end=0 |
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -255,8 +273,8 @@
 cd frontend/ekit && pnpm vitest run
 
 # 2. 期望结果
-# Test Files  10 passed (10)
-# Tests       139 passed (139)
+# Test Files  11 passed (11)
+# Tests       188 passed (188)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run src/date
@@ -268,4 +286,5 @@ pnpm vitest run src/copy
 pnpm vitest run src/qs
 pnpm vitest run src/file
 pnpm vitest run src/hooks
+pnpm vitest run src/masking
 ```
