@@ -12,6 +12,8 @@ export interface EAdminLayoutProps {
   headerHeight?: string | number
   sidebarWidth?: string | number
   collapsedWidth?: string | number
+  /** When true, clicking a menu item navigates using vue-router */
+  router?: boolean
 }
 
 export interface EAdminLayoutEmits {

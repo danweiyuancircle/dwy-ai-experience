@@ -65,6 +65,7 @@ function toggleCollapsed() {
             :items="menuItems"
             :model-value="activeKey"
             :collapsed="collapsed"
+            :router="router"
             @update:model-value="handleMenuSelect"
           />
         </slot>
