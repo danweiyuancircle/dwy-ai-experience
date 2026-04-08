@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, useSlots } from 'vue'
+import { computed, nextTick, ref, shallowRef, useSlots } from 'vue'
 import { X, Eye, EyeOff } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
+import { useSecureValue } from '@/composables/useSecureValue'
 import type { EInputProps, EInputEmits } from './types'
 
 const props = withDefaults(defineProps<EInputProps>(), {
@@ -17,7 +18,17 @@ const slots = useSlots()
 
 const emit = defineEmits<EInputEmits>()
 
+const inputRef = shallowRef<HTMLInputElement>()
 const passwordVisible = ref(false)
+
+const {
+  isComposing,
+  recordCursor,
+  setCursor,
+  setNativeValue,
+  onCompositionStart,
+  onCompositionEnd,
+} = useSecureValue(inputRef, () => props.modelValue)
 
 const inputType = computed(() => {
   if (props.showPassword) {
@@ -48,9 +59,14 @@ const sizeClass = computed(() => {
   return 'h-9 text-base md:text-sm'
 })
 
-function onInput(event: Event) {
+async function onInput(event: Event) {
+  recordCursor()
+  if (isComposing.value) return
   const value = (event.target as HTMLInputElement).value
   emit('update:modelValue', value)
+  await nextTick()
+  setNativeValue()
+  setCursor()
 }
 
 function onChange(event: Event) {
@@ -95,14 +111,15 @@ function togglePasswordVisibility() {
         <slot name="prefix" />
       </span>
       <input
+        ref="inputRef"
         data-slot="input"
         :type="inputType"
-        :value="modelValue"
         :placeholder="placeholder"
         :disabled="disabled"
         :readonly="readonly"
+        :name="name"
         :maxlength="maxlength"
-        :autocomplete="type === 'password' ? 'off' : undefined"
+        :autocomplete="autocomplete"
         :autocorrect="type === 'password' ? 'off' : undefined"
         :spellcheck="type === 'password' ? false : undefined"
         :class="cn(
@@ -117,6 +134,8 @@ function togglePasswordVisibility() {
         @change="onChange"
         @blur="onBlur"
         @focus="onFocus"
+        @compositionstart="onCompositionStart"
+        @compositionend="onCompositionEnd"
       />
       <button
         v-if="showClearButton && !showPassword"

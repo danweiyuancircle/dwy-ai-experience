@@ -13,6 +13,8 @@ export interface EInputProps {
   maxlength?: number
   showPassword?: boolean
   showWordLimit?: boolean
+  name?: string
+  autocomplete?: string
 }
 
 export interface EInputEmits {

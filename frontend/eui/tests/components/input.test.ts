@@ -117,10 +117,21 @@ describe('EInput', () => {
     expect(wrapper.attributes('data-slot')).toBe('input-root')
   })
 
-  // Security: password field attributes
-  it('sets autocomplete="off" for password type', () => {
+  // autocomplete prop
+  it('passes autocomplete attribute to input', () => {
+    const wrapper = mount(EInput, { props: { autocomplete: 'username' } })
+    expect(wrapper.find('input').attributes('autocomplete')).toBe('username')
+  })
+
+  it('does not set autocomplete by default', () => {
     const wrapper = mount(EInput, { props: { type: 'password' } })
-    expect(wrapper.find('input').attributes('autocomplete')).toBe('off')
+    expect(wrapper.find('input').attributes('autocomplete')).toBeUndefined()
+  })
+
+  // name prop
+  it('passes name attribute to input', () => {
+    const wrapper = mount(EInput, { props: { name: 'username' } })
+    expect(wrapper.find('input').attributes('name')).toBe('username')
   })
 
   it('sets spellcheck="false" for password type', () => {
@@ -136,5 +147,23 @@ describe('EInput', () => {
   it('does not set autocomplete for text type', () => {
     const wrapper = mount(EInput, { props: { type: 'text' } })
     expect(wrapper.find('input').attributes('autocomplete')).toBeUndefined()
+  })
+
+  // Security: DOM value hiding (secure value)
+  it('does not expose value as HTML attribute', async () => {
+    const wrapper = mount(EInput, { props: { modelValue: 'secret' } })
+    const input = wrapper.find('input')
+    // HTML attribute should not contain the value
+    expect(input.attributes('value')).toBeUndefined()
+    // DOM property should have the value
+    expect((input.element as HTMLInputElement).value).toBe('secret')
+  })
+
+  it('updates DOM property without HTML attribute on modelValue change', async () => {
+    const wrapper = mount(EInput, { props: { modelValue: '' } })
+    await wrapper.setProps({ modelValue: 'updated' })
+    const input = wrapper.find('input')
+    expect(input.attributes('value')).toBeUndefined()
+    expect((input.element as HTMLInputElement).value).toBe('updated')
   })
 })
