@@ -33,4 +33,12 @@ describe('EAutocomplete', () => {
     const wrapper = mount(EAutocomplete)
     expect(wrapper.find('ul').exists()).toBe(false)
   })
+
+  // Security: DOM value hiding
+  it('does not expose value as HTML attribute', () => {
+    const wrapper = mount(EAutocomplete, { props: { modelValue: 'secret' } })
+    const input = wrapper.find('input')
+    expect(input.attributes('value')).toBeUndefined()
+    expect(input.element.value).toBe('secret')
+  })
 })

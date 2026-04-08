@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { cn } from '@/utils/cn'
+import { useSecureValue } from '@/composables/useSecureValue'
 import type { ETextareaProps, ETextareaEmits } from './types'
 
 const props = withDefaults(defineProps<ETextareaProps>(), {
@@ -14,6 +15,15 @@ const emit = defineEmits<ETextareaEmits>()
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const lineHeight = ref(0)
+
+const {
+  isComposing,
+  recordCursor,
+  setCursor,
+  setNativeValue,
+  onCompositionStart,
+  onCompositionEnd,
+} = useSecureValue(textareaRef, () => props.modelValue)
 
 /** Detect line height from computed styles once mounted */
 function detectLineHeight() {
@@ -70,9 +80,14 @@ watch(() => props.modelValue, () => {
   nextTick(() => adjustHeight())
 })
 
-function onInput(event: Event) {
+async function onInput(event: Event) {
+  recordCursor()
+  if (isComposing.value) return
   const value = (event.target as HTMLTextAreaElement).value
   emit('update:modelValue', value)
+  await nextTick()
+  setNativeValue()
+  setCursor()
   adjustHeight()
 }
 
@@ -95,7 +110,6 @@ function onFocus(event: FocusEvent) {
     <textarea
       ref="textareaRef"
       data-slot="textarea"
-      :value="modelValue"
       :placeholder="placeholder"
       :rows="rows"
       :disabled="disabled"
@@ -110,6 +124,8 @@ function onFocus(event: FocusEvent) {
       @change="onChange"
       @blur="onBlur"
       @focus="onFocus"
+      @compositionstart="onCompositionStart"
+      @compositionend="onCompositionEnd"
     />
     <span
       v-if="showWordLimit && maxlength"

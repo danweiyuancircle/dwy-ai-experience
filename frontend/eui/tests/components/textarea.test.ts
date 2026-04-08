@@ -63,4 +63,12 @@ describe('ETextarea', () => {
     })
     expect(wrapper.text()).toContain('3/10')
   })
+
+  // Security: DOM value hiding
+  it('does not expose value as HTML attribute', () => {
+    const wrapper = mount(ETextarea, { props: { modelValue: 'secret' } })
+    const textarea = wrapper.find('textarea')
+    expect(textarea.attributes('value')).toBeUndefined()
+    expect(textarea.element.value).toBe('secret')
+  })
 })

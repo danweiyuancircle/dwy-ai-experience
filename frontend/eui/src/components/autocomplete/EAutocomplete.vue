@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, shallowRef, watch, computed, nextTick } from 'vue'
 import { LoaderCircle } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
+import { useSecureValue } from '@/composables/useSecureValue'
 import type { EAutocompleteProps, EAutocompleteEmits, AutocompleteOption } from './types'
 
 const props = withDefaults(defineProps<EAutocompleteProps>(), {
@@ -12,6 +13,7 @@ const props = withDefaults(defineProps<EAutocompleteProps>(), {
 
 const emit = defineEmits<EAutocompleteEmits>()
 
+const inputRef = shallowRef<HTMLInputElement>()
 const inputValue = ref(props.modelValue ?? '')
 const suggestions = ref<AutocompleteOption[]>([])
 const isOpen = ref(false)
@@ -19,16 +21,30 @@ const isLoading = ref(false)
 const activeIndex = ref(-1)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
+const {
+  isComposing,
+  recordCursor,
+  setCursor,
+  setNativeValue,
+  onCompositionStart,
+  onCompositionEnd,
+} = useSecureValue(inputRef, () => inputValue.value)
+
 watch(() => props.modelValue, (val) => {
   inputValue.value = val ?? ''
 })
 
 async function handleInput(event: Event) {
+  recordCursor()
+  if (isComposing.value) return
   const value = (event.target as HTMLInputElement).value
   inputValue.value = value
   emit('update:modelValue', value)
   emit('change', value)
   activeIndex.value = -1
+  await nextTick()
+  setNativeValue()
+  setCursor()
 
   if (!props.fetchSuggestions) return
 
@@ -54,6 +70,7 @@ function selectOption(option: AutocompleteOption) {
   emit('update:modelValue', option.label)
   emit('select', option)
   isOpen.value = false
+  nextTick(setNativeValue)
 }
 
 function handleKeydown(event: KeyboardEvent) {
@@ -82,7 +99,7 @@ function handleBlur() {
 <template>
   <div :class="cn('relative', props.class)">
     <input
-      :value="inputValue"
+      ref="inputRef"
       :disabled="props.disabled"
       :placeholder="props.placeholder"
       type="text"
@@ -92,6 +109,8 @@ function handleBlur() {
       @input="handleInput"
       @keydown="handleKeydown"
       @blur="handleBlur"
+      @compositionstart="onCompositionStart"
+      @compositionend="onCompositionEnd"
     />
     <LoaderCircle
       v-if="isLoading"
