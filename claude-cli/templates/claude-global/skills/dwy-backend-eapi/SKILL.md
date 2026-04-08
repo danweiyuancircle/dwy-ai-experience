@@ -5,7 +5,7 @@ description: "danweiyuan-eapi FastAPI 后端基础设施速查。触发条件：
 
 # danweiyuan-eapi 后端基础设施速查
 
-FastAPI 项目基础设施包，Python 3.11+，全异步。10 个模块。
+FastAPI 项目基础设施包，Python 3.11+，全异步。11 个模块。
 
 > **Tasks 集成指南：** 详见同目录 [tasks-integration-guide.md](tasks-integration-guide.md)
 
@@ -27,6 +27,7 @@ from danweiyuan_eapi.pagination import PaginationParams, paginate
 from danweiyuan_eapi.cache import configure as configure_redis, get_redis, close_redis
 from danweiyuan_eapi.dependencies import create_get_db
 from danweiyuan_eapi import dt
+from danweiyuan_eapi.masking import mask_phone, mask_email, mask_id_card, mask_name
 
 # 任务模块 (需安装 [tasks] extra)
 from danweiyuan_eapi.tasks import setup_tasks, task_router, register, TaskContext, TaskStatus, create_worker_settings
@@ -285,6 +286,51 @@ dt.utc_now()      # datetime(2026, 4, 8, 6, 30, 0, tzinfo=UTC) — aware
 ```
 
 常量：`dt.TZ`（Asia/Shanghai）、`dt.UTC`。
+
+---
+
+## masking — PII 数据脱敏
+
+```python
+from danweiyuan_eapi.masking import (
+    mask_phone,          # 138****5678
+    mask_email,          # z***@gmail.com
+    mask_id_card,        # 420***********1234
+    mask_bank_card,      # 6222********1234
+    mask_name,           # 张*明
+    mask_address,        # 浙江省杭州市西湖区****
+    mask_ip,             # 192.168.1.*
+    mask_license_plate,  # 浙A***8
+    mask_text,           # 通用脱敏（自定义首尾保留位数）
+)
+```
+
+纯函数模块，无外部依赖。所有函数对空字符串、格式不匹配的输入原样返回，不抛异常。
+
+### 在 Response Schema 中使用
+
+```python
+class UserResponse(BaseModel):
+    phone: str
+    email: str
+
+    @field_validator("phone", mode="before")
+    @classmethod
+    def _mask_phone(cls, v: str) -> str:
+        return mask_phone(v) if v else v
+
+    @field_validator("email", mode="before")
+    @classmethod
+    def _mask_email(cls, v: str) -> str:
+        return mask_email(v) if v else v
+```
+
+### mask_text — 通用脱敏
+
+```python
+mask_text("hello", start=1, end=1, mask_char="*")  # h***o
+mask_text("1234567890", start=2, end=3)              # 12*****890
+```
 
 ---
 

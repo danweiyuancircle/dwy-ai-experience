@@ -5,7 +5,7 @@ description: "@danweiyuan/ekit 前端工具库速查。触发条件：需要 HTT
 
 # @danweiyuan/ekit 工具库速查
 
-Vue 3 项目通用工具库，包含 5 个模块：request、storage、validators、date、hooks。
+Vue 3 项目通用工具库，包含 6 个模块：request、storage、validators、date、hooks、masking。
 
 ## 安装
 
@@ -15,7 +15,7 @@ pnpm add @danweiyuan/ekit
 ```
 
 ```ts
-import { createRequest, useStorage, isPhone, formatDate, useDebounce } from '@danweiyuan/ekit'
+import { createRequest, useStorage, isPhone, formatDate, useDebounce, maskPhone } from '@danweiyuan/ekit'
 ```
 
 ## 查阅源码
@@ -180,3 +180,34 @@ useEventListener(elementRef, 'scroll', onScroll, { passive: true })
 ```
 
 target 可以是 `EventTarget` 或 `Ref<EventTarget>`。自动在 onMounted/onBeforeUnmount 绑定/解绑。
+
+---
+
+## masking — PII 数据脱敏
+
+```ts
+import { maskPhone, maskEmail, maskIdCard, maskBankCard, maskName, maskAddress, maskIp, maskLicensePlate, maskText } from '@danweiyuan/ekit'
+```
+
+纯函数模块，无外部依赖。所有函数对空字符串、格式不匹配的输入原样返回，不抛异常。
+
+| 函数 | 规则 | 示例 |
+|------|------|------|
+| maskPhone | 前 3 后 4 | `138****5678` |
+| maskEmail | 首字符 + `***` + @域名 | `z***@gmail.com` |
+| maskIdCard | 前 3 后 4（18 位） | `420***********1234` |
+| maskBankCard | 前 4 后 4 | `6222********1234` |
+| maskName | 姓 + `*` / 姓 + `*`×(n-2) + 末字 | `张*` / `张*明` |
+| maskAddress | 匹配省市区 + `****` | `浙江省杭州市西湖区****` |
+| maskIp | 末段替换 `*` | `192.168.1.*` |
+| maskLicensePlate | 前 2 后 1，中间 `***` | `浙A***8` |
+| maskText | 保留首尾 N 位 | `maskText('hello', 1, 1)` → `h***o` |
+
+### maskText — 通用脱敏
+
+```ts
+maskText(text: string, start?: number, end?: number, maskChar?: string): string
+// 默认 start=1, end=1, maskChar='*'
+maskText('hello')                // h***o
+maskText('1234567890', 2, 3)     // 12*****890
+```

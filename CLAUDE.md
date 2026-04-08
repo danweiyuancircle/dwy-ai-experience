@@ -52,7 +52,7 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 
 ### frontend/ekit/ — `@danweiyuan/ekit`
 
-轻量工具库，5 个模块：
+轻量工具库，6 个模块：
 
 | 模块 | 内容 |
 |------|------|
@@ -61,12 +61,13 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 | date | formatRelativeTime, formatDate, formatDateTime, formatTime |
 | validators | isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength |
 | hooks | useDebounce, useClickOutside, useEventListener |
+| masking | maskPhone, maskEmail, maskIdCard, maskBankCard, maskName, maskAddress, maskIp, maskLicensePlate, maskText |
 
 request 模块的 401 刷新 token 逻辑会自动重试失败请求，响应 unwrap 约定格式 `{ code, data, message }`。
 
 ### backend/ — `danweiyuan-eapi`
 
-FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块：
+FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 
 | 模块 | 内容 |
 |------|------|
@@ -78,6 +79,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块：
 | pagination | PaginationParams, paginate(), OffsetLimit |
 | cache | 异步 Redis 管理: configure(), get_redis(), close_redis() |
 | dependencies | FastAPI 依赖注入工厂 |
+| masking | PII 数据脱敏: mask_phone, mask_email, mask_id_card, mask_bank_card, mask_name, mask_address, mask_ip, mask_license_plate, mask_text |
 
 - **Lint**: Ruff（规则: E, W, F, I, N, UP, B, SIM, RUF），行宽 120
 - **测试**: pytest + pytest-asyncio (asyncio_mode = "auto")
