@@ -1,5 +1,12 @@
 # @danweiyuan/eui
 
+## 1.2.13
+
+### Patch Changes
+
+- **EDialog**: body 内部 wrapper padding 从 `px-0.5`（2px）增加到 `p-1`（4px），修复 focus-ring 被裁切
+- **ESheet/EDrawer**: body 增加 `py-1` 垂直内边距，防止首尾元素 focus-ring 被 overflow-auto 裁切
+
 ## 1.2.10
 
 ### Patch Changes

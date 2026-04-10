@@ -67,7 +67,7 @@ function onUpdate(value: boolean) {
         </div>
 
         <!-- Default content -->
-        <div class="flex-1 overflow-auto px-4">
+        <div class="flex-1 overflow-auto px-4 py-1">
           <slot />
         </div>
 

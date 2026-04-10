@@ -150,7 +150,7 @@ function onPointerUp() {
 
         <!-- destroyOnClose: unmount content when closed; otherwise always render -->
         <div v-if="destroyOnClose ? localOpen : true" data-slot="dialog-body" class="flex-1 min-h-0 overflow-y-auto">
-          <div class="px-0.5">
+          <div class="p-1">
             <slot />
           </div>
         </div>

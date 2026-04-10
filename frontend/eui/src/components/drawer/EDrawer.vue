@@ -97,7 +97,7 @@ watch(localOpen, (val) => {
         </div>
 
         <!-- Body -->
-        <div v-if="destroyOnClose ? localOpen : true" class="flex-1 overflow-auto px-4">
+        <div v-if="destroyOnClose ? localOpen : true" class="flex-1 overflow-auto px-4 py-1">
           <slot />
         </div>
 
