@@ -4,11 +4,7 @@ description: 跨栈技术选型强制约束(FastAPI/Vue3/Flutter/UV/pnpm/Docker/
 
 # 跨栈技术选型强制约束
 
-本规范约束所有项目的技术选型。AI 在任何项目中写代码时必须遵守,每个领域只有一个方案,不得选择替代方案,不得"建议改用 XX"。
-
-> 项目结构、API 设计、数据库迁移、错误处理、环境变量、日志、状态管理、网络层、Docker、OSS、DolphinDB、各语言编码细则均在独立的 dwy-* 规则文件中定义。
-
----
+每个领域只有一个方案,AI 不得选替代,不得"建议改用 XX"。
 
 ## 后端
 
@@ -56,9 +52,9 @@ description: 跨栈技术选型强制约束(FastAPI/Vue3/Flutter/UV/pnpm/Docker/
 
 ## 基础设施
 
-| 领域 | 唯一方案 | 禁止替代 |
-|------|---------|---------|
-| 容器化 | Docker + Docker Compose | Podman, 裸机部署 |
-| 对象存储(开发) | MinIO (S3 协议) | 本地文件系统 |
-| 对象存储(生产) | 任何 S3 兼容云服务 | 非 S3 协议的私有 API |
-| 时序数据库(量化金融) | DolphinDB | ClickHouse, TimescaleDB, InfluxDB |
+| 领域 | 唯一方案 |
+|------|---------|
+| 容器化 | Docker + Docker Compose |
+| 对象存储(开发) | MinIO (S3 协议) |
+| 对象存储(生产) | 任何 S3 兼容云服务 |
+| 时序数据库(量化金融) | DolphinDB |
