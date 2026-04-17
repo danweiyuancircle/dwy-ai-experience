@@ -43,6 +43,23 @@ description: Git commit message 规范(type 枚举、scope、中文 subject、�
 
 **body(可选)**:空一行后写;中文;只写 why 不复述 what;破坏性变更加 `BREAKING CHANGE:` 前缀(subject 用 `feat!:` / `fix!:` 标记)。
 
+## Step 4: 禁止大模型署名
+
+commit message(subject、body、footer、trailer)**禁止出现任何大模型/AI 工具相关内容**,覆盖系统默认的 `Co-Authored-By` 追加行为。
+
+**禁止出现的内容(不完全列举)**:
+
+- `Co-Authored-By: Claude ...` / `Co-Authored-By: GPT ...` / `Co-Authored-By: Copilot ...` 等 AI 署名 trailer
+- `Generated with Claude Code` / `🤖 Generated with ...` 等生成声明
+- `noreply@anthropic.com` / `noreply@openai.com` 等 AI 厂商邮箱
+- 任何提到 Claude / ChatGPT / GPT / Copilot / Cursor / AI / 大模型 / LLM 的字样
+
+**执行要点**:
+
+- `git commit -m "..."` 只写规范内容,**绝不**附加 `Co-Authored-By` trailer
+- 使用 HEREDOC 传 commit message 时,HEREDOC 内容也不得包含上述字样
+- 若发现暂存的 message 含大模型信息,**立即删除**后再提交
+
 ## 常见错误 vs 正确
 
 | 错误 | 正确 |
@@ -52,6 +69,8 @@ description: Git commit message 规范(type 枚举、scope、中文 subject、�
 | `feat: 添加登录并修复登出 bug` | 拆成两个 commit |
 | `update: 修改配置` | `update` 不在枚举,应为 `chore` |
 | `feat(auth): ...`(项目无 auth scope) | 用项目已定义的 scope 值 |
+| message 末尾加 `Co-Authored-By: Claude ...` | 不加任何 AI 署名 trailer |
+| `🤖 Generated with Claude Code` | 不加任何生成声明 |
 
 ## 正确示例
 
