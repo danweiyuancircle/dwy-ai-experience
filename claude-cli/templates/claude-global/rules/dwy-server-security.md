@@ -1,4 +1,5 @@
 ---
+description: 服务器/容器/Nginx/SSH/CORS/部署安全规范
 paths:
   - "**/docker-compose*.yml"
   - "**/Dockerfile*"

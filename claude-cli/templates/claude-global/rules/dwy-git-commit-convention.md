@@ -1,3 +1,7 @@
+---
+description: Git commit message 规范(type 枚举、scope、中文 subject、提交前 4 步检查)
+---
+
 # Git Commit 强制规范
 
 **每次 `git commit` 前必须完整执行以下检查流程，不可跳过任何步骤。**

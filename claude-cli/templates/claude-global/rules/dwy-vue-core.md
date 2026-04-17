@@ -1,15 +1,11 @@
 ---
+description: Vue 3 + TS + Vite + Tailwind 基础风格(组件/TS/模板/样式/反模式/错误处理)
 paths:
   - "**/*.vue"
-  - "**/*.ts"
-  - "**/*.tsx"
   - "**/vite.config.*"
-  - "**/tsconfig*.json"
 ---
 
-# Vue 3 + TypeScript + Vite + Pinia 代码规范
-
-所有 Vue / TypeScript 前端项目必须遵循以下规范。AI 生成或修改代码时，必须严格按照这些规则执行。
+# Vue 3 基础风格规范
 
 ## 一、项目结构
 
@@ -267,59 +263,6 @@ interface TableColumn {
 | `Array<string>` | `string[]` |
 | 枚举 `enum Status {}` | 联合类型 `type Status = 'active' \| 'inactive'` |
 
-## 四、Pinia 状态管理
-
-### 强制使用 Setup Store
-
-```typescript
-// ✅ Setup Store（强制）
-export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem('token'))
-  const user = ref<UserInfo | null>(null)
-
-  const isLoggedIn = computed(() => !!token.value)
-
-  async function login(username: string, password: string) {
-    const res = await apiLogin(username, password)
-    token.value = res.data.access_token
-    localStorage.setItem('token', token.value)
-  }
-
-  function logout() {
-    token.value = null
-    user.value = null
-    localStorage.removeItem('token')
-  }
-
-  return { token, user, isLoggedIn, login, logout }
-})
-
-// ❌ Options Store（禁止）
-export const useAuthStore = defineStore('auth', {
-  state: () => ({ token: '' }),
-  actions: { login() {} }
-})
-```
-
-### Store 设计原则
-
-| 原则 | 说明 |
-|------|------|
-| 单一职责 | 一个 store 管理一个业务域（auth、menu、user） |
-| 不直接修改 state | 通过方法修改，不在组件中直接 `store.xxx = yyy` |
-| 异步操作放 store | API 调用封装在 store 方法中 |
-| 解构用 `storeToRefs` | 解构响应式状态必须用 `storeToRefs`，方法直接解构 |
-
-```typescript
-// ✅ 正确解构
-const store = useReportStore()
-const { report, loading } = storeToRefs(store)
-const { setReport, reset } = store
-
-// ❌ 错误解构（丢失响应性）
-const { report, loading } = store
-```
-
 ## 五、路由规范
 
 ### 强制规则
@@ -382,96 +325,6 @@ declare module 'vue-router' {
     title?: string
   }
 }
-```
-
-## 六、API 请求规范
-
-### 强制规则
-
-- API 文件按**业务域拆分**（`api/user.ts`、`api/exam.ts`）
-- 每个 API 函数**独立导出**，不使用 default export
-- 请求参数和响应使用**类型标注**
-- **禁止**在组件中直接创建 axios 实例或调用 `fetch`
-
-### API 文件结构
-
-```typescript
-// api/user.ts
-import request from '@/utils/request'
-import type { UserInfo, UserCreate, UserUpdate } from '@/types/user'
-
-export function getUsers(params?: { page?: number; page_size?: number }) {
-  return request.get<{ items: UserInfo[]; total: number }>('/users', { params })
-}
-
-export function getUser(id: number) {
-  return request.get<UserInfo>(`/users/${id}`)
-}
-
-export function createUser(data: UserCreate) {
-  return request.post<UserInfo>('/users', data)
-}
-
-export function updateUser(id: number, data: UserUpdate) {
-  return request.put<UserInfo>(`/users/${id}`, data)
-}
-
-export function deleteUser(id: number) {
-  return request.delete(`/users/${id}`)
-}
-```
-
-### 请求实例配置
-
-```typescript
-// utils/request.ts
-import axios from 'axios'
-
-const request = axios.create({
-  baseURL: '/api',
-  timeout: 30000,
-})
-
-// Token 注入
-request.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-  return config
-})
-
-// 401 处理
-request.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token')
-      window.location.href = '/login'
-    }
-    return Promise.reject(error)
-  },
-)
-
-export default request
-```
-
-### 禁止的写法
-
-```typescript
-// ❌ 在组件中直接调用
-const res = await axios.get('/api/users')
-
-// ✅ 通过 API 模块调用
-import { getUsers } from '@/api/user'
-const res = await getUsers()
-
-// ❌ API 函数使用 default export
-export default { getUsers, createUser }
-
-// ✅ 每个函数独立导出
-export function getUsers() { ... }
-export function createUser() { ... }
 ```
 
 ## 七、组合式函数（Composables）
@@ -731,99 +584,6 @@ import type { UserInfo } from '@/types/user'
 import { UserInfo, getUsers } from '@/api/user'
 ```
 
-## 十三、测试规范（Vitest）
-
-### 强制规则
-- 使用 **Vitest** 作为测试框架，配合 **@vue/test-utils** + **happy-dom**
-- 测试文件**必须放在项目根目录的 `tests/` 目录**，按模块镜像 `src/` 结构，**禁止**放在 `src/` 内
-- `tsconfig.app.json` 的 `include` **只包含 `src/`**，确保打包不携带测试文件
-- 测试文件命名：`*.test.ts`
-
-### 依赖安装
-
-```bash
-pnpm add -D vitest @vue/test-utils happy-dom
-```
-
-### package.json 脚本
-
-```json
-{
-  "scripts": {
-    "test": "vitest",
-    "test:run": "vitest run"
-  }
-}
-```
-
-### vitest.config.ts（独立文件，不写在 vite.config.ts 中）
-
-```typescript
-import { fileURLToPath } from 'node:url'
-import { defineConfig } from 'vitest/config'
-import vue from '@vitejs/plugin-vue'
-
-export default defineConfig({
-  plugins: [vue()],
-  resolve: {
-    alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
-    },
-  },
-  test: {
-    environment: 'happy-dom',
-    include: ['tests/**/*.test.ts'],
-  },
-})
-```
-
-### 目录结构与导入
-
-```
-tests/
-├── utils/format.test.ts        # 测试 src/utils/format.ts
-├── stores/auth.test.ts         # 测试 src/stores/auth.ts
-├── api/client.test.ts          # 测试 src/api/client.ts
-└── router/index.test.ts        # 测试 src/router/index.ts
-```
-
-测试文件中通过 `@` 别名导入源码，**禁止**使用相对路径回溯到 `src/`：
-
-```typescript
-// ✅ 使用 @ 别名
-import { formatBytes } from '@/utils/format'
-import { useAuthStore } from '@/stores/auth'
-
-// ❌ 禁止相对路径回溯
-import { formatBytes } from '../../src/utils/format'
-```
-
-### 打包隔离
-
-`tsconfig.app.json` 的 `include` 只包含 `src/`，确保 `tests/` 不会被 `vue-tsc` 编译和打包：
-
-```json
-{
-  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.vue"]
-}
-```
-
-**禁止**在 `tsconfig.app.json` 中 include `tests/`。
-
-### 禁止的写法
-
-```
-# ❌ 测试文件放在 src/ 内
-src/utils/format.test.ts
-src/stores/__tests__/auth.test.ts
-src/components/Button.test.ts
-
-# ✅ 测试文件放在独立 tests/ 目录
-tests/utils/format.test.ts
-tests/stores/auth.test.ts
-tests/components/Button.test.ts
-```
-
 ## 十四、常见反模式（禁止）
 
 | 反模式 | 正确做法 |
@@ -930,3 +690,45 @@ try {
 | 16 | `tsconfig.app.json` 的 include 不包含 `tests/` | ✓ |
 
 **不执行自检就提交代码 = 违规。**
+
+---
+
+## 错误处理（跨栈约束）
+
+### 前端（Vue）
+
+通过 ekit request 插件统一处理：
+
+```typescript
+// 在 api/client.ts 配置拦截器后，业务代码不需要 try/catch
+// 401 → refreshToken 插件自动刷新，失败则跳登录
+// 422 → unwrap 插件抛出错误，页面级 catch 显示 message
+// 其他错误 → 全局错误提示
+```
+
+**禁止：** 每个 API 调用都包 try/catch，应在页面级或 store 级统一处理。
+
+---
+
+## 环境变量管理
+
+### 前端（Vite）
+
+```bash
+# .env.development
+VITE_API_BASE_URL=http://localhost:8000/api
+
+# .env.production
+VITE_API_BASE_URL=/api
+```
+
+代码中通过 `import.meta.env.VITE_API_BASE_URL` 访问。**只有 `VITE_` 前缀的变量会暴露给客户端。**
+
+### 强制规则
+
+| 规则 | 说明 |
+|------|------|
+| 每个项目必须有 `.env.example` | 列出所有变量名 + 注释说明，值用占位符 |
+| `.env` 文件禁止提交 git | 已在 git-security.md 约束 |
+| 禁止硬编码 | 数据库连接、密钥、API 地址等必须走环境变量 |
+| 禁止运行时读取 `.env` 文件 | 后端用 BaseSettings（启动时加载），前端用 Vite 编译注入 |

@@ -1,8 +1,41 @@
 ---
+description: Python 后端安全编码(认证/校验/注入/存储/RBAC 等)
 paths:
   - "**/*.py"
-  - "**/alembic/**"
-  - "**/pyproject.toml"
+---
+
+# Python 后端安全编码
+
+## 十九、安全编码
+
+### 强制规则
+- SQL 查询必须使用参数化绑定，**禁止**字符串拼接
+- 用户输入必须校验后使用，**禁止**直接信任
+- 文件路径操作必须防止路径遍历攻击
+- 序列化/反序列化**禁止**用不安全的反序列化库处理不可信数据
+- 密码存储必须使用 `bcrypt` / `argon2`，**禁止**明文或 MD5/SHA
+- JWT 密钥从环境变量读取，**禁止**硬编码
+
+```python
+# BAD: SQL 注入
+cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
+
+# GOOD: 参数化查询
+cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
+
+# BAD: 路径遍历
+file_path = f"/uploads/{user_input_filename}"
+
+# GOOD: 路径安全校验
+safe_path = Path("/uploads") / Path(user_input_filename).name
+
+# BAD: 硬编码密钥
+SECRET_KEY = "my-super-secret-key"
+
+# GOOD: 环境变量
+SECRET_KEY = settings.secret_key
+```
+
 ---
 
 # 后端安全编码规范
@@ -17,7 +50,7 @@ FastAPI + PostgreSQL + Redis + MinIO + DolphinDB 项目的安全编码规则。A
 ### 强制规则
 
 ```python
-# ✅ 正确 — ORM 模型同时有 id 和 uuid
+# GOOD: ORM 模型同时有 id 和 uuid
 import uuid as uuid_lib
 from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column
@@ -30,24 +63,24 @@ class User(Base, TimestampMixin):
     name: Mapped[str] = mapped_column(String(50))
 
 
-# ✅ 正确 — 路由用 UUID 查询
+# GOOD: 路由用 UUID 查询
 @router.get("/users/{user_uuid}", response_model=UserResponse)
 async def get_user(user_uuid: str, service: UserService = Depends(get_user_service)):
     return await service.get_by_uuid(user_uuid)
 
 
-# ✅ 正确 — Response Schema 只返回 uuid，不返回 id
+# GOOD: Response Schema 只返回 uuid，不返回 id
 class UserResponse(BaseModel):
     uuid: str
     name: str
     # 不暴露 id 字段
 
 
-# ❌ 违规 — 路由直接用自增 ID
+# BAD: 路由直接用自增 ID
 @router.get("/users/{user_id}")
 async def get_user(user_id: int): ...
 
-# ❌ 违规 — Response 暴露自增 ID
+# BAD: Response 暴露自增 ID
 class UserResponse(BaseModel):
     id: int  # 攻击者可遍历 1,2,3...
 ```
@@ -60,19 +93,19 @@ class UserResponse(BaseModel):
 ### 强制规则
 
 ```python
-# ✅ 正确 — bcrypt 存储
+# GOOD: bcrypt 存储
 from danweiyuan_eapi.security import hash_password, verify_password
 
 hashed = hash_password("user_password")   # 存储到数据库
 is_valid = verify_password("input", hashed)  # 验证时比对
 
-# ❌ 违规 — 明文存储
+# BAD: 明文存储
 user.password = "123456"
 
-# ❌ 违规 — MD5/SHA 存储（可被彩虹表破解）
+# BAD: MD5/SHA 存储（可被彩虹表破解）
 user.password = hashlib.md5(password.encode()).hexdigest()
 
-# ❌ 违规 — 接口返回密码字段
+# BAD: 接口返回密码字段
 class UserResponse(BaseModel):
     id: int
     name: str
@@ -91,18 +124,18 @@ class UserResponse(BaseModel):
 ### 强制规则
 
 ```python
-# ✅ 所有 API 必须 JWT 认证（白名单除外）
+# GOOD: 所有 API 必须 JWT 认证（白名单除外）
 WHITELIST = ["/api/health", "/api/auth/login", "/api/auth/register"]
 
-# ✅ 路由级别认证
+# GOOD: 路由级别认证
 @router.get("/users", dependencies=[Depends(get_current_user)])
 async def list_users(): ...
 
-# ✅ 角色检查
+# GOOD: 角色检查
 @router.delete("/users/{uuid}", dependencies=[Depends(require_admin)])
 async def delete_user(uuid: str): ...
 
-# ❌ 违规 — 无认证的数据接口
+# BAD: 无认证的数据接口
 @router.get("/users")
 async def list_users(): ...
 ```
@@ -122,23 +155,23 @@ async def list_users(): ...
 ### 强制规则
 
 ```python
-# ✅ Pydantic Schema 严格校验
+# GOOD: Pydantic Schema 严格校验
 class UserCreate(BaseModel):
     name: str = Field(min_length=2, max_length=50)
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     age: int = Field(ge=0, le=150)
 
-# ✅ 列表查询参数限制
+# GOOD: 列表查询参数限制
 class ListParams(BaseModel):
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=20, ge=1, le=100)  # 上限 100
 
-# ❌ 违规 — 不校验直接使用
+# BAD: 不校验直接使用
 @router.post("/users")
 async def create_user(data: dict): ...
 
-# ❌ 违规 — page_size 无上限
+# BAD: page_size 无上限
 class ListParams(BaseModel):
     page_size: int = 20  # 攻击者可传 999999
 ```
@@ -148,7 +181,7 @@ class ListParams(BaseModel):
 | 字段类型 | 校验 |
 |---------|------|
 | 字符串 | `min_length` + `max_length` |
-| 数字 | `ge` + `le`（最小值 + 最大值） |
+| 数字 | `ge` + `le`(最小值 + 最大值) |
 | 邮箱 | `EmailStr` |
 | 手机号 | `pattern=r"^1[3-9]\d{9}$"` |
 | URL | `HttpUrl` |
@@ -160,7 +193,7 @@ class ListParams(BaseModel):
 ### 强制规则
 
 ```python
-# ✅ Response Schema 严格控制返回字段
+# GOOD: Response Schema 严格控制返回字段
 class UserResponse(BaseModel):
     uuid: str
     name: str
@@ -170,17 +203,17 @@ class UserResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-# ❌ 违规 — 直接返回 ORM 对象
+# BAD: 直接返回 ORM 对象
 @router.get("/users/{uuid}")
 async def get_user(uuid: str, db=Depends(get_db)):
     user = await db.get(User, uuid)
     return user  # 可能暴露 password、内部 ID 等
 
-# ✅ 列表接口必须分页
+# GOOD: 列表接口必须分页
 @router.get("/users", response_model=PaginatedResponse[UserResponse])
 async def list_users(params: PaginationParams = Depends()): ...
 
-# ❌ 违规 — 无分页返回全量数据
+# BAD: 无分页返回全量数据
 @router.get("/users")
 async def list_users():
     return await db.execute(select(User))  # 全量泄露
@@ -189,7 +222,7 @@ async def list_users():
 ### PII 脱敏
 
 ```python
-# ✅ 工具函数
+# GOOD: 工具函数
 def mask_phone(phone: str) -> str:
     """138****5678"""
     if len(phone) != 11:
@@ -202,7 +235,7 @@ def mask_id_card(id_card: str) -> str:
         return id_card
     return id_card[:3] + "***********" + id_card[14:]
 
-# ✅ 在 Response Schema 中使用 validator 脱敏
+# GOOD: 在 Response Schema 中使用 validator 脱敏
 class UserResponse(BaseModel):
     phone: str
 
@@ -217,22 +250,22 @@ class UserResponse(BaseModel):
 ### 强制规则
 
 ```python
-# ✅ 生产环境只返回通用错误
-raise NotFoundError("用户")          # → {"code": "NOT_FOUND", "message": "用户不存在"}
-raise BusinessError("操作失败")       # → {"code": "UNKNOWN_ERROR", "message": "操作失败"}
+# GOOD: 生产环境只返回通用错误
+raise NotFoundError("用户")
+raise BusinessError("操作失败")
 
-# ❌ 违规 — 回显用户输入
+# BAD: 回显用户输入
 raise BusinessError(f"未找到: {user_input}")  # XSS/信息泄露
 
-# ❌ 违规 — 暴露内部错误
+# BAD: 暴露内部错误
 except Exception as e:
     return {"error": str(e)}  # 可能包含 SQL、文件路径、堆栈
 
-# ❌ 违规 — 暴露数据库结构
+# BAD: 暴露数据库结构
 except IntegrityError as e:
     return {"error": f"数据库错误: {e}"}  # 暴露表名、字段名
 
-# ✅ 正确 — 统一错误处理
+# GOOD: 统一错误处理
 except IntegrityError:
     raise BusinessError("数据冲突，请检查是否重复提交", code="CONFLICT")
 ```
@@ -253,30 +286,27 @@ except IntegrityError:
 ### SQL 注入
 
 ```python
-# ✅ ORM 参数化查询（安全）
+# GOOD: ORM 参数化查询（安全）
 result = await session.execute(select(User).where(User.id == user_id))
 
-# ✅ 原生 SQL 参数化（安全）
+# GOOD: 原生 SQL 参数化（安全）
 result = await session.execute(text("SELECT * FROM users WHERE id = :id"), {"id": user_id})
 
-# ❌ 违规 — 字符串拼接（SQL 注入）
+# BAD: 字符串拼接（SQL 注入）
 result = await session.execute(text(f"SELECT * FROM users WHERE id = {user_id}"))
 ```
 
 ### 命令注入
 
 ```python
-# ❌ 违规 — shell 命令注入
-import os
-os.system(f"convert {user_filename} output.png")
+# BAD: shell 命令注入(禁止)
+# 使用 os 模块的 system 调用执行用户输入拼接的命令 → 注入风险
+# 使用 subprocess.run(... , shell=True) 执行用户输入拼接的字符串 → 注入风险
 
-import subprocess
-subprocess.run(f"ls {user_path}", shell=True)
-
-# ✅ 正确 — 参数列表（不经过 shell）
+# GOOD: 参数列表（不经过 shell）
 subprocess.run(["convert", safe_filename, "output.png"], shell=False)
 
-# ✅ 最佳 — 不调用外部命令，用 Python 库
+# BEST: 不调用外部命令，用 Python 库
 from PIL import Image
 img = Image.open(safe_path)
 ```
@@ -284,10 +314,10 @@ img = Image.open(safe_path)
 ### 路径遍历
 
 ```python
-# ❌ 违规 — 用户控制文件路径
+# BAD: 用户控制文件路径
 file_path = f"/uploads/{user_input_filename}"
 
-# ✅ 正确 — 安全提取文件名
+# GOOD: 安全提取文件名
 from pathlib import Path
 safe_name = Path(user_input_filename).name  # 去除 ../../../ 等
 file_path = Path("/uploads") / safe_name
@@ -296,11 +326,11 @@ file_path = Path("/uploads") / safe_name
 ### SSRF（服务端请求伪造）
 
 ```python
-# ❌ 违规 — 用户控制 URL 发起请求
+# BAD: 用户控制 URL 发起请求
 url = request_body.url  # 用户传入
 response = await httpx.get(url)  # 可能访问内网 169.254.169.254
 
-# ✅ 正确 — 白名单限制
+# GOOD: 白名单限制
 ALLOWED_HOSTS = ["api.example.com", "cdn.example.com"]
 parsed = urlparse(url)
 if parsed.hostname not in ALLOWED_HOSTS:
@@ -312,7 +342,7 @@ if parsed.hostname not in ALLOWED_HOSTS:
 ### 强制规则
 
 ```python
-# ✅ 模型添加软删除字段
+# GOOD: 模型添加软删除字段
 class User(Base, TimestampMixin):
     __tablename__ = "users"
 
@@ -320,21 +350,21 @@ class User(Base, TimestampMixin):
     is_deleted: Mapped[bool] = mapped_column(default=False)
     deleted_at: Mapped[datetime | None] = mapped_column(default=None)
 
-# ✅ 删除操作只更新标记
+# GOOD: 删除操作只更新标记
 async def delete_user(self, user_uuid: str) -> None:
     user = await self.get_by_uuid(user_uuid)
     user.is_deleted = True
     user.deleted_at = datetime.now(timezone.utc)
     await self.db.commit()
 
-# ✅ 查询时自动排除已删除
+# GOOD: 查询时自动排除已删除
 async def list_users(self) -> list[User]:
     result = await self.db.execute(
         select(User).where(User.is_deleted == False)
     )
     return list(result.scalars().all())
 
-# ❌ 违规 — 物理删除
+# BAD: 物理删除
 async def delete_user(self, user_id: int) -> None:
     user = await self.db.get(User, user_id)
     await self.db.delete(user)  # 数据永久丢失
@@ -362,7 +392,7 @@ async def delete_user(self, user_id: int) -> None:
 | 导出操作 | 操作人、导出数据范围 |
 
 ```python
-# ✅ 审计日志示例
+# GOOD: 审计日志示例
 import logging
 
 audit_logger = logging.getLogger("audit")
@@ -402,7 +432,7 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO app_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO app_user;
 
--- ❌ 禁止给应用用户的权限
+-- 禁止给应用用户的权限
 -- GRANT ALL PRIVILEGES
 -- SUPERUSER
 -- CREATEDB
@@ -438,17 +468,17 @@ maxmemory-policy allkeys-lru
 
 ### Key 设计规范
 ```python
-# ✅ 正确 — 有前缀、有 TTL
+# GOOD: 有前缀、有 TTL
 await redis.set("myapp:token:blacklist:abc123", "1", ex=3600)
 await redis.set("myapp:cache:user:uuid123", json.dumps(user_data), ex=300)
 
-# ❌ 违规 — 无前缀
+# BAD: 无前缀
 await redis.set("abc123", "1")
 
-# ❌ 违规 — 无 TTL
+# BAD: 无 TTL
 await redis.set("myapp:data:xxx", value)  # 永不过期，内存泄漏
 
-# ❌ 违规 — 存储敏感原文
+# BAD: 存储敏感原文
 await redis.set("myapp:user:password", "123456")
 ```
 
@@ -465,7 +495,7 @@ await redis.set("myapp:user:password", "123456")
 | 文件大小 | 后端二次校验大小限制（不信任前端或 Nginx） |
 
 ```python
-# ✅ 正确 — UUID 重命名 + 预签名 URL
+# GOOD: UUID 重命名 + 预签名 URL
 import uuid as uuid_lib
 from minio import Minio
 
@@ -488,13 +518,13 @@ def get_download_url(filename: str) -> str:
     return client.presigned_get_object("uploads", filename, expires=timedelta(minutes=15))
 
 
-# ❌ 违规 — 用户原始文件名
+# BAD: 用户原始文件名
 safe_name = file.filename  # 可能包含 ../../../etc/passwd
 
-# ❌ 违规 — 公开 bucket
+# BAD: 公开 bucket
 client.set_bucket_policy("uploads", public_read_policy)
 
-# ❌ 违规 — 只检查扩展名
+# BAD: 只检查扩展名
 if file.filename.endswith(".jpg"):  # 攻击者可改扩展名
 ```
 
@@ -510,7 +540,7 @@ if file.filename.endswith(".jpg"):  # 攻击者可改扩展名
 | 端口隔离 | DolphinDB 端口**禁止对外暴露**，仅 Docker 内部网络或 127.0.0.1 |
 
 ```python
-# ✅ 正确 — 白名单验证后再插入脚本
+# GOOD: 白名单验证后再插入脚本
 import re
 
 SAFE_COLUMN_NAME = re.compile(r'^[a-zA-Z_][a-zA-Z0-9_]{0,63}$')
@@ -526,17 +556,17 @@ col = validate_column_name(user_input_column)
 script = f"select {col} from loadTable('dfs://mydb', 'mytable')"
 
 
-# ❌ 违规 — 直接拼接用户输入
+# BAD: 直接拼接用户输入
 script = f"select * from loadTable('dfs://mydb', '{user_input}')"  # DolphinDB 注入
 
-# ❌ 违规 — 无验证
+# BAD: 无验证
 factor_name = request.query_params.get("factor")
 script = f"select * from factors where factor_name = '{factor_name}'"
 ```
 
 ### DolphinDB 连接安全
 ```python
-# ✅ 正确 — 从环境变量读取
+# GOOD: 从环境变量读取
 ddb_conn = ddb.Session()
 ddb_conn.connect(
     host=settings.dolphindb_host,
@@ -545,7 +575,7 @@ ddb_conn.connect(
     password=settings.dolphindb_password,
 )
 
-# ❌ 违规 — 硬编码
+# BAD: 硬编码
 ddb_conn.connect("localhost", 8848, "admin", "123456")
 ```
 
@@ -564,7 +594,7 @@ ddb_conn.connect("localhost", 8848, "admin", "123456")
 | 文件上传 | 10 次/分钟/IP | 防资源滥用 |
 
 ```python
-# ✅ 使用 slowapi 限流
+# GOOD: 使用 slowapi 限流
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 

@@ -1,10 +1,12 @@
-# Flutter + Dart 代码规范
-
-本规范约束所有 Flutter 项目的代码风格、架构模式和最佳实践。与 `vue-code-style.md`、`python-code-style.md` 平级。
-
-> 跨端通用约束（技术选型、API 格式、Docker、OSS 等）见 `engineering-tech-spec.md`。
-
 ---
+description: Flutter + Dart 基础风格(结构/Riverpod/命名/模型/Dart 语言/Lint)
+paths:
+  - "**/*.dart"
+  - "**/pubspec.yaml"
+  - "**/analysis_options.yaml"
+---
+
+# Flutter + Dart 基础风格规范
 
 ## 一、项目结构
 
@@ -321,254 +323,9 @@ shared/widgets/               # snake_case
 
 ---
 
-## 四、网络层（Dio）
+## 四、数据模型与序列化
 
-### 4.1 Dio 实例封装
-
-```dart
-// core/network/dio_client.dart
-import 'package:dio/dio.dart';
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-part 'dio_client.g.dart';
-
-@Riverpod(keepAlive: true)
-Dio dio(Ref ref) {
-  final env = ref.watch(envProvider);
-  final dio = Dio(BaseOptions(
-    baseUrl: env.apiBaseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 30),
-    headers: {'Content-Type': 'application/json'},
-  ));
-
-  dio.interceptors.addAll([
-    TokenInterceptor(ref),
-    RefreshInterceptor(ref),
-    UnwrapInterceptor(),
-    ErrorInterceptor(ref),
-  ]);
-
-  return dio;
-}
-```
-
-### 4.2 拦截器
-
-**Token 注入：**
-```dart
-class TokenInterceptor extends Interceptor {
-  final Ref ref;
-  TokenInterceptor(this.ref);
-
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    final token = await TokenStorage.getAccessToken();
-    if (token != null) {
-      options.headers['Authorization'] = 'Bearer $token';
-    }
-    handler.next(options);
-  }
-}
-```
-
-**响应解包（对齐 eapi 格式）：**
-```dart
-class UnwrapInterceptor extends Interceptor {
-  @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    final data = response.data;
-    if (data is Map && data.containsKey('code') && data.containsKey('data')) {
-      // eapi 格式: {code: 200, message: "success", data: {...}}
-      response.data = data['data'];
-    }
-    handler.next(response);
-  }
-}
-```
-
-**401 Token 刷新（使用 QueuedInterceptor 防止竞态）：**
-
-> **关键：** 使用 `QueuedInterceptor` 而非 `Interceptor`。QueuedInterceptor 串行处理请求，
-> 刷新期间后续 401 请求自动排队等待，无需手动管理队列。
-> 刷新 token 必须用**独立 Dio 实例**，避免被自身拦截器死锁。
-
-```dart
-class RefreshInterceptor extends QueuedInterceptor {
-  final Ref ref;
-  final Dio _refreshDio = Dio();  // 独立实例，不经过拦截器链
-
-  RefreshInterceptor(this.ref);
-
-  @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async {
-    if (err.response?.statusCode != 401) {
-      return handler.next(err);
-    }
-
-    try {
-      final refreshToken = await TokenStorage.getRefreshToken();
-      if (refreshToken == null) {
-        ref.read(authProvider.notifier).logout();
-        return handler.next(err);
-      }
-
-      // 用独立 Dio 实例刷新 token
-      final response = await _refreshDio.post(
-        '${ref.read(envProvider).apiBaseUrl}/api/auth/refresh',
-        data: {'refresh_token': refreshToken},
-      );
-
-      final newToken = response.data['data']['access_token'];
-      await TokenStorage.saveAccessToken(newToken);
-
-      // 用新 token 重试原请求
-      err.requestOptions.headers['Authorization'] = 'Bearer $newToken';
-      final retryResponse = await ref.read(dioProvider).fetch(err.requestOptions);
-      handler.resolve(retryResponse);
-    } catch (e) {
-      // 刷新失败 → 登出
-      ref.read(authProvider.notifier).logout();
-      handler.next(err);
-    }
-  }
-}
-```
-
-### 4.3 Repository 模式
-
-```dart
-// features/user/data/user_repository.dart
-class UserRepository {
-  final Dio _dio;
-  UserRepository(this._dio);
-
-  Future<List<User>> getUsers({int page = 1, int pageSize = 20}) async {
-    final response = await _dio.get('/api/users', queryParameters: {
-      'page': page,
-      'page_size': pageSize,
-    });
-    final data = response.data as Map<String, dynamic>;
-    return (data['items'] as List).map((e) => User.fromJson(e)).toList();
-  }
-
-  Future<User> getUser(int id) async {
-    final response = await _dio.get('/api/users/$id');
-    return User.fromJson(response.data);
-  }
-
-  Future<void> deleteUser(int id) async {
-    await _dio.delete('/api/users/$id');
-  }
-}
-
-// Provider 注入 Repository
-@riverpod
-UserRepository userRepository(Ref ref) {
-  return UserRepository(ref.watch(dioProvider));
-}
-```
-
-### 4.4 禁止事项
-
-- 禁止 `http.get()` / `HttpClient` / 裸 `Dio()` 不加拦截器
-- 禁止在 Widget 中直接调用 Dio（通过 Provider + Repository）
-- 禁止硬编码 API 地址（走环境配置）
-
----
-
-## 五、路由（GoRouter）
-
-### 5.1 路由定义
-
-```dart
-// app.dart 或 shared/providers/router_provider.dart
-@riverpod
-GoRouter router(Ref ref) {
-  final auth = ref.watch(authProvider);
-
-  return GoRouter(
-    initialLocation: '/',
-    redirect: (context, state) {
-      final isLoggedIn = auth.isAuthenticated;
-      final isLoginRoute = state.matchedLocation == '/login';
-
-      if (!isLoggedIn && !isLoginRoute) return '/login';
-      if (isLoggedIn && isLoginRoute) return '/';
-      return null;
-    },
-    routes: [
-      GoRoute(
-        path: '/login',
-        builder: (context, state) => const LoginPage(),
-      ),
-      ShellRoute(
-        builder: (context, state, child) => AppShell(child: child),
-        routes: [
-          GoRoute(
-            path: '/',
-            builder: (context, state) => const HomePage(),
-          ),
-          GoRoute(
-            path: '/users',
-            builder: (context, state) => const UserListPage(),
-          ),
-          GoRoute(
-            path: '/users/:id',
-            builder: (context, state) {
-              final id = int.parse(state.pathParameters['id']!);
-              return UserDetailPage(userId: id);
-            },
-          ),
-        ],
-      ),
-    ],
-  );
-}
-```
-
-### 5.2 导航
-
-```dart
-// 声明式导航
-context.go('/users');            // 替换当前页面栈
-context.push('/users/123');      // 压入新页面
-context.pop();                   // 返回
-
-// 禁止使用 Navigator.push / Navigator.pushNamed
-```
-
-### 5.3 底部导航（StatefulShellRoute）
-
-```dart
-StatefulShellRoute.indexedStack(
-  builder: (context, state, navigationShell) {
-    return ScaffoldWithBottomNav(navigationShell: navigationShell);
-  },
-  branches: [
-    StatefulShellBranch(routes: [
-      GoRoute(path: '/home', builder: (_, __) => const HomePage()),
-    ]),
-    StatefulShellBranch(routes: [
-      GoRoute(path: '/profile', builder: (_, __) => const ProfilePage()),
-    ]),
-  ],
-)
-```
-
-### 5.4 路由规则
-
-| 规则 | 说明 |
-|------|------|
-| 全部用 GoRouter | 禁止 `Navigator.push` / `Navigator.pushNamed` |
-| 认证守卫在 redirect 中 | 不在每个页面单独检查 |
-| 路径参数用 `:id` | `/users/:id`，通过 `state.pathParameters['id']` 获取 |
-| 查询参数用 `state.uri.queryParameters` | 分页、筛选等 |
-
----
-
-## 六、数据模型与序列化
-
-### 6.1 freezed + json_serializable
+### 4.1 freezed + json_serializable
 
 ```yaml
 # pubspec.yaml
@@ -602,7 +359,7 @@ class User with _$User {
 }
 ```
 
-### 6.2 规则
+### 4.2 规则
 
 | 规则 | 说明 |
 |------|------|
@@ -613,99 +370,9 @@ class User with _$User {
 
 ---
 
-## 七、测试规范
+## 五、Dart 语言规范
 
-### 7.1 测试分类
-
-| 类型 | 位置 | 工具 | 重点 |
-|------|------|------|------|
-| Unit Test | `test/features/{name}/` | flutter_test + mocktail | Repository、Service、工具函数 |
-| Provider Test | `test/features/{name}/` | flutter_test + ProviderContainer | Provider 状态变化 |
-| Widget Test | `test/features/{name}/` | flutter_test + ProviderScope.overrides | 页面渲染和交互 |
-
-### 7.2 Provider 测试
-
-```dart
-import 'package:flutter_test/flutter_test.dart';
-import 'package:mocktail/mocktail.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-class MockUserRepository extends Mock implements UserRepository {}
-
-void main() {
-  late MockUserRepository mockRepo;
-  late ProviderContainer container;
-
-  setUp(() {
-    mockRepo = MockUserRepository();
-    container = ProviderContainer(overrides: [
-      userRepositoryProvider.overrideWithValue(mockRepo),
-    ]);
-  });
-
-  tearDown(() => container.dispose());
-
-  test('userList 初始化时获取用户列表', () async {
-    when(() => mockRepo.getUsers()).thenAnswer(
-      (_) async => [User(id: 1, username: 'test', role: 'admin', isActive: true, createdAt: DateTime.now())],
-    );
-
-    // 读取 provider 触发初始化
-    final future = container.read(userListProvider.future);
-    final users = await future;
-
-    expect(users, hasLength(1));
-    expect(users.first.username, 'test');
-  });
-}
-```
-
-### 7.3 Widget 测试
-
-```dart
-testWidgets('登录页面渲染正确', (tester) async {
-  await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        authProvider.overrideWith(() => MockAuth()),
-      ],
-      child: const MaterialApp(home: LoginPage()),
-    ),
-  );
-
-  expect(find.byType(TextFormField), findsNWidgets(2));
-  expect(find.text('登录'), findsOneWidget);
-});
-```
-
-### 7.4 Mock 工具
-
-统一使用 `mocktail`（不是 mockito）：
-
-```yaml
-dev_dependencies:
-  mocktail: ^1.0.0
-```
-
-```dart
-class MockDio extends Mock implements Dio {}
-class MockAuthRepository extends Mock implements AuthRepository {}
-```
-
-### 7.5 测试规则
-
-| 规则 | 说明 |
-|------|------|
-| 每个 feature 有对应测试目录 | `test/features/{name}/` |
-| Repository 和 Provider 必须测试 | 业务逻辑的核心 |
-| Mock 用 mocktail | 禁止 mockito（mocktail 无需 codegen） |
-| 遵循项目 TDD 流程 | 先写测试 → 再实现 → 回归 |
-
----
-
-## 八、Dart 语言规范
-
-### 8.1 类型标注
+### 5.1 类型标注
 
 ```dart
 // 显式标注公开 API 的返回类型
@@ -719,7 +386,7 @@ var count = 0;
 // 禁止 dynamic（除非与原生 JSON 交互的边界点）
 ```
 
-### 8.2 Null Safety
+### 5.2 Null Safety
 
 ```dart
 // 优先用非空类型
@@ -739,7 +406,7 @@ user?.name;
 print(user!.name);             // 可能运行时崩溃
 ```
 
-### 8.3 异步
+### 5.3 异步
 
 ```dart
 // async/await 优先
@@ -755,7 +422,7 @@ final (users, orders) = await (
 // fetchUser(id).then((user) => fetchOrders(user.id)).then(...)  // 禁止
 ```
 
-### 8.4 集合操作
+### 5.4 集合操作
 
 ```dart
 // 推荐：collection-if / collection-for
@@ -771,7 +438,7 @@ final paint = Paint()
   ..strokeWidth = 2.0;
 ```
 
-### 8.5 构造函数
+### 5.5 构造函数
 
 ```dart
 // 推荐：命名参数 + required
@@ -791,9 +458,9 @@ class UserCard extends StatelessWidget {
 
 ---
 
-## 九、Lint 规则
+## 六、Lint 规则
 
-### 9.1 analysis_options.yaml
+### 6.1 analysis_options.yaml
 
 ```yaml
 include: package:flutter_lints/flutter.yaml
@@ -818,7 +485,7 @@ analyzer:
     - "**/*.freezed.dart"
 ```
 
-### 9.2 Import 规则
+### 6.2 Import 规则
 
 ```dart
 // 使用 package import（禁止相对导入）
@@ -838,7 +505,7 @@ import 'package:my_app/features/auth/data/auth_repository.dart';
 
 ---
 
-## 十、代码自检清单
+## 七、代码自检清单
 
 提交前逐条确认：
 
@@ -859,3 +526,39 @@ import 'package:my_app/features/auth/data/auth_repository.dart';
 - [ ] 代码生成文件已更新（`dart run build_runner build`）
 - [ ] 新增功能有对应测试
 - [ ] TEST_CASES.md 已同步
+
+---
+
+## 八、环境变量管理（Flutter）
+
+使用编译时注入或 `.env` + `flutter_dotenv`：
+
+```bash
+# .env
+API_BASE_URL=http://localhost:8000/api
+
+# 或编译时注入
+flutter run --dart-define=API_BASE_URL=http://localhost:8000/api
+```
+
+**强制规则：**
+
+| 规则 | 说明 |
+|------|------|
+| 每个项目必须有 `.env.example` | 列出所有变量名 + 注释说明，值用占位符 |
+| `.env` 文件禁止提交 git | 已在 git-security.md 约束 |
+| 禁止硬编码 | 数据库连接、密钥、API 地址等必须走环境变量 |
+
+---
+
+## 九、状态管理（跨端共识）
+
+| 平台 | 方案 | 详细规范 |
+|------|------|---------|
+| Vue | Pinia Setup Store | 见 `vue-code-style.md` 状态管理章节 |
+| Flutter | Riverpod | 见本文件第二章 |
+
+**跨端共识：**
+- 认证状态全局管理（Vue: `useAuthStore`，Flutter: `authProvider`）
+- 页面级状态就近管理，不上提到全局
+- 缓存策略：列表数据按需刷新，不做客户端持久化缓存（除离线场景）

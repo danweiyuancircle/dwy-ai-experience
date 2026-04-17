@@ -1,10 +1,5 @@
 ---
-name: git-security
-description: Git 提交安全规则
-type: claude-rule
-tags: [security, git]
-version: 1.0.0
-author: chances
+description: Git 提交前文件与敏感内容扫描规则(全局,每次 add/commit 都应检查)
 ---
 
 # Git 提交安全规则

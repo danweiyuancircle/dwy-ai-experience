@@ -1,18 +1,11 @@
 ---
-name: python-code-style
-description: Python + FastAPI 代码规范
-type: claude-rule
-tags: [python, fastapi, code-style]
+description: Python + FastAPI 基础风格(命名/类型/异步/配置/日志/错误处理等)
 paths:
   - "**/*.py"
   - "**/pyproject.toml"
-version: 1.0.0
-author: chances
 ---
 
-# Python + FastAPI 代码规范
-
-所有 Python / FastAPI 项目必须遵循以下规范。AI 生成或修改代码时，必须严格按照这些规则执行。
+# Python + FastAPI 基础风格
 
 ## 一、项目结构
 
@@ -216,254 +209,6 @@ class UserProfile:
 - 不得使用 `Any` 作为"懒标注"，除非与外部动态库交互且无法确定类型
 - 使用 `Any` 时必须附注释说明原因
 
-## 五、FastAPI 路由与接口设计
-
-### 路由组织
-
-```python
-# routers/user.py
-from fastapi import APIRouter, Depends, status
-
-router = APIRouter(prefix="/users", tags=["users"])
-
-@router.post("/", status_code=status.HTTP_201_CREATED, response_model=UserResponse)
-async def create_user(
-    body: UserCreate,
-    service: UserService = Depends(get_user_service),
-) -> UserResponse:
-    return await service.create(body)
-```
-
-### 强制规则
-- 每个路由模块使用独立 `APIRouter`，在 `main.py` 中统一注册
-- **禁止**所有路由写在 `main.py` 中（超过 2 个路由必须拆分）
-- 路由函数只做：参数接收 → 调用 service → 返回结果，**不写业务逻辑**
-- 必须显式声明 `status_code` 和 `response_model`
-- 路由路径使用复数名词 + RESTful 风格
-
-### RESTful 路由规范
-
-| 操作 | 方法 | 路径 | 状态码 |
-|---|---|---|---|
-| 列表查询 | `GET` | `/users` | 200 |
-| 详情查询 | `GET` | `/users/{user_id}` | 200 |
-| 创建 | `POST` | `/users` | 201 |
-| 全量更新 | `PUT` | `/users/{user_id}` | 200 |
-| 部分更新 | `PATCH` | `/users/{user_id}` | 200 |
-| 删除 | `DELETE` | `/users/{user_id}` | 204 |
-
-### 分页查询
-
-```python
-# schemas/common.py
-class PaginationParams(BaseModel):
-    page: int = Field(default=1, ge=1)
-    page_size: int = Field(default=20, ge=1, le=100)
-
-class PaginatedResponse[T](BaseModel):
-    items: list[T]
-    total: int
-    page: int
-    page_size: int
-
-# routers/user.py
-@router.get("/", response_model=PaginatedResponse[UserResponse])
-async def list_users(
-    pagination: PaginationParams = Depends(),
-    service: UserService = Depends(get_user_service),
-) -> PaginatedResponse[UserResponse]:
-    return await service.list(pagination)
-```
-
-## 六、Pydantic Schema 规范
-
-### 强制规则
-- 请求和响应使用不同的 Schema，**禁止**复用同一个 Model
-
-```python
-# schemas/user.py
-
-class UserBase(BaseModel):
-    """共享字段基类"""
-    name: str = Field(max_length=50)
-    email: EmailStr
-
-class UserCreate(UserBase):
-    """创建请求"""
-    password: str = Field(min_length=8)
-
-class UserUpdate(BaseModel):
-    """更新请求 - 所有字段可选"""
-    name: str | None = Field(default=None, max_length=50)
-    email: EmailStr | None = None
-
-class UserResponse(UserBase):
-    """响应"""
-    id: int
-    is_active: bool
-    created_at: datetime
-
-    model_config = ConfigDict(from_attributes=True)
-```
-
-- **禁止**在响应 Schema 中暴露密码、内部 ID、敏感字段
-- 使用 `Field()` 添加校验约束（`min_length`、`ge`、`le`、`pattern` 等）
-- 更新 Schema 的字段必须全部可选（`None` 默认值）
-
-## 七、依赖注入
-
-### 强制规则
-- 数据库会话、当前用户、配置等通过 `Depends()` 注入
-- **禁止**在路由函数中直接创建数据库会话或实例化 service
-
-```python
-# dependencies.py
-from collections.abc import AsyncGenerator
-
-async def get_db() -> AsyncGenerator[AsyncSession]:
-    async with async_session_factory() as session:
-        yield session
-
-async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db),
-) -> User:
-    user = await authenticate(token, db)
-    if not user:
-        raise HTTPException(status_code=401, detail="认证失败")
-    return user
-
-def get_user_service(db: AsyncSession = Depends(get_db)) -> UserService:
-    return UserService(db)
-```
-
-```python
-# ❌ 路由中直接创建会话
-@router.get("/users/{user_id}")
-async def get_user(user_id: int):
-    async with async_session_factory() as db:
-        user = await db.get(User, user_id)
-        return user
-
-# ✅ 依赖注入
-@router.get("/users/{user_id}", response_model=UserResponse)
-async def get_user(
-    user_id: int,
-    service: UserService = Depends(get_user_service),
-) -> UserResponse:
-    return await service.get_by_id(user_id)
-```
-
-## 八、异常处理
-
-### 统一异常体系
-
-直接使用 `danweiyuan-eapi` 提供的异常体系，禁止自造异常基类：
-
-```python
-# 从 eapi 导入（禁止自定义 AppError 子类体系）
-from danweiyuan_eapi.exceptions import (
-    AppError,               # 基类
-    NotFoundError,          # 404 — NotFoundError("用户") → {"code": "NOT_FOUND", "message": "用户不存在"}
-    BusinessError,          # 422 — BusinessError("余额不足", code="INSUFFICIENT_BALANCE")
-    PermissionDeniedError,  # 403 — PermissionDeniedError()
-    AuthenticationError,    # 401 — AuthenticationError()
-    register_exception_handlers,  # 一次性注册全部 handler
-)
-
-# main.py 中注册
-from danweiyuan_eapi.exceptions import register_exception_handlers
-register_exception_handlers(app)
-```
-
-项目如需扩展异常，必须继承 `AppError`：
-
-```python
-# app/exceptions.py — 项目级异常（继承 eapi AppError）
-from danweiyuan_eapi.exceptions import AppError
-
-class QuotaExceededError(AppError):
-    def __init__(self) -> None:
-        super().__init__(message="配额已用尽", code="QUOTA_EXCEEDED")
-```
-
-### 强制规则
-- **禁止**在 service 层抛出 `HTTPException`（service 不感知 HTTP）
-- service 层抛出业务异常，由异常处理器统一转换为 HTTP 响应
-- **禁止**裸 `except:` 或 `except Exception: pass`
-- 错误响应格式统一为 `{"code": "ERROR_CODE", "message": "描述"}`
-- **禁止**在错误消息中回显用户输入
-
-```python
-# ❌ service 中抛 HTTPException
-class UserService:
-    async def get_by_id(self, user_id: int) -> User:
-        user = await self.db.get(User, user_id)
-        if not user:
-            raise HTTPException(status_code=404)  # 耦合 HTTP
-        return user
-
-# ✅ service 中抛业务异常
-class UserService:
-    async def get_by_id(self, user_id: int) -> User:
-        user = await self.db.get(User, user_id)
-        if not user:
-            raise NotFoundError("用户")
-        return user
-```
-
-## 九、数据库与 ORM
-
-### 强制规则
-- 使用 **SQLAlchemy 2.0** 风格（声明式映射 + async）
-- 数据库迁移使用 **Alembic**，**禁止**手动执行 DDL
-- **禁止**在路由层直接写 SQL 查询
-
-```python
-# models/base.py
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import func
-from datetime import datetime
-
-class Base(DeclarativeBase):
-    pass
-
-class TimestampMixin:
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
-
-# models/user.py
-class User(Base, TimestampMixin):
-    __tablename__ = "users"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(50))
-    email: Mapped[str] = mapped_column(String(100), unique=True, index=True)
-    hashed_password: Mapped[str] = mapped_column(String(128))
-    is_active: Mapped[bool] = mapped_column(default=True)
-```
-
-### 异步数据库会话
-
-```python
-# config.py / database.py
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
-
-engine = create_async_engine(settings.database_url, echo=settings.debug)
-async_session_factory = async_sessionmaker(engine, expire_on_commit=False)
-```
-
-### 查询规范
-
-```python
-# ❌ 旧式查询
-session.query(User).filter(User.id == user_id).first()
-
-# ✅ SQLAlchemy 2.0 风格
-result = await session.execute(select(User).where(User.id == user_id))
-user = result.scalar_one_or_none()
-```
-
 ## 十、异步编程
 
 ### 强制规则
@@ -645,49 +390,6 @@ logger.info("user_created", user_id=user_id)
 | `WARNING` | 异常但可恢复的情况（重试、降级） |
 | `ERROR` | 错误但服务仍可用（单次请求失败） |
 | `CRITICAL` | 服务不可用（数据库连接断开、必要服务宕机） |
-
-## 十四、测试
-
-### 强制规则
-- 使用 `pytest` + `pytest-asyncio` + `httpx`
-- 使用 `TestClient` 或 `AsyncClient` 测试 API
-
-```python
-# conftest.py
-import pytest
-from httpx import ASGITransport, AsyncClient
-from app.main import app
-
-@pytest.fixture
-async def client():
-    async with AsyncClient(
-        transport=ASGITransport(app=app),
-        base_url="http://test",
-    ) as ac:
-        yield ac
-
-# test_user.py
-@pytest.mark.anyio
-async def test_create_user_returns_201(client: AsyncClient):
-    response = await client.post("/users/", json={
-        "name": "Alice",
-        "email": "alice@example.com",
-        "password": "securepass123",
-    })
-    assert response.status_code == 201
-    data = response.json()
-    assert data["name"] == "Alice"
-    assert "password" not in data  # 响应不包含密码
-
-@pytest.mark.anyio
-async def test_get_nonexistent_user_returns_404(client: AsyncClient):
-    response = await client.get("/users/99999")
-    assert response.status_code == 404
-```
-
-- 测试函数名描述行为而非实现
-- 测试数据使用 `pytest.fixture`，不要硬编码
-- 测试结构遵循 Arrange-Act-Assert
 
 ## 十五、函数与类设计
 
@@ -899,60 +601,6 @@ user = cache.get_user(user_id)
 async def create_user(body: UserCreate) -> UserResponse:
     """根据提交的信息创建新用户，邮箱不可重复。"""
     ...
-
-## 代码自检（写代码时强制执行）
-
-**每次生成或修改 Python 代码后，必须逐条验证以下清单。任何一条未通过 → STOP，立即修正后再继续。**
-
-| # | 检查项 | 违规即 STOP |
-|---|--------|------------|
-| 1 | 所有公开函数有参数 + 返回值类型标注 | ✓ |
-| 2 | 无 `Any` 类型（除非有注释说明原因） | ✓ |
-| 3 | 使用 `list[int]` / `str \| None` 等现代语法，不用 `typing.List` / `Optional` | ✓ |
-| 4 | service 层不抛 `HTTPException`，只抛业务异常 | ✓ |
-| 5 | 无裸 `except:` 或 `except Exception: pass` | ✓ |
-| 6 | 路由函数只做参数接收 → 调用 service → 返回结果，无业务逻辑 | ✓ |
-| 7 | HTTP 请求用 `httpx`，不用 `requests` | ✓ |
-| 8 | 日志用 `%s` 占位符或 structlog，不用 f-string | ✓ |
-| 9 | 生命周期用 `lifespan`，不用 `@app.on_event` | ✓ |
-| 10 | 无可变默认参数 `def f(items=[])` | ✓ |
-| 11 | Pydantic Schema 请求/响应分离，不复用 | ✓ |
-| 12 | 嵌套不超过 3 层，函数体不超过 50 行 | ✓ |
-| 13 | 所有模块/类/函数有 docstring（Google 风格） | ✓ |
-| 14 | 依赖通过 `Depends()` 注入，不在路由中直接创建 | ✓ |
-| 15 | 项目依赖 eapi 时，未重复实现 eapi 已有功能 | ✓ |
-
-**不执行自检就提交代码 = 违规。**
-```
-
-## 十九、安全编码
-
-### 强制规则
-- SQL 查询必须使用参数化绑定，**禁止**字符串拼接
-- 用户输入必须校验后使用，**禁止**直接信任
-- 文件路径操作必须防止路径遍历攻击
-- 序列化/反序列化**禁止** `pickle.loads()` 处理不可信数据
-- 密码存储必须使用 `bcrypt` / `argon2`，**禁止**明文或 MD5/SHA
-- JWT 密钥从环境变量读取，**禁止**硬编码
-
-```python
-# ❌ SQL 注入
-cursor.execute(f"SELECT * FROM users WHERE id = {user_id}")
-
-# ✅ 参数化查询
-cursor.execute("SELECT * FROM users WHERE id = %s", (user_id,))
-
-# ❌ 路径遍历
-file_path = f"/uploads/{user_input_filename}"
-
-# ✅ 路径安全校验
-safe_path = Path("/uploads") / Path(user_input_filename).name
-
-# ❌ 硬编码密钥
-SECRET_KEY = "my-super-secret-key"
-
-# ✅ 环境变量
-SECRET_KEY = settings.secret_key
 ```
 
 ## 二十、danweiyuan-eapi 优先使用
@@ -1048,3 +696,140 @@ result = calculate(x)
 - 如果**会** → 写防御，加注释说明什么情况下触发
 - 如果**不会** → 不写，信任上游保证
 - 如果**不确定** → 查看调用链确认，不要"以防万一"
+
+## 代码自检（写代码时强制执行）
+
+**每次生成或修改 Python 代码后，必须逐条验证以下清单。任何一条未通过 → STOP，立即修正后再继续。**
+
+| # | 检查项 | 违规即 STOP |
+|---|--------|------------|
+| 1 | 所有公开函数有参数 + 返回值类型标注 | ✓ |
+| 2 | 无 `Any` 类型（除非有注释说明原因） | ✓ |
+| 3 | 使用 `list[int]` / `str \| None` 等现代语法，不用 `typing.List` / `Optional` | ✓ |
+| 4 | service 层不抛 `HTTPException`，只抛业务异常 | ✓ |
+| 5 | 无裸 `except:` 或 `except Exception: pass` | ✓ |
+| 6 | 路由函数只做参数接收 → 调用 service → 返回结果，无业务逻辑 | ✓ |
+| 7 | HTTP 请求用 `httpx`，不用 `requests` | ✓ |
+| 8 | 日志用 `%s` 占位符或 structlog，不用 f-string | ✓ |
+| 9 | 生命周期用 `lifespan`，不用 `@app.on_event` | ✓ |
+| 10 | 无可变默认参数 `def f(items=[])` | ✓ |
+| 11 | Pydantic Schema 请求/响应分离，不复用 | ✓ |
+| 12 | 嵌套不超过 3 层，函数体不超过 50 行 | ✓ |
+| 13 | 所有模块/类/函数有 docstring（Google 风格） | ✓ |
+| 14 | 依赖通过 `Depends()` 注入，不在路由中直接创建 | ✓ |
+| 15 | 项目依赖 eapi 时，未重复实现 eapi 已有功能 | ✓ |
+
+**不执行自检就提交代码 = 违规。**
+
+---
+
+## 错误处理规范(后端)
+
+**唯一方式：** 使用 eapi exceptions 体系。
+
+```python
+from danweiyuan_eapi.exceptions import (
+    NotFoundError,          # 404 — 资源不存在
+    BusinessError,          # 422 — 业务规则不允许
+    PermissionDeniedError,  # 403 — 无权限
+    AuthenticationError,    # 401 — 认证失败
+)
+
+# services 层
+async def get_user(db: AsyncSession, user_id: int) -> User:
+    user = await db.get(User, user_id)
+    if user is None:
+        raise NotFoundError("用户")     # → {"code": "NOT_FOUND", "message": "用户不存在"}
+    return user
+
+async def create_order(db: AsyncSession, data: OrderCreate) -> Order:
+    if data.amount <= 0:
+        raise BusinessError("订单金额必须大于 0", code="INVALID_AMOUNT")
+    ...
+```
+
+**禁止清单：**
+| 禁止写法 | 正确写法 |
+|---------|---------|
+| `raise HTTPException(status_code=404)` | `raise NotFoundError("资源名")` |
+| `try: ... except Exception: pass` | 只捕获预期的具体异常 |
+| 自定义异常类不继承 AppError | 项目异常必须继承 `AppError` |
+| 在 router 中 try/except 包 service 调用 | 让异常自然冒泡到 handler |
+
+---
+
+## 环境变量管理(后端:eapi BaseSettings + 嵌套分组)
+
+**必须使用嵌套模型分组配置**，禁止所有字段平铺。同一服务/SDK 的多个字段拆成独立 `BaseModel`。
+
+```python
+# app/config.py
+from pydantic import BaseModel
+from danweiyuan_eapi.config import BaseSettings
+
+class OssConfig(BaseModel):
+    endpoint: str = ""
+    access_key: str = ""
+    secret_key: str = ""
+    bucket: str = ""
+
+class Settings(BaseSettings):
+    # eapi 内置字段保持顶层：database_url, redis_url, secret_key, ...
+
+    # 项目专属 — 嵌套分组
+    app_name: str = "My App"
+    oss: OssConfig = OssConfig()
+```
+
+**`.env` 中用 `__` 双下划线分隔层级：**
+
+```bash
+DATABASE_URL=postgresql+asyncpg://user:pass@localhost:5432/mydb
+OSS__ENDPOINT=http://localhost:9000
+OSS__ACCESS_KEY=minioadmin
+OSS__SECRET_KEY=minioadmin
+OSS__BUCKET=my-app
+```
+
+**代码中通过属性链访问：** `settings.oss.endpoint`，禁止 `settings.oss_endpoint`。
+
+详细规则见 `dwy-python-core.md` 第十二节。
+
+---
+
+## 日志规范
+
+### 后端
+
+使用 Python 标准 `logging` 模块：
+
+```python
+import logging
+
+logger = logging.getLogger(__name__)
+
+# 正确用法
+logger.info("用户 %s 登录成功", user_id)
+logger.error("导出任务失败: task_id=%s, error=%s", task_id, str(e))
+
+# 禁止
+print("debug info")                    # 禁止 print
+logger.info(f"用户 {user_id} 登录")    # 禁止 f-string（无法被日志聚合）
+```
+
+### 日志级别规则
+
+| 级别 | 用途 | 示例 |
+|------|------|------|
+| DEBUG | 开发调试信息，生产环境不输出 | 变量值、SQL 语句 |
+| INFO | 关键业务流程节点 | 用户登录、任务提交、导出完成 |
+| WARNING | 异常但可恢复的情况 | 重试成功、降级处理 |
+| ERROR | 错误但服务仍可用（单次请求失败） | 外部 API 超时、单个任务失败 |
+| CRITICAL | 服务不可用 | 数据库连接断开、必要服务宕机 |
+
+### 禁止事项
+
+- 禁止 `print()`，全部用 `logger`
+- 禁止在循环体内打 INFO/WARNING 日志（大量重复）
+- 禁止日志中包含密码、token、密钥等敏感信息
+- 禁止用 f-string 格式化日志消息（用 `%s` 占位符，支持日志聚合延迟求值）
