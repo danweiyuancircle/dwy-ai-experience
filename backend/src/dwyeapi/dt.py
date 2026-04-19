@@ -14,7 +14,7 @@ Usage::
     dt.utc_now()      # aware datetime, UTC, 用于 JWT
 """
 
-from datetime import date, datetime, timedelta
+from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 TZ = ZoneInfo("Asia/Shanghai")

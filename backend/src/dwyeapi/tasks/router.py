@@ -17,7 +17,14 @@ from dwyeapi.tasks import pool
 from dwyeapi.tasks.model import TaskStatus
 from dwyeapi.tasks.registry import registry
 from dwyeapi.tasks.schema import TaskCreate, TaskListResponse, TaskResponse
-from dwyeapi.tasks.service import append_task_log, create_task, get_task, list_tasks, update_task_progress, update_task_status
+from dwyeapi.tasks.service import (
+    append_task_log,
+    create_task,
+    get_task,
+    list_tasks,
+    update_task_progress,
+    update_task_status,
+)
 
 task_router = APIRouter(prefix="/tasks", tags=["tasks"])
 
