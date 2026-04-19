@@ -182,7 +182,10 @@ async def retry_task(
 
     retryable_states = {TaskStatus.FAILED, TaskStatus.CANCELED}
     if task.status not in retryable_states:
-        raise BusinessError(f"只有失败或已取消的任务可以重试, 当前状态为 {task.status.value}", code="TASK_NOT_RETRYABLE")
+        raise BusinessError(
+            f"只有失败或已取消的任务可以重试, 当前状态为 {task.status.value}",
+            code="TASK_NOT_RETRYABLE",
+        )
 
     # Clear cancel flag from Redis
     arq_pool = await pool.get_pool()
