@@ -1,6 +1,6 @@
 [project]
 name = "dwyeapi"
-version = "0.5.0"
+version = "0.5.1"
 description = "Lightweight FastAPI infrastructure — exceptions, database, config, security, cache, pagination, logger"
 requires-python = ">=3.11"
 license = {text = "MIT"}

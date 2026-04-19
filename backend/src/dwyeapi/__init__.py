@@ -18,4 +18,4 @@ from . import logger
 from .config import BaseSettings, get_environment, is_dev, is_prod
 
 __all__ = ["BaseSettings", "get_environment", "is_dev", "is_prod", "logger"]
-__version__ = "0.5.0"
+__version__ = "0.5.1"
