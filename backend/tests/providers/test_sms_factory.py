@@ -2,6 +2,7 @@
 
 import pytest
 
+from dwyeapi.config import set_current_environment
 from dwyeapi.providers.sms import AliyunSmsConfig, SmsSettings, make_sms_provider
 from dwyeapi.providers.sms.mock import MockSmsProvider
 
@@ -27,3 +28,23 @@ class TestMakeSmsProvider:
         settings = SmsSettings.model_construct(provider="unknown")
         with pytest.raises(ValueError, match="未知 sms provider"):
             make_sms_provider(settings)
+
+    def test_mock_provider_forbidden_in_prod(self):
+        set_current_environment("prod")
+        settings = SmsSettings(provider="mock")
+        with pytest.raises(ValueError, match="SMS__PROVIDER=mock"):
+            make_sms_provider(settings)
+
+    def test_aliyun_provider_unaffected_in_prod(self):
+        set_current_environment("prod")
+        settings = SmsSettings(
+            provider="aliyun",
+            aliyun=AliyunSmsConfig(
+                access_key_id="LTAI_test",
+                access_key_secret="secret_test",
+                sign_name="测试",
+                template_code="SMS_000",
+            ),
+        )
+        provider = make_sms_provider(settings)
+        assert provider is not None

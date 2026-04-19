@@ -2,6 +2,7 @@
 
 import pytest
 
+from dwyeapi.config import set_current_environment
 from dwyeapi.providers.email import (
     AliyunEmailConfig,
     EmailSettings,
@@ -38,3 +39,15 @@ class TestMakeEmailProvider:
         settings = EmailSettings.model_construct(provider="unknown")
         with pytest.raises(ValueError, match="未知 email provider"):
             make_email_provider(settings)
+
+    def test_mock_provider_forbidden_in_prod(self):
+        set_current_environment("prod")
+        settings = EmailSettings(provider="mock")
+        with pytest.raises(ValueError, match="EMAIL__PROVIDER=mock"):
+            make_email_provider(settings)
+
+    def test_resend_provider_unaffected_in_prod(self):
+        set_current_environment("prod")
+        settings = EmailSettings(provider="resend", resend=ResendConfig(api_key="re_xxx"))
+        provider = make_email_provider(settings)
+        assert provider is not None
