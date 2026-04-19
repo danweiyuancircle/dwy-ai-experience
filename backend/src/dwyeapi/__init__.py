@@ -1,7 +1,7 @@
 """dwyeapi — Lightweight FastAPI infrastructure.
 
 Modules:
-    config        — BaseSettings with required fields
+    config        — BaseSettings + 运行环境识别 API (is_dev/is_prod/get_environment)
     exceptions    — AppError hierarchy + FastAPI exception handlers
     database      — Async SQLAlchemy engine/session factory + Base + TimestampMixin
     dependencies  — get_db() FastAPI dependency factory
@@ -15,6 +15,7 @@ Modules:
 """
 
 from . import logger
+from .config import BaseSettings, get_environment, is_dev, is_prod
 
-__all__ = ["logger"]
-__version__ = "0.4.0"
+__all__ = ["BaseSettings", "get_environment", "is_dev", "is_prod", "logger"]
+__version__ = "0.5.0"
