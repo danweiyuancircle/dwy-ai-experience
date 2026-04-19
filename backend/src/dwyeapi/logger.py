@@ -27,7 +27,7 @@ from typing import TYPE_CHECKING, Any
 from loguru import logger as _logger
 
 if TYPE_CHECKING:
-    from loguru import Logger, Record
+    from loguru import Record
 
 
 _DEFAULT_CONSOLE_FORMAT = (
@@ -43,6 +43,69 @@ _DEFAULT_EXTRA: dict[str, Any] = {"module": "-"}
 
 _handler_ids: list[int] = []
 _intercept_state: dict[str, list[logging.Handler]] = {}
+
+
+class Logger:
+    """dwyeapi 日志门面,遵循 stdlib ``logging.Logger`` 语义。
+
+    - 消息用 ``%s`` / ``%d`` 等 stdlib 占位符,位置参数延迟格式化
+    - 支持 ``exc_info=True`` 记录当前异常堆栈
+    - 底层可为 loguru / stdlib logging / structlog,调用方无感知
+    """
+
+    __slots__ = ("_impl",)
+
+    def __init__(self, impl: Any) -> None:
+        """保存底层日志对象。
+
+        Args:
+            impl: 真正执行日志调用的底层对象。当前由 :func:`get_logger`
+                注入 loguru logger,需支持 ``opt(exception=...)`` 与
+                ``debug`` / ``info`` / ``warning`` / ``error`` /
+                ``critical`` 方法。
+        """
+        self._impl = impl
+
+    def _emit(self, level: str, msg: str, args: tuple[Any, ...], exc_info: bool) -> None:
+        """格式化消息并转发到底层实现。
+
+        Args:
+            level: 日志级别方法名(``debug``/``info``/``warning``/
+                ``error``/``critical``)。
+            msg: 日志消息模板,支持 stdlib ``%`` 占位符。
+            args: 用于 ``%``-格式化的位置参数;为空时保留 ``msg`` 原样。
+            exc_info: 是否附带当前异常堆栈。
+        """
+        try:
+            formatted = msg % args if args else msg
+        except (TypeError, ValueError):
+            formatted = f"{msg} args={args!r}"
+        target = self._impl.opt(exception=True) if exc_info else self._impl
+        getattr(target, level)(formatted)
+
+    def debug(self, msg: str, *args: Any, exc_info: bool = False, **_: Any) -> None:
+        """记录 DEBUG 级别日志。"""
+        self._emit("debug", msg, args, exc_info)
+
+    def info(self, msg: str, *args: Any, exc_info: bool = False, **_: Any) -> None:
+        """记录 INFO 级别日志。"""
+        self._emit("info", msg, args, exc_info)
+
+    def warning(self, msg: str, *args: Any, exc_info: bool = False, **_: Any) -> None:
+        """记录 WARNING 级别日志。"""
+        self._emit("warning", msg, args, exc_info)
+
+    def error(self, msg: str, *args: Any, exc_info: bool = False, **_: Any) -> None:
+        """记录 ERROR 级别日志。"""
+        self._emit("error", msg, args, exc_info)
+
+    def exception(self, msg: str, *args: Any, **_: Any) -> None:
+        """记录 ERROR 级别日志并自动附带当前异常堆栈。"""
+        self._emit("error", msg, args, exc_info=True)
+
+    def critical(self, msg: str, *args: Any, exc_info: bool = False, **_: Any) -> None:
+        """记录 CRITICAL 级别日志。"""
+        self._emit("critical", msg, args, exc_info)
 
 
 class _InterceptHandler(logging.Handler):
@@ -173,18 +236,18 @@ def _install_stdlib_intercept(level: str, targets: list[str] | None) -> None:
 
 
 def get_logger(name: str | None = None) -> Logger:
-    """Return the shared logger, optionally bound to a module name.
+    """返回 dwyeapi ``Logger`` 门面,可选绑定模块名。
 
     Args:
-        name: Logical module name recorded in the ``module`` extra field.
+        name: 记录到 ``module`` extra 字段的逻辑模块名。
 
     Returns:
-        A loguru ``Logger`` proxy. If ``configure`` has not been called yet,
-        returns the raw default logger (stderr at DEBUG).
+        ``Logger`` 门面实例。底层当前使用 loguru,但此细节对调用方
+        不可见,以便后续替换为其他日志库(stdlib logging /
+        structlog 等)时无需改动调用点。
     """
-    if name:
-        return _logger.bind(module=name)
-    return _logger
+    impl = _logger.bind(module=name) if name else _logger
+    return Logger(impl)
 
 
 def close() -> None:
