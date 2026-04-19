@@ -1,12 +1,12 @@
 # dwyeapi 测试用例清单
 
-> 回测基准：159 个测试用例，11 个测试文件。版本变更后必须全部通过。
+> 本文件列出 eapi 核心模块和本轮 environment 机制相关的用例。providers 模块的完整用例清单暂未全量纳入。
 >
 > 运行命令：`cd backend && python -m pytest tests/ -v`
 
 ---
 
-## 1. config 模块（7 个）
+## 1. config 模块（14 个）
 
 `tests/test_config.py`
 
@@ -21,6 +21,18 @@
 | 5 | 从环境变量解析 allowed_origins | JSON 数组字符串正确解析为 `list[str]` |
 | 6 | 子类可扩展自定义字段 | 继承 BaseSettings 后新增字段可从环境变量读取 |
 | 7 | JWT 相关字段有合理默认值 | jwt_algorithm 默认 `"HS256"`，access_token_expire_minutes 默认 `30` |
+
+### Environment（dev / prod）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 8 | environment 默认 prod | 未设置 ENVIRONMENT 时 `is_prod()` 为 True |
+| 9 | ENVIRONMENT=dev 可切换 | 环境变量 dev 时 `is_dev()` 为 True |
+| 10 | 非法值抛 ValidationError | ENVIRONMENT=staging 构造失败 |
+| 11 | get_environment() 返回当前值 | 实例化 dev 后读到 "dev" |
+| 12 | is_dev / is_prod 互斥 | set_current_environment 切换后状态互斥 |
+| 13 | 业务子类继承后自动同步 | MySettings(BaseSettings)() 也会触发全局同步 |
+| 14 | 模块初始值为 prod | 未实例化前的 fail-safe 默认值 |
 
 ---
 
@@ -392,7 +404,7 @@
 
 ---
 
-## 11. logger 模块（8 个）
+## 11. logger 模块（12 个）
 
 `tests/test_logger.py`
 
@@ -410,24 +422,44 @@
 | 3 | 生成按日期命名文件 | `app_YYYY-MM-DD.log` 存在,内容包含写入的消息 |
 | 4 | 按大小触发轮转 | `max_bytes=1024` 条件下产生 ≥2 个文件 |
 
-### GetLogger（2 个）
+### GetLogger（6 个）
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
 | 5 | 绑定 module 字段 | `get_logger("user_service")` 日志包含 `user_service` |
 | 6 | 无名调用返回默认 logger | 返回非 None 对象 |
+| 7 | 返回值是 facade 不是 loguru | `type(log)` 为 `dwyeapi.logger.Logger`，模块名不含 `loguru` |
+| 8 | facade 支持 `%s` 位置参数格式化 | `info("a=%s b=%s", 1, 2)` 写入 `a=1 b=2`，原文不含 `%s` |
+| 9 | facade 无 args 时保留原文 | 消息含 `{}` / `%%` 等字符时不做格式化，原样写入 |
+| 10 | facade 支持 `exc_info=True` 记录堆栈 | 在 except 块中 `error("...", exc_info=True)` 写入 traceback |
 
 ### InterceptStdlib（1 个）
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
-| 7 | stdlib 日志进入文件 | `logging.getLogger("x").info(...)` 写入 eapi logger 的文件 |
+| 11 | stdlib 日志进入文件 | `logging.getLogger("x").info(...)` 写入 eapi logger 的文件 |
 
 ### CloseAndReconfigure（1 个）
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
-| 8 | close 后可重新 configure | 再次配置后日志写入正常 |
+| 12 | close 后可重新 configure | 再次配置后日志写入正常 |
+
+---
+
+## 12. providers factory 环境校验（5 个,位于 `tests/providers/`）
+
+`tests/providers/test_email_factory.py` 和 `tests/providers/test_sms_factory.py` 中与 environment 机制相关的新增用例:
+
+| # | 文件 | 用例 | 测试要点 |
+|---|------|------|---------|
+| 1 | test_email_factory.py | test_mock_provider_forbidden_in_prod | prod + mock → ValueError,消息含 `EMAIL__PROVIDER=mock` |
+| 2 | test_email_factory.py | test_resend_provider_unaffected_in_prod | prod + resend 正常构造(回归保护) |
+| 3 | test_sms_factory.py | test_mock_provider_forbidden_in_prod | prod + mock → ValueError,消息含 `SMS__PROVIDER=mock` |
+| 4 | test_sms_factory.py | test_aliyun_provider_unaffected_in_prod | prod + aliyun 正常构造(回归保护) |
+| 5 | tests/providers/conftest.py | autouse fixture 默认 dev | 非环境校验类用例在 dev 下跑,不污染既有 mock 测试 |
+
+> 注: providers 模块其余测试用例(email/sms base、各 provider 实现)暂未纳入本文件,与代码保持同步由开发者各自维护。
 
 ---
 
@@ -438,7 +470,7 @@
 cd backend && python -m pytest tests/ -v
 
 # 2. 期望结果
-# 159 passed
+# 163 passed
 
 # 3. 单模块测试（调试用）
 python -m pytest tests/test_config.py -v

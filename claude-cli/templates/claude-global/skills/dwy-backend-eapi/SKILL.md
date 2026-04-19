@@ -60,11 +60,29 @@ class Settings(BaseSettings):
 | secret_key | str | **必填** | JWT 签名密钥 |
 | jwt_algorithm | str | `"HS256"` | JWT 算法 |
 | access_token_expire_minutes | int | `30` | Token 过期分钟 |
+| environment | `"dev" \| "prod"` | `"prod"` | 运行环境(见下) |
 | debug | bool | `False` | 调试模式 |
 | allowed_origins | list[str] | `[]` | CORS 允许域名 |
 | task_max_jobs | int | `5` | Worker 最大并发任务数 |
 | task_job_timeout | int | `3600` | 单个任务超时秒数 |
 | task_failure_ttl | int | `86400` | 失败任务 Redis 保留秒数 |
+
+### 运行环境识别 (dev / prod)
+
+`environment` 默认 `"prod"`(误配置时保守)。业务代码通过三个顶层 API 读当前环境:
+
+```python
+from dwyeapi import is_dev, is_prod, get_environment
+
+# FastAPI docs 仅 dev 开启
+app = FastAPI(
+    docs_url="/docs" if is_dev() else None,
+    redoc_url="/redoc" if is_dev() else None,
+    openapi_url="/openapi.json" if is_dev() else None,
+)
+```
+
+**mock provider 仅 dev 可用**: `providers.email` / `providers.sms` 在 prod 环境下选 `provider="mock"` 会让 `make_email_provider()` / `make_sms_provider()` 抛 `ValueError`,防止误配置静默吞掉验证码。
 
 ---
 
