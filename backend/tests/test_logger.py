@@ -99,6 +99,69 @@ class TestGetLogger:
         logger_mod.configure(console=True, log_dir=None, enqueue=False)
         assert logger_mod.get_logger() is not None
 
+    def test_get_logger_returns_facade_not_loguru(self) -> None:
+        logger_mod.configure(console=True, log_dir=None, enqueue=False)
+        log = logger_mod.get_logger("demo")
+
+        assert isinstance(log, logger_mod.Logger)
+        assert type(log).__module__ == "dwyeapi.logger"
+        assert "loguru" not in type(log).__module__
+
+    def test_facade_formats_percent_placeholders(self, tmp_path: Path) -> None:
+        logger_mod.configure(
+            level="INFO",
+            log_dir=tmp_path,
+            filename="fmt",
+            console=False,
+            enqueue=False,
+            file_format="{message}",
+        )
+        logger_mod.get_logger().info("target=%s code=%s", "a@b.com", "1234")
+        logger_mod.close()
+
+        files = list(tmp_path.glob("fmt_*.log"))
+        assert files
+        content = files[0].read_text(encoding="utf-8")
+        assert "target=a@b.com code=1234" in content
+        assert "%s" not in content
+
+    def test_facade_without_args_keeps_message_literal(self, tmp_path: Path) -> None:
+        logger_mod.configure(
+            level="INFO",
+            log_dir=tmp_path,
+            filename="lit",
+            console=False,
+            enqueue=False,
+            file_format="{message}",
+        )
+        logger_mod.get_logger().info("50%% progress marker {not_a_placeholder}")
+        logger_mod.close()
+
+        content = next(iter(tmp_path.glob("lit_*.log"))).read_text(encoding="utf-8")
+        assert "50%% progress marker {not_a_placeholder}" in content
+
+    def test_facade_exc_info_writes_traceback(self, tmp_path: Path) -> None:
+        logger_mod.configure(
+            level="INFO",
+            log_dir=tmp_path,
+            filename="exc",
+            console=False,
+            enqueue=False,
+            file_format="{message}\n{exception}",
+            intercept_stdlib=False,
+        )
+        log = logger_mod.get_logger()
+        try:
+            raise ValueError("boom")
+        except ValueError:
+            log.error("caught: %s", "demo", exc_info=True)
+        logger_mod.close()
+
+        content = next(iter(tmp_path.glob("exc_*.log"))).read_text(encoding="utf-8")
+        assert "caught: demo" in content
+        assert "ValueError" in content
+        assert "boom" in content
+
 
 class TestInterceptStdlib:
     """Standard logging is intercepted into eapi logger."""

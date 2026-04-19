@@ -3,13 +3,12 @@
 需要 `pip install dwyeapi[email-resend]` 才能使用。
 """
 
-import logging
-
 import redis.asyncio as aioredis
 
+from dwyeapi.logger import get_logger
 from dwyeapi.providers.email.base import DEFAULT_CODE_LENGTH, DEFAULT_CODE_TTL, EmailProviderBase
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class ResendEmailProvider(EmailProviderBase):

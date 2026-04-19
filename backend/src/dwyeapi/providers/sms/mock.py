@@ -1,10 +1,9 @@
 """Mock SMS Provider -- 开发/测试环境使用,日志打印验证码不真实发送。"""
 
-import logging
-
+from dwyeapi.logger import get_logger
 from dwyeapi.providers.sms.base import SmsProviderBase
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class MockSmsProvider(SmsProviderBase):

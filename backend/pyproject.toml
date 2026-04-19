@@ -21,14 +21,15 @@ tasks = [
 ]
 
 # Email Provider 实现 — 按需安装
-email-resend = ["resend>=2.29.0"]
+# resend[async] 会拉入 httpx 以启用 Emails.send_async 原生异步 API
+email-resend = ["resend[async]>=2.29.0"]
 email-aliyun = ["alibabacloud_dm20151123>=1.0.0"]
 
 # SMS Provider 实现 — 按需安装
 sms-aliyun = ["alibabacloud_dysmsapi20170525>=2.0.0"]
 
 # 聚合 extras(按模块)
-email = ["resend>=2.29.0", "alibabacloud_dm20151123>=1.0.0"]
+email = ["resend[async]>=2.29.0", "alibabacloud_dm20151123>=1.0.0"]
 sms = ["alibabacloud_dysmsapi20170525>=2.0.0"]
 
 dev = [
