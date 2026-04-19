@@ -1,5 +1,33 @@
 # dwyeapi
 
+## 0.5.0
+
+### Minor Changes
+
+- **新增 providers 体系** — 业务相关但复用性强的外部服务抽象(邮件/短信),通过 Protocol + 配置驱动切换实现。第三方 SDK 依赖一律走 optional-dependencies,业务项目按需安装。
+- **新增 providers/email 子包**
+  - `EmailProvider` Protocol + `EmailProviderBase` 抽象基类(封装 Redis 验证码存取 + 一次性校验逻辑)
+  - `MockEmailProvider`(开发环境,零额外依赖,日志打印验证码)
+  - `ResendEmailProvider`(基于 resend-python SDK 的 async API) — `pip install dwyeapi[email-resend]`
+  - `AliyunEmailProvider`(占位,`_send` 待首个接入项目补全) — `pip install dwyeapi[email-aliyun]`
+  - `EmailSettings` 嵌套配置类,业务项目一行 `email: EmailSettings = EmailSettings()` 即可,`.env` 用 `EMAIL__PROVIDER` / `EMAIL__RESEND__API_KEY` 双下划线嵌套
+  - `make_email_provider(settings.email)` 工厂函数,按 `settings.provider` 分发
+- **新增 providers/sms 子包**
+  - `SmsProvider` Protocol + `SmsProviderBase` 抽象基类(对称 Email)
+  - `MockSmsProvider`(开发环境)
+  - `AliyunSmsProvider`(占位) — `pip install dwyeapi[sms-aliyun]`
+  - `SmsSettings` 嵌套配置 + `make_sms_provider` 工厂
+- **新增 optional-dependencies**
+  - 细粒度:`email-resend` / `email-aliyun` / `sms-aliyun`
+  - 聚合:`email`(拉 email 所有实现) / `sms`(拉 sms 所有实现)
+  - dev extras 不预置任何 provider SDK,跑 provider 测试需显式 `--extra email --extra sms`
+
+### 约定
+
+- Provider Redis key 前缀统一:`dwyeapi:email:code:{target}` / `dwyeapi:sms:code:{target}`,TTL 默认 300s
+- Provider 依赖 `dwyeapi.cache.configure(redis_url)` 先就位,业务 `main.py` lifespan 必须先调 cache.configure 再 make_*_provider
+- 未装对应 extra 时,provider `__init__` 抛友好 `ImportError` 并提示 `pip install dwyeapi[xxx]`
+
 ## 0.4.0
 
 ### Breaking Changes

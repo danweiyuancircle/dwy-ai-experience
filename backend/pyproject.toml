@@ -1,6 +1,6 @@
 [project]
 name = "dwyeapi"
-version = "0.4.0"
+version = "0.5.0"
 description = "Lightweight FastAPI infrastructure — exceptions, database, config, security, cache, pagination, logger"
 requires-python = ">=3.11"
 license = {text = "MIT"}
@@ -19,6 +19,18 @@ dependencies = [
 tasks = [
     "arq>=0.26.0",
 ]
+
+# Email Provider 实现 — 按需安装
+email-resend = ["resend>=2.29.0"]
+email-aliyun = ["alibabacloud_dm20151123>=1.0.0"]
+
+# SMS Provider 实现 — 按需安装
+sms-aliyun = ["alibabacloud_dysmsapi20170525>=2.0.0"]
+
+# 聚合 extras(按模块)
+email = ["resend>=2.29.0", "alibabacloud_dm20151123>=1.0.0"]
+sms = ["alibabacloud_dysmsapi20170525>=2.0.0"]
+
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
@@ -26,6 +38,7 @@ dev = [
     "aiosqlite>=0.20.0",
     "ruff>=0.6.0",
     "arq>=0.26.0",
+    "fakeredis>=2.0.0",
 ]
 
 [build-system]
