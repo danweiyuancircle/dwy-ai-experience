@@ -53,7 +53,6 @@ class BaseSettings(PydanticBaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 30
     environment: Environment = "prod"
-    debug: bool = False
     allowed_origins: list[str] = Field(default_factory=list)
 
     # Task module settings (task_ prefix)
