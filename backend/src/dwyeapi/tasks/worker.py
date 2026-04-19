@@ -78,8 +78,8 @@ def create_worker_settings(
     async def _on_startup(ctx: dict) -> None:
         """Worker 启动时恢复未完成的任务。
 
-        扫描 PostgreSQL 中 pending/running 状态的任务，重新入队到 ARQ。
-        running 状态的任务说明上次 Worker 中断，重置为 pending 后重新执行。
+        扫描 PostgreSQL 中 pending/running 状态的任务, 重新入队到 ARQ。
+        running 状态的任务说明上次 Worker 中断, 重置为 pending 后重新执行。
         """
         from sqlalchemy import select
 
@@ -100,11 +100,11 @@ def create_worker_settings(
             if task.status == TaskStatus.RUNNING:
                 async with _session_factory() as session:
                     await update_task_status(session, task.id, TaskStatus.PENDING)
-                    await append_task_log(session, task.id, "Worker 重启，任务重新入队")
+                    await append_task_log(session, task.id, "Worker 重启, 任务重新入队")
 
             await redis.enqueue_job("_task_executor", task.id, task.task_type, task.params)
 
-        _log.info("恢复了 {count} 个未完成的任务", count=len(stale_tasks))
+        _log.info("恢复了 %s 个未完成的任务", len(stale_tasks))
 
     class WorkerSettings:
         """ARQ WorkerSettings generated from eapi BaseSettings."""
