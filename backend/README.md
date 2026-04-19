@@ -23,14 +23,18 @@ pip install dwyeapi
 
 ## Environment (dev / prod)
 
-`BaseSettings` 暴露顶层 `environment` 字段,可选值 `"dev" | "prod"`,**默认 `"prod"`**(保守派,误配置时也按 prod 行为)。
+`BaseSettings` 暴露顶层 `environment` 字段,可选值 `"dev" | "prod"`,**默认 `"prod"`**(保守派,误配置时也按 prod 行为)。eapi **不再提供 `debug` 字段** —— 所有"调试开关"统一判断 `is_dev()`,避免两个维度互相冲突。
 
 ```bash
 # .env
 ENVIRONMENT=dev          # 开发环境;留空或 prod 即生产
 ```
 
-业务代码通过 `dwyeapi.is_dev()` / `dwyeapi.is_prod()` / `dwyeapi.get_environment()` 读当前环境,典型用法:
+业务代码通过 `dwyeapi.is_dev()` / `dwyeapi.is_prod()` / `dwyeapi.get_environment()` 读当前环境。
+
+### FastAPI docs/redoc/openapi 仅 dev 暴露
+
+非 dev 环境必须关闭 Swagger/ReDoc/OpenAPI schema 三个端点,避免线上暴露路由和字段元信息:
 
 ```python
 from dwyeapi import is_dev
@@ -45,6 +49,9 @@ app = FastAPI(
     redoc_url="/redoc" if is_dev() else None,
     openapi_url="/openapi.json" if is_dev() else None,
 )
+
+# SQL echo、慢路由 profiling、中间件堆栈打印等调试性质开关也统一用 is_dev() 守护
+engine = create_async_engine_factory(settings.database_url, echo=is_dev())
 ```
 
 ### Mock provider 仅 dev 可用

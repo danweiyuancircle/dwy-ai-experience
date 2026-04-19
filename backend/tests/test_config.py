@@ -29,12 +29,13 @@ class TestBaseSettings:
         assert s.redis_url == "redis://localhost:6379/0"
         assert s.secret_key == "test-secret"
 
-    def test_debug_defaults_false(self, monkeypatch):
+    def test_debug_field_removed(self, monkeypatch):
+        """debug 字段已废弃,请用 environment + is_dev()/is_prod() 代替。"""
         monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://u:p@localhost/db")
         monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
         monkeypatch.setenv("SECRET_KEY", "s")
         s = BaseSettings()
-        assert s.debug is False
+        assert not hasattr(s, "debug")
 
     def test_allowed_origins_defaults_empty(self, monkeypatch):
         monkeypatch.setenv("DATABASE_URL", "postgresql+asyncpg://u:p@localhost/db")

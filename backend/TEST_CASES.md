@@ -16,7 +16,7 @@
 |---|------|---------|
 | 1 | 缺少必填环境变量时抛出 ValueError | 未设置 DATABASE_URL / REDIS_URL / SECRET_KEY 时构造失败 |
 | 2 | 设置所有必填字段后正确构造 | database_url、redis_url、secret_key 均正确赋值 |
-| 3 | debug 默认值为 False | 未设置 DEBUG 时默认关闭 |
+| 3 | debug 字段已废弃 | BaseSettings() 实例无 `debug` 属性,调试开关统一走 environment |
 | 4 | allowed_origins 默认为空列表 | 未设置 ALLOWED_ORIGINS 时为 `[]` |
 | 5 | 从环境变量解析 allowed_origins | JSON 数组字符串正确解析为 `list[str]` |
 | 6 | 子类可扩展自定义字段 | 继承 BaseSettings 后新增字段可从环境变量读取 |

@@ -61,7 +61,6 @@ class Settings(BaseSettings):
 | jwt_algorithm | str | `"HS256"` | JWT 算法 |
 | access_token_expire_minutes | int | `30` | Token 过期分钟 |
 | environment | `"dev" \| "prod"` | `"prod"` | 运行环境(见下) |
-| debug | bool | `False` | 调试模式 |
 | allowed_origins | list[str] | `[]` | CORS 允许域名 |
 | task_max_jobs | int | `5` | Worker 最大并发任务数 |
 | task_job_timeout | int | `3600` | 单个任务超时秒数 |
@@ -69,17 +68,20 @@ class Settings(BaseSettings):
 
 ### 运行环境识别 (dev / prod)
 
-`environment` 默认 `"prod"`(误配置时保守)。业务代码通过三个顶层 API 读当前环境:
+`environment` 默认 `"prod"`(误配置时保守)。**没有 `debug` 字段** —— 所有调试开关统一判断 `is_dev()`,避免两个维度冲突。业务代码通过三个顶层 API 读当前环境:
 
 ```python
 from dwyeapi import is_dev, is_prod, get_environment
 
-# FastAPI docs 仅 dev 开启
+# FastAPI docs/redoc/openapi 三个端点仅 dev 开启,prod 必须关闭(防路由元信息泄露)
 app = FastAPI(
     docs_url="/docs" if is_dev() else None,
     redoc_url="/redoc" if is_dev() else None,
     openapi_url="/openapi.json" if is_dev() else None,
 )
+
+# SQL echo、慢路由 profiling 等性能相关调试也走 is_dev()
+engine = create_async_engine_factory(settings.database_url, echo=is_dev())
 ```
 
 **mock provider 仅 dev 可用**: `providers.email` / `providers.sms` 在 prod 环境下选 `provider="mock"` 会让 `make_email_provider()` / `make_sms_provider()` 抛 `ValueError`,防止误配置静默吞掉验证码。
@@ -108,7 +110,7 @@ class User(Base, TimestampMixin):
 ### 引擎和会话
 
 ```python
-engine = create_async_engine_factory(settings.database_url, echo=settings.debug)
+engine = create_async_engine_factory(settings.database_url, echo=is_dev())
 # 参数: database_url, pool_size=5, max_overflow=10, echo=False
 # SQLite 自动跳过连接池参数
 
