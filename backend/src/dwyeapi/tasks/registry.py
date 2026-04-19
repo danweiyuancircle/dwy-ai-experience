@@ -14,7 +14,7 @@ class TaskRegistry:
 
     Usage::
 
-        from danweiyuan_eapi.tasks import register
+        from dwyeapi.tasks import register
 
         @register("process_data")
         async def process_data(ctx: TaskContext, params: dict):

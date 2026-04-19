@@ -3,10 +3,10 @@
 Quick start::
 
     # 1. Install
-    pip install danweiyuan-eapi[tasks]
+    pip install dwyeapi[tasks]
 
     # 2. Register tasks
-    from danweiyuan_eapi.tasks import register, TaskContext
+    from dwyeapi.tasks import register, TaskContext
 
     @register("process_data")
     async def process_data(ctx: TaskContext, params: dict):
@@ -15,7 +15,7 @@ Quick start::
         return {"done": True}
 
     # 3. Mount in FastAPI
-    from danweiyuan_eapi.tasks import setup_tasks, task_router
+    from dwyeapi.tasks import setup_tasks, task_router
 
     await setup_tasks(app, settings, session_factory)
     app.include_router(task_router)
@@ -37,12 +37,12 @@ from __future__ import annotations
 from fastapi import FastAPI
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from danweiyuan_eapi.config import BaseSettings
-from danweiyuan_eapi.tasks.context import TaskContext
-from danweiyuan_eapi.tasks.model import TaskStatus
-from danweiyuan_eapi.tasks.registry import register
-from danweiyuan_eapi.tasks.router import task_router
-from danweiyuan_eapi.tasks.worker import create_worker_settings
+from dwyeapi.config import BaseSettings
+from dwyeapi.tasks.context import TaskContext
+from dwyeapi.tasks.model import TaskStatus
+from dwyeapi.tasks.registry import register
+from dwyeapi.tasks.router import task_router
+from dwyeapi.tasks.worker import create_worker_settings
 
 # Re-export for convenient imports
 __all__ = [
@@ -83,9 +83,9 @@ async def setup_tasks(
         app = FastAPI(lifespan=lifespan)
         app.include_router(task_router)
     """
-    from danweiyuan_eapi.dependencies import create_get_db
-    from danweiyuan_eapi.tasks import pool as _pool
-    from danweiyuan_eapi.tasks import router as _router
+    from dwyeapi.dependencies import create_get_db
+    from dwyeapi.tasks import pool as _pool
+    from dwyeapi.tasks import router as _router
 
     # Configure and warm up the ARQ pool
     _pool.configure(settings.redis_url)

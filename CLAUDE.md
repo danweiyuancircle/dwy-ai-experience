@@ -30,7 +30,7 @@ cd backend && ruff check src/ && ruff format --check src/
 # 发布
 pnpm build:eui && pnpm publish:eui      # @danweiyuan/eui → npm
 pnpm build:ekit && pnpm publish:ekit    # @danweiyuan/ekit → npm
-source .key && pnpm publish:eapi        # danweiyuan-eapi → PyPI (uv build && uv publish)
+source .key && pnpm publish:eapi        # dwyeapi → PyPI (uv build && uv publish)
 pnpm publish:cli                        # create-dwy → npm
 ```
 
@@ -65,7 +65,7 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 
 request 模块的 401 刷新 token 逻辑会自动重试失败请求，响应 unwrap 约定格式 `{ code, data, message }`。
 
-### backend/ — `danweiyuan-eapi`
+### backend/ — `dwyeapi`
 
 FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 
@@ -160,7 +160,7 @@ eui、ekit、eapi 三个基础库被多个项目依赖，变更必须严格遵�
 |------|-------|---------|---------|---------|---------|---------|
 | @danweiyuan/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | pnpm publish:eui | npm view @danweiyuan/eui version |
 | @danweiyuan/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | pnpm publish:ekit | npm view @danweiyuan/ekit version |
-| danweiyuan-eapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | source .key && pnpm publish:eapi | pip index versions danweiyuan-eapi |
+| dwyeapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | source .key && pnpm publish:eapi | pip index versions dwyeapi |
 | create-dwy | cli | claude-cli/package.json | — | — | pnpm publish:cli | npm view create-dwy version |
 
 ### 依赖顺序

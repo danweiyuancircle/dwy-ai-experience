@@ -603,11 +603,11 @@ async def create_user(body: UserCreate) -> UserResponse:
     ...
 ```
 
-## 二十、danweiyuan-eapi 优先使用
+## 二十、dwyeapi 优先使用
 
 ### 适用条件
 
-项目依赖中包含 `danweiyuan-eapi` 时，以下规则生效。
+项目依赖中包含 `dwyeapi` 时，以下规则生效。
 
 ### 强制规则
 
@@ -615,8 +615,8 @@ async def create_user(body: UserCreate) -> UserResponse:
 
 | 需求 | 使用 eapi | 禁止自建 |
 |------|----------|---------|
-| 配置管理 | `danweiyuan_eapi.config.BaseSettings` | 自写 Pydantic Settings 基类 |
-| ORM 基类 | `danweiyuan_eapi.database.Base` + `TimestampMixin` | 自定义 DeclarativeBase |
+| 配置管理 | `dwyeapi.config.BaseSettings` | 自写 Pydantic Settings 基类 |
+| ORM 基类 | `dwyeapi.database.Base` + `TimestampMixin` | 自定义 DeclarativeBase |
 | 异步引擎 | `create_async_engine_factory()` + `create_session_factory()` | 手动创建 engine/session |
 | 依赖注入 | `create_get_db(session_factory)` | 手写 get_db 生成器 |
 | 密码哈希 | `hash_password()` / `verify_password()` | 直接调用 bcrypt |
@@ -728,7 +728,7 @@ result = calculate(x)
 **唯一方式：** 使用 eapi exceptions 体系。
 
 ```python
-from danweiyuan_eapi.exceptions import (
+from dwyeapi.exceptions import (
     NotFoundError,          # 404 — 资源不存在
     BusinessError,          # 422 — 业务规则不允许
     PermissionDeniedError,  # 403 — 无权限
@@ -765,7 +765,7 @@ async def create_order(db: AsyncSession, data: OrderCreate) -> Order:
 ```python
 # app/config.py
 from pydantic import BaseModel
-from danweiyuan_eapi.config import BaseSettings
+from dwyeapi.config import BaseSettings
 
 class OssConfig(BaseModel):
     endpoint: str = ""

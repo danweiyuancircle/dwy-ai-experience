@@ -5,7 +5,7 @@ const content = `
 ## cache — 异步 Redis
 
 \`\`\`python
-from danweiyuan_eapi import cache
+from dwyeapi import cache
 \`\`\`
 
 | 函数 | 签名 | 说明 |
@@ -42,7 +42,7 @@ val = await redis.get("key")
 \`\`\`python
 # main.py
 from contextlib import asynccontextmanager
-from danweiyuan_eapi import cache
+from dwyeapi import cache
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

@@ -1,5 +1,5 @@
-"""ORM model base — re-exports from danweiyuan_eapi."""
+"""ORM model base — re-exports from dwyeapi."""
 
-from danweiyuan_eapi.database import Base, TimestampMixin
+from dwyeapi.database import Base, TimestampMixin
 
 __all__ = ["Base", "TimestampMixin"]

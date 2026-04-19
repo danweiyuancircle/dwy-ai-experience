@@ -3,9 +3,9 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from danweiyuan_eapi.cache import close_redis, configure
-from danweiyuan_eapi.database import create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.exceptions import register_exception_handlers
+from dwyeapi.cache import close_redis, configure
+from dwyeapi.database import create_async_engine_factory, create_session_factory
+from dwyeapi.exceptions import register_exception_handlers
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 

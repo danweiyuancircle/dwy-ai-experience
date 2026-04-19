@@ -5,7 +5,7 @@ const content = `
 ## response — 统一响应
 
 \`\`\`python
-from danweiyuan_eapi.response import success, fail, paginated
+from dwyeapi.response import success, fail, paginated
 \`\`\`
 
 | 函数 | 签名 | 返回结构 |

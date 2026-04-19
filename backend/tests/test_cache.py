@@ -1,9 +1,9 @@
-"""Tests for danweiyuan_eapi.cache."""
+"""Tests for dwyeapi.cache."""
 
 import pytest
 
-import danweiyuan_eapi.cache as cache_mod
-from danweiyuan_eapi.cache import close_redis, configure, get_redis
+import dwyeapi.cache as cache_mod
+from dwyeapi.cache import close_redis, configure, get_redis
 
 
 class TestCacheConfiguration:

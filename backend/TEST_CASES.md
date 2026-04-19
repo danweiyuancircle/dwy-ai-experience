@@ -1,6 +1,6 @@
-# danweiyuan-eapi 测试用例清单
+# dwyeapi 测试用例清单
 
-> 回测基准：151 个测试用例，10 个测试文件。版本变更后必须全部通过。
+> 回测基准：159 个测试用例，11 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd backend && python -m pytest tests/ -v`
 
@@ -392,6 +392,45 @@
 
 ---
 
+## 11. logger 模块（8 个）
+
+`tests/test_logger.py`
+
+### ConfigureConsole（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 仅控制台不生成文件 | `log_dir=None` 时 tmp 目录仍为空 |
+| 2 | 控制台写入 stderr | `capsys` 能捕获到日志内容 |
+
+### ConfigureFile（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 3 | 生成按日期命名文件 | `app_YYYY-MM-DD.log` 存在,内容包含写入的消息 |
+| 4 | 按大小触发轮转 | `max_bytes=1024` 条件下产生 ≥2 个文件 |
+
+### GetLogger（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 5 | 绑定 module 字段 | `get_logger("user_service")` 日志包含 `user_service` |
+| 6 | 无名调用返回默认 logger | 返回非 None 对象 |
+
+### InterceptStdlib（1 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 7 | stdlib 日志进入文件 | `logging.getLogger("x").info(...)` 写入 eapi logger 的文件 |
+
+### CloseAndReconfigure（1 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 8 | close 后可重新 configure | 再次配置后日志写入正常 |
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -399,7 +438,7 @@
 cd backend && python -m pytest tests/ -v
 
 # 2. 期望结果
-# 151 passed
+# 159 passed
 
 # 3. 单模块测试（调试用）
 python -m pytest tests/test_config.py -v
@@ -412,4 +451,5 @@ python -m pytest tests/test_cache.py -v
 python -m pytest tests/test_dependencies.py -v
 python -m pytest tests/test_tasks.py -v
 python -m pytest tests/test_masking.py -v
+python -m pytest tests/test_logger.py -v
 ```

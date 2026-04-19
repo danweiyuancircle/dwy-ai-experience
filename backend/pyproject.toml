@@ -1,7 +1,7 @@
 [project]
-name = "danweiyuan-eapi"
-version = "0.3.0"
-description = "Lightweight FastAPI infrastructure — exceptions, database, config, security, cache, pagination"
+name = "dwyeapi"
+version = "0.4.0"
+description = "Lightweight FastAPI infrastructure — exceptions, database, config, security, cache, pagination, logger"
 requires-python = ">=3.11"
 license = {text = "MIT"}
 dependencies = [
@@ -12,6 +12,7 @@ dependencies = [
     "python-jose[cryptography]>=3.3.0",
     "bcrypt>=4.0.0",
     "redis>=5.0.0",
+    "loguru>=0.7.3",
 ]
 
 [project.optional-dependencies]
@@ -42,11 +43,11 @@ line-length = 120
 select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "RUF"]
 
 [tool.ruff.lint.per-file-ignores]
-"src/danweiyuan_eapi/tasks/router.py" = ["B008"]
-"src/danweiyuan_eapi/tasks/worker.py" = ["RUF012"]
+"src/dwyeapi/tasks/router.py" = ["B008"]
+"src/dwyeapi/tasks/worker.py" = ["RUF012"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["danweiyuan_eapi"]
+known-first-party = ["dwyeapi"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

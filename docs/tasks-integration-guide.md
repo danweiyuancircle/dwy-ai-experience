@@ -1,13 +1,13 @@
-# danweiyuan-eapi Tasks 集成指南
+# dwyeapi Tasks 集成指南
 
 基于 ARQ 的全异步耗时任务处理系统。开箱即用，3 步接入。
 
 ## 1. 安装
 
 ```bash
-pip install danweiyuan-eapi[tasks]
+pip install dwyeapi[tasks]
 # 或
-uv add "danweiyuan-eapi[tasks]"
+uv add "dwyeapi[tasks]"
 ```
 
 自动安装 `arq` 异步任务队列依赖。需要运行中的 Redis 实例。
@@ -18,7 +18,7 @@ uv add "danweiyuan-eapi[tasks]"
 
 ```python
 # app/tasks.py
-from danweiyuan_eapi.tasks import register, TaskContext
+from dwyeapi.tasks import register, TaskContext
 
 
 @register("process_data")
@@ -59,9 +59,9 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
-from danweiyuan_eapi.database import create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.exceptions import register_exception_handlers
-from danweiyuan_eapi.tasks import setup_tasks, task_router
+from dwyeapi.database import create_async_engine_factory, create_session_factory
+from dwyeapi.exceptions import register_exception_handlers
+from dwyeapi.tasks import setup_tasks, task_router
 
 from app.config import settings
 
@@ -86,8 +86,8 @@ app.include_router(task_router)  # 挂载 /tasks API
 
 ```python
 # app/worker.py
-from danweiyuan_eapi.database import create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.tasks import create_worker_settings
+from dwyeapi.database import create_async_engine_factory, create_session_factory
+from dwyeapi.tasks import create_worker_settings
 
 from app.config import settings
 
@@ -229,7 +229,7 @@ app.include_router(task_router, prefix="/api/jobs")  # /api/jobs/*
 ### @register 装饰器
 
 ```python
-from danweiyuan_eapi.tasks import register, TaskContext
+from dwyeapi.tasks import register, TaskContext
 
 @register("unique_task_type")
 async def my_task(ctx: TaskContext, params: dict):
@@ -304,7 +304,7 @@ Task 表自动随业务数据库创建 (复用 eapi 的 `Base`)。
 从 eapi 的 `BaseSettings` 自动生成 ARQ Worker 配置：
 
 ```python
-from danweiyuan_eapi.tasks import create_worker_settings
+from dwyeapi.tasks import create_worker_settings
 
 WorkerSettings = create_worker_settings(settings, session_factory=session_factory)
 ```
@@ -331,7 +331,7 @@ IO 密集型任务 (文件导出、第三方 API) 可设 5-10；CPU 密集型任
 ## 11. 公共 API 速查
 
 ```python
-from danweiyuan_eapi.tasks import (
+from dwyeapi.tasks import (
     setup_tasks,              # 一站式初始化
     task_router,              # 开箱即用 APIRouter
     register,                 # @register 装饰器
@@ -366,7 +366,7 @@ myproject/
 ```toml
 # pyproject.toml
 [project]
-dependencies = ["danweiyuan-eapi[tasks]", "asyncpg"]
+dependencies = ["dwyeapi[tasks]", "asyncpg"]
 ```
 
 ```env

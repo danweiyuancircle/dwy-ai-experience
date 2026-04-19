@@ -153,11 +153,11 @@ async def get_user(
 
 ### 统一异常体系
 
-直接使用 `danweiyuan-eapi` 提供的异常体系，禁止自造异常基类：
+直接使用 `dwyeapi` 提供的异常体系，禁止自造异常基类：
 
 ```python
 # 从 eapi 导入（禁止自定义 AppError 子类体系）
-from danweiyuan_eapi.exceptions import (
+from dwyeapi.exceptions import (
     AppError,               # 基类
     NotFoundError,          # 404 — NotFoundError("用户") → {"code": "NOT_FOUND", "message": "用户不存在"}
     BusinessError,          # 422 — BusinessError("余额不足", code="INSUFFICIENT_BALANCE")
@@ -167,7 +167,7 @@ from danweiyuan_eapi.exceptions import (
 )
 
 # main.py 中注册
-from danweiyuan_eapi.exceptions import register_exception_handlers
+from dwyeapi.exceptions import register_exception_handlers
 register_exception_handlers(app)
 ```
 
@@ -175,7 +175,7 @@ register_exception_handlers(app)
 
 ```python
 # app/exceptions.py — 项目级异常（继承 eapi AppError）
-from danweiyuan_eapi.exceptions import AppError
+from dwyeapi.exceptions import AppError
 
 class QuotaExceededError(AppError):
     def __init__(self) -> None:

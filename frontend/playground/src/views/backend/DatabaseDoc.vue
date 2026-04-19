@@ -5,7 +5,7 @@ const content = `
 ## database — 异步 SQLAlchemy
 
 \`\`\`python
-from danweiyuan_eapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
+from dwyeapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
 \`\`\`
 
 ### 模型定义
@@ -54,8 +54,8 @@ SQLAlchemy 声明式基类（\`DeclarativeBase\`），所有 ORM 模型必须继
 
 \`\`\`python
 # database.py
-from danweiyuan_eapi.database import Base, create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.dependencies import create_get_db
+from dwyeapi.database import Base, create_async_engine_factory, create_session_factory
+from dwyeapi.dependencies import create_get_db
 
 engine = create_async_engine_factory(settings.database_url)
 session_factory = create_session_factory(engine)

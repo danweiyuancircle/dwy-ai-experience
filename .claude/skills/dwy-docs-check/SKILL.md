@@ -71,7 +71,7 @@ grep "path: '/eui/" frontend/playground/src/data/search-index.ts | sed "s/.*'\\/
 ### ⑤ Backend 文档时效性
 
 **检查方法：**
-1. 读 `backend/src/danweiyuan_eapi/` 下所有 `.py` 文件的 public 函数/类名
+1. 读 `backend/src/dwyeapi/` 下所有 `.py` 文件的 public 函数/类名
 2. 对比 `claude-cli/templates/claude-global/skills/dwy-backend-eapi/SKILL.md` 中列出的函数
 3. 对比 `frontend/playground/src/views/backend/` 下各文档页面
 

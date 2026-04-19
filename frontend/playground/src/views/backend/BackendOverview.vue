@@ -14,7 +14,7 @@ const modules = [
 <template>
   <div class="max-w-4xl">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold mb-2">danweiyuan-eapi</h1>
+      <h1 class="text-3xl font-bold mb-2">dwyeapi</h1>
       <p class="text-muted-foreground text-lg">
         FastAPI 基础设施包，Python 3.11+，全异步。8 个扁平模块，无子包。
       </p>
@@ -24,9 +24,9 @@ const modules = [
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">安装</h2>
       <ECard>
-        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>pip install danweiyuan-eapi
+        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>pip install dwyeapi
 # 或
-uv add danweiyuan-eapi</code></pre>
+uv add dwyeapi</code></pre>
       </ECard>
     </div>
 
@@ -51,14 +51,14 @@ uv add danweiyuan-eapi</code></pre>
     <div>
       <h2 class="text-xl font-semibold mb-4">快速导入</h2>
       <ECard>
-        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>from danweiyuan_eapi.config import BaseSettings
-from danweiyuan_eapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.security import hash_password, verify_password, create_token, decode_token
-from danweiyuan_eapi.exceptions import NotFoundError, BusinessError, register_exception_handlers
-from danweiyuan_eapi.response import success, fail, paginated
-from danweiyuan_eapi.pagination import PaginationParams, paginate
-from danweiyuan_eapi.cache import configure as configure_redis, get_redis, close_redis
-from danweiyuan_eapi.dependencies import create_get_db</code></pre>
+        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>from dwyeapi.config import BaseSettings
+from dwyeapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
+from dwyeapi.security import hash_password, verify_password, create_token, decode_token
+from dwyeapi.exceptions import NotFoundError, BusinessError, register_exception_handlers
+from dwyeapi.response import success, fail, paginated
+from dwyeapi.pagination import PaginationParams, paginate
+from dwyeapi.cache import configure as configure_redis, get_redis, close_redis
+from dwyeapi.dependencies import create_get_db</code></pre>
       </ECard>
     </div>
   </div>

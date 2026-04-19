@@ -20,7 +20,7 @@ description: 跨栈技术选型强制约束(FastAPI/Vue3/Flutter/UV/pnpm/Docker/
 | 密码哈希 | bcrypt (eapi security) | argon2, scrypt, 自实现 |
 | JWT | python-jose (eapi security) | PyJWT, 自实现 |
 | 数据校验 | Pydantic v2 | marshmallow, attrs, 手动校验 |
-| 基础设施层 | danweiyuan-eapi | 自造框架、手写基础设施 |
+| 基础设施层 | dwyeapi | 自造框架、手写基础设施 |
 | Linter/Formatter | Ruff | Black, isort, flake8, pylint |
 
 ## 前端(Web)

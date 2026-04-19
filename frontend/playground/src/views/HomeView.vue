@@ -94,7 +94,7 @@ const stats = [
         </ECard>
         <ECard>
           <div class="font-medium mb-2">后端</div>
-          <pre class="text-sm font-mono bg-muted rounded-md p-3 overflow-x-auto"><code>uv add danweiyuan-eapi</code></pre>
+          <pre class="text-sm font-mono bg-muted rounded-md p-3 overflow-x-auto"><code>uv add dwyeapi</code></pre>
         </ECard>
         <ECard>
           <div class="font-medium mb-2">脚手架</div>

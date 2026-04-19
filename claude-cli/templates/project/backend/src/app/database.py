@@ -1,7 +1,7 @@
 """Database engine and session factory."""
 
-from danweiyuan_eapi.database import create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.dependencies import create_get_db
+from dwyeapi.database import create_async_engine_factory, create_session_factory
+from dwyeapi.dependencies import create_get_db
 
 from app.config import settings
 

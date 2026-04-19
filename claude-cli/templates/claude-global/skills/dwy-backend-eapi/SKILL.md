@@ -1,9 +1,9 @@
 ---
 name: dwy-backend-eapi
-description: "danweiyuan-eapi FastAPI 后端基础设施速查。触发条件：使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理、耗时任务处理时。"
+description: "dwyeapi FastAPI 后端基础设施速查。触发条件：使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理、耗时任务处理时。"
 ---
 
-# danweiyuan-eapi 后端基础设施速查
+# dwyeapi 后端基础设施速查
 
 FastAPI 项目基础设施包，Python 3.11+，全异步。11 个模块。
 
@@ -12,37 +12,37 @@ FastAPI 项目基础设施包，Python 3.11+，全异步。11 个模块。
 ## 安装
 
 ```bash
-pip install danweiyuan-eapi
+pip install dwyeapi
 # 需要任务处理时
-pip install danweiyuan-eapi[tasks]
+pip install dwyeapi[tasks]
 ```
 
 ```python
-from danweiyuan_eapi.config import BaseSettings
-from danweiyuan_eapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.security import hash_password, verify_password, create_token, decode_token
-from danweiyuan_eapi.exceptions import NotFoundError, BusinessError, register_exception_handlers
-from danweiyuan_eapi.response import success, fail, paginated
-from danweiyuan_eapi.pagination import PaginationParams, paginate
-from danweiyuan_eapi.cache import configure as configure_redis, get_redis, close_redis
-from danweiyuan_eapi.dependencies import create_get_db
-from danweiyuan_eapi import dt
-from danweiyuan_eapi.masking import mask_phone, mask_email, mask_id_card, mask_name
+from dwyeapi.config import BaseSettings
+from dwyeapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
+from dwyeapi.security import hash_password, verify_password, create_token, decode_token
+from dwyeapi.exceptions import NotFoundError, BusinessError, register_exception_handlers
+from dwyeapi.response import success, fail, paginated
+from dwyeapi.pagination import PaginationParams, paginate
+from dwyeapi.cache import configure as configure_redis, get_redis, close_redis
+from dwyeapi.dependencies import create_get_db
+from dwyeapi import dt
+from dwyeapi.masking import mask_phone, mask_email, mask_id_card, mask_name
 
 # 任务模块 (需安装 [tasks] extra)
-from danweiyuan_eapi.tasks import setup_tasks, task_router, register, TaskContext, TaskStatus, create_worker_settings
+from dwyeapi.tasks import setup_tasks, task_router, register, TaskContext, TaskStatus, create_worker_settings
 ```
 
 ## 查阅源码
 
-每个模块在 `backend/src/danweiyuan_eapi/{module}.py`，单文件设计可直接阅读。
+每个模块在 `backend/src/dwyeapi/{module}.py`，单文件设计可直接阅读。
 
 ---
 
 ## config — Pydantic Settings
 
 ```python
-from danweiyuan_eapi.config import BaseSettings
+from dwyeapi.config import BaseSettings
 ```
 
 子类化后使用，从 `.env` 或环境变量读取配置。
@@ -71,7 +71,7 @@ class Settings(BaseSettings):
 ## database — 异步 SQLAlchemy
 
 ```python
-from danweiyuan_eapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
+from dwyeapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
 ```
 
 ### 模型定义
@@ -103,7 +103,7 @@ session_factory = create_session_factory(engine)
 ## dependencies — FastAPI 依赖注入
 
 ```python
-from danweiyuan_eapi.dependencies import create_get_db
+from dwyeapi.dependencies import create_get_db
 ```
 
 ### create_get_db(session_factory)
@@ -123,7 +123,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
 ## security — JWT + bcrypt
 
 ```python
-from danweiyuan_eapi.security import hash_password, verify_password, create_token, decode_token
+from dwyeapi.security import hash_password, verify_password, create_token, decode_token
 ```
 
 所有函数无状态，密钥通过参数传入。
@@ -148,7 +148,7 @@ payload = decode_token(token, settings.secret_key)  # {"sub": "1", "exp": ...} �
 ## exceptions — 异常体系
 
 ```python
-from danweiyuan_eapi.exceptions import (
+from dwyeapi.exceptions import (
     AppError, NotFoundError, BusinessError, PermissionDeniedError, AuthenticationError,
     register_exception_handlers,
 )
@@ -185,7 +185,7 @@ register_exception_handlers(app)
 ## response — 统一响应
 
 ```python
-from danweiyuan_eapi.response import success, fail, paginated
+from dwyeapi.response import success, fail, paginated
 ```
 
 | 函数 | 签名 | 返回结构 |
@@ -211,7 +211,7 @@ async def list_users(params: PaginationParams = Depends(), service=Depends(get_u
 ## pagination — 分页工具
 
 ```python
-from danweiyuan_eapi.pagination import PaginationParams, paginate, OffsetLimit
+from dwyeapi.pagination import PaginationParams, paginate, OffsetLimit
 ```
 
 ### PaginationParams
@@ -236,7 +236,7 @@ stmt = select(User).offset(offset_limit.offset).limit(offset_limit.limit)
 ## cache — 异步 Redis
 
 ```python
-from danweiyuan_eapi import cache
+from dwyeapi import cache
 ```
 
 | 函数 | 签名 | 说明 |
@@ -264,7 +264,7 @@ val = await redis.get("key")
 ## dt — 全局时间工具
 
 ```python
-from danweiyuan_eapi import dt
+from dwyeapi import dt
 ```
 
 业务时间统一 Asia/Shanghai，**禁止在业务代码中直接使用 `datetime.now()`**，统一通过 `dt` 模块访问。
@@ -292,7 +292,7 @@ dt.utc_now()      # datetime(2026, 4, 8, 6, 30, 0, tzinfo=UTC) — aware
 ## masking — PII 数据脱敏
 
 ```python
-from danweiyuan_eapi.masking import (
+from dwyeapi.masking import (
     mask_phone,          # 138****5678
     mask_email,          # z***@gmail.com
     mask_id_card,        # 420***********1234
@@ -338,7 +338,7 @@ mask_text("1234567890", start=2, end=3)              # 12*****890
 
 ```python
 # config.py
-from danweiyuan_eapi.config import BaseSettings
+from dwyeapi.config import BaseSettings
 
 class Settings(BaseSettings):
     app_name: str = "My API"
@@ -346,16 +346,16 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # database.py
-from danweiyuan_eapi.database import Base, create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.dependencies import create_get_db
+from dwyeapi.database import Base, create_async_engine_factory, create_session_factory
+from dwyeapi.dependencies import create_get_db
 
 engine = create_async_engine_factory(settings.database_url)
 session_factory = create_session_factory(engine)
 get_db = create_get_db(session_factory)
 
 # main.py
-from danweiyuan_eapi.exceptions import register_exception_handlers
-from danweiyuan_eapi import cache
+from dwyeapi.exceptions import register_exception_handlers
+from dwyeapi import cache
 
 app = FastAPI(lifespan=lifespan)
 register_exception_handlers(app)
@@ -366,7 +366,7 @@ register_exception_handlers(app)
 ## tasks — 异步任务处理 (需 `[tasks]` extra)
 
 ```python
-from danweiyuan_eapi.tasks import setup_tasks, task_router, register, TaskContext
+from dwyeapi.tasks import setup_tasks, task_router, register, TaskContext
 ```
 
 基于 ARQ 的全异步耗时任务系统。3 步接入：注册任务 → setup + 挂载路由 → 启动 Worker。

@@ -4,14 +4,14 @@ version = "0.1.0"
 description = "{{projectDescription}}"
 requires-python = ">=3.11"
 dependencies = [
-    "danweiyuan-eapi>=0.2.0",
+    "dwyeapi>=0.2.0",
     "fastapi>=0.115.0",
     "uvicorn[standard]>=0.34.0",
     "sqlalchemy[asyncio]>=2.0.0",
     "asyncpg>=0.30.0",
     "alembic>=1.13.0",
     # 需要异步任务处理时取消注释:
-    # "danweiyuan-eapi[tasks]>=0.2.0",
+    # "dwyeapi[tasks]>=0.2.0",
 ]
 
 [project.optional-dependencies]
@@ -48,4 +48,4 @@ index-url = "https://pypi.tuna.tsinghua.edu.cn/simple/"
 extra-index-url = ["https://pypi.org/simple/"]
 
 [tool.uv.sources]
-danweiyuan-eapi = { index = "https://pypi.org/simple/" }
+dwyeapi = { index = "https://pypi.org/simple/" }

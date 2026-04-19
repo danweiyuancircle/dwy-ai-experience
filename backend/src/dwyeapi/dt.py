@@ -5,7 +5,7 @@
 
 Usage::
 
-    from danweiyuan_eapi import dt
+    from dwyeapi import dt
 
     dt.now()          # naive datetime, 中国时间, 用于数据库
     dt.now_str()      # "2026-04-06 14:30:00"

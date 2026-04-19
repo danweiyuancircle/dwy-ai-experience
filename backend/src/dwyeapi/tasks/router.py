@@ -11,13 +11,13 @@ from collections.abc import AsyncGenerator, Callable
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from danweiyuan_eapi.exceptions import BusinessError, NotFoundError
-from danweiyuan_eapi.response import success
-from danweiyuan_eapi.tasks import pool
-from danweiyuan_eapi.tasks.model import TaskStatus
-from danweiyuan_eapi.tasks.registry import registry
-from danweiyuan_eapi.tasks.schema import TaskCreate, TaskListResponse, TaskResponse
-from danweiyuan_eapi.tasks.service import append_task_log, create_task, get_task, list_tasks, update_task_progress, update_task_status
+from dwyeapi.exceptions import BusinessError, NotFoundError
+from dwyeapi.response import success
+from dwyeapi.tasks import pool
+from dwyeapi.tasks.model import TaskStatus
+from dwyeapi.tasks.registry import registry
+from dwyeapi.tasks.schema import TaskCreate, TaskListResponse, TaskResponse
+from dwyeapi.tasks.service import append_task_log, create_task, get_task, list_tasks, update_task_progress, update_task_status
 
 task_router = APIRouter(prefix="/tasks", tags=["tasks"])
 

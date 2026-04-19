@@ -5,7 +5,7 @@ const content = `
 ## security — JWT + bcrypt
 
 \`\`\`python
-from danweiyuan_eapi.security import hash_password, verify_password, create_token, decode_token
+from dwyeapi.security import hash_password, verify_password, create_token, decode_token
 \`\`\`
 
 所有函数无状态，密钥通过参数传入。

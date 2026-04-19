@@ -8,8 +8,11 @@ from __future__ import annotations
 
 from typing import Any
 
-from danweiyuan_eapi.config import BaseSettings
-from danweiyuan_eapi.tasks.pool import _parse_redis_url
+from dwyeapi.config import BaseSettings
+from dwyeapi.logger import get_logger
+from dwyeapi.tasks.pool import _parse_redis_url
+
+_log = get_logger(__name__)
 
 
 def create_worker_settings(
@@ -23,8 +26,8 @@ def create_worker_settings(
         # app/worker.py
         import app.tasks  # trigger @register decorators
         from app.settings import settings
-        from danweiyuan_eapi.tasks import create_worker_settings
-        from danweiyuan_eapi.database import create_async_engine_factory, create_session_factory
+        from dwyeapi.tasks import create_worker_settings
+        from dwyeapi.database import create_async_engine_factory, create_session_factory
 
         engine = create_async_engine_factory(settings.database_url)
         sf = create_session_factory(engine)
@@ -41,8 +44,8 @@ def create_worker_settings(
     Returns:
         A class suitable as ARQ WorkerSettings.
     """
-    from danweiyuan_eapi.tasks.context import run_task_with_context
-    from danweiyuan_eapi.tasks.registry import registry
+    from dwyeapi.tasks.context import run_task_with_context
+    from dwyeapi.tasks.registry import registry
 
     _redis_settings = _parse_redis_url(settings.redis_url)
     _session_factory = session_factory
@@ -80,8 +83,8 @@ def create_worker_settings(
         """
         from sqlalchemy import select
 
-        from danweiyuan_eapi.tasks.model import Task, TaskStatus
-        from danweiyuan_eapi.tasks.service import append_task_log, update_task_status
+        from dwyeapi.tasks.model import Task, TaskStatus
+        from dwyeapi.tasks.service import append_task_log, update_task_status
 
         redis = ctx["redis"]
         async with _session_factory() as session:
@@ -101,8 +104,7 @@ def create_worker_settings(
 
             await redis.enqueue_job("_task_executor", task.id, task.task_type, task.params)
 
-        import logging
-        logging.getLogger(__name__).info("恢复了 %d 个未完成的任务", len(stale_tasks))
+        _log.info("恢复了 {count} 个未完成的任务", count=len(stale_tasks))
 
     class WorkerSettings:
         """ARQ WorkerSettings generated from eapi BaseSettings."""

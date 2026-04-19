@@ -1,11 +1,11 @@
-"""Tests for danweiyuan_eapi.database."""
+"""Tests for dwyeapi.database."""
 
 import pytest
 from sqlalchemy import String, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Mapped, mapped_column
 
-from danweiyuan_eapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
+from dwyeapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
 
 
 class FakeModel(Base, TimestampMixin):

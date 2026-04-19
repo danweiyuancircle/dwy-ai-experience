@@ -5,7 +5,7 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict
 
-from danweiyuan_eapi.tasks.model import TaskStatus
+from dwyeapi.tasks.model import TaskStatus
 
 
 class TaskCreate(BaseModel):

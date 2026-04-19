@@ -6,7 +6,7 @@ All helpers are stateless — pass secrets and algorithm as parameters.
 from datetime import timedelta
 from typing import Any
 
-from danweiyuan_eapi import dt
+from dwyeapi import dt
 
 import bcrypt
 from jose import JWTError, jwt

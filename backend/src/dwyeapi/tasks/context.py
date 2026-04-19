@@ -12,8 +12,8 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from danweiyuan_eapi.tasks import service
-from danweiyuan_eapi.tasks.model import TaskStatus
+from dwyeapi.tasks import service
+from dwyeapi.tasks.model import TaskStatus
 
 
 class TaskContext:

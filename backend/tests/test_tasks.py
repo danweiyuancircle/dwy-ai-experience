@@ -1,14 +1,14 @@
-"""Tests for danweiyuan_eapi.tasks module."""
+"""Tests for dwyeapi.tasks module."""
 
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from danweiyuan_eapi.database import Base
-from danweiyuan_eapi.tasks.model import Task, TaskStatus
-from danweiyuan_eapi.tasks.registry import TaskRegistry
-from danweiyuan_eapi.tasks.schema import TaskCreate, TaskListResponse, TaskResponse
-from danweiyuan_eapi.tasks.service import (
+from dwyeapi.database import Base
+from dwyeapi.tasks.model import Task, TaskStatus
+from dwyeapi.tasks.registry import TaskRegistry
+from dwyeapi.tasks.schema import TaskCreate, TaskListResponse, TaskResponse
+from dwyeapi.tasks.service import (
     append_task_log,
     create_task,
     get_task,
@@ -399,7 +399,7 @@ class TestPool:
 
     def test_parse_redis_url(self):
         """Should parse a standard redis:// URL."""
-        from danweiyuan_eapi.tasks.pool import _parse_redis_url
+        from dwyeapi.tasks.pool import _parse_redis_url
 
         settings = _parse_redis_url("redis://myhost:6380/2")
         assert settings.host == "myhost"
@@ -408,14 +408,14 @@ class TestPool:
 
     def test_parse_redis_url_with_password(self):
         """Should extract password from URL."""
-        from danweiyuan_eapi.tasks.pool import _parse_redis_url
+        from dwyeapi.tasks.pool import _parse_redis_url
 
         settings = _parse_redis_url("redis://:secret@localhost:6379/0")
         assert settings.password == "secret"
 
     def test_parse_redis_url_defaults(self):
         """Should use defaults for minimal URL."""
-        from danweiyuan_eapi.tasks.pool import _parse_redis_url
+        from dwyeapi.tasks.pool import _parse_redis_url
 
         settings = _parse_redis_url("redis://localhost")
         assert settings.host == "localhost"
@@ -424,7 +424,7 @@ class TestPool:
 
     def test_get_redis_settings_raises_without_configure(self):
         """Should raise RuntimeError if configure() was not called."""
-        from danweiyuan_eapi.tasks import pool
+        from dwyeapi.tasks import pool
 
         # Reset module state
         pool._redis_settings = None
@@ -433,7 +433,7 @@ class TestPool:
 
     def test_configure_stores_settings(self):
         """configure() should store parsed settings."""
-        from danweiyuan_eapi.tasks import pool
+        from dwyeapi.tasks import pool
 
         pool.configure("redis://testhost:6380/3")
         settings = pool.get_redis_settings()
@@ -459,8 +459,8 @@ class TestWorkerFactory:
         monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
         monkeypatch.setenv("SECRET_KEY", "test")
 
-        from danweiyuan_eapi.config import BaseSettings
-        from danweiyuan_eapi.tasks.worker import create_worker_settings
+        from dwyeapi.config import BaseSettings
+        from dwyeapi.tasks.worker import create_worker_settings
 
         settings = BaseSettings()
         ws = create_worker_settings(settings)
@@ -480,8 +480,8 @@ class TestWorkerFactory:
         monkeypatch.setenv("TASK_MAX_JOBS", "10")
         monkeypatch.setenv("TASK_JOB_TIMEOUT", "7200")
 
-        from danweiyuan_eapi.config import BaseSettings
-        from danweiyuan_eapi.tasks.worker import create_worker_settings
+        from dwyeapi.config import BaseSettings
+        from dwyeapi.tasks.worker import create_worker_settings
 
         settings = BaseSettings()
         ws = create_worker_settings(settings)
@@ -504,7 +504,7 @@ class TestConfigTaskFields:
         monkeypatch.setenv("REDIS_URL", "redis://localhost:6379/0")
         monkeypatch.setenv("SECRET_KEY", "test")
 
-        from danweiyuan_eapi.config import BaseSettings
+        from dwyeapi.config import BaseSettings
 
         s = BaseSettings()
         assert s.task_max_jobs == 5
@@ -520,7 +520,7 @@ class TestConfigTaskFields:
         monkeypatch.setenv("TASK_JOB_TIMEOUT", "1800")
         monkeypatch.setenv("TASK_FAILURE_TTL", "43200")
 
-        from danweiyuan_eapi.config import BaseSettings
+        from dwyeapi.config import BaseSettings
 
         s = BaseSettings()
         assert s.task_max_jobs == 8

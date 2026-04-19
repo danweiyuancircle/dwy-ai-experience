@@ -1,4 +1,4 @@
-"""Tests for danweiyuan_eapi.dependencies."""
+"""Tests for dwyeapi.dependencies."""
 
 import pytest
 from fastapi import Depends, FastAPI
@@ -6,8 +6,8 @@ from fastapi.testclient import TestClient
 from sqlalchemy import String, select
 from sqlalchemy.orm import Mapped, mapped_column
 
-from danweiyuan_eapi.database import Base, create_async_engine_factory, create_session_factory
-from danweiyuan_eapi.dependencies import create_get_db
+from dwyeapi.database import Base, create_async_engine_factory, create_session_factory
+from dwyeapi.dependencies import create_get_db
 
 
 class Item(Base):

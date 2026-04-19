@@ -21,6 +21,16 @@ class BaseSettings(PydanticBaseSettings):
     task_job_timeout: int = 3600
     task_failure_ttl: int = 86400
 
+    # Logger module settings (log_ prefix)
+    log_level: str = "INFO"
+    log_dir: str | None = None
+    log_filename: str = "app"
+    log_max_bytes: int = 100 * 1024 * 1024
+    log_retention: str = "30 days"
+    log_console: bool = True
+    log_serialize: bool = False
+    log_intercept_stdlib: bool = True
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

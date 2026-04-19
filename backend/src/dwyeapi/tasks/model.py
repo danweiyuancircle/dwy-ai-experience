@@ -6,7 +6,7 @@ import uuid as uuid_lib
 from sqlalchemy import JSON, Enum, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
-from danweiyuan_eapi.database import Base, TimestampMixin
+from dwyeapi.database import Base, TimestampMixin
 
 
 class TaskStatus(enum.StrEnum):

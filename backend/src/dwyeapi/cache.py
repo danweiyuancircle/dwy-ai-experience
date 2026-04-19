@@ -15,7 +15,7 @@ def configure(redis_url: str) -> None:
 async def get_redis() -> aioredis.Redis:
     """Get or create the shared async Redis connection."""
     if _redis_url is None:
-        raise RuntimeError("danweiyuan_eapi.cache not configured — call cache.configure(redis_url) first")
+        raise RuntimeError("dwyeapi.cache not configured — call cache.configure(redis_url) first")
     global _redis
     if _redis is None:
         _redis = aioredis.from_url(_redis_url, decode_responses=True)

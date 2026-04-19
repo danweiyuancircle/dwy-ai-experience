@@ -1,6 +1,6 @@
-"""Tests for danweiyuan_eapi.response."""
+"""Tests for dwyeapi.response."""
 
-from danweiyuan_eapi.response import fail, paginated, success
+from dwyeapi.response import fail, paginated, success
 
 
 class TestSuccess:

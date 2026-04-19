@@ -1,11 +1,11 @@
-# danweiyuan-eapi
+# dwyeapi
 
 Lightweight FastAPI infrastructure package for shared use across projects.
 
 ## Install
 
 ```bash
-pip install danweiyuan-eapi
+pip install dwyeapi
 ```
 
 ## Modules
@@ -18,3 +18,4 @@ pip install danweiyuan-eapi
 - `cache` — Async Redis connection manager
 - `response` — Unified API response helpers
 - `pagination` — PaginationParams + paginate helper
+- `logger` — Loguru-based logger with daily + size rotation and stdlib interception

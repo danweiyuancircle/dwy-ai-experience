@@ -1,6 +1,6 @@
-"""Tests for danweiyuan_eapi.masking."""
+"""Tests for dwyeapi.masking."""
 
-from danweiyuan_eapi.masking import (
+from dwyeapi.masking import (
     mask_address,
     mask_bank_card,
     mask_email,
