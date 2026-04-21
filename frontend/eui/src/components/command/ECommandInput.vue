@@ -1,3 +1,7 @@
+<!--
+  ECommandInput 命令面板搜索输入框
+  双向绑定根 Command 的 filterState.search，输入即触发过滤
+-->
 <script setup lang="ts">
 import type { ListboxFilterProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'

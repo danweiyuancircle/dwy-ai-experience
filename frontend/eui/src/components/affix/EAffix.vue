@@ -1,3 +1,8 @@
+<!--
+  EAffix 固钉组件
+  监听滚动事件，将内容在达到 offset 阈值后切换为 fixed 定位
+  进入固定态时保留占位高度避免页面抖动
+-->
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, computed } from 'vue'
 import { cn } from '@/utils/cn'
@@ -13,6 +18,10 @@ const affixRef = ref<HTMLElement | null>(null)
 const placeholderRef = ref<HTMLElement | null>(null)
 const placeholderHeight = ref(0)
 
+/**
+ * 滚动处理：根据元素相对视口的位置计算是否进入固定状态
+ * 在首次进入固定状态前记录原高度作为占位高度
+ */
 function handleScroll() {
   if (!affixRef.value) return
 

@@ -1,3 +1,7 @@
+<!--
+  EMenubarSubContent 子菜单内容面板
+  通过 Portal 渲染到 body，承载多级子菜单项
+-->
 <script setup lang="ts">
 import { MenubarPortal, MenubarSubContent } from 'reka-ui'
 import { cn } from '@/utils/cn'

@@ -1,3 +1,8 @@
+<!--
+  ERangeCalendar 日期范围日历
+  基于 reka-ui RangeCalendar 封装，支持选择起始/结束日期并高亮范围
+  作为 EDatePicker 的范围选择模式底层基础设施
+-->
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import {

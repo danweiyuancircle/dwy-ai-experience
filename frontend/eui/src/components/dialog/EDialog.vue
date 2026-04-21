@@ -1,3 +1,8 @@
+<!--
+  EDialog 通用对话框组件
+  基于 reka-ui Dialog 原语封装，支持拖拽、全屏、destroyOnClose 等能力
+  Header 区域可拖动改变位置；遮罩点击 / Esc 行为可开关
+-->
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
 import { X } from 'lucide-vue-next'
@@ -25,46 +30,52 @@ const props = withDefaults(defineProps<EDialogProps>(), {
 
 const emit = defineEmits<EDialogEmits>()
 
-// Use a local ref synced with the prop — reka-ui DialogRoot works best with v-model:open on a ref
+// 使用本地 ref 承接 open，reka-ui DialogRoot 要求 v-model 为可写 ref
 const localOpen = ref(props.open ?? false)
 
+// 外部 prop 变化 → 同步本地状态
 watch(() => props.open, (val) => {
   localOpen.value = val ?? false
 })
 
+// 本地状态变化 → 派发事件；关闭时重置拖拽偏移
 watch(localOpen, (val) => {
   emit('update:open', val)
   if (val) emit('open')
   else {
     emit('close')
-    // Reset drag position when dialog closes
     dragOffset.x = 0
     dragOffset.y = 0
   }
 })
 
-// --- closeOnClickModal / closeOnPressEscape ---
+// --- 点击遮罩 / Esc 关闭行为 ---
+
+/** 阻止 closeOnClickModal=false 时的遮罩点击关闭 */
 function onInteractOutside(event: Event) {
   if (!props.closeOnClickModal) {
     event.preventDefault()
   }
 }
 
+/** 阻止 closeOnPressEscape=false 时的 Esc 关闭 */
 function onEscapeKeyDown(event: KeyboardEvent) {
   if (!props.closeOnPressEscape) {
     event.preventDefault()
   }
 }
 
-// --- Draggable ---
+// --- 拖拽实现 ---
 const dragOffset = reactive({ x: 0, y: 0 })
 let isDragging = false
 let dragStart = { x: 0, y: 0 }
 let offsetStart = { x: 0, y: 0 }
 
+/**
+ * 按下标题栏开始拖拽：仅响应鼠标主键
+ */
 function onHeaderPointerDown(event: PointerEvent) {
   if (!props.draggable) return
-  // Only drag on primary button
   if (event.button !== 0) return
   isDragging = true
   dragStart = { x: event.clientX, y: event.clientY }
@@ -73,12 +84,14 @@ function onHeaderPointerDown(event: PointerEvent) {
   document.addEventListener('pointerup', onPointerUp)
 }
 
+/** 拖拽中：更新偏移量 */
 function onPointerMove(event: PointerEvent) {
   if (!isDragging) return
   dragOffset.x = offsetStart.x + (event.clientX - dragStart.x)
   dragOffset.y = offsetStart.y + (event.clientY - dragStart.y)
 }
 
+/** 松开鼠标：结束拖拽并移除监听 */
 function onPointerUp() {
   isDragging = false
   document.removeEventListener('pointermove', onPointerMove)

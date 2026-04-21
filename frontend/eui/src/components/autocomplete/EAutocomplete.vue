@@ -1,3 +1,8 @@
+<!--
+  EAutocomplete 自动补全输入组件
+  输入时通过外部 fetchSuggestions 异步获取候选项，以下拉面板展示
+  支持键盘导航（上下方向键 / Enter / Esc）与输入法合成安全处理
+-->
 <script setup lang="ts">
 import { ref, shallowRef, watch, computed, nextTick } from 'vue'
 import { LoaderCircle } from 'lucide-vue-next'
@@ -21,6 +26,7 @@ const isLoading = ref(false)
 const activeIndex = ref(-1)
 let debounceTimer: ReturnType<typeof setTimeout> | null = null
 
+// 使用 useSecureValue 处理中文输入法合成，避免拼音中间态触发补全
 const {
   isComposing,
   recordCursor,
@@ -30,10 +36,15 @@ const {
   onCompositionEnd,
 } = useSecureValue(inputRef, () => inputValue.value)
 
+// 外部 modelValue 变化时同步到内部输入值
 watch(() => props.modelValue, (val) => {
   inputValue.value = val ?? ''
 })
 
+/**
+ * 输入处理：记录光标、同步值、防抖触发 fetchSuggestions
+ * 合成态（输入法中间态）下跳过，避免每个拼音字母都发起请求
+ */
 async function handleInput(event: Event) {
   recordCursor()
   if (isComposing.value) return
@@ -65,6 +76,9 @@ async function handleInput(event: Event) {
   }, props.debounce)
 }
 
+/**
+ * 选中某个下拉项：回填 label 到输入框并关闭面板
+ */
 function selectOption(option: AutocompleteOption) {
   inputValue.value = option.label
   emit('update:modelValue', option.label)
@@ -73,6 +87,9 @@ function selectOption(option: AutocompleteOption) {
   nextTick(setNativeValue)
 }
 
+/**
+ * 键盘导航：上下键移动高亮、Enter 选中、Esc 关闭
+ */
 function handleKeydown(event: KeyboardEvent) {
   if (!isOpen.value) return
   if (event.key === 'ArrowDown') {
@@ -89,6 +106,9 @@ function handleKeydown(event: KeyboardEvent) {
   }
 }
 
+/**
+ * 失焦延迟关闭面板，留出空间让 mousedown 选中事件先触发
+ */
 function handleBlur() {
   setTimeout(() => {
     isOpen.value = false

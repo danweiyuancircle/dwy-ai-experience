@@ -1,3 +1,8 @@
+<!--
+  EPopover 气泡弹出层组件
+  基于 reka-ui Popover 封装，通过 trigger 插槽提供触发元素，默认插槽为气泡内容
+  destroyOnClose 为 true 时关闭后卸载内容，避免表单等状态残留
+-->
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { PopoverContent, PopoverPortal, PopoverRoot, PopoverTrigger } from 'reka-ui'

@@ -1,3 +1,8 @@
+<!--
+  EInfiniteScroll 无限滚动组件
+  使用 IntersectionObserver 监听末尾 sentinel 元素是否进入视口
+  相比 scroll 事件更高效，也避免了手动计算滚动位置
+-->
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
 import { LoaderCircle } from 'lucide-vue-next'
@@ -15,6 +20,9 @@ const emit = defineEmits<EInfiniteScrollEmits>()
 const sentinelRef = ref<HTMLElement | null>(null)
 let observer: IntersectionObserver | null = null
 
+/**
+ * 建立 IntersectionObserver：disabled 时不注册，distance 扩大观察范围
+ */
 function setupObserver() {
   if (observer) observer.disconnect()
   if (!sentinelRef.value || props.disabled) return
@@ -38,6 +46,7 @@ onMounted(() => {
   setupObserver()
 })
 
+// disabled 状态变化时重建观察器（重新开启/关闭加载）
 watch(() => props.disabled, () => {
   setupObserver()
 })

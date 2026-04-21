@@ -1,3 +1,8 @@
+<!--
+  EBreadcrumb 面包屑导航组件
+  展示页面层级路径，最后一项高亮为当前页
+  支持通过 separator 插槽或字符串覆盖默认右箭头分隔符
+-->
 <script setup lang="ts">
 import { ChevronRight } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'

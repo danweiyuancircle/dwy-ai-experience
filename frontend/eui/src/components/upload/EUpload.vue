@@ -1,3 +1,9 @@
+<!--
+  EUpload 文件上传组件
+  支持点击/拖拽上传，三种展示：text 列表、picture 带缩略图、picture-card 网格卡片
+  autoUpload 控制是否选择后立即上传；手动模式通过 defineExpose 的 submit 触发
+  beforeUpload 可拦截并做前置校验；maxSize/limit 做尺寸与数量限制
+-->
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { Upload, X, File, CheckCircle, AlertCircle, LoaderCircle, Eye } from 'lucide-vue-next'
@@ -171,7 +177,7 @@ async function uploadFile(file: UploadFile) {
   }
 }
 
-/** Manually trigger upload for files in 'ready' status (used when autoUpload=false) */
+/** 手动触发所有 ready 状态文件的上传（autoUpload=false 时使用） */
 function submit() {
   if (!props.action) return
   for (const file of files.value) {

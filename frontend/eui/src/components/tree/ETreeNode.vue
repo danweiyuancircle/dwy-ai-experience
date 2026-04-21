@@ -1,3 +1,8 @@
+<!--
+  ETreeNode 树形节点渲染组件
+  ETree 的内部组件，递归渲染单个节点及其子树
+  含展开/勾选/拖拽/半选（indeterminate）/过滤可见性等细节
+-->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ChevronRight, LoaderCircle, Minus } from 'lucide-vue-next'
@@ -34,10 +39,12 @@ const isExpanded = () => props.expandedKeys.includes(props.node.key)
 const isChecked = () => props.checkedKeys.includes(props.node.key)
 const isLoading = () => props.loadingKeys.has(props.node.key)
 
+/**
+ * 是否需要渲染展开图标
+ * 懒加载模式下：非 isLeaf 节点即使 children 未加载也显示展开图标，首次展开时才拉取
+ */
 const hasChildren = () => {
   if (props.lazy) {
-    // In lazy mode, show expand arrow for nodes that are not explicitly leaf
-    // and either have children loaded or have undefined children (not yet loaded)
     if (props.node.isLeaf) return false
     return props.node.children === undefined || (props.node.children?.length ?? 0) > 0
   }
@@ -46,15 +53,15 @@ const hasChildren = () => {
 
 const hasLoadedChildren = () => !!props.node.children?.length
 
-/** Determine if node is visible based on filter */
+/** 结合过滤结果判断当前节点是否应渲染 */
 const isVisible = computed(() => {
   if (!props.visibleKeys) return true
   return props.visibleKeys.has(props.node.key)
 })
 
-// --- Indeterminate (half-check) state for cascading mode ---
+// --- 半选（indeterminate）状态：非严格级联勾选时使用 ---
 
-/** Get all descendant keys of a node */
+/** 获取所有后代节点 key */
 function getDescendantKeys(node: TreeNode): (string | number)[] {
   if (!node.children?.length) return []
   return node.children.flatMap((child) => [child.key, ...getDescendantKeys(child)])
@@ -75,7 +82,7 @@ const isIndeterminate = computed(() => {
   return someChecked && !allChecked
 })
 
-// --- Drag & drop ---
+// --- 拖拽排序 ---
 
 const nodeRef = ref<HTMLElement | null>(null)
 
@@ -85,6 +92,10 @@ function onDragStart(e: DragEvent) {
   emit('drag-start', props.node.key)
 }
 
+/**
+ * 拖拽悬停时判断投放位置
+ * 顶部 1/4 区域为「before」，底部 1/4 为「after」，中间为「inner」（作为子节点）
+ */
 function onDragOver(e: DragEvent) {
   if (!props.draggableTree || props.dragNodeKey === null) return
   if (props.dragNodeKey === props.node.key) return
@@ -118,18 +129,20 @@ function onDragEndNative() {
   emit('drag-end')
 }
 
-/** Check if the drop indicator should show for this node */
+/** 是否在当前节点上方显示「before」位置指示线 */
 const showDropBefore = computed(() =>
   props.dropNodeKey === props.node.key && props.dropPosition === 'before'
 )
+/** 是否在当前节点下方显示「after」位置指示线 */
 const showDropAfter = computed(() =>
   props.dropNodeKey === props.node.key && props.dropPosition === 'after'
 )
+/** 是否为当前节点显示「inner」包裹样式（作为子节点投放） */
 const showDropInner = computed(() =>
   props.dropNodeKey === props.node.key && props.dropPosition === 'inner'
 )
 
-/** Reference to the checkbox for indeterminate state */
+/** 复选框 DOM 引用，用于未来设置 indeterminate 属性 */
 const checkboxRef = ref<HTMLInputElement | null>(null)
 </script>
 

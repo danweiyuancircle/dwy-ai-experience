@@ -1,3 +1,8 @@
+<!--
+  EAlertDialog 警告对话框组件
+  基于 reka-ui AlertDialog 原语封装，强制用户选择确认或取消
+  用于删除、重置等不可逆操作的二次确认
+-->
 <script setup lang="ts">
 import {
   AlertDialogRoot,
@@ -19,11 +24,17 @@ const props = withDefaults(defineProps<EAlertDialogProps>(), {
 
 const emit = defineEmits<EAlertDialogEmits>()
 
+/**
+ * 确认按钮处理：派发 confirm 事件后自动关闭对话框
+ */
 function handleConfirm() {
   emit('confirm')
   emit('update:open', false)
 }
 
+/**
+ * 取消按钮处理：派发 cancel 事件后自动关闭对话框
+ */
 function handleCancel() {
   emit('cancel')
   emit('update:open', false)

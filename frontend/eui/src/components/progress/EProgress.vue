@@ -1,3 +1,8 @@
+<!--
+  EProgress 线性进度条
+  基于 reka-ui Progress 封装，通过 CSS translateX 驱动进度条填充
+  modelValue 取值 0-100
+-->
 <script setup lang="ts">
 import { reactiveOmit } from '@vueuse/core'
 import { ProgressIndicator, ProgressRoot } from 'reka-ui'

@@ -1,3 +1,7 @@
+<!--
+  ENavigationMenuTrigger 导航菜单展开触发器
+  点击/悬浮展开对应 Content；展开态时下拉箭头旋转 180°
+-->
 <script setup lang="ts">
 import { ChevronDown } from 'lucide-vue-next'
 import { NavigationMenuTrigger } from 'reka-ui'

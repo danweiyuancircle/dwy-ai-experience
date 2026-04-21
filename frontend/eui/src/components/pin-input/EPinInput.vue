@@ -1,3 +1,8 @@
+<!--
+  EPinInput 分格数字/字符输入框
+  用于验证码、OTP、交易密码等分格输入场景
+  所有格子填满后自动触发 complete 事件，便于自动提交
+-->
 <script setup lang="ts">
 import { PinInputRoot, PinInputInput } from 'reka-ui'
 import { cn } from '@/utils/cn'
@@ -13,6 +18,10 @@ const props = withDefaults(defineProps<EPinInputProps>(), {
 
 const emit = defineEmits<EPinInputEmits>()
 
+/**
+ * 值变更回调：同步 v-model，并在所有格子均被填写时触发 complete
+ * @param val 当前各格的字符数组
+ */
 function handleUpdate(val: string[]) {
   emit('update:modelValue', val)
   if (val.filter(Boolean).length === props.length) {

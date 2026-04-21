@@ -1,3 +1,8 @@
+<!--
+  ERate 评分组件
+  星星数量由 max 控制，支持整星/半星评分以及 hover 预览
+  基于 lucide Star 图标 + 绝对定位的半星遮罩实现
+-->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Star } from 'lucide-vue-next'
@@ -20,6 +25,11 @@ const displayValue = computed(() =>
   hoverValue.value >= 0 ? hoverValue.value : (props.modelValue ?? 0)
 )
 
+/**
+ * 判断指定位置的星星应渲染为哪种填充状态
+ * @param index 星星下标，从 0 开始
+ * @returns full=整星、half=半星、empty=空星
+ */
 function starFill(index: number): 'full' | 'half' | 'empty' {
   const val = displayValue.value
   if (val >= index + 1) return 'full'
@@ -34,6 +44,10 @@ function handleClick(index: number, isHalf: boolean) {
   emit('change', value)
 }
 
+/**
+ * 鼠标移入星星时实时更新预览分值
+ * 以光标相对星星左半区决定是否为半星
+ */
 function handleMouseMove(event: MouseEvent, index: number) {
   if (props.disabled) return
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()

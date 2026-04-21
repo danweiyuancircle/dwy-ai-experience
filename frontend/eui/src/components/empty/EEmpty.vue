@@ -1,3 +1,7 @@
+<!--
+  EEmpty 空状态组件
+  在数据/列表为空时占位展示，提供 icon / title / description / 默认插槽（操作区）
+-->
 <script setup lang="ts">
 import { cn } from '@/utils/cn'
 import type { EEmptyProps } from './types'

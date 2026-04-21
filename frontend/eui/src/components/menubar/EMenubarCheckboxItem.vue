@@ -1,3 +1,7 @@
+<!--
+  EMenubarCheckboxItem 复选菜单项
+  左侧显示勾选状态，可通过 v-model:checked 双向绑定
+-->
 <script setup lang="ts">
 import { Check } from 'lucide-vue-next'
 import { MenubarCheckboxItem, MenubarItemIndicator } from 'reka-ui'
@@ -5,7 +9,12 @@ import { cn } from '@/utils/cn'
 import type { EMenubarCheckboxItemProps } from './types'
 
 const props = defineProps<EMenubarCheckboxItemProps>()
-const emit = defineEmits<{ (e: 'update:checked', val: boolean): void; (e: 'select', event: Event): void }>()
+const emit = defineEmits<{
+  /** 勾选状态变化 */
+  (e: 'update:checked', val: boolean): void
+  /** 选中时触发 */
+  (e: 'select', event: Event): void
+}>()
 </script>
 
 <template>

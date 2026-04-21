@@ -1,3 +1,8 @@
+<!--
+  ECombobox 可搜索下拉选择器组件
+  基于 reka-ui Combobox 原语封装，支持输入过滤 + 点击选择
+  modelValue 与原始 value 类型一致，内部做 string 中转以兼容 reka-ui API
+-->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { Check, ChevronsUpDown, Search } from 'lucide-vue-next'
@@ -28,15 +33,20 @@ const emit = defineEmits<EComboboxEmits>()
 
 const searchValue = ref('')
 
+// reka-ui Combobox 要求 value 为 string，此处做类型转换中转
 const modelStr = computed(() => {
   return props.modelValue !== undefined ? String(props.modelValue) : undefined
 })
 
+// 根据当前选中值找到对应 label 用于输入框回显
 const selectedLabel = computed(() => {
   const found = props.options.find((o) => String(o.value) === modelStr.value)
   return found ? found.label : undefined
 })
 
+/**
+ * 选中变化处理：回溯到原始 value（保持 number 类型等）后派发
+ */
 function onUpdate(val: string | undefined) {
   const found = props.options.find((o) => String(o.value) === val)
   const finalValue = found ? found.value : val

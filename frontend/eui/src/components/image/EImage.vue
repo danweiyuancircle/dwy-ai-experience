@@ -1,3 +1,8 @@
+<!--
+  EImage 图片组件
+  支持懒加载（IntersectionObserver）、加载失败 fallback、点击大图预览
+  Loading 骨架屏在加载完成后自动淡出
+-->
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { ImageOff, ZoomIn, X } from 'lucide-vue-next'
@@ -14,7 +19,8 @@ const imageRef = ref<HTMLImageElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 const loaded = ref(false)
 const error = ref(false)
-const visible = ref(!props.lazy) // start visible if not lazy
+// 非懒加载模式默认可见，懒加载需等进入视口才置为 true
+const visible = ref(!props.lazy)
 const previewOpen = ref(false)
 
 let observer: IntersectionObserver | null = null
@@ -25,6 +31,7 @@ onMounted(() => {
     return
   }
   if (!containerRef.value) return
+  // 懒加载：进入视口 10% 触发加载后断开观察
   observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -43,16 +50,19 @@ onBeforeUnmount(() => {
   observer?.disconnect()
 })
 
+/** 图片 load 事件处理 */
 function onLoad() {
   loaded.value = true
   error.value = false
 }
 
+/** 图片 error 事件处理 */
 function onError() {
   error.value = true
   loaded.value = false
 }
 
+// 将 fit prop 映射为 Tailwind object-fit 工具类
 const objectFitClass = computed(() => {
   const map: Record<string, string> = {
     contain: 'object-contain',
@@ -64,12 +74,14 @@ const objectFitClass = computed(() => {
   return map[props.fit ?? 'cover'] ?? 'object-cover'
 })
 
+/** 打开大图预览：仅在 preview 开启且已加载成功时生效 */
 function openPreview() {
   if (props.preview && loaded.value) {
     previewOpen.value = true
   }
 }
 
+/** 关闭大图预览 */
 function closePreview() {
   previewOpen.value = false
 }

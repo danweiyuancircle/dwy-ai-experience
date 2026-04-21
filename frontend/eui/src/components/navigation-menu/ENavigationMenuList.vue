@@ -1,3 +1,7 @@
+<!--
+  ENavigationMenuList 导航菜单项列表容器
+  水平排列所有 Item，提供统一间距和居中对齐
+-->
 <script setup lang="ts">
 import { NavigationMenuList } from 'reka-ui'
 import { cn } from '@/utils/cn'

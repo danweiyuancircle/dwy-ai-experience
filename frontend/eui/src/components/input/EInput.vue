@@ -1,3 +1,8 @@
+<!--
+  EInput 输入框组件
+  原生 input 的增强封装：前后缀插槽、清空按钮、密码明文切换、字数统计
+  使用 useSecureValue 处理中文输入法合成，避免拼音中间态丢字符
+-->
 <script setup lang="ts">
 import { computed, nextTick, ref, shallowRef, useSlots } from 'vue'
 import { X, Eye, EyeOff } from 'lucide-vue-next'
@@ -21,6 +26,7 @@ const emit = defineEmits<EInputEmits>()
 const inputRef = shallowRef<HTMLInputElement>()
 const passwordVisible = ref(false)
 
+// 处理中文输入法合成事件，避免值在合成期被外部同步打断
 const {
   isComposing,
   recordCursor,
@@ -30,6 +36,7 @@ const {
   onCompositionEnd,
 } = useSecureValue(inputRef, () => props.modelValue)
 
+// showPassword 开启时，根据明文/密文切换 type
 const inputType = computed(() => {
   if (props.showPassword) {
     return passwordVisible.value ? 'text' : 'password'
@@ -37,6 +44,7 @@ const inputType = computed(() => {
   return props.type
 })
 
+// 清空按钮显示条件：clearable 开启、有值、非禁用/只读
 const showClearButton = computed(() => {
   return props.clearable && props.modelValue && !props.disabled && !props.readonly
 })
@@ -44,6 +52,7 @@ const showClearButton = computed(() => {
 const hasPrefix = computed(() => !!slots.prefix)
 const hasSuffix = computed(() => !!slots.suffix)
 
+// 当前输入长度，用于字数统计
 const currentLength = computed(() => {
   if (props.modelValue == null) return 0
   return String(props.modelValue).length
@@ -53,12 +62,16 @@ const showWordLimitText = computed(() => {
   return props.showWordLimit && props.maxlength != null
 })
 
+// 尺寸映射到 Tailwind 类
 const sizeClass = computed(() => {
   if (props.size === 'sm') return 'h-8 text-xs'
   if (props.size === 'lg') return 'h-10 text-base'
   return 'h-9 text-base md:text-sm'
 })
 
+/**
+ * 输入处理：记录光标位置，合成期跳过，合成完成后恢复光标避免跳动
+ */
 async function onInput(event: Event) {
   recordCursor()
   if (isComposing.value) return
@@ -69,24 +82,29 @@ async function onInput(event: Event) {
   setCursor()
 }
 
+/** change 事件转发 */
 function onChange(event: Event) {
   const value = (event.target as HTMLInputElement).value
   emit('change', value)
 }
 
+/** blur 事件转发 */
 function onBlur(event: FocusEvent) {
   emit('blur', event)
 }
 
+/** focus 事件转发 */
 function onFocus(event: FocusEvent) {
   emit('focus', event)
 }
 
+/** 清空按钮点击：置空值并派发 clear 事件 */
 function onClear() {
   emit('update:modelValue', '')
   emit('clear')
 }
 
+/** 切换密码明文/密文显示 */
 function togglePasswordVisibility() {
   passwordVisible.value = !passwordVisible.value
 }

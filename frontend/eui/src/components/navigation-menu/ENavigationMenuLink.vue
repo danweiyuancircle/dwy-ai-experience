@@ -1,3 +1,7 @@
+<!--
+  ENavigationMenuLink 导航菜单可点击链接
+  active 状态自动应用高亮；可通过 asChild 透传给 RouterLink 等自定义链接组件
+-->
 <script setup lang="ts">
 import { NavigationMenuLink } from 'reka-ui'
 import { cn } from '@/utils/cn'

@@ -1,3 +1,8 @@
+<!--
+  ECalendar 日历组件
+  基于 reka-ui Calendar 原语封装，展示月视图并支持单选/多选
+  用于静态日期选择（区别于 EDatePicker 的弹出面板形式）
+-->
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import {

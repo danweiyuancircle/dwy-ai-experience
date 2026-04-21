@@ -1,3 +1,8 @@
+<!--
+  ENavigationMenu 导航菜单根组件
+  基于 reka-ui NavigationMenu 封装，shadcn-vue 风格的顶部横向导航
+  子项结构：List > Item > (Trigger + Content | Link)；viewport=true 时在菜单下方渲染共用展开区
+-->
 <script setup lang="ts">
 import { ChevronDown } from 'lucide-vue-next'
 import {

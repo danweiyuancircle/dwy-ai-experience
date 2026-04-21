@@ -1,3 +1,8 @@
+<!--
+  EDropdown 下拉菜单组件
+  基于 reka-ui DropdownMenu 原语封装，支持点击/悬浮触发与多级子菜单
+  splitButton 模式下额外渲染一个主按钮（触发 click 事件）
+-->
 <script setup lang="ts">
 import { ref } from 'vue'
 import { ChevronDown, ChevronRight } from 'lucide-vue-next'
@@ -29,22 +34,31 @@ const props = withDefaults(defineProps<EDropdownProps>(), {
 const emit = defineEmits<EDropdownEmits>()
 
 const isOpen = ref(false)
+// hover 模式下的延迟关闭定时器，避免鼠标短暂离开就立即关闭
 let hoverCloseTimer: ReturnType<typeof setTimeout> | undefined
 
+/** 菜单项选中派发 */
 function handleSelect(key: string) {
   emit('select', key)
 }
 
+/** 分割按钮主按钮点击派发 */
 function handleButtonClick() {
   emit('click')
 }
 
+/**
+ * hover 触发模式下的鼠标进入：取消关闭定时器并打开菜单
+ */
 function handleMouseEnter() {
   if (props.trigger !== 'hover') return
   clearTimeout(hoverCloseTimer)
   isOpen.value = true
 }
 
+/**
+ * hover 触发模式下的鼠标离开：延迟 200ms 关闭，留出跨越间隙的时间
+ */
 function handleMouseLeave() {
   if (props.trigger !== 'hover') return
   hoverCloseTimer = setTimeout(() => {
@@ -52,6 +66,7 @@ function handleMouseLeave() {
   }, 200)
 }
 
+/** 同步 reka-ui 内部的 open 状态 */
 function handleOpenChange(open: boolean) {
   isOpen.value = open
 }

@@ -1,3 +1,7 @@
+<!--
+  ENavigationMenuViewport 导航菜单展开区域
+  渲染位置固定在菜单下方，作为所有 Content 的共用画布，支持高度/宽度动画过渡
+-->
 <script setup lang="ts">
 import { NavigationMenuViewport } from 'reka-ui'
 import { cn } from '@/utils/cn'

@@ -1,3 +1,7 @@
+<!--
+  EMenubarContent 菜单项内容面板
+  通过 Portal 渲染到 body，放置 EMenubarItem / Separator / CheckboxItem 等子项
+-->
 <script setup lang="ts">
 import { MenubarContent, MenubarPortal } from 'reka-ui'
 import { cn } from '@/utils/cn'

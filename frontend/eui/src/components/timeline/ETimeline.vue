@@ -1,3 +1,8 @@
+<!--
+  ETimeline 时间线组件
+  以左侧圆点 + 竖线连接的方式纵向展示事件列表；支持按类型（primary/success/warning/danger）着色
+  reverse 切换后倒序展示，适用于「最新在顶部」的操作日志
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { cn } from '@/utils/cn'
@@ -12,6 +17,9 @@ const displayItems = computed(() =>
   props.reverse ? [...props.items].reverse() : props.items
 )
 
+/**
+ * 根据事件类型返回对应的圆点背景色 class
+ */
 function dotColor(type?: TimelineItem['type']) {
   switch (type) {
     case 'success': return 'bg-green-500'

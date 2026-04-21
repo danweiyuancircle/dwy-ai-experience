@@ -1,10 +1,16 @@
-// Utils
+/**
+ * @danweiyuan/eui 组件库统一入口
+ * 按职责分段导出：工具函数 / 类型 / 组合式函数 / 组件；
+ * 同时以默认导出形式提供 Vue 插件 install 方法，支持全局批量注册。
+ */
+
+// Utils - 工具函数
 export { cn } from './utils/cn'
 
-// Types
+// Types - 共享类型定义
 export type * from './types'
 
-// Composables
+// Composables - 组合式函数
 export {
   useFormField,
   FORM_ITEM_INJECTION_KEY,
@@ -16,7 +22,7 @@ export {
   useMessageBox,
 } from './composables'
 
-// Components
+// Components - 基础组件
 export { EConfigProvider } from './components/config-provider'
 export { EButton, buttonVariants } from './components/button'
 export type { EButtonProps, ButtonVariants } from './components/button'
@@ -77,7 +83,7 @@ export type { ESkeletonProps } from './components/skeleton'
 export { EProgress } from './components/progress'
 export type { EProgressProps } from './components/progress'
 
-// P1 Components
+// P1 Components - 高频业务组件
 export { ECombobox } from './components/combobox'
 export type { EComboboxProps, EComboboxEmits } from './components/combobox'
 export {
@@ -110,7 +116,7 @@ export type { ETreeSelectProps, ETreeSelectEmits } from './components/tree-selec
 export { ECascader } from './components/cascader'
 export type { ECascaderProps, ECascaderEmits, CascaderOption } from './components/cascader'
 
-// P2 Components
+// P2 Components - 中频增强组件
 export { EContextMenu } from './components/context-menu'
 export type { EContextMenuProps, EContextMenuEmits, ContextMenuItem } from './components/context-menu'
 export {
@@ -177,7 +183,7 @@ export type { EWatermarkProps } from './components/watermark'
 export { EMention } from './components/mention'
 export type { EMentionProps, EMentionEmits, MentionOption } from './components/mention'
 
-// P3 Components
+// P3 Components - 低频补充组件
 export { EButtonGroup, buttonGroupVariants } from './components/button-group'
 export type { EButtonGroupProps, ButtonGroupVariants } from './components/button-group'
 export { EAlertDialog } from './components/alert-dialog'
@@ -217,7 +223,7 @@ export type { EPinInputProps, EPinInputEmits } from './components/pin-input'
 export { ENativeSelect } from './components/native-select'
 export type { ENativeSelectProps, ENativeSelectEmits, SelectOption } from './components/native-select'
 
-// Business Components
+// Business Components - 业务封装组件
 export { EDataPage } from './components/data-page'
 export type { EDataPageProps, FetchParams, FetchResult } from './components/data-page'
 export { EFormDialog } from './components/form-dialog'
@@ -231,7 +237,7 @@ export type { EAIChatProps, EAIChatEmits, ChatMessage } from './components/ai-ch
 export { ETimetableGrid } from './components/timetable-grid'
 export type { ETimetableGridProps, TimetableItem } from './components/timetable-grid'
 
-// Vue plugin
+// Vue plugin - 默认导出插件，用于 app.use() 一次性全局注册所有组件
 import type { App } from 'vue'
 import { EConfigProvider } from './components/config-provider'
 import { EButton } from './components/button'
@@ -471,6 +477,11 @@ const components: Record<string, any> = {
 }
 
 export default {
+  /**
+   * Vue 插件安装钩子
+   * 遍历 components 映射，将所有组件注册为全局组件
+   * @param app Vue 应用实例
+   */
   install(app: App) {
     for (const [name, component] of Object.entries(components)) {
       app.component(name, component)

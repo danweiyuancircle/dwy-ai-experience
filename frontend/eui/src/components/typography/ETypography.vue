@@ -1,3 +1,8 @@
+<!--
+  ETypography 排版组件
+  shadcn-vue 风格的语义化排版；variant 同时决定样式和默认渲染标签
+  可通过 as 覆盖标签，便于在不改变视觉的前提下调整语义层级
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { cn } from '@/utils/cn'

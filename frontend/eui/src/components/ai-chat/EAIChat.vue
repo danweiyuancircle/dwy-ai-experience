@@ -1,3 +1,9 @@
+<!--
+  EAIChat AI 对话组件
+  展示消息列表 + 输入区域的极简版 ChatGPT UI
+  消息数据由外部通过 messages 传入，组件仅负责视图与 send 事件
+  消息列表变化时自动滚动到底部；Enter 发送，Shift+Enter 换行
+-->
 <script setup lang="ts">
 import { ref, nextTick, watch } from 'vue'
 import { Send } from 'lucide-vue-next'
@@ -16,6 +22,9 @@ const emit = defineEmits<EAIChatEmits>()
 const inputValue = ref('')
 const messagesContainerRef = ref<HTMLElement | null>(null)
 
+/**
+ * 发送消息：内容为空或 loading 中时忽略，发送后清空输入框
+ */
 function handleSend() {
   const msg = inputValue.value.trim()
   if (!msg || props.loading) return
@@ -23,6 +32,9 @@ function handleSend() {
   inputValue.value = ''
 }
 
+/**
+ * 输入框键盘事件：Enter 发送，Shift+Enter 保留默认换行行为
+ */
 function handleKeydown(e: KeyboardEvent) {
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault()
@@ -30,6 +42,7 @@ function handleKeydown(e: KeyboardEvent) {
   }
 }
 
+// 消息列表变化后自动滚动到底部，保证最新消息可见
 watch(() => props.messages, async () => {
   await nextTick()
   if (messagesContainerRef.value) {

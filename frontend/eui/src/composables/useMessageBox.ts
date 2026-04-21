@@ -1,14 +1,30 @@
+/**
+ * 全局 MessageBox 模态确认框 composable
+ * 以 Promise 形式返回用户选择结果（confirm/cancel），便于与业务流程串联
+ */
+
+/** MessageBox 配置项 */
 export interface MessageBoxOptions {
+  /** 标题文本（可选） */
   title?: string
+  /** 正文消息（必填） */
   message: string
+  /** 语义类型（当前实现仅保留字段，未渲染图标） */
   type?: 'success' | 'warning' | 'info' | 'error'
+  /** 确认按钮文案，默认「确定」 */
   confirmButtonText?: string
+  /** 取消按钮文案，默认「取消」 */
   cancelButtonText?: string
+  /** 是否显示取消按钮，alert 模式会强制为 false */
   showCancelButton?: boolean
 }
 
 import { escapeHtml } from '@/utils/escape'
 
+/**
+ * 获取命令式 MessageBox 调用入口
+ * @returns alert（仅确认）、confirm（确认+取消）、prompt（预留）三种方法
+ */
 export function useMessageBox() {
   function open(options: MessageBoxOptions): Promise<'confirm' | 'cancel'> {
     return new Promise((resolve) => {

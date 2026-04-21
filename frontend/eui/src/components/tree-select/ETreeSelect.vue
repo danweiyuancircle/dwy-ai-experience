@@ -1,3 +1,8 @@
+<!--
+  ETreeSelect 树形下拉选择器
+  下拉框展开后呈现 ETree，支持单选（select）、多选（multiple）、勾选（checkable）三种模式
+  触发器显示所选节点 label，多个值用逗号分隔
+-->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { ChevronDown, X } from 'lucide-vue-next'
@@ -19,7 +24,7 @@ const emit = defineEmits<ETreeSelectEmits>()
 
 const open = ref(false)
 
-/** Flatten tree to label map */
+/** 将树扁平化为 key → label 映射，用于触发器显示文本 */
 function buildLabelMap(nodes: TreeNode[], map: Map<string | number, string> = new Map()): Map<string | number, string> {
   for (const node of nodes) {
     map.set(node.key, node.label)

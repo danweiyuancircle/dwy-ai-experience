@@ -1,3 +1,8 @@
+<!--
+  ETabs 标签页组件
+  基于 reka-ui Tabs 封装，支持 top/bottom/left/right 四向布局
+  可配置关闭按钮（closable）和新增按钮（addable），便于实现浏览器式多标签
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { X, Plus } from 'lucide-vue-next'
@@ -25,10 +30,10 @@ const initialDefault = computed(() => {
   return props.items && props.items.length > 0 ? props.items[0].key : undefined
 })
 
-/** Whether the tab bar should render vertically */
+/** 是否为纵向排列（左/右位置时） */
 const isVertical = computed(() => props.tabPosition === 'left' || props.tabPosition === 'right')
 
-/** Root layout class based on tabPosition */
+/** 根容器布局 class，根据 tabPosition 决定 flex 方向 */
 const rootLayoutClass = computed(() => {
   switch (props.tabPosition) {
     case 'bottom':
@@ -42,7 +47,7 @@ const rootLayoutClass = computed(() => {
   }
 })
 
-/** Tab list orientation class */
+/** 标签列表的 flex 排列 class */
 const listLayoutClass = computed(() => {
   if (isVertical.value) {
     return 'bg-muted text-muted-foreground inline-flex w-fit flex-col items-stretch rounded-lg p-[3px]'

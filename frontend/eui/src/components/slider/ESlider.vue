@@ -1,3 +1,8 @@
+<!--
+  ESlider 滑动条组件
+  基于 reka-ui Slider 封装，modelValue 为数组以支持单/双滑块（范围选择）
+  单滑块传 [50]，双滑块传 [20, 80]
+-->
 <script setup lang="ts">
 import { SliderRoot, SliderTrack, SliderRange, SliderThumb } from 'reka-ui'
 import { cn } from '@/utils/cn'

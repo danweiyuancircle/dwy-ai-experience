@@ -1,3 +1,8 @@
+<!--
+  ECommand 命令面板根组件
+  基于 reka-ui Listbox 原语封装，通过 Intl.Collator 做大小写/重音不敏感过滤
+  通过 provide 向子组件分发搜索状态与全量条目/分组索引
+-->
 <script setup lang="ts">
 import type { ListboxRootEmits, ListboxRootProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
@@ -18,6 +23,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 const allItems = ref<Map<string, string>>(new Map())
 const allGroups = ref<Map<string, Set<string>>>(new Map())
 
+// sensitivity: 'base' 表示忽略大小写与重音，提升搜索命中率
 const { contains } = useFilter({ sensitivity: 'base' })
 const filterState = reactive({
   search: '',
@@ -28,6 +34,9 @@ const filterState = reactive({
   },
 })
 
+/**
+ * 根据搜索关键词过滤全量 item，并根据 item 的命中情况推导可见 group
+ */
 function filterItems() {
   if (!filterState.search) {
     filterState.filtered.count = allItems.value.size
@@ -51,6 +60,7 @@ function filterItems() {
   filterState.filtered.count = itemCount
 }
 
+// 搜索关键词变化时重新过滤
 watch(() => filterState.search, filterItems)
 
 provideCommandContext({ allItems, allGroups, filterState })

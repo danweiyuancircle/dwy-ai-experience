@@ -1,3 +1,8 @@
+<!--
+  ESeparator 分隔线组件
+  基于 reka-ui Separator 封装，水平或垂直方向 1px 分割线
+  decorative=true 表示纯装饰，不会被屏幕阅读器播报
+-->
 <script setup lang="ts">
 import { Separator } from 'reka-ui'
 import { cn } from '@/utils/cn'

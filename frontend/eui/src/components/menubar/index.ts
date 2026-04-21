@@ -1,3 +1,7 @@
+/**
+ * EMenubar 顶部菜单栏组件族的导出入口
+ * 类似桌面软件的"文件/编辑/视图"菜单栏，由多个子组件组合使用
+ */
 export { default as EMenubar } from './EMenubar.vue'
 export { default as EMenubarMenu } from './EMenubarMenu.vue'
 export { default as EMenubarTrigger } from './EMenubarTrigger.vue'

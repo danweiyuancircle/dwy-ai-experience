@@ -1,3 +1,7 @@
+<!--
+  EKbd 键盘按键展示组件
+  渲染原生 <kbd>，用于在文档/命令说明中显示快捷键样式
+-->
 <script setup lang="ts">
 import { cn } from '@/utils/cn'
 import type { EKbdProps } from './types'

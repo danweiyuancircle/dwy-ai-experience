@@ -1,3 +1,8 @@
+<!--
+  EScrollArea 自定义滚动区域
+  基于 reka-ui ScrollArea 封装，替代浏览器原生滚动条，提供跨平台一致的细滚动条样式
+  type 控制滚动条显示时机：hover=悬浮显示，always=常驻，auto/scroll=根据内容
+-->
 <script setup lang="ts">
 import {
   ScrollAreaCorner,

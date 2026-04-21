@@ -1,3 +1,7 @@
+<!--
+  EMenubarRadioItem 单选菜单项
+  必须放在 EMenubarRadioGroup 内，左侧显示选中指示点
+-->
 <script setup lang="ts">
 import { Circle } from 'lucide-vue-next'
 import { MenubarRadioItem, MenubarItemIndicator } from 'reka-ui'
@@ -5,7 +9,10 @@ import { cn } from '@/utils/cn'
 import type { EMenubarRadioItemProps } from './types'
 
 const props = defineProps<EMenubarRadioItemProps>()
-const emit = defineEmits<{ (e: 'select', event: Event): void }>()
+const emit = defineEmits<{
+  /** 选中时触发 */
+  (e: 'select', event: Event): void
+}>()
 </script>
 
 <template>

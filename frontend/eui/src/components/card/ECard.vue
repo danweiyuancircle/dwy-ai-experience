@@ -1,9 +1,17 @@
+<!--
+  ECard 卡片组件
+  提供 header / content / footer 三段式结构
+  header 支持标题 / 描述 / 右侧操作按钮（action 插槽）
+-->
 <script setup lang="ts">
 import { cn } from '@/utils/cn'
 import type { ECardProps } from './types'
 
 const props = defineProps<ECardProps>()
 
+/**
+ * 判断是否存在 header 区域内容（含标题、描述、action 插槽）
+ */
 const hasHeader = (slots: Record<string, unknown>) =>
   !!(slots.header || slots.title || slots.action || props.title || props.description)
 </script>

@@ -1,3 +1,8 @@
+<!--
+  ETagsInput 标签输入组件
+  基于 reka-ui TagsInput 封装，回车分词为标签
+  重复添加触发 invalid 事件时，在底部显示 2 秒错误提示
+-->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { X } from 'lucide-vue-next'
@@ -32,6 +37,9 @@ function onUpdate(value: string[]) {
   emit('change', value)
 }
 
+/**
+ * 重复添加时显示临时错误提示，2 秒后自动清除
+ */
 function onInvalid(payload: string) {
   invalidMessage.value = `"${payload}" 已存在`
   if (invalidTimer) clearTimeout(invalidTimer)

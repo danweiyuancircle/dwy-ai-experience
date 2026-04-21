@@ -1,3 +1,7 @@
+<!--
+  ECommandList 命令面板内容列表容器
+  包裹 CommandGroup / CommandItem / CommandEmpty，提供滚动区域
+-->
 <script setup lang="ts">
 import type { ListboxContentProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'

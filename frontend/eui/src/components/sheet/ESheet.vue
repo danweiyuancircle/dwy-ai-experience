@@ -1,3 +1,8 @@
+<!--
+  ESheet 抽屉侧拉面板组件
+  基于 reka-ui Dialog 封装，从四个方向滑入的对话框
+  与 EDrawer 的差异：Sheet 是 shadcn 风格的侧拉，更贴合移动端与快速预览场景
+-->
 <script setup lang="ts">
 import { X } from 'lucide-vue-next'
 import {
@@ -20,6 +25,10 @@ const props = withDefaults(defineProps<ESheetProps>(), {
 
 const emit = defineEmits<ESheetEmits>()
 
+/**
+ * 打开状态变化回调
+ * 关闭时额外触发 close 事件，方便父组件区分打开/关闭时机
+ */
 function onUpdate(value: boolean) {
   emit('update:open', value)
   if (!value) emit('close')

@@ -1,3 +1,8 @@
+<!--
+  ECheckbox 复选框组件
+  基于 reka-ui Checkbox 原语封装，支持 indeterminate 半选态
+  传入 options 时自动切换为组模式，渲染多个复选框
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Check, Minus } from 'lucide-vue-next'
@@ -14,32 +19,39 @@ const props = withDefaults(defineProps<ECheckboxProps>(), {
 
 const emit = defineEmits<ECheckboxEmits>()
 
-/** Whether the component is in group mode (options provided) */
+/** 是否处于组模式（传入有效 options 数组时） */
 const isGroup = computed(() => Array.isArray(props.options) && props.options.length > 0)
 
-/** Selected values array for group mode */
+/** 组模式下已选项 value 数组 */
 const selectedValues = computed(() => {
   if (!isGroup.value) return []
   return Array.isArray(props.modelValue) ? props.modelValue : []
 })
 
-/** Single checkbox checked state */
+/** 单选模式下的勾选状态，indeterminate 映射为 reka-ui 的 'indeterminate' 字符串 */
 const checked = computed(() => {
   if (isGroup.value) return false
   if (props.indeterminate) return 'indeterminate'
   return (props.modelValue as boolean) ?? false
 })
 
+/**
+ * 单选模式更新：半选态视作未选，确保 modelValue 为 boolean
+ */
 function onUpdate(value: boolean | 'indeterminate') {
   const boolValue = value === 'indeterminate' ? false : value
   emit('update:modelValue', boolValue)
   emit('change', boolValue)
 }
 
+/** 组模式下判断某项是否被选中 */
 function isOptionChecked(optionValue: string | number): boolean {
   return selectedValues.value.includes(optionValue)
 }
 
+/**
+ * 组模式下单项勾选状态变化：增删 value 后派发新数组
+ */
 function onGroupItemUpdate(optionValue: string | number, checked: boolean | 'indeterminate') {
   const isChecked = checked === 'indeterminate' ? false : checked
   const current = [...selectedValues.value]

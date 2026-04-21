@@ -1,3 +1,8 @@
+<!--
+  EAvatar 头像组件
+  基于 reka-ui Avatar 原语封装，图片加载失败自动降级到 fallback
+  提供三档预设尺寸
+-->
 <script setup lang="ts">
 import { AvatarRoot, AvatarImage, AvatarFallback } from 'reka-ui'
 import { cn } from '@/utils/cn'
@@ -7,6 +12,7 @@ const props = withDefaults(defineProps<EAvatarProps>(), {
   size: 'default',
 })
 
+// 尺寸到 Tailwind 类的映射
 const sizeClasses = {
   sm: 'size-8',
   default: 'size-10',

@@ -1,3 +1,8 @@
+<!--
+  EMention @提及输入组件
+  在 textarea 中检测 @ 前缀，实时搜索候选项并以弹层展示
+  支持 ArrowUp/Down/Enter/Esc 键盘导航，选中后在光标位置插入 @名字
+-->
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { LoaderCircle } from 'lucide-vue-next'
@@ -19,12 +24,15 @@ const inputValue = ref(props.modelValue ?? '')
 const isOpen = ref(false)
 const query = ref('')
 const activeIndex = ref(0)
+// 记录 @ 字符所在位置，选中时用于拼接最终文本
 let mentionStart = -1
 
+// 外部 modelValue 同步到内部
 watch(() => props.modelValue, (val) => {
   inputValue.value = val ?? ''
 })
 
+// 根据 query 过滤候选项（大小写不敏感）
 const filteredOptions = computed(() => {
   if (!query.value) return props.options
   return props.options.filter(o =>
@@ -32,6 +40,10 @@ const filteredOptions = computed(() => {
   )
 })
 
+/**
+ * 输入处理：检测光标前最后一个 @ 字符，并判定其后是否构成有效的 mention 片段
+ * 片段含空格或换行则视为已结束，关闭候选面板
+ */
 function handleInput(event: Event) {
   const textarea = event.target as HTMLTextAreaElement
   const val = textarea.value
@@ -41,12 +53,11 @@ function handleInput(event: Event) {
   const cursor = textarea.selectionStart
   const textBeforeCursor = val.slice(0, cursor)
 
-  // Find the last prefix char before cursor
   const lastPrefixIdx = textBeforeCursor.lastIndexOf(props.prefix ?? '@')
 
   if (lastPrefixIdx >= 0) {
     const textAfterPrefix = textBeforeCursor.slice(lastPrefixIdx + 1)
-    // No space in mention text = valid mention state
+    // @ 之后不含空格/换行视为有效提及输入态
     if (!textAfterPrefix.includes(' ') && !textAfterPrefix.includes('\n')) {
       mentionStart = lastPrefixIdx
       query.value = textAfterPrefix
@@ -59,6 +70,9 @@ function handleInput(event: Event) {
   isOpen.value = false
 }
 
+/**
+ * 选中候选项：用 "{prefix}{label} " 替换 @xxx 片段，并把光标落到插入文本之后
+ */
 function selectOption(option: MentionOption) {
   const val = inputValue.value
   const beforeMention = val.slice(0, mentionStart)
@@ -69,7 +83,7 @@ function selectOption(option: MentionOption) {
   emit('select', option)
   isOpen.value = false
 
-  // Restore focus
+  // 异步恢复 focus 与光标位置，避免在 blur 之前被覆盖
   setTimeout(() => {
     textareaRef.value?.focus()
     const pos = beforeMention.length + (props.prefix ?? '@').length + option.label.length + 1
@@ -77,6 +91,9 @@ function selectOption(option: MentionOption) {
   })
 }
 
+/**
+ * 键盘导航：上下移动高亮、Enter 选中、Esc 关闭
+ */
 function handleKeydown(event: KeyboardEvent) {
   if (!isOpen.value) return
   if (event.key === 'ArrowDown') {
@@ -93,6 +110,9 @@ function handleKeydown(event: KeyboardEvent) {
   }
 }
 
+/**
+ * 失焦延迟关闭面板，留出时间给 mousedown 选中事件先触发
+ */
 function handleBlur() {
   setTimeout(() => {
     isOpen.value = false

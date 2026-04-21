@@ -1,3 +1,8 @@
+<!--
+  EResizablePanelGroup 可伸缩面板容器
+  基于 reka-ui Splitter 封装，水平/垂直排列多个 EResizablePanel
+  布局变化通过 layout 事件外发，便于持久化用户调整
+-->
 <script setup lang="ts">
 import { SplitterGroup } from 'reka-ui'
 import { cn } from '@/utils/cn'

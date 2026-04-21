@@ -1,3 +1,8 @@
+<!--
+  ETextarea 多行文本输入框
+  借助 useSecureValue 避免敏感文本暴露到 HTML attribute，同时处理 IME 输入法与光标保留
+  autoResize 开启时根据 minRows/maxRows 自动调整高度；maxRows 溢出改为内部滚动
+-->
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { cn } from '@/utils/cn'
@@ -25,7 +30,7 @@ const {
   onCompositionEnd,
 } = useSecureValue(textareaRef, () => props.modelValue)
 
-/** Detect line height from computed styles once mounted */
+/** 从 computed style 读取行高（autoResize 计算 minRows/maxRows 时需要），挂载后调用一次 */
 function detectLineHeight() {
   if (!textareaRef.value) return
   const computed = window.getComputedStyle(textareaRef.value)
@@ -39,11 +44,15 @@ const wordLimitText = computed(() => {
   return `${len}/${props.maxlength}`
 })
 
+/**
+ * 根据当前内容动态调整 textarea 高度
+ * 先重置为 auto 以取得真实 scrollHeight，再按 minRows/maxRows 约束
+ */
 function adjustHeight() {
   if (!props.autoResize || !textareaRef.value) return
   const el = textareaRef.value
 
-  // Reset to auto to measure true scrollHeight
+  // 先重置为 auto 以取得真实 scrollHeight
   el.style.height = 'auto'
   el.style.minHeight = ''
   el.style.maxHeight = ''

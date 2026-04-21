@@ -1,3 +1,8 @@
+<!--
+  EResizableHandle 可拖拽分隔条
+  两个 EResizablePanel 之间的拖拽手柄，拖动时同步调整相邻面板尺寸
+  withHandle 为 true 时显示抓握把手图标，提升可发现性
+-->
 <script setup lang="ts">
 import { GripVertical } from 'lucide-vue-next'
 import { SplitterResizeHandle } from 'reka-ui'

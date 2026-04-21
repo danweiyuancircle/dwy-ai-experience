@@ -1,3 +1,8 @@
+<!--
+  EAdminLayout 管理后台布局组件
+  提供"侧边栏 + 顶部 + 主内容 + 底部"的后台通用结构
+  侧边栏内嵌 EMenu，支持折叠/展开动画，兼容 vue-router
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Menu } from 'lucide-vue-next'
@@ -16,21 +21,29 @@ const props = withDefaults(defineProps<EAdminLayoutProps>(), {
 
 const emit = defineEmits<EAdminLayoutEmits>()
 
+// 将数字形式的宽度转为 px 字符串，方便直接写入 style
 const sidebarWidthPx = computed(() => {
   const w = props.collapsed ? props.collapsedWidth : props.sidebarWidth
   return typeof w === 'number' ? `${w}px` : w
 })
 
+// 将数字形式的高度转为 px 字符串
 const headerHeightPx = computed(() => {
   const h = props.headerHeight
   return typeof h === 'number' ? `${h}px` : h
 })
 
+/**
+ * 菜单点击处理：同时派发 activeKey 更新与语义化的 menu-select 事件
+ */
 function handleMenuSelect(key: string) {
   emit('update:activeKey', key)
   emit('menu-select', key)
 }
 
+/**
+ * 切换侧边栏折叠状态
+ */
 function toggleCollapsed() {
   emit('update:collapsed', !props.collapsed)
 }

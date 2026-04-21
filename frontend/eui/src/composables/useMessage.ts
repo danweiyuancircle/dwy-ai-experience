@@ -1,9 +1,18 @@
+/**
+ * 全局 Message 轻提示 composable
+ * 命令式 API，类 Element Plus 风格；顶部居中弹出，自动消失，不阻断操作
+ */
 import { ref } from 'vue'
 
+/** 单条 Message 的配置项 */
 export interface MessageOptions {
+  /** 提示文本内容 */
   message: string
+  /** 语义类型，决定配色；默认 info */
   type?: 'success' | 'warning' | 'info' | 'error'
+  /** 自动关闭延迟（毫秒），<=0 表示不自动关闭；默认 3000 */
   duration?: number
+  /** 是否显示关闭按钮（当前实现未渲染，保留语义字段） */
   showClose?: boolean
 }
 
@@ -69,6 +78,10 @@ function showMessage(options: MessageOptions | string) {
   return instance
 }
 
+/**
+ * 获取全局 Message 调用入口
+ * @returns success/warning/error/info 四种语义方法，入参可为纯文本或完整配置对象
+ */
 export function useMessage() {
   return {
     success: (msg: string | MessageOptions) => showMessage(typeof msg === 'string' ? { message: msg, type: 'success' } : { ...msg, type: 'success' }),

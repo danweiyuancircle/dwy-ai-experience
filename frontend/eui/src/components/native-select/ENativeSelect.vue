@@ -1,3 +1,8 @@
+<!--
+  ENativeSelect 原生 Select 下拉组件
+  基于浏览器原生 <select> 封装，保留操作系统样式的下拉体验，比 ESelect 更轻量
+  适用于移动端或不需要自定义选项样式的场景
+-->
 <script setup lang="ts">
 import { ChevronDown } from 'lucide-vue-next'
 import { useVModel } from '@vueuse/core'

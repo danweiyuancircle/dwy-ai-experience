@@ -1,3 +1,8 @@
+<!--
+  ETimetableGrid 周视图排课网格
+  基于 CSS Grid 实现「小时 × 星期」二维排版，data 中每项按 startHour/endHour/day 绝对定位
+  无颜色时按索引循环分配 5 种预设配色；支持自定义 color 覆盖
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { cn } from '@/utils/cn'
@@ -20,10 +25,14 @@ const hours = computed(() => {
 
 const totalRows = computed(() => props.endHour - props.startHour)
 
+/**
+ * 将课程项映射为 CSS Grid 定位
+ * +2 偏移：行多出表头 + 列多出时间列
+ */
 function getItemStyle(item: TimetableItem): Record<string, string> {
-  const rowStart = item.startHour - props.startHour + 2 // +2 for header row
+  const rowStart = item.startHour - props.startHour + 2
   const rowSpan = item.endHour - item.startHour
-  const colStart = item.day + 2 // +2 for time column
+  const colStart = item.day + 2
   return {
     gridRow: `${rowStart} / span ${rowSpan}`,
     gridColumn: `${colStart}`,
@@ -38,6 +47,9 @@ const defaultColors = [
   'bg-red-100 text-red-800 border-red-200',
 ]
 
+/**
+ * 未提供自定义颜色时，按索引循环分配预设配色
+ */
 function getItemClasses(item: TimetableItem, index: number): string {
   if (item.color) return ''
   return defaultColors[index % defaultColors.length]

@@ -1,3 +1,8 @@
+<!--
+  EStatistic 数值统计展示组件
+  用于仪表盘展示关键指标：标题 + 大号数值 + 前后缀
+  自动 toLocaleString 千分位格式化；precision 控制小数位
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { cn } from '@/utils/cn'
