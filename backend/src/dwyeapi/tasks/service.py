@@ -1,4 +1,8 @@
-"""Task CRUD operations and state transitions."""
+"""任务 CRUD 与状态流转实现。
+
+router 层只做参数接收与响应封装,所有与数据库交互的逻辑集中在本模块,
+便于单元测试和被 TaskContext 复用。
+"""
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,14 +13,14 @@ from dwyeapi.tasks.schema import TaskCreate
 
 
 async def create_task(session: AsyncSession, task_in: TaskCreate) -> Task:
-    """Create a new task record in the database.
+    """在数据库中创建一条新任务记录。
 
     Args:
-        session: Async database session.
-        task_in: Task creation payload.
+        session: 异步数据库会话。
+        task_in: 任务创建请求体。
 
     Returns:
-        The newly created Task instance.
+        刚创建并 refresh 后的 Task 实例。
     """
     task = Task(
         task_type=task_in.task_type,
@@ -30,14 +34,14 @@ async def create_task(session: AsyncSession, task_in: TaskCreate) -> Task:
 
 
 async def get_task(session: AsyncSession, task_id: str) -> Task | None:
-    """Query a single task by ID.
+    """按 ID 查询单个任务。
 
     Args:
-        session: Async database session.
-        task_id: The task's unique identifier.
+        session: 异步数据库会话。
+        task_id: 任务唯一标识。
 
     Returns:
-        The Task instance, or None if not found.
+        查到返回 Task 实例,否则 None。
     """
     result = await session.execute(select(Task).where(Task.id == task_id))
     return result.scalar_one_or_none()
@@ -51,17 +55,17 @@ async def list_tasks(
     status: TaskStatus | None = None,
     task_type: str | None = None,
 ) -> tuple[list[Task], int]:
-    """List tasks with pagination and optional filters.
+    """分页查询任务列表,支持按状态和类型过滤。
 
     Args:
-        session: Async database session.
-        page: 1-based page number.
-        page_size: Number of items per page.
-        status: Optional status filter.
-        task_type: Optional task type filter.
+        session: 异步数据库会话。
+        page: 页码(从 1 开始)。
+        page_size: 每页条数。
+        status: 可选,按任务状态过滤。
+        task_type: 可选,按任务类型过滤。
 
     Returns:
-        Tuple of (task list, total count).
+        ``(任务列表, 总数)`` 元组。
     """
     query = select(Task)
     count_query = select(func.count()).select_from(Task)
@@ -73,11 +77,11 @@ async def list_tasks(
         query = query.where(Task.task_type == task_type)
         count_query = count_query.where(Task.task_type == task_type)
 
-    # Total count
+    # 计算总数(单独 count 查询,避免 ORM 取出全部行)
     total_result = await session.execute(count_query)
     total = total_result.scalar_one()
 
-    # Paginated items
+    # 分页数据
     offset = (max(page, 1) - 1) * page_size
     query = query.order_by(Task.created_at.desc()).offset(offset).limit(page_size)
     result = await session.execute(query)
@@ -92,13 +96,15 @@ async def update_task_status(
     status: TaskStatus,
     result: dict | None = None,
 ) -> None:
-    """Update a task's status and optionally its result.
+    """更新任务状态,可选一起写入 result。
+
+    任务不存在时静默返回,避免 worker 侧状态流转与前台 CRUD 竞争时抛异常。
 
     Args:
-        session: Async database session.
-        task_id: The task's unique identifier.
-        status: New status to set.
-        result: Optional result data to store.
+        session: 异步数据库会话。
+        task_id: 任务唯一标识。
+        status: 新状态。
+        result: 可选,要写入的结果数据。
     """
     task = await get_task(session, task_id)
     if not task:
@@ -111,12 +117,14 @@ async def update_task_status(
 
 
 async def update_task_progress(session: AsyncSession, task_id: str, progress: int) -> None:
-    """Update a task's progress value (0-100).
+    """更新任务进度值。
+
+    进度数值会被裁剪到 0-100,防止业务方误传越界值污染 UI。
 
     Args:
-        session: Async database session.
-        task_id: The task's unique identifier.
-        progress: Progress percentage, clamped to 0-100.
+        session: 异步数据库会话。
+        task_id: 任务唯一标识。
+        progress: 进度百分比,将被裁剪到 0-100。
     """
     task = await get_task(session, task_id)
     if not task:
@@ -126,12 +134,12 @@ async def update_task_progress(session: AsyncSession, task_id: str, progress: in
 
 
 async def append_task_log(session: AsyncSession, task_id: str, message: str) -> None:
-    """Append a timestamped log entry to a task.
+    """向任务追加一条带时间戳的日志。
 
     Args:
-        session: Async database session.
-        task_id: The task's unique identifier.
-        message: Log message to append.
+        session: 异步数据库会话。
+        task_id: 任务唯一标识。
+        message: 要写入的日志消息。
     """
     task = await get_task(session, task_id)
     if not task:
@@ -141,5 +149,5 @@ async def append_task_log(session: AsyncSession, task_id: str, message: str) -> 
 
 
 def _now_str() -> str:
-    """Return current time formatted as a string."""
+    """返回格式化的当前时间字符串,供日志时间戳使用。"""
     return dt.now_str()

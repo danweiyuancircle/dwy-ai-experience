@@ -1,17 +1,15 @@
-"""Loguru-based global logger with daily + size rotation and stdlib interception.
+"""基于 loguru 的全局日志,支持按天 + 按大小轮转,并可拦截 stdlib logging。
 
-Exposes a single lifecycle API (``configure``/``get_logger``/``close``) that mirrors
-the pattern used by ``cache.py``. A typical application calls ``configure`` once at
-startup (from ``lifespan``) and ``close`` once at shutdown.
+对外暴露一组生命周期 API(``configure`` / ``get_logger`` / ``close``),
+与 ``cache.py`` 保持一致的模式:应用启动阶段调用一次 ``configure``,关闭阶段调用 ``close``。
 
-Features:
-    * Colored console output (stderr).
-    * File output with daily rollover (``{filename}_YYYY-MM-DD.log``) and a
-      configurable per-file size ceiling — whichever triggers first.
-    * Old log retention (default 30 days) with automatic cleanup.
-    * Optional JSON serialization for log aggregators.
-    * Optional interception of the standard ``logging`` module so libraries like
-      uvicorn, SQLAlchemy and third-party packages route through the same sinks.
+特性:
+    * 彩色控制台输出(stderr)。
+    * 文件输出按天滚动(``{filename}_YYYY-MM-DD.log``),同时支持单文件大小上限,
+      两个条件任一触发即滚动。
+    * 自动清理过期日志(默认保留 30 天)。
+    * 可选 JSON 序列化,便于日志聚合系统解析。
+    * 可选拦截标准 ``logging`` 模块,让 uvicorn、SQLAlchemy 等三方库共享同一套输出 sink。
 """
 
 from __future__ import annotations
@@ -109,10 +107,10 @@ class Logger:
 
 
 class _InterceptHandler(logging.Handler):
-    """Route standard ``logging`` records into the loguru sink chain."""
+    """把标准 ``logging`` 记录转发到 loguru sink 链路的拦截 Handler。"""
 
     def emit(self, record: logging.LogRecord) -> None:
-        """Forward a stdlib record to loguru preserving level, exception and frame depth."""
+        """转发 stdlib 记录到 loguru,保留原始 level、异常信息以及调用栈深度。"""
         try:
             level: str | int = _logger.level(record.levelname).name
         except ValueError:
@@ -128,13 +126,13 @@ class _InterceptHandler(logging.Handler):
 
 
 def _make_rotator(max_bytes: int) -> Any:
-    """Build a loguru ``rotation`` callable that rolls on date change or size cap.
+    """构造 loguru ``rotation`` 回调,按日期变更或大小超限触发滚动。
 
     Args:
-        max_bytes: Maximum bytes per file before a new file is created.
+        max_bytes: 单文件最大字节数,超出后新开文件。
 
     Returns:
-        A function matching the loguru ``rotation`` callable signature.
+        符合 loguru ``rotation`` 协议的回调函数。
     """
     state: dict[str, date | None] = {"date": None}
 
@@ -166,22 +164,22 @@ def configure(
     intercept_stdlib: bool = True,
     intercept_loggers: list[str] | None = None,
 ) -> None:
-    """Configure the global logger. Call once at application startup.
+    """配置全局日志,应用启动时调用一次即可。
 
     Args:
-        level: Minimum log level (``DEBUG``/``INFO``/``WARNING``/``ERROR``/``CRITICAL``).
-        log_dir: Directory for log files. ``None`` disables file output.
-        filename: Base filename; final files look like ``{filename}_YYYY-MM-DD.log``.
-        max_bytes: Per-file size cap before rotation (default 100 MB).
-        retention: Loguru retention spec (``"30 days"``, ``"1 week"``, int count, ...).
-        console: Whether to write colored logs to stderr.
-        console_format: Override for the console format string.
-        file_format: Override for the file format string.
-        serialize: Emit JSON lines to the file sink for log aggregators.
-        enqueue: Write asynchronously via a queue — non-blocking and multi-process safe.
-        intercept_stdlib: Route stdlib ``logging`` records through loguru.
-        intercept_loggers: When intercepting, scope to these logger name prefixes
-            (e.g. ``["uvicorn", "sqlalchemy"]``). ``None`` means root (catch-all).
+        level: 最低日志级别(``DEBUG``/``INFO``/``WARNING``/``ERROR``/``CRITICAL``)。
+        log_dir: 日志文件目录,``None`` 表示关闭文件输出。
+        filename: 文件基础名,最终文件形如 ``{filename}_YYYY-MM-DD.log``。
+        max_bytes: 单文件大小上限(字节),默认 100 MB。
+        retention: loguru 保留策略(``"30 days"``、``"1 week"``、整数个数等)。
+        console: 是否输出带颜色的日志到 stderr。
+        console_format: 自定义控制台格式字符串。
+        file_format: 自定义文件格式字符串。
+        serialize: 文件 sink 是否按 JSON Lines 序列化,便于日志聚合系统使用。
+        enqueue: 是否通过队列异步写入,非阻塞且多进程安全。
+        intercept_stdlib: 是否把 stdlib ``logging`` 的日志重定向到 loguru。
+        intercept_loggers: 拦截时限定的 logger 名前缀(如 ``["uvicorn", "sqlalchemy"]``),
+            ``None`` 表示拦截 root logger(捕获全部)。
     """
     close()
 
@@ -223,7 +221,7 @@ def configure(
 
 
 def _install_stdlib_intercept(level: str, targets: list[str] | None) -> None:
-    """Replace handlers on stdlib loggers with ``_InterceptHandler``, remembering originals."""
+    """把 stdlib logger 的 handlers 替换为 ``_InterceptHandler``,并记住原始 handlers 以便恢复。"""
     handler = _InterceptHandler()
     roots = targets or [""]
 
@@ -251,12 +249,12 @@ def get_logger(name: str | None = None) -> Logger:
 
 
 def close() -> None:
-    """Remove all handlers, restore stdlib loggers, and flush pending records.
+    """移除全部 handlers、恢复 stdlib logger 原状并 flush 未落盘日志。
 
-    Safe to call repeatedly. After ``close`` the module can be reconfigured.
+    可重复调用,调用后可再次 ``configure`` 重新装配。
     """
     for handler_id in _handler_ids:
-        # Handler already removed — benign.
+        # Handler 已被移除的情况为正常情形,忽略即可。
         with contextlib.suppress(ValueError):
             _logger.remove(handler_id)
     _handler_ids.clear()

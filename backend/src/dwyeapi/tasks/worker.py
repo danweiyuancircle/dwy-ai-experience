@@ -1,7 +1,7 @@
-"""Worker configuration factory.
+"""ARQ Worker 配置工厂。
 
-Generates an ARQ ``WorkerSettings`` class from eapi's ``BaseSettings``,
-bridging configuration between the two systems.
+基于 eapi ``BaseSettings`` 动态生成 ARQ ``WorkerSettings`` 类,
+把应用配置(Redis、任务并发、超时等)桥接到 ARQ,避免业务项目各自手写 WorkerSettings。
 """
 
 from __future__ import annotations
@@ -19,12 +19,12 @@ def create_worker_settings(
     settings: BaseSettings,
     session_factory: Any = None,
 ) -> type:
-    """Create an ARQ WorkerSettings class from eapi BaseSettings.
+    """根据 eapi ``BaseSettings`` 生成 ARQ ``WorkerSettings`` 类。
 
-    The returned class can be used directly with ``arq`` CLI::
+    返回的类可直接作为 ``arq`` CLI 的入口::
 
         # app/worker.py
-        import app.tasks  # trigger @register decorators
+        import app.tasks  # 触发 @register 装饰器
         from app.settings import settings
         from dwyeapi.tasks import create_worker_settings
         from dwyeapi.database import create_async_engine_factory, create_session_factory
@@ -33,16 +33,15 @@ def create_worker_settings(
         sf = create_session_factory(engine)
         WorkerSettings = create_worker_settings(settings, session_factory=sf)
 
-        # Run: arq app.worker.WorkerSettings
+        # 运行: arq app.worker.WorkerSettings
 
     Args:
-        settings: An eapi BaseSettings instance (or subclass) with
-            redis_url, task_max_jobs, task_job_timeout, task_failure_ttl.
-        session_factory: Async SQLAlchemy session factory for TaskContext
-            database access inside worker tasks.
+        settings: eapi ``BaseSettings`` 实例(或子类),需包含 redis_url、
+            task_max_jobs、task_job_timeout、task_failure_ttl 等字段。
+        session_factory: 异步 SQLAlchemy session 工厂,供 worker 内部 TaskContext 使用。
 
     Returns:
-        A class suitable as ARQ WorkerSettings.
+        可直接作为 ARQ WorkerSettings 使用的类。
     """
     from dwyeapi.tasks.context import run_task_with_context
     from dwyeapi.tasks.registry import registry
@@ -51,13 +50,13 @@ def create_worker_settings(
     _session_factory = session_factory
 
     async def _task_executor(ctx: dict, task_id: str, task_type: str, params: dict) -> None:
-        """ARQ entry point — dispatches to the registered task function.
+        """ARQ 的任务入口,按 task_type 派发到注册的业务函数。
 
         Args:
-            ctx: ARQ worker context dict (contains 'redis').
-            task_id: Unique task identifier.
-            task_type: Registered task type string.
-            params: Task input parameters.
+            ctx: ARQ worker 上下文字典(含 ``redis`` 等)。
+            task_id: 任务唯一标识。
+            task_type: 已注册的任务类型字符串。
+            params: 任务输入参数。
         """
         func = registry.get(task_type)
         if func is None:
@@ -107,7 +106,7 @@ def create_worker_settings(
         _log.info("恢复了 %s 个未完成的任务", len(stale_tasks))
 
     class WorkerSettings:
-        """ARQ WorkerSettings generated from eapi BaseSettings."""
+        """由 eapi BaseSettings 生成的 ARQ WorkerSettings 类。"""
 
         functions = [arq_func(_task_executor, name="_task_executor")]
         max_jobs = settings.task_max_jobs

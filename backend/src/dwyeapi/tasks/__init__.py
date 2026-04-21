@@ -1,11 +1,11 @@
-"""Async task processing system for FastAPI (ARQ-based).
+"""面向 FastAPI 的异步任务系统(基于 ARQ)。
 
-Quick start::
+快速开始::
 
-    # 1. Install
+    # 1. 安装
     pip install dwyeapi[tasks]
 
-    # 2. Register tasks
+    # 2. 注册任务
     from dwyeapi.tasks import register, TaskContext
 
     @register("process_data")
@@ -14,22 +14,22 @@ Quick start::
         await ctx.update_progress(50)
         return {"done": True}
 
-    # 3. Mount in FastAPI
+    # 3. 在 FastAPI 中挂载
     from dwyeapi.tasks import setup_tasks, task_router
 
     await setup_tasks(app, settings, session_factory)
     app.include_router(task_router)
 
-    # 4. Run worker
+    # 4. 启动 worker
     # arq app.worker.WorkerSettings
 
-Public API:
-    setup_tasks     — One-call initialization (ARQ pool + store session factory)
-    task_router     — Ready-to-use APIRouter with CRUD endpoints
-    register        — Decorator to register an async task function
-    TaskContext      — Context object injected into task functions
-    TaskStatus      — Task lifecycle status enum
-    create_worker_settings — Factory to generate ARQ WorkerSettings from BaseSettings
+公开 API:
+    setup_tasks     — 一次性初始化(配置 ARQ 连接池 + 注册 session 工厂)
+    task_router     — 现成的 FastAPI router,内置任务 CRUD 端点
+    register        — 注册异步任务函数的装饰器
+    TaskContext     — 注入到任务函数的上下文对象
+    TaskStatus      — 任务生命周期状态枚举
+    create_worker_settings — 基于 BaseSettings 生成 ARQ WorkerSettings 的工厂
 """
 
 from __future__ import annotations
@@ -60,18 +60,18 @@ async def setup_tasks(
     settings: BaseSettings,
     session_factory: async_sessionmaker[AsyncSession],
 ) -> None:
-    """Initialize the task system.
+    """初始化任务系统。
 
-    Must be called during application startup (e.g. inside a lifespan).
+    必须在应用启动阶段调用(建议在 FastAPI ``lifespan`` 中),完成三件事:
 
-    1. Configures the ARQ Redis pool from ``settings.redis_url``
-    2. Stores the session_factory for TaskContext database access
-    3. Registers a shutdown hook to close the pool
+    1. 根据 ``settings.redis_url`` 配置 ARQ Redis 连接池;
+    2. 将 session_factory 注入 router,供 TaskContext 访问数据库;
+    3. 把 session_factory 绑定到 ``app.state``,worker 侧可取用。
 
     Args:
-        app: The FastAPI application instance.
-        settings: An eapi BaseSettings instance with redis_url and task_* fields.
-        session_factory: Async SQLAlchemy session factory for database access.
+        app: FastAPI 应用实例。
+        settings: 继承自 eapi ``BaseSettings`` 的配置,需包含 redis_url 和 task_* 字段。
+        session_factory: 异步 SQLAlchemy session 工厂,供任务访问数据库。
 
     Example::
 
@@ -87,11 +87,11 @@ async def setup_tasks(
     from dwyeapi.tasks import pool as _pool
     from dwyeapi.tasks import router as _router
 
-    # Configure and warm up the ARQ pool
+    # 配置并预热 ARQ 连接池
     _pool.configure(settings.redis_url)
 
-    # Wire the db dependency into the router
+    # 把 db 依赖装配到 router
     _router._get_db = create_get_db(session_factory)
 
-    # Store session_factory on app state for worker access
+    # session_factory 记录到 app.state 供 worker 访问
     app.state.task_session_factory = session_factory

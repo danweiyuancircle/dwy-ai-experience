@@ -1,4 +1,4 @@
-"""Task ORM model and status enumeration."""
+"""任务 ORM 模型与状态枚举。"""
 
 import enum
 import uuid as uuid_lib
@@ -10,7 +10,10 @@ from dwyeapi.database import Base, TimestampMixin
 
 
 class TaskStatus(enum.StrEnum):
-    """Task lifecycle states."""
+    """任务生命周期状态枚举。
+
+    由 pending(待执行)到 running(执行中),再到 success/failed/canceled 三种终态。
+    """
 
     PENDING = "pending"
     RUNNING = "running"
@@ -20,15 +23,15 @@ class TaskStatus(enum.StrEnum):
 
 
 def _generate_task_id() -> str:
-    """Generate a globally unique task ID."""
+    """生成全局唯一的任务 ID(``task_`` + 32 位 UUID hex)。"""
     return f"task_{uuid_lib.uuid4().hex}"
 
 
 class Task(Base, TimestampMixin):
-    """Persistent task record.
+    """持久化的任务记录。
 
-    Stores task metadata, execution state, progress, logs, and results.
-    Uses the same database as the host application via eapi's Base.
+    存储任务元数据、执行状态、进度、日志和结果。复用业务项目的数据库(共享 eapi Base),
+    无需额外独立 DB 连接,也让任务历史与业务数据处于同一事务边界。
     """
 
     __tablename__ = "tasks"
