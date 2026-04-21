@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { formatFileSize, saveBlob, downloadFile } from './index'
+import { formatFileSize, saveBlob, downloadFile } from '@/file'
 
 vi.mock('file-saver', () => ({
   saveAs: vi.fn(),

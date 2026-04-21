@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { nextTick } from 'vue'
 import Cookies from 'js-cookie'
-import { cookie, useCookie } from './index'
+import { cookie, useCookie } from '@/cookie'
 
 describe('cookie', () => {
   beforeEach(() => {

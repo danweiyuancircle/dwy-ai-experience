@@ -6,7 +6,7 @@ import {
   useMediaQuery,
   useIntersectionObserver,
   useResizeObserver,
-} from './vueuse'
+} from '@/hooks/vueuse'
 
 describe('vueuse re-exports', () => {
   it('useWindowSize returns width and height refs', () => {
