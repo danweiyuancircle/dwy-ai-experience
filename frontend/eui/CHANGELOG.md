@@ -1,4 +1,11 @@
-# @danweiyuan/eui
+# @dwydev/eui
+
+## 1.3.0
+
+### Minor Changes
+
+- 包名从 `@danweiyuan/eui` 迁移至 `@dwydev/eui`，下游需更新 import 路径和 package.json 依赖
+- 同步更新全局规则、CLI 模板、playground 文档中的包名引用
 
 ## 1.2.13
 
