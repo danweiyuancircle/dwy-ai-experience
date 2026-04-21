@@ -584,6 +584,192 @@ import type { UserInfo } from '@/types/user'
 import { UserInfo, getUsers } from '@/api/user'
 ```
 
+## 十三、注释规范
+
+### 强制规则
+
+所有 `.ts` 和 `.vue` 文件必须遵循以下注释规则：
+
+1. **文件顶部必须有概述注释** — 说明文件的功能和职责
+2. **所有导出的方法/函数必须有中文注释** — 说明用途、参数、返回值
+3. **所有导出的类必须有中文注释** — 说明类的职责
+4. **所有导出的接口/类型必须有中文注释** — 说明类型含义，每个字段也需注释
+5. **复杂的内部方法必须有中文注释** — 简单的 getter/setter 可省略
+6. **注释使用中文** — 与代码保持一致的语言风格
+
+### 文件顶部注释
+
+```typescript
+/**
+ * 用户认证相关的 API 请求模块
+ * 提供登录、登出、刷新 token、获取用户信息等接口
+ */
+import { request } from '@/utils/request'
+import type { LoginParams, UserInfo } from '@/types/user'
+```
+
+```vue
+<!--
+  用户信息卡片组件
+  展示用户头像、昵称、角色标签，支持点击跳转到用户详情页
+-->
+<script setup lang="ts">
+// ...
+</script>
+```
+
+### 方法/函数注释
+
+```typescript
+/**
+ * 用户登录
+ * @param params 登录参数（用户名、密码）
+ * @returns 登录成功后返回用户信息和 token
+ */
+export async function login(params: LoginParams): Promise<LoginResult> {
+  return request.post('/auth/login', params)
+}
+
+/**
+ * 格式化金额显示
+ * @param value 金额数值（单位：分）
+ * @param currency 货币符号，默认 ¥
+ * @returns 格式化后的金额字符串，如 ¥1,234.56
+ */
+export function formatMoney(value: number, currency = '¥'): string {
+  return `${currency}${(value / 100).toLocaleString()}`
+}
+```
+
+### 类注释
+
+```typescript
+/**
+ * HTTP 请求客户端
+ * 封装 axios，提供拦截器、错误处理、token 自动刷新等能力
+ */
+export class RequestClient {
+  // ...
+}
+```
+
+### 接口/类型注释
+
+```typescript
+/**
+ * 用户基础信息
+ */
+export interface UserInfo {
+  /** 用户 ID */
+  id: number
+  /** 用户名（登录账号） */
+  username: string
+  /** 用户角色：admin=管理员，user=普通用户 */
+  role: 'admin' | 'user'
+  /** 邮箱地址（可选） */
+  email?: string
+}
+
+/**
+ * 分页查询参数
+ */
+export interface PageParams {
+  /** 当前页码，从 1 开始 */
+  page: number
+  /** 每页条数，默认 20 */
+  pageSize: number
+}
+```
+
+### 组件 Props/Emits 注释
+
+```vue
+<script setup lang="ts">
+/**
+ * 数据表格组件的 Props 定义
+ */
+interface Props {
+  /** 表格数据源 */
+  data: Record<string, unknown>[]
+  /** 列配置 */
+  columns: TableColumn[]
+  /** 是否显示加载中 */
+  loading?: boolean
+}
+
+const props = defineProps<Props>()
+
+/**
+ * 组件事件定义
+ */
+const emit = defineEmits<{
+  /** 行点击事件，参数为当前行数据 */
+  rowClick: [row: Record<string, unknown>]
+  /** 选中行变化事件，参数为选中的行数组 */
+  selectionChange: [rows: Record<string, unknown>[]]
+}>()
+</script>
+```
+
+### 组合式函数注释
+
+```typescript
+/**
+ * 列表数据管理 composable
+ * 封装列表加载、刷新、loading 状态
+ * @param fetchFn 数据获取函数
+ * @returns 列表数据、加载状态、刷新方法
+ */
+export function useList<T>(fetchFn: () => Promise<T[]>) {
+  // ...
+}
+```
+
+### 可省略注释的场景
+
+- 一目了然的 getter/setter（如 `get name() { return this._name }`）
+- 测试文件中的 `describe` / `it` 块（用例名本身就是描述）
+- 组件内部的简单辅助函数（< 5 行且逻辑清晰）
+- 私有变量的简单赋值
+
+### 禁止的写法
+
+```typescript
+// ❌ 无文件头注释
+import { ref } from 'vue'
+export function login() { ... }
+
+// ❌ 方法无注释
+export async function deleteUser(id: number) {
+  return request.delete(`/users/${id}`)
+}
+
+// ❌ 接口字段无说明
+export interface UserInfo {
+  id: number
+  username: string
+  role: 'admin' | 'user'
+}
+
+// ❌ 英文注释（与代码风格不一致）
+/** Get user info by id */
+export async function getUser(id: number) { ... }
+
+// ❌ 废话注释（只复述代码，不说明 why）
+/** 设置 count 为 0 */
+count.value = 0
+```
+
+### 注释质量要求
+
+| 要求 | 说明 |
+|------|------|
+| 说明 why 而非 what | 代码已经说明 what，注释要解释为什么这样写 |
+| 语言一致性 | 全部使用中文，不混用中英文 |
+| 描述业务含义 | 避免"获取数据"这种泛泛说法，要写"获取用户列表" |
+| 标注边界条件 | 参数范围、特殊取值、空值处理要说明 |
+| 及时更新 | 代码修改后必须同步更新注释，禁止留下过时注释 |
+
 ## 十四、常见反模式（禁止）
 
 | 反模式 | 正确做法 |
@@ -688,6 +874,10 @@ try {
 | 14 | 枚举用联合类型 `type X = 'a' | 'b'`，不用 `enum` | ✓ |
 | 15 | 测试文件在 `tests/` 目录，不在 `src/` 内 | ✓ |
 | 16 | `tsconfig.app.json` 的 include 不包含 `tests/` | ✓ |
+| 17 | 文件顶部有中文概述注释，说明文件职责 | ✓ |
+| 18 | 所有导出的方法/函数有中文注释（含参数、返回值） | ✓ |
+| 19 | 所有导出的类/接口/类型有中文注释，接口字段逐个注释 | ✓ |
+| 20 | Props/Emits 定义有中文注释说明每个字段/事件 | ✓ |
 
 **不执行自检就提交代码 = 违规。**
 
