@@ -9,12 +9,15 @@
   "dependencies": {
     "@dwydev/ekit": "workspace:^",
     "@dwydev/eui": "workspace:^",
+    "@vueuse/core": "^14.2.1",
+    "dayjs": "^1.11.20",
     "fuse.js": "^7.1.0",
     "lucide-vue-next": "^1.0.0",
     "markdown-it": "^14.1.1",
-    "vue": "^3.5.0",
+    "vue": "^3.5.32",
     "vue-router": "^4.5.0",
-    "vue-sonner": "^2.0.9"
+    "vue-sonner": "^2.0.9",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.0",

@@ -62,21 +62,19 @@ const slotsData = [
 </ECollapsible>'
       >
         <ECollapsible v-model="isOpen" class="w-full max-w-sm space-y-2">
-          <div class="flex items-center justify-between">
-            <h4 class="text-sm font-semibold">@dwydev/eui 包含 3 个文件</h4>
-            <template #trigger>
+          <template #trigger>
+            <div class="flex items-center justify-between">
+              <h4 class="text-sm font-semibold">@dwydev/eui 包含 3 个文件</h4>
               <EButton variant="ghost" size="sm">
                 <ChevronsUpDown class="size-4" />
               </EButton>
-            </template>
-          </div>
-          <div class="rounded-md border px-4 py-2 text-sm font-mono">src/index.ts</div>
-          <template #default>
-            <div class="space-y-2">
-              <div class="rounded-md border px-4 py-2 text-sm font-mono">src/components/button/index.ts</div>
-              <div class="rounded-md border px-4 py-2 text-sm font-mono">src/utils/cn.ts</div>
             </div>
           </template>
+          <div class="rounded-md border px-4 py-2 text-sm font-mono">src/index.ts</div>
+          <div class="space-y-2">
+            <div class="rounded-md border px-4 py-2 text-sm font-mono">src/components/button/index.ts</div>
+            <div class="rounded-md border px-4 py-2 text-sm font-mono">src/utils/cn.ts</div>
+          </div>
         </ECollapsible>
       </DemoBlock>
     </section>

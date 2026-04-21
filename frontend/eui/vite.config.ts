@@ -39,6 +39,7 @@ export default defineConfig({
         'vaul-vue',
         'vee-validate',
         '@vee-validate/zod',
+        'vue-sonner',
         'zod',
         '@internationalized/date',
       ],
