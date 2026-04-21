@@ -1,7 +1,7 @@
-"""TaskContext — rich context object injected into task functions.
+"""TaskContext — 注入到任务函数的上下文对象。
 
-Provides database access, logging, progress tracking, and cancellation
-checking so that business task code stays minimal.
+统一封装数据库访问、日志记录、进度更新、取消检查等能力,业务任务函数只聚焦核心逻辑,
+无需重复处理这些跨任务通用的样板代码。
 """
 
 from __future__ import annotations
@@ -17,15 +17,14 @@ from dwyeapi.tasks.model import TaskStatus
 
 
 class TaskContext:
-    """Execution context passed to every registered task function.
+    """注入到每个已注册任务函数的执行上下文。
 
-    Provides helpers for logging, progress updates, cancellation checks,
-    and database access so that task functions only contain business logic.
+    提供日志、进度更新、取消检查与数据库访问等辅助方法,让任务函数只需写业务逻辑。
 
     Attributes:
-        task_id: The unique identifier of the current task.
-        task_type: The registered task type string.
-        params: The parameters submitted with the task.
+        task_id: 当前任务的唯一标识。
+        task_type: 已注册的任务类型字符串。
+        params: 任务提交时传入的参数。
     """
 
     def __init__(
@@ -37,14 +36,14 @@ class TaskContext:
         session_factory: async_sessionmaker[AsyncSession],
         redis: Any,
     ) -> None:
-        """Initialize TaskContext.
+        """初始化 TaskContext。
 
         Args:
-            task_id: Unique task identifier.
-            task_type: Registered task type name.
-            params: Task input parameters.
-            session_factory: Async SQLAlchemy session factory.
-            redis: ARQ Redis connection for cancel-flag checks.
+            task_id: 任务唯一标识。
+            task_type: 已注册的任务类型名称。
+            params: 任务输入参数。
+            session_factory: 异步 SQLAlchemy session 工厂。
+            redis: ARQ Redis 连接,用于读取取消标记。
         """
         self.task_id = task_id
         self.task_type = task_type
@@ -54,20 +53,20 @@ class TaskContext:
         self._cancelled = False
 
     async def log(self, message: str) -> None:
-        """Append a timestamped log entry.
+        """追加一条带时间戳的任务日志。
 
         Args:
-            message: The log message to record.
+            message: 要写入任务日志的消息内容。
         """
         async with self._session() as session:
             await service.append_task_log(session, self.task_id, message)
 
     async def update_progress(self, value: int, message: str = "") -> None:
-        """Update task progress (0-100) and optionally append a log.
+        """更新任务进度(0-100),可选附带一条日志。
 
         Args:
-            value: Progress percentage (clamped to 0-100).
-            message: Optional log message to append alongside the progress update.
+            value: 进度百分比,service 层会裁剪到 0-100 范围。
+            message: 附加日志消息,为空时只更新进度不写日志。
         """
         async with self._session() as session:
             await service.update_task_progress(session, self.task_id, value)
@@ -75,13 +74,13 @@ class TaskContext:
                 await service.append_task_log(session, self.task_id, message)
 
     async def is_cancelled(self) -> bool:
-        """Check whether a cancel request has been issued for this task.
+        """检查当前任务是否被请求取消。
 
-        Reads a Redis key ``task_cancel:{task_id}``. Once detected, the
-        result is cached so subsequent calls do not hit Redis again.
+        读取 Redis key ``task_cancel:{task_id}``,首次检测到后缓存到内存,
+        避免业务代码在循环里反复查询 Redis。
 
         Returns:
-            True if the task has been marked for cancellation.
+            任务已被标记为取消返回 True,否则 False。
         """
         if self._cancelled:
             return True
@@ -92,22 +91,22 @@ class TaskContext:
 
     @asynccontextmanager
     async def db(self) -> AsyncIterator[AsyncSession]:
-        """Provide an async database session via context manager.
+        """以上下文管理器形式提供异步数据库会话。
 
-        Usage::
+        用法::
 
             async with ctx.db() as session:
                 result = await session.execute(select(MyModel))
 
         Yields:
-            An AsyncSession bound to the application's database.
+            绑定到应用数据库的 AsyncSession。
         """
         async with self._session_factory() as session:
             yield session
 
     @asynccontextmanager
     async def _session(self) -> AsyncIterator[AsyncSession]:
-        """Internal helper — short-lived session for framework operations."""
+        """内部短生命周期 session 辅助方法,专门给框架内部调用。"""
         async with self._session_factory() as session:
             yield session
 
@@ -120,22 +119,23 @@ async def run_task_with_context(
     session_factory: async_sessionmaker[AsyncSession],
     redis: Any,
 ) -> None:
-    """Execute a task function wrapped in lifecycle management.
+    """执行任务函数并包装完整的生命周期管理。
 
-    Handles the full task lifecycle:
-    1. Set status to RUNNING
-    2. Create TaskContext and call the business function
-    3. On success → set status to SUCCESS with returned result
-    4. On exception → set status to FAILED with error info
-    5. On cancellation → set status to CANCELED
+    处理任务生命周期:
+
+    1. 设置状态为 RUNNING;
+    2. 创建 TaskContext 并调用业务函数;
+    3. 正常返回 → 状态 SUCCESS,结果写入 result 字段;
+    4. 抛异常 → 状态 FAILED,错误信息写入 result;
+    5. 业务函数内已标记取消 → 状态 CANCELED。
 
     Args:
-        task_id: The task's unique identifier.
-        task_type: The registered task type string.
-        params: The task input parameters.
-        func: The async business function to execute.
-        session_factory: Async SQLAlchemy session factory.
-        redis: ARQ Redis connection.
+        task_id: 任务唯一标识。
+        task_type: 已注册的任务类型字符串。
+        params: 任务输入参数。
+        func: 要执行的异步业务函数。
+        session_factory: 异步 SQLAlchemy session 工厂。
+        redis: ARQ Redis 连接。
     """
     ctx = TaskContext(
         task_id=task_id,
@@ -145,7 +145,7 @@ async def run_task_with_context(
         redis=redis,
     )
 
-    # Mark as running
+    # 标记为 RUNNING
     async with session_factory() as session:
         await service.update_task_status(session, task_id, TaskStatus.RUNNING)
         await service.append_task_log(session, task_id, "任务开始执行")
@@ -153,14 +153,14 @@ async def run_task_with_context(
     try:
         result = await func(ctx, params)
 
-        # Check if cancelled during execution
+        # 若业务函数内部已标记取消,则按取消收尾
         if ctx._cancelled:
             async with session_factory() as session:
                 await service.update_task_status(session, task_id, TaskStatus.CANCELED)
                 await service.append_task_log(session, task_id, "任务已取消")
             return
 
-        # Success
+        # 成功路径
         result_data = result if isinstance(result, dict) else {"result": result}
         async with session_factory() as session:
             await service.update_task_status(session, task_id, TaskStatus.SUCCESS, result=result_data)
@@ -168,7 +168,7 @@ async def run_task_with_context(
             await service.append_task_log(session, task_id, "任务执行成功")
 
     except Exception as exc:
-        # Failed
+        # 失败路径
         async with session_factory() as session:
             await service.update_task_status(
                 session,

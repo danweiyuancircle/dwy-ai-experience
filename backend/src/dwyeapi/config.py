@@ -1,11 +1,12 @@
-"""Base Pydantic Settings class for FastAPI projects.
+"""FastAPI 项目通用 Pydantic Settings 基类。
 
-除基础字段外,还提供运行环境识别 API:
+除了 database_url / redis_url / secret_key 等基础字段外,还提供运行环境识别 API:
 
-- ``environment`` 字段: ``"dev"`` | ``"prod"``,默认 ``"prod"`` (误配置时保守)
-- ``get_environment()`` / ``is_dev()`` / ``is_prod()``: 业务代码读当前环境
+- ``environment`` 字段: ``"dev"`` | ``"prod"``,默认 ``"prod"``(误配置时偏保守)
+- ``get_environment()`` / ``is_dev()`` / ``is_prod()``:业务代码读取当前环境
 
-业务项目实例化 ``Settings()`` 时会自动把值写入模块级全局,之后任何地方 import 即可读。
+业务项目实例化 ``Settings()`` 时会自动把 environment 值写入模块级全局变量,
+之后任何地方 import 即可读,避免把 Settings 实例到处传递。
 """
 
 from typing import Literal
@@ -45,7 +46,12 @@ def set_current_environment(env: Environment) -> None:
 
 
 class BaseSettings(PydanticBaseSettings):
-    """Base settings — subclass and add project-specific fields."""
+    """FastAPI 项目共用的配置基类。
+
+    业务项目通过继承并追加项目专属字段使用,内置的 database_url / redis_url /
+    secret_key 等字段覆盖最常用的基础设施需求,不需要每个项目重复声明。
+    配置来源默认为 ``.env`` 文件,嵌套字段使用双下划线 ``__`` 分隔。
+    """
 
     database_url: str
     redis_url: str

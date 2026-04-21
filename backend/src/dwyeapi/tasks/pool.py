@@ -1,7 +1,6 @@
-"""ARQ Redis connection pool management (internal module).
+"""ARQ Redis 连接池管理(内部模块)。
 
-Manages the lifecycle of the ARQ async Redis pool used for enqueuing
-and executing tasks. Not intended for direct use by integrators.
+管理 ARQ 异步 Redis 连接池的生命周期,承载任务入队与执行。属内部实现,业务项目不应直接调用。
 """
 
 from __future__ import annotations
@@ -16,13 +15,13 @@ _redis_settings: RedisSettings | None = None
 
 
 def _parse_redis_url(redis_url: str) -> RedisSettings:
-    """Convert a redis:// URL to ARQ RedisSettings.
+    """将标准 ``redis://`` URL 解析为 ARQ ``RedisSettings``。
 
     Args:
-        redis_url: Standard Redis connection URL.
+        redis_url: 标准 Redis 连接 URL。
 
     Returns:
-        ARQ RedisSettings instance.
+        ARQ ``RedisSettings`` 实例。
     """
     parsed = urlparse(redis_url)
     return RedisSettings(
@@ -34,23 +33,23 @@ def _parse_redis_url(redis_url: str) -> RedisSettings:
 
 
 def configure(redis_url: str) -> None:
-    """Store Redis settings for later pool creation.
+    """保存 Redis 设置以便后续懒创建连接池。
 
     Args:
-        redis_url: Standard Redis connection URL (e.g. redis://localhost:6379/0).
+        redis_url: 标准 Redis 连接 URL(如 ``redis://localhost:6379/0``)。
     """
     global _redis_settings
     _redis_settings = _parse_redis_url(redis_url)
 
 
 def get_redis_settings() -> RedisSettings:
-    """Return the configured ARQ RedisSettings.
+    """返回已配置的 ARQ ``RedisSettings``。
 
     Returns:
-        The RedisSettings instance.
+        ``RedisSettings`` 实例。
 
     Raises:
-        RuntimeError: If configure() has not been called.
+        RuntimeError: 未先调用 ``configure()`` 时抛出。
     """
     if _redis_settings is None:
         msg = "Task pool not configured. Call setup_tasks() first."
@@ -59,13 +58,13 @@ def get_redis_settings() -> RedisSettings:
 
 
 async def get_pool() -> ArqRedis:
-    """Get or create the ARQ async Redis pool.
+    """获取或懒创建 ARQ 异步 Redis 连接池。
 
     Returns:
-        The ArqRedis connection pool.
+        ``ArqRedis`` 连接池。
 
     Raises:
-        RuntimeError: If configure() has not been called.
+        RuntimeError: 未先调用 ``configure()`` 时抛出。
     """
     global _pool
     if _pool is None:
@@ -74,7 +73,7 @@ async def get_pool() -> ArqRedis:
 
 
 async def close_pool() -> None:
-    """Close the ARQ pool if it exists. Safe to call multiple times."""
+    """关闭 ARQ 连接池(若已创建),可重复调用。"""
     global _pool
     if _pool is not None:
         await _pool.aclose()

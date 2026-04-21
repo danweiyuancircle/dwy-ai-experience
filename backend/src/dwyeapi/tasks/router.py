@@ -1,7 +1,7 @@
-"""Ready-to-use FastAPI router for the task system.
+"""任务系统现成可挂载的 FastAPI router。
 
-Provides endpoints to submit, query, list, and cancel tasks.
-Integrators mount it via ``app.include_router(task_router)``.
+提供提交、查询、列表、取消、重试等接口,业务项目通过
+``app.include_router(task_router)`` 直接挂载。
 """
 
 from __future__ import annotations
@@ -28,18 +28,18 @@ from dwyeapi.tasks.service import (
 
 task_router = APIRouter(prefix="/tasks", tags=["tasks"])
 
-# This will be set by setup_tasks() at application startup.
+# 此变量由 setup_tasks() 在应用启动阶段注入。
 _get_db: Callable[[], AsyncGenerator[AsyncSession]] | None = None
 
 
 async def _db_dependency() -> AsyncGenerator[AsyncSession]:
-    """Async generator that delegates to the actual get_db dependency.
+    """代理到业务侧 get_db 依赖的异步生成器。
 
     Yields:
-        An AsyncSession from the configured session factory.
+        从配置的 session 工厂取出的 AsyncSession。
 
     Raises:
-        RuntimeError: If setup_tasks() has not been called.
+        RuntimeError: 未调用过 ``setup_tasks()`` 时抛出。
     """
     if _get_db is None:
         msg = "Task system not initialized. Call setup_tasks() first."
@@ -53,21 +53,21 @@ async def submit_task(
     body: TaskCreate,
     db: AsyncSession = Depends(_db_dependency),
 ) -> dict:
-    """Submit a new async task for background execution.
+    """提交一个新的异步任务到后台执行。
 
     Args:
-        body: Task creation payload with task_type and params.
-        db: Injected database session.
+        body: 任务创建请求体,包含 task_type 与 params。
+        db: 注入的数据库会话。
 
     Returns:
-        Unified success response containing the created task.
+        统一成功响应,data 中返回创建好的任务详情。
     """
     if not registry.has(body.task_type):
         raise BusinessError(f"不支持的任务类型: {body.task_type}", code="INVALID_TASK_TYPE")
 
     task = await create_task(db, body)
 
-    # Enqueue into ARQ
+    # 将任务推入 ARQ 队列
     arq_pool = await pool.get_pool()
     await arq_pool.enqueue_job("_task_executor", task.id, body.task_type, body.params)
 
@@ -79,14 +79,14 @@ async def query_task(
     task_id: str,
     db: AsyncSession = Depends(_db_dependency),
 ) -> dict:
-    """Query the current state of a specific task.
+    """查询指定任务的当前状态。
 
     Args:
-        task_id: The task's unique identifier.
-        db: Injected database session.
+        task_id: 任务唯一标识。
+        db: 注入的数据库会话。
 
     Returns:
-        Unified success response containing the task details.
+        统一成功响应,data 中返回任务详情。
     """
     task = await get_task(db, task_id)
     if not task:
@@ -102,17 +102,17 @@ async def query_task_list(
     status: TaskStatus | None = Query(default=None, description="状态筛选"),
     task_type: str | None = Query(default=None, description="任务类型筛选"),
 ) -> dict:
-    """List tasks with pagination and optional filters.
+    """分页查询任务列表,支持按状态和类型过滤。
 
     Args:
-        db: Injected database session.
-        page: 1-based page number.
-        page_size: Items per page (1-100).
-        status: Optional status filter.
-        task_type: Optional task type filter.
+        db: 注入的数据库会话。
+        page: 页码(从 1 开始)。
+        page_size: 每页条数(1-100)。
+        status: 可选,按任务状态过滤。
+        task_type: 可选,按任务类型过滤。
 
     Returns:
-        Unified success response containing paginated task list.
+        统一成功响应,data 中返回分页后的任务列表。
     """
     items, total = await list_tasks(
         db,
@@ -133,17 +133,17 @@ async def cancel_task(
     task_id: str,
     db: AsyncSession = Depends(_db_dependency),
 ) -> dict:
-    """Request cancellation of a running or pending task.
+    """请求取消一个运行中或排队中的任务。
 
-    Sets a Redis flag that the task function can check via ``ctx.is_cancelled()``.
-    Tasks that have already completed cannot be cancelled.
+    实现方式是在 Redis 设置 ``task_cancel:{task_id}`` 标志,任务函数通过
+    ``ctx.is_cancelled()`` 读取并按需退出;已结束的任务不能再被取消。
 
     Args:
-        task_id: The task's unique identifier.
-        db: Injected database session.
+        task_id: 任务唯一标识。
+        db: 注入的数据库会话。
 
     Returns:
-        Unified success response with updated task info.
+        统一成功响应,data 中返回任务最新状态。
     """
     task = await get_task(db, task_id)
     if not task:
@@ -153,7 +153,7 @@ async def cancel_task(
     if task.status in terminal_states:
         raise BusinessError(f"任务已结束, 状态为 {task.status.value}", code="TASK_ALREADY_FINISHED")
 
-    # Set cancel flag in Redis with TTL
+    # 在 Redis 中写入取消标志并设置 TTL,避免 key 长期残留
     arq_pool = await pool.get_pool()
     await arq_pool.set(f"task_cancel:{task_id}", b"1", ex=7200)
 
@@ -165,16 +165,16 @@ async def retry_task(
     task_id: str,
     db: AsyncSession = Depends(_db_dependency),
 ) -> dict:
-    """Retry a failed or canceled task.
+    """重试一个失败或已取消的任务。
 
-    Resets status to PENDING, clears result, resets progress, and re-enqueues to ARQ.
+    把状态重置为 PENDING、清空 result、进度归零,再次入队到 ARQ。
 
     Args:
-        task_id: The task's unique identifier.
-        db: Injected database session.
+        task_id: 任务唯一标识。
+        db: 注入的数据库会话。
 
     Returns:
-        Unified success response with updated task info.
+        统一成功响应,data 中返回任务最新状态。
     """
     task = await get_task(db, task_id)
     if not task:
@@ -187,20 +187,20 @@ async def retry_task(
             code="TASK_NOT_RETRYABLE",
         )
 
-    # Clear cancel flag from Redis
+    # 清除 Redis 中的取消标志,避免重试后立即又被取消
     arq_pool = await pool.get_pool()
     await arq_pool.delete(f"task_cancel:{task_id}")
 
-    # Reset task state
+    # 重置任务状态
     await update_task_status(db, task_id, TaskStatus.PENDING)
     await update_task_progress(db, task_id, 0)
     await append_task_log(db, task_id, "任务重试, 重新入队")
     task.result = None
     await db.commit()
 
-    # Re-enqueue
+    # 重新入队
     await arq_pool.enqueue_job("_task_executor", task.id, task.task_type, task.params)
 
-    # Refresh to get latest state
+    # 刷新以拿到最新状态
     await db.refresh(task)
     return success(data=TaskResponse.model_validate(task).model_dump(mode="json"))
