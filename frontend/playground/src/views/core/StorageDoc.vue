@@ -5,7 +5,7 @@ const content = `
 ## storage — localStorage 封装
 
 \`\`\`ts
-import { useStorage, storage } from '@danweiyuan/ekit'
+import { useStorage, storage } from '@dwydev/ekit'
 \`\`\`
 
 ### useStorage(key, defaultValue) — 响应式

@@ -63,7 +63,7 @@ const slotsData = [
       >
         <ECollapsible v-model="isOpen" class="w-full max-w-sm space-y-2">
           <div class="flex items-center justify-between">
-            <h4 class="text-sm font-semibold">@danweiyuan/eui 包含 3 个文件</h4>
+            <h4 class="text-sm font-semibold">@dwydev/eui 包含 3 个文件</h4>
             <template #trigger>
               <EButton variant="ghost" size="sm">
                 <ChevronsUpDown class="size-4" />

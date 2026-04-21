@@ -36,7 +36,7 @@ const modules = [
 <template>
   <div class="max-w-4xl">
     <div class="mb-8">
-      <h1 class="text-3xl font-bold mb-2">@danweiyuan/ekit</h1>
+      <h1 class="text-3xl font-bold mb-2">@dwydev/ekit</h1>
       <p class="text-muted-foreground text-lg">
         Vue 3 项目通用工具库，包含 5 个模块：request、storage、validators、date、hooks。
       </p>
@@ -46,7 +46,7 @@ const modules = [
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">安装</h2>
       <div class="border rounded-lg p-4 bg-muted/50">
-        <code class="text-sm">pnpm add @danweiyuan/ekit</code>
+        <code class="text-sm">pnpm add @dwydev/ekit</code>
         <p class="text-xs text-muted-foreground mt-2">peerDependencies: axios ^1.0.0, vue ^3.4.0</p>
       </div>
     </div>
@@ -55,7 +55,7 @@ const modules = [
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">按需导入</h2>
       <div class="border rounded-lg p-4 bg-muted/50">
-        <pre class="text-sm leading-relaxed"><code>import { createRequest, useStorage, isPhone, formatDate, useDebounce } from '@danweiyuan/ekit'</code></pre>
+        <pre class="text-sm leading-relaxed"><code>import { createRequest, useStorage, isPhone, formatDate, useDebounce } from '@dwydev/ekit'</code></pre>
       </div>
     </div>
 

@@ -19,6 +19,7 @@ build/
 
 # Keys
 .key
+/.npmrc
 
 # Local Claude Code settings
 .claude/settings.local.json

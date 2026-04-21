@@ -169,10 +169,10 @@ importers:
 
   frontend/playground:
     dependencies:
-      '@danweiyuan/ekit':
+      '@dwydev/ekit':
         specifier: workspace:^
         version: link:../ekit
-      '@danweiyuan/eui':
+      '@dwydev/eui':
         specifier: workspace:^
         version: link:../eui
       fuse.js:

@@ -1,13 +1,13 @@
-# @danweiyuan/eui 集成指南
+# @dwydev/eui 集成指南
 
-在你的 Vue 3 项目中集成 @danweiyuan/eui 组件库。
+在你的 Vue 3 项目中集成 @dwydev/eui 组件库。
 
 ## 1. 安装依赖
 
 ### 安装组件库
 
 ```bash
-pnpm add @danweiyuan/eui
+pnpm add @dwydev/eui
 ```
 
 ### 安装 Peer Dependencies
@@ -47,7 +47,7 @@ export default defineConfig({
 
 ```css
 /* src/style.css */
-@import "@danweiyuan/eui/theme";
+@import "@dwydev/eui/theme";
 ```
 
 > 主题 CSS 已内置 `@source` 指令，Tailwind 会自动扫描组件使用的工具类，无需手动配置。
@@ -56,11 +56,11 @@ export default defineConfig({
 
 ```css
 /* 完整主题（推荐） */
-@import "@danweiyuan/eui/theme";
+@import "@dwydev/eui/theme";
 
 /* 或分别引入 */
-@import "@danweiyuan/eui/theme/tokens";  /* 基础变量 + Tailwind */
-@import "@danweiyuan/eui/theme/dark";    /* 暗色模式 */
+@import "@dwydev/eui/theme/tokens";  /* 基础变量 + Tailwind */
+@import "@dwydev/eui/theme/dark";    /* 暗色模式 */
 ```
 
 ## 4. 注册组件
@@ -71,7 +71,7 @@ export default defineConfig({
 // main.ts
 import './style.css'
 import { createApp } from 'vue'
-import EUI from '@danweiyuan/eui'
+import EUI from '@dwydev/eui'
 import App from './App.vue'
 
 const app = createApp(App)
@@ -85,7 +85,7 @@ app.mount('#app')
 
 ```ts
 // 在组件中按需导入
-import { EButton, EInput, ETable } from '@danweiyuan/eui'
+import { EButton, EInput, ETable } from '@dwydev/eui'
 ```
 
 适合对打包体积敏感的场景，支持 Tree-shaking。
@@ -104,7 +104,7 @@ import { EButton, EInput, ETable } from '@danweiyuan/eui'
 ```vue
 <!-- App.vue -->
 <script setup lang="ts">
-import { EConfigProvider } from '@danweiyuan/eui'
+import { EConfigProvider } from '@dwydev/eui'
 </script>
 
 <template>
@@ -180,7 +180,7 @@ EConfigProvider 支持嵌套，内层配置覆盖外层，适用于局部区域�
 
 ```vue
 <script setup lang="ts">
-import { useTheme } from '@danweiyuan/eui'
+import { useTheme } from '@dwydev/eui'
 
 const { isDark, toggleDark, colorTheme, setColorTheme } = useTheme()
 </script>
@@ -225,7 +225,7 @@ const { isDark, toggleDark, colorTheme, setColorTheme } = useTheme()
 使用：
 
 ```ts
-import { useToast } from '@danweiyuan/eui'
+import { useToast } from '@dwydev/eui'
 
 const toast = useToast()
 
@@ -244,7 +244,7 @@ toast.info('处理中...', { duration: 5000 })
 ### useMessage
 
 ```ts
-import { useMessage } from '@danweiyuan/eui'
+import { useMessage } from '@dwydev/eui'
 
 const message = useMessage()
 
@@ -257,7 +257,7 @@ message.info('提示信息')
 ### useNotification
 
 ```ts
-import { useNotification } from '@danweiyuan/eui'
+import { useNotification } from '@dwydev/eui'
 
 const notification = useNotification()
 
@@ -274,7 +274,7 @@ notification.success({
 ```
 my-app/
 ├── src/
-│   ├── style.css          # @import "@danweiyuan/eui/theme"
+│   ├── style.css          # @import "@dwydev/eui/theme"
 │   ├── main.ts            # app.use(EUI)
 │   └── App.vue
 ├── index.html
@@ -288,7 +288,7 @@ my-app/
 ```json
 {
   "dependencies": {
-    "@danweiyuan/eui": "^1.2.0",
+    "@dwydev/eui": "^1.2.0",
     "vue": "^3.5.0"
   },
   "devDependencies": {
