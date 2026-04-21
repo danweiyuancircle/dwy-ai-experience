@@ -1,4 +1,11 @@
-# @danweiyuan/ekit
+# @dwydev/ekit
+
+## 0.4.0
+
+### Minor Changes
+
+- 包名从 `@danweiyuan/ekit` 迁移至 `@dwydev/ekit`，下游需更新 import 路径和 package.json 依赖
+- 同步更新全局规则、CLI 模板、playground 文档中的包名引用
 
 ## 0.2.1
 
