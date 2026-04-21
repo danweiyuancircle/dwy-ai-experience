@@ -1,3 +1,8 @@
+<!--
+  EToggle 开关按钮
+  基于 reka-ui Toggle，按下/抬起切换布尔状态，适合工具栏加粗/斜体等二态按钮
+  reka-ui 原生使用 pressed，这里桥接为 v-model modelValue 保持 eui 约定
+-->
 <script setup lang="ts">
 import { Toggle } from 'reka-ui'
 import { cn } from '@/utils/cn'

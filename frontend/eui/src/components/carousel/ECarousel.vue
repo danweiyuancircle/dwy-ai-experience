@@ -1,3 +1,8 @@
+<!--
+  ECarousel 走马灯组件
+  基于 embla-carousel-vue 封装，提供箭头、指示点、自动轮播、键盘导航
+  鼠标悬停自动暂停；子项使用 ECarouselItem 包裹
+-->
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
@@ -26,6 +31,9 @@ const canScrollNext = ref(false)
 const currentIndex = ref(0)
 const slideCount = ref(0)
 
+/**
+ * 同步 embla 内部状态到响应式变量并派发 change 事件
+ */
 function onSelect() {
   if (!emblaApi.value) return
   canScrollPrev.value = emblaApi.value.canScrollPrev()
@@ -34,20 +42,26 @@ function onSelect() {
   emit('change', currentIndex.value)
 }
 
+/** 切换到上一张 */
 function scrollPrev() {
   emblaApi.value?.scrollPrev()
 }
 
+/** 切换到下一张 */
 function scrollNext() {
   emblaApi.value?.scrollNext()
 }
 
+/** 跳转到指定索引 */
 function scrollTo(index: number) {
   emblaApi.value?.scrollTo(index)
 }
 
 let autoplayTimer: ReturnType<typeof setInterval> | null = null
 
+/**
+ * 启动自动轮播：到末尾时根据 loop 决定是否回到首张
+ */
 function startAutoplay() {
   if (!props.autoplay) return
   autoplayTimer = setInterval(() => {
@@ -60,6 +74,9 @@ function startAutoplay() {
   }, props.interval)
 }
 
+/**
+ * 停止自动轮播计时器
+ */
 function stopAutoplay() {
   if (autoplayTimer) {
     clearInterval(autoplayTimer)
@@ -81,11 +98,15 @@ onBeforeUnmount(() => {
   stopAutoplay()
 })
 
+// autoplay prop 动态切换时重启/关闭计时器
 watch(() => props.autoplay, (val) => {
   if (val) startAutoplay()
   else stopAutoplay()
 })
 
+/**
+ * 键盘事件：根据方向决定左右箭头或上下箭头切换
+ */
 function onKeyDown(event: KeyboardEvent) {
   const prevKey = props.direction === 'vertical' ? 'ArrowUp' : 'ArrowLeft'
   const nextKey = props.direction === 'vertical' ? 'ArrowDown' : 'ArrowRight'
@@ -93,7 +114,7 @@ function onKeyDown(event: KeyboardEvent) {
   if (event.key === nextKey) { event.preventDefault(); scrollNext() }
 }
 
-// Expose emblaApi as unknown to avoid a non-portable pnpm path reference in the declaration file
+// 将 emblaApi 以 unknown 暴露，避免声明文件中出现不可移植的 pnpm 路径
 defineExpose({ scrollPrev, scrollNext, scrollTo, emblaApi: emblaApi as unknown })
 </script>
 

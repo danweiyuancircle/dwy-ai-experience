@@ -1,3 +1,9 @@
+<!--
+  EForm 表单组件
+  基于 vee-validate + zod 实现，rules 同时支持 zod schema 与"字段 → 规则"映射
+  通过 provide 向下分发 labelWidth / labelPosition / disabled 等布局配置
+  暴露 validate / validateField / resetFields / clearValidate 四个实例方法
+-->
 <script setup lang="ts">
 import { provide, computed, toRef } from 'vue'
 import { useForm } from 'vee-validate'
@@ -17,13 +23,15 @@ const props = withDefaults(defineProps<EFormProps>(), {
 
 const emit = defineEmits<EFormEmits>()
 
+// 通过是否存在 _def 属性判断 rules 是否为 zod schema
 const isZodSchema = computed(() => {
   if (!props.rules) return false
   return typeof (props.rules as ZodType)._def !== 'undefined'
 })
 
 /**
- * Convert a single FormRule to a validation function for vee-validate.
+ * 将单个 FormRule 转换为 vee-validate 可识别的校验函数
+ * 支持 required / min / max / type=email / pattern / 自定义 validator
  */
 function ruleToValidator(rule: FormRule) {
   return (value: any) => {
@@ -58,7 +66,7 @@ function ruleToValidator(rule: FormRule) {
 }
 
 /**
- * Build a vee-validate compatible validation schema from plain rules object.
+ * 将"字段 → 规则"映射构建为 vee-validate 兼容的字段级校验 schema
  */
 function buildPlainSchema(rules: Record<string, FormRule | FormRule[]>) {
   const schema: Record<string, (value: any) => string | true> = {}
@@ -76,16 +84,16 @@ function buildPlainSchema(rules: Record<string, FormRule | FormRule[]>) {
   return schema
 }
 
+// 统一 rules 为 vee-validate schema（zod 走 toTypedSchema，其他走字段级校验）
 const validationSchema = computed(() => {
   if (!props.rules) return undefined
   if (isZodSchema.value) {
     return toTypedSchema(props.rules as ZodType)
   }
-  // Plain rules object — build field-level validators
   return buildPlainSchema(props.rules as Record<string, FormRule | FormRule[]>)
 })
 
-// Deep clone initial values so reset works correctly
+// 深拷贝初始值快照，保证 resetFields 能恢复到表单挂载时的状态
 const initialSnapshot = JSON.parse(JSON.stringify(props.model ?? {}))
 
 const { handleSubmit, resetForm, setErrors, validate: veeValidate, validateField: veeValidateField, setFieldValue } = useForm({
@@ -97,19 +105,23 @@ const onSubmit = handleSubmit((values) => {
   emit('submit', values)
 })
 
+/** 整体校验表单，返回是否通过 */
 async function validate(): Promise<boolean> {
   const result = await veeValidate()
   return result.valid
 }
 
+/** 单字段校验 */
 async function validateField(name: string): Promise<boolean> {
   const result = await veeValidateField(name)
   return result.valid
 }
 
+/**
+ * 重置字段为初始值：同时同步外部 model，避免 v-model 绑定的响应式对象脱节
+ */
 function resetFields() {
   resetForm({ values: JSON.parse(JSON.stringify(initialSnapshot)) })
-  // Sync reactive model back to initial values
   if (props.model) {
     for (const key of Object.keys(initialSnapshot)) {
       props.model[key] = initialSnapshot[key]
@@ -117,6 +129,7 @@ function resetFields() {
   }
 }
 
+/** 清空所有字段的校验错误 */
 function clearValidate() {
   setErrors({})
 }

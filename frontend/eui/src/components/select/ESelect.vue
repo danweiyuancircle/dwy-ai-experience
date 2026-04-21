@@ -1,3 +1,8 @@
+<!--
+  ESelect 下拉选择器
+  基于 reka-ui Select 封装，支持单选/多选、可搜索、分组选项、远程搜索
+  多选时通过 collapseTags 折叠多余标签为 +N 计数；远程模式下禁用本地过滤，外部更新 options
+-->
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue'
 import { Check, ChevronDown, ChevronUp, X, Search, Loader2 } from 'lucide-vue-next'
@@ -36,13 +41,13 @@ const props = withDefaults(defineProps<ESelectProps>(), {
 
 const emit = defineEmits<ESelectEmits>()
 
-/** Search query for filterable mode */
+/** 搜索关键词（filterable 模式下生效） */
 const filterQuery = ref('')
 
-/** Reference to the filter input element for auto-focus */
+/** 搜索输入框的 DOM 引用，用于下拉展开时自动聚焦 */
 const filterInputRef = ref<HTMLInputElement | null>(null)
 
-/** Check if options are grouped (contain an options array inside) */
+/** 判断 options 是否为分组结构（存在嵌套 options 数组） */
 const isGrouped = computed(() => {
   return (
     Array.isArray(props.options) &&
@@ -51,7 +56,7 @@ const isGrouped = computed(() => {
   )
 })
 
-/** Flatten all options from grouped or flat structures */
+/** 将分组/扁平结构统一扁平化为单层选项数组，便于按值查找 */
 const flatOptions = computed(() => {
   if (!props.options || props.options.length === 0) return []
   if (isGrouped.value) {
@@ -60,28 +65,27 @@ const flatOptions = computed(() => {
   return props.options as Option[]
 })
 
-/** Extract the value from an option using the configured valueKey */
+/** 按 valueKey 从选项对象取出值 */
 function optionValue(option: Record<string, any>): string | number {
   return option[props.valueKey] as string | number
 }
 
-/** Extract the label from an option using the configured labelKey */
+/** 按 labelKey 从选项对象取出显示文本 */
 function optionLabel(option: Record<string, any>): string {
   return option[props.labelKey] as string
 }
 
-/** Whether remote search mode is active */
+/** 是否启用了远程搜索模式（需同时开启 filterable 和 remote） */
 const isRemote = computed(() => props.remote && props.filterable)
 
-/** Check if an option label matches the current filter query (case-insensitive) */
+/** 判断选项是否匹配当前搜索词（大小写不敏感）；远程模式由外部维护 options，跳过本地过滤 */
 function matchesFilter(option: Record<string, any>): boolean {
   if (!props.filterable || !filterQuery.value) return true
-  // Skip local filtering in remote mode — options are managed externally
   if (isRemote.value) return true
   return optionLabel(option).toLowerCase().includes(filterQuery.value.toLowerCase())
 }
 
-/** Debounce timer for remote search */
+/** 远程搜索防抖定时器，避免每次按键都发请求 */
 let remoteDebounceTimer: ReturnType<typeof setTimeout> | undefined
 
 watch(filterQuery, (query) => {
@@ -92,13 +96,13 @@ watch(filterQuery, (query) => {
   }, 300)
 })
 
-/** Grouped options cast to the correct type */
+/** 分组选项的强类型视图 */
 const groupedOptions = computed((): GroupedOption[] => {
   if (!isGrouped.value) return []
   return props.options as GroupedOption[]
 })
 
-/** Grouped options filtered by the search query */
+/** 按搜索词过滤后的分组选项；组内无匹配则整组隐藏 */
 const filteredGroupedOptions = computed((): GroupedOption[] => {
   if (!props.filterable || !filterQuery.value) return groupedOptions.value
   return groupedOptions.value
@@ -109,13 +113,13 @@ const filteredGroupedOptions = computed((): GroupedOption[] => {
     .filter((group) => group.options.length > 0)
 })
 
-/** Flat options filtered by the search query */
+/** 按搜索词过滤后的扁平选项 */
 const filteredFlatOptions = computed((): Option[] => {
   if (!props.filterable || !filterQuery.value) return flatOptions.value
   return flatOptions.value.filter(matchesFilter)
 })
 
-/** Whether the dropdown has any visible options after filtering */
+/** 过滤后下拉是否还有可见项（用于展示「无结果」提示） */
 const hasFilteredResults = computed(() => {
   if (isGrouped.value) {
     return filteredGroupedOptions.value.some((g) => g.options.length > 0)
@@ -129,30 +133,30 @@ const triggerSizeClass = computed(() => {
   return 'text-sm'
 })
 
-/** Minimum height class for trigger based on size (used in multiple mode) */
+/** 多选模式下触发器的最小高度 class（多选要随标签数增高，用 min-h） */
 const triggerMinHeightClass = computed(() => {
   if (props.size === 'sm') return 'min-h-8'
   if (props.size === 'lg') return 'min-h-10'
   return 'min-h-9'
 })
 
-/** Fixed height class for trigger (used in single mode) */
+/** 单选模式下触发器的固定高度 class */
 const triggerFixedHeightClass = computed(() => {
   if (props.size === 'sm') return 'h-8'
   if (props.size === 'lg') return 'h-10'
   return 'h-9'
 })
 
-// --- Single-select helpers ---
+// --- 单选模式辅助函数 ---
 
-/** Convert modelValue to string for reka-ui SelectRoot in single mode */
+/** 单选模式下将 modelValue 转为 string 以对接 reka-ui（它仅接受字符串） */
 const modelStr = computed(() => {
   if (props.multiple) return undefined
   if (props.modelValue === undefined) return undefined
   return String(props.modelValue)
 })
 
-/** Handle value update from reka-ui in single-select mode */
+/** 单选值变更：通过 flatOptions 查找原始类型（数字/字符串），恢复用户声明的值类型 */
 function onUpdate(value: string) {
   const found = flatOptions.value.find((o) => String(optionValue(o)) === value)
   const finalValue = found ? optionValue(found) : value
@@ -160,16 +164,16 @@ function onUpdate(value: string) {
   emit('change', finalValue)
 }
 
-// --- Multiple-select helpers ---
+// --- 多选模式辅助函数 ---
 
-/** Convert modelValue array to string array for reka-ui SelectRoot in multiple mode */
+/** 多选模式下将 modelValue 数组转为 string[] 以对接 reka-ui */
 const modelArray = computed(() => {
   if (!props.multiple) return []
   if (!Array.isArray(props.modelValue)) return []
   return props.modelValue.map(String)
 })
 
-/** Resolve selected values to their option objects for rendering tags */
+/** 将选中值还原为对应的 Option 对象，用于渲染标签 */
 const selectedOptions = computed((): Option[] => {
   if (!props.multiple || !Array.isArray(props.modelValue)) return []
   return props.modelValue
@@ -177,19 +181,19 @@ const selectedOptions = computed((): Option[] => {
     .filter((o): o is Option => o !== undefined)
 })
 
-/** Tags visible in the trigger (all tags or just the first, depending on collapseTags) */
+/** 触发器中可见的标签：折叠模式仅显示第一个，其余计数 */
 const visibleTags = computed(() => {
   if (props.collapseTags) return selectedOptions.value.slice(0, 1)
   return selectedOptions.value
 })
 
-/** Number of hidden tags when collapseTags is active */
+/** 折叠模式下隐藏的标签数量，用于显示 +N */
 const hiddenTagCount = computed(() => {
   if (!props.collapseTags) return 0
   return Math.max(0, selectedOptions.value.length - 1)
 })
 
-/** Handle value update from reka-ui in multi-select mode */
+/** 多选值变更：还原每一项的原始类型后抛出 */
 function onUpdateMultiple(value: string[]) {
   const finalValues = value.map((v) => {
     const found = flatOptions.value.find((o) => String(optionValue(o)) === v)
@@ -199,7 +203,7 @@ function onUpdateMultiple(value: string[]) {
   emit('change', finalValues)
 }
 
-/** Remove a single tag by its value in multi-select mode */
+/** 多选模式下移除单个标签；需要阻止冒泡避免误触发下拉开关 */
 function removeTag(event: MouseEvent, val: string | number) {
   event.stopPropagation()
   event.preventDefault()
@@ -210,9 +214,9 @@ function removeTag(event: MouseEvent, val: string | number) {
   emit('change', next)
 }
 
-// --- Shared handlers ---
+// --- 通用处理函数 ---
 
-/** Handle dropdown open/close state changes */
+/** 下拉开关状态变化：展开时聚焦搜索框，收起时重置搜索词 */
 function onOpenChange(open: boolean) {
   emit('visible-change', open)
   if (open && props.filterable) {
@@ -223,7 +227,7 @@ function onOpenChange(open: boolean) {
   }
 }
 
-/** Handle click on the clear button (single mode) */
+/** 点击清除按钮：多选清空数组，单选清空为 undefined */
 function onClear(event: MouseEvent) {
   event.stopPropagation()
   if (props.multiple) {
@@ -235,7 +239,7 @@ function onClear(event: MouseEvent) {
   }
 }
 
-/** Whether the clear button should be shown */
+/** 是否展示清除按钮（clearable 开启且当前有值） */
 const showClear = computed(() => {
   if (!props.clearable) return false
   if (props.multiple) {
@@ -244,12 +248,12 @@ const showClear = computed(() => {
   return props.modelValue !== undefined && props.modelValue !== ''
 })
 
-/** Prevent filter input keyboard events from propagating to SelectContent typeahead */
+/** 阻止搜索框按键冒泡到 SelectContent 的 typeahead，避免输入被当作快捷搜索触发选项跳转 */
 function onFilterKeydown(event: KeyboardEvent) {
   event.stopPropagation()
 }
 
-// Item class shared between flat and grouped option rendering
+// 扁平和分组共用的选项 class
 const itemClass = 'focus:bg-accent focus:text-accent-foreground [&_svg:not([class*=\'text-\'])]:text-muted-foreground relative flex w-full cursor-default items-center gap-2 rounded-sm py-1.5 pr-8 pl-2 text-sm outline-hidden select-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4'
 </script>
 

@@ -1,3 +1,8 @@
+<!--
+  EFormItem 表单字段组件
+  绑定 prop 字段到 vee-validate useField，与外部 model 做双向同步
+  通过 provide FORM_ITEM_INJECTION_KEY 让子控件（如 EInput）感知所属 FormItem id
+-->
 <script setup lang="ts">
 import { inject, computed, provide, watch } from 'vue'
 import { useId } from 'reka-ui'
@@ -12,8 +17,10 @@ const props = defineProps<EFormItemProps>()
 const formContext = inject(FORM_CONTEXT_KEY, undefined)
 
 const id = useId()
+// 向子控件暴露 FormItem id，便于 aria-describedby 关联
 provide(FORM_ITEM_INJECTION_KEY, id)
 
+// 优先使用 FormItem 自身 labelWidth，否则回退到 EForm 的 labelWidth
 const resolvedLabelWidth = computed(() => {
   return props.labelWidth ?? formContext?.labelWidth?.value
 })
@@ -24,7 +31,7 @@ const labelPosition = computed(() => {
 
 const isTopLabel = computed(() => labelPosition.value === 'top')
 
-// Use vee-validate useField to sync with form schema validation
+// 通过 vee-validate 注册字段，让 schema 校验能命中本字段
 const fieldState = props.prop
   ? useField(() => props.prop!, undefined, {
       syncVModel: false,
@@ -32,7 +39,7 @@ const fieldState = props.prop
     })
   : null
 
-// Two-way sync between form model and vee-validate field
+// model ↔ fieldState 双向同步：保证外部 v-model 与 vee-validate 值一致
 if (fieldState && formContext?.model) {
   // model → field
   watch(
@@ -43,7 +50,7 @@ if (fieldState && formContext?.model) {
       }
     },
   )
-  // field → model (for resetForm)
+  // field → model（用于 resetForm 时回写）
   watch(
     () => fieldState.value.value,
     (newVal) => {

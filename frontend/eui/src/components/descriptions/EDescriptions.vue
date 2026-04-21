@@ -1,3 +1,8 @@
+<!--
+  EDescriptions 详情描述列表组件
+  以 label/value 键值对网格展示对象字段，适合详情页展示只读信息
+  支持 bordered 边框态与 span 跨列，可通过 label-{i} / value-{i} 插槽定制
+-->
 <script setup lang="ts">
 import { cn } from '@/utils/cn'
 import type { EDescriptionsProps } from './types'

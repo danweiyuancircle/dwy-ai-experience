@@ -1,3 +1,8 @@
+<!--
+  EField 表单字段容器组件
+  提供 label / control / description 的基础布局容器
+  通过 data-invalid 驱动错误态样式，自身不参与表单校验
+-->
 <script setup lang="ts">
 import { cn } from '@/utils/cn'
 import { fieldVariants } from './types'

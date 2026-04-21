@@ -1,3 +1,7 @@
+<!--
+  EMenubarItem 菜单项组件
+  单个可点击的菜单条目，支持 destructive 变体
+-->
 <script setup lang="ts">
 import { MenubarItem } from 'reka-ui'
 import { cn } from '@/utils/cn'
@@ -7,7 +11,10 @@ const props = withDefaults(defineProps<EMenubarItemProps>(), {
   variant: 'default',
 })
 
-const emit = defineEmits<{ (e: 'select', event: Event): void }>()
+const emit = defineEmits<{
+  /** 点击选中时触发 */
+  (e: 'select', event: Event): void
+}>()
 </script>
 
 <template>

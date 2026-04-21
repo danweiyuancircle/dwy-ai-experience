@@ -1,3 +1,8 @@
+<!--
+  EButton 按钮组件
+  基于 reka-ui Primitive 封装，支持 variant / size / loading / disabled
+  loading 态下自动禁用点击并展示旋转图标
+-->
 <script setup lang="ts">
 import { Primitive } from 'reka-ui'
 import { LoaderCircle } from 'lucide-vue-next'

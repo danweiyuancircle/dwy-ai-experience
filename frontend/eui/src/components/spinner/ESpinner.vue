@@ -1,3 +1,8 @@
+<!--
+  ESpinner 加载中指示器
+  基于 lucide LoaderCircle 图标 + animate-spin 动画
+  带 aria-label 供屏幕阅读器识别为「加载中」状态
+-->
 <script setup lang="ts">
 import { LoaderCircle } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'

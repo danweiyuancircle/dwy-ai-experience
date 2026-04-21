@@ -1,3 +1,8 @@
+<!--
+  EContextMenu 右键菜单组件
+  基于 reka-ui ContextMenu 原语封装，支持多级子菜单与危险操作样式
+  默认插槽作为触发区域，右键点击时弹出菜单
+-->
 <script setup lang="ts">
 import { ChevronRight } from 'lucide-vue-next'
 import {
@@ -20,6 +25,7 @@ const props = withDefaults(defineProps<EContextMenuProps>(), {
 
 const emit = defineEmits<EContextMenuEmits>()
 
+/** 将子组件 select 事件上浮 */
 function handleSelect(key: string) {
   emit('select', key)
 }

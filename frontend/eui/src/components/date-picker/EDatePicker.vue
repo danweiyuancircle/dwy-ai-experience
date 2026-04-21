@@ -1,3 +1,8 @@
+<!--
+  EDatePicker 日期选择器组件
+  基于 reka-ui 的 Calendar / RangeCalendar / MonthPicker / YearPicker 原语封装
+  通过 type 切换单日 / 区间 / 月 / 年四种模式，值统一以字符串形式对外交互
+-->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { CalendarDays, ChevronLeft, ChevronRight, X } from 'lucide-vue-next'
@@ -72,14 +77,14 @@ const emit = defineEmits<EDatePickerEmits>()
 
 const open = ref(false)
 
-// --- Helpers ---
+// --- 辅助函数 ---
 
-/** Convert a JS Date to CalendarDate */
+/** 将原生 Date 转换为 reka-ui 需要的 CalendarDate */
 function toCalendarDate(d: Date): CalendarDate {
   return new CalendarDate(d.getFullYear(), d.getMonth() + 1, d.getDate())
 }
 
-/** Try to parse a string or Date into CalendarDate */
+/** 尝试将字符串或 Date 解析为 CalendarDate，失败返回 undefined */
 function parseToCalendarDate(val: string | Date | undefined): CalendarDate | undefined {
   if (!val) return undefined
   try {
@@ -91,12 +96,12 @@ function parseToCalendarDate(val: string | Date | undefined): CalendarDate | und
   }
 }
 
-/** Convert CalendarDate to a JS Date */
+/** CalendarDate 反向转换为原生 Date */
 function calendarDateToDate(cd: CalendarDate): Date {
   return new Date(cd.year, cd.month - 1, cd.day)
 }
 
-/** Format CalendarDate using the format prop (supports YYYY, MM, DD tokens) */
+/** 根据 format（支持 YYYY / MM / DD）格式化 CalendarDate 为字符串 */
 function formatCalendarDate(date: CalendarDate, fmt?: string): string {
   const f = fmt ?? props.format
   const y = String(date.year)
@@ -105,21 +110,21 @@ function formatCalendarDate(date: CalendarDate, fmt?: string): string {
   return f.replace('YYYY', y).replace('MM', m).replace('DD', d)
 }
 
-/** Build isDateUnavailable matcher from disabledDate prop for CalendarRoot / RangeCalendarRoot */
+/** 将 disabledDate prop 包装为 reka-ui Calendar 的 isDateUnavailable 形式 */
 function isDateUnavailable(date: DateValue): boolean {
   if (!props.disabledDate) return false
   const jsDate = new Date(date.year, date.month - 1, date.day)
   return props.disabledDate(jsDate)
 }
 
-// --- Computed format strings per type ---
+// --- 各类型的显示格式计算 ---
 const effectiveFormat = computed(() => {
   if (props.type === 'month') return 'YYYY-MM'
   if (props.type === 'year') return 'YYYY'
   return props.format
 })
 
-// --- Single date mode ---
+// --- 单日模式 ---
 
 const calendarValue = computed(() => {
   if (props.type !== 'date') return undefined
@@ -144,6 +149,7 @@ const displayValue = computed(() => {
   return ''
 })
 
+/** 单日模式选中：格式化为字符串后派发并关闭面板 */
 function onSelectDate(val: any) {
   if (!val) return
   const cd = val as CalendarDate
@@ -153,7 +159,7 @@ function onSelectDate(val: any) {
   open.value = false
 }
 
-// --- Date range mode ---
+// --- 区间模式 ---
 
 const rangeCalendarValue = computed(() => {
   if (props.type !== 'daterange') return undefined
@@ -172,6 +178,7 @@ const rangeDisplayValue = computed(() => {
   return `${startStr} ${props.rangeSeparator} ${endStr}`
 })
 
+/** 区间模式选中：起止都就绪时才派发并关闭 */
 function onSelectRange(val: any) {
   if (!val || !val.start || !val.end) return
   const startStr = formatCalendarDate(val.start as CalendarDate, effectiveFormat.value)
@@ -181,7 +188,7 @@ function onSelectRange(val: any) {
   open.value = false
 }
 
-// --- Month mode ---
+// --- 月模式 ---
 
 const monthCalendarValue = computed(() => {
   if (props.type !== 'month') return undefined
@@ -201,6 +208,7 @@ const monthDisplayValue = computed(() => {
   return formatCalendarDate(monthCalendarValue.value, 'YYYY-MM')
 })
 
+/** 月模式选中：按 YYYY-MM 格式化 */
 function onSelectMonth(val: any) {
   if (!val) return
   const cd = val as CalendarDate
@@ -210,15 +218,14 @@ function onSelectMonth(val: any) {
   open.value = false
 }
 
-/** Build isMonthUnavailable matcher from disabledDate prop for MonthPickerRoot */
+/** 将 disabledDate 包装为 MonthPicker 的 isMonthUnavailable，取月首日做代理判定 */
 function isMonthUnavailable(date: DateValue): boolean {
   if (!props.disabledDate) return false
-  // Check if the first day of the month is disabled as a proxy
   const jsDate = new Date(date.year, date.month - 1, 1)
   return props.disabledDate(jsDate)
 }
 
-// --- Year mode ---
+// --- 年模式 ---
 
 const yearCalendarValue = computed(() => {
   if (props.type !== 'year') return undefined
@@ -238,6 +245,7 @@ const yearDisplayValue = computed(() => {
   return formatCalendarDate(yearCalendarValue.value, 'YYYY')
 })
 
+/** 年模式选中：按 YYYY 格式化 */
 function onSelectYear(val: any) {
   if (!val) return
   const cd = val as CalendarDate
@@ -247,15 +255,18 @@ function onSelectYear(val: any) {
   open.value = false
 }
 
-/** Build isYearUnavailable matcher from disabledDate prop for YearPickerRoot */
+/** 将 disabledDate 包装为 YearPicker 的 isYearUnavailable，取年首日做代理判定 */
 function isYearUnavailable(date: DateValue): boolean {
   if (!props.disabledDate) return false
   const jsDate = new Date(date.year, 0, 1)
   return props.disabledDate(jsDate)
 }
 
-// --- Shortcuts ---
+// --- 快捷选项 ---
 
+/**
+ * 快捷选项点击处理：根据当前 type 与 shortcut.value 派发对应格式的值
+ */
 function onShortcutClick(shortcut: { text: string; value: Date | Date[] | (() => Date | Date[]) }) {
   const resolved = typeof shortcut.value === 'function' ? shortcut.value() : shortcut.value
 
@@ -284,8 +295,9 @@ function onShortcutClick(shortcut: { text: string; value: Date | Date[] | (() =>
   open.value = false
 }
 
-// --- Clear ---
+// --- 清空 ---
 
+/** 点击清空按钮：派发 undefined 重置 modelValue */
 function onClear(e: MouseEvent) {
   e.stopPropagation()
   emit('update:modelValue', undefined)

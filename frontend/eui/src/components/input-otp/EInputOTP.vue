@@ -1,3 +1,8 @@
+<!--
+  EInputOTP 一次性验证码输入组件
+  基于 reka-ui PinInput 原语，默认 6 位数字
+  填满所有格子时派发 complete 事件，便于自动提交
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { PinInputRoot, PinInputInput } from 'reka-ui'
@@ -11,12 +16,15 @@ const props = withDefaults(defineProps<EInputOTPProps>(), {
 
 const emit = defineEmits<EInputOTPEmits>()
 
-// Convert string modelValue to array for reka-ui PinInput
+// 将字符串 modelValue 转为字符数组供 reka-ui PinInput 使用
 const pinValue = computed(() => {
   if (!props.modelValue) return []
   return props.modelValue.split('')
 })
 
+/**
+ * 处理输入更新：拼回字符串后派发，填满位数时额外触发 complete
+ */
 function handleUpdate(val: string[]) {
   const str = val.join('')
   emit('update:modelValue', str)

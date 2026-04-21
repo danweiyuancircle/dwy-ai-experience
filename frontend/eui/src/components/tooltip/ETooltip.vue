@@ -1,3 +1,8 @@
+<!--
+  ETooltip 文字提示组件
+  基于 reka-ui Tooltip 封装，hover/focus 时在目标元素旁弹出提示
+  content 传纯文本，复杂内容通过 content 插槽提供
+-->
 <script setup lang="ts">
 import {
   TooltipArrow,

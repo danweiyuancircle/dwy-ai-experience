@@ -1,3 +1,8 @@
+<!--
+  ETransfer 穿梭框组件
+  左右两列可搜索的列表，中间按钮在两列间移动选中项
+  modelValue 维护已选择项的 value 数组，源 data 不变，左右列表由 modelValue 切分计算
+-->
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { ChevronRight, ChevronLeft } from 'lucide-vue-next'

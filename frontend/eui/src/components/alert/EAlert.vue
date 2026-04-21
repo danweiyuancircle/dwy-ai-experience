@@ -1,3 +1,8 @@
+<!--
+  EAlert 警告提示组件
+  用于页面级静态提示，区别于 toast 的瞬时反馈
+  支持 icon / title / description / 关闭按钮，可通过 variant 切换危险态
+-->
 <script setup lang="ts">
 import { X } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'

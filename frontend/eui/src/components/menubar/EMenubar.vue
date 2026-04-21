@@ -1,3 +1,7 @@
+<!--
+  EMenubar 菜单栏根容器组件
+  基于 reka-ui MenubarRoot 原语，横向排列多个 EMenubarMenu 组成顶部菜单栏
+-->
 <script setup lang="ts">
 import { MenubarRoot } from 'reka-ui'
 import { cn } from '@/utils/cn'

@@ -1,3 +1,8 @@
+<!--
+  EDrawer 抽屉组件
+  基于 reka-ui Dialog 原语封装，通过 direction 控制从四个方向滑入
+  底部抽屉额外渲染一个"抓手"指示可拖动
+-->
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { X } from 'lucide-vue-next'
@@ -22,12 +27,15 @@ const props = withDefaults(defineProps<EDrawerProps>(), {
 
 const emit = defineEmits<EDrawerEmits>()
 
+// 本地 open ref，用于给 reka-ui v-model 承接
 const localOpen = ref(props.open ?? false)
 
+// 外部 prop 变化 → 同步到本地
 watch(() => props.open, (val) => {
   localOpen.value = val ?? false
 })
 
+// 本地状态变化 → 派发事件
 watch(localOpen, (val) => {
   emit('update:open', val)
   if (!val) emit('close')

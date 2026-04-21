@@ -1,3 +1,8 @@
+<!--
+  ENumberField 数字输入框组件
+  基于 reka-ui NumberField 封装，内置加减按钮，支持步长、精度、最小/最大值约束
+  controlsPosition=right 按钮叠于右侧，default 左右分布
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Minus, Plus } from 'lucide-vue-next'
@@ -32,6 +37,10 @@ const formatOptions = computed(() => {
   }
 })
 
+/**
+ * 数值变更回调：同时抛出 v-model 更新与 change 事件
+ * change 与 update:modelValue 同步触发，便于表单校验场景监听
+ */
 function onUpdate(value: number) {
   emit('update:modelValue', value)
   emit('change', value)

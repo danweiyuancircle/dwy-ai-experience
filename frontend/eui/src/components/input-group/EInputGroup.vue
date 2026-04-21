@@ -1,3 +1,8 @@
+<!--
+  EInputGroup 输入框组合容器组件
+  将 EInput 与 EInputGroupAddon 组合为一体，统一边框与圆角
+  通过 :deep() 抹平 EInput 自身边框，避免双层边框冲突
+-->
 <script setup lang="ts">
 import { cn } from '@/utils/cn'
 import type { EInputGroupProps } from './types'

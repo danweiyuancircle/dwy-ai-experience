@@ -1,10 +1,20 @@
+/**
+ * 主题 composable
+ * 管理亮/暗模式（含跟随系统）与主色方案，状态持久化到 localStorage，
+ * 通过切换 html 根元素上的 `.dark` 和 `.theme-xxx` 类驱动 Tailwind 设计 token
+ */
 import { ref, watchEffect } from 'vue'
 import { usePreferredDark, useStorage } from '@vueuse/core'
 
+/** 可选主色方案；neutral 为默认无额外 class */
 type ColorTheme = 'neutral' | 'blue' | 'green' | 'rose' | 'orange' | 'violet' | 'slate'
 
 const COLOR_THEMES: ColorTheme[] = ['neutral', 'blue', 'green', 'rose', 'orange', 'violet', 'slate']
 
+/**
+ * 使用/控制主题
+ * @returns isDark(当前是否暗色)、theme(用户选择 light/dark/system)、切换方法、主色及其 setter
+ */
 export function useTheme() {
   const prefersDark = usePreferredDark()
   const stored = useStorage<'light' | 'dark' | 'system'>('eui-theme', 'system')
@@ -21,9 +31,9 @@ export function useTheme() {
 
   watchEffect(() => {
     if (typeof document !== 'undefined') {
-      // Remove all existing color theme classes
+      // 先清除已有的主色 class，再按当前选择添加，避免叠加
       COLOR_THEMES.forEach(t => document.documentElement.classList.remove(`theme-${t}`))
-      // Apply the selected theme (neutral has no class — it's the default)
+      // neutral 作为默认主色不需要添加 class
       if (colorTheme.value !== 'neutral') {
         document.documentElement.classList.add(`theme-${colorTheme.value}`)
       }

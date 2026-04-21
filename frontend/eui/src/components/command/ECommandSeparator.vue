@@ -1,3 +1,7 @@
+<!--
+  ECommandSeparator 命令面板分隔线组件
+  用于在不同命令分组之间绘制一条横向分隔
+-->
 <script setup lang="ts">
 import type { SeparatorProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'

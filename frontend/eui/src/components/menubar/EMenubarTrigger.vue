@@ -1,3 +1,7 @@
+<!--
+  EMenubarTrigger 菜单项触发按钮
+  点击后展开对应的 EMenubarContent 面板
+-->
 <script setup lang="ts">
 import { MenubarTrigger } from 'reka-ui'
 import { cn } from '@/utils/cn'

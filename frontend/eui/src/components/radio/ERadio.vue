@@ -1,3 +1,9 @@
+<!--
+  ERadio 单选框组件
+  基于 reka-ui RadioGroup 封装，通过 options 渲染一组选项
+  optionType=default 呈现圆点样式，optionType=button 呈现相连的按钮组样式
+  modelValue 统一转换为字符串比较，避免数字/字符串混用时的选中判断问题
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { RadioGroupRoot, RadioGroupItem, RadioGroupIndicator } from 'reka-ui'
@@ -21,7 +27,7 @@ function onUpdate(value: string | number | bigint | Record<string, any> | null) 
   emit('change', strValue)
 }
 
-/** Size classes for default radio items */
+/** 默认圆点模式下的尺寸 class（控制圆点大小、文字、内边距） */
 const sizeClasses = computed(() => {
   const map: Record<string, { radio: string; text: string; padding: string }> = {
     sm: { radio: 'size-3.5', text: 'text-xs', padding: 'px-2 py-1.5' },
@@ -31,7 +37,7 @@ const sizeClasses = computed(() => {
   return map[props.size]
 })
 
-/** Size classes for button mode items */
+/** 按钮组模式下的尺寸 class */
 const buttonSizeClasses = computed(() => {
   const map: Record<string, string> = {
     sm: 'px-3 py-1 text-xs',

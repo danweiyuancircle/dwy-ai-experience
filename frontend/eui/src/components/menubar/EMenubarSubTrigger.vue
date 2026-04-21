@@ -1,3 +1,7 @@
+<!--
+  EMenubarSubTrigger 子菜单触发器
+  hover 或点击时展开对应的 EMenubarSubContent 面板，右侧带指示箭头
+-->
 <script setup lang="ts">
 import { ChevronRight } from 'lucide-vue-next'
 import { MenubarSubTrigger } from 'reka-ui'

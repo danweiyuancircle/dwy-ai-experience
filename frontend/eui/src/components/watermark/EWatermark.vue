@@ -1,3 +1,8 @@
+<!--
+  EWatermark 水印组件
+  将默认插槽内容包裹在水印层下；水印通过 canvas 生成一张平铺贴图，再作为 background-image
+  在 pointer-events-none 的覆盖层上平铺，既不影响交互，又能防止截图内容被直接复用
+-->
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { cn } from '@/utils/cn'
@@ -13,6 +18,9 @@ const props = withDefaults(defineProps<EWatermarkProps>(), {
 
 const dataUrl = ref('')
 
+/**
+ * 基于当前 props 在 canvas 上绘制水印平铺单元，并将其转为 dataURL 供 CSS background 平铺使用
+ */
 function generateWatermark() {
   const canvas = document.createElement('canvas')
   const texts = Array.isArray(props.content) ? props.content : [props.content]

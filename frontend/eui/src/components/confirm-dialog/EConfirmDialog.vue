@@ -1,3 +1,8 @@
+<!--
+  EConfirmDialog 确认对话框组件
+  根据 type 切换 info / warning / error 三种样式（图标 + 主色）
+  基于 reka-ui Dialog 实现，比 EAlertDialog 更偏信息提示风格
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { AlertTriangle, Info, XCircle } from 'lucide-vue-next'
@@ -21,6 +26,7 @@ const props = withDefaults(defineProps<EConfirmDialogProps>(), {
 
 const emit = defineEmits<EConfirmDialogEmits>()
 
+// 根据 type 映射图标、图标颜色、确认按钮配色
 const typeConfig = computed(() => {
   const configs = {
     info: {
@@ -42,11 +48,13 @@ const typeConfig = computed(() => {
   return configs[props.type]
 })
 
+/** 确认按钮处理：派发 confirm 后自动关闭 */
 function handleConfirm() {
   emit('confirm')
   emit('update:open', false)
 }
 
+/** 取消按钮处理：派发 cancel 后自动关闭 */
 function handleCancel() {
   emit('cancel')
   emit('update:open', false)

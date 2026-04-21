@@ -1,3 +1,8 @@
+<!--
+  ETimePicker 时间选择器
+  使用 reka-ui Popover 弹出选时面板，左右两列分别滚动选择小时/分钟
+  通过 hourStep/minuteStep 控制颗粒度；打开时自动滚动到当前选中项
+-->
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { Clock } from 'lucide-vue-next'
@@ -18,7 +23,7 @@ const emit = defineEmits<ETimePickerEmits>()
 
 const open = ref(false)
 
-/** Parse HH:mm string */
+/** 从 HH:mm 字符串解析出小时 */
 const parsedHour = computed(() => {
   if (!props.modelValue) return 0
   const [h] = props.modelValue.split(':')
@@ -76,7 +81,7 @@ function emitValue() {
   emit('change', val)
 }
 
-/** Scroll active item into view when panel opens */
+/** 面板打开时将当前选中项滚动到可视中央 */
 const hourListRef = ref<HTMLElement | null>(null)
 const minuteListRef = ref<HTMLElement | null>(null)
 

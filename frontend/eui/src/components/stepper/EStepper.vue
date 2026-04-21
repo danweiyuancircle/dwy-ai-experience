@@ -1,3 +1,8 @@
+<!--
+  EStepper 步骤条组件
+  基于 reka-ui Stepper 封装，通过 items 配置各步标题/描述
+  步骤状态 active=当前、completed=已完成、未到达=灰色；完成态显示勾选图标
+-->
 <script setup lang="ts">
 import {
   StepperDescription,

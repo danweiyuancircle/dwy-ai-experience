@@ -1,13 +1,19 @@
+/**
+ * 全局配置 Provider 的注入 key、默认文案、以及消费端 composable
+ * EConfigProvider 在应用顶层注入 size/zIndex/locale，子组件通过 useConfigProvider 读取
+ */
 import type { InjectionKey, Ref } from 'vue'
 import { inject, ref } from 'vue'
 import type { Size } from '@/types'
 
+/** EConfigProvider 的注入 key，包含统一的尺寸、弹层层级、国际化文案 */
 export const CONFIG_PROVIDER_KEY = Symbol() as InjectionKey<{
   size: Ref<Size>
   zIndex: Ref<number>
   locale: Ref<Record<string, string>>
 }>
 
+/** 默认中文语言包，覆盖所有需要文案的组件（上传、选择器、消息框等） */
 export const defaultLocale: Record<string, string> = {
   name: 'zh-CN',
   confirm: '确定',
@@ -30,6 +36,10 @@ export const defaultLocale: Record<string, string> = {
   uploadValidationFailed: '文件 "{name}" 校验未通过',
 }
 
+/**
+ * 读取全局配置；未包裹 EConfigProvider 时回落到默认值，保证组件在任意位置都能工作
+ * @returns 全局 size / zIndex / locale 的响应式引用
+ */
 export function useConfigProvider() {
   const config = inject(CONFIG_PROVIDER_KEY, {
     size: ref('default' as Size),

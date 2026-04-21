@@ -1,12 +1,23 @@
+/**
+ * 全局 Notification 通知 composable
+ * 四角弹出、带标题和正文的卡片式通知，适用于非阻塞、需长时停留的提醒
+ */
+
+/** Notification 配置项 */
 export interface NotificationOptions {
+  /** 通知标题（必填） */
   title: string
+  /** 通知正文（可选） */
   message?: string
+  /** 语义类型，决定配色（当前实现仅保留字段） */
   type?: 'success' | 'warning' | 'info' | 'error'
+  /** 自动关闭延迟（毫秒），<=0 不自动关闭；默认 4500 */
   duration?: number
+  /** 弹出位置，默认 top-right */
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
-  /** When provided, makes the notification clickable */
+  /** 传入后整张通知变为可点击，用于跳转详情等场景 */
   onClick?: () => void
-  /** When true (default), show the close button; when false, hide it */
+  /** 是否显示关闭按钮，默认 true */
   closable?: boolean
 }
 
@@ -32,7 +43,7 @@ function getContainer(position: string): HTMLElement {
   return container
 }
 
-/** Resolve slide animation classes based on position */
+/** 根据弹出位置返回对应的进入/退出滑动动画 class（左侧从左滑入，其余从右滑入） */
 function getSlideClasses(position: string): { enter: string; exit: string } {
   if (position.includes('left')) {
     return {
@@ -107,6 +118,10 @@ function showNotification(options: NotificationOptions) {
   return { id, close }
 }
 
+/**
+ * 获取全局 Notification 调用入口
+ * @returns success/warning/error/info 四种语义方法，均返回 `{ id, close }`，支持手动关闭
+ */
 export function useNotification() {
   return {
     success: (opts: NotificationOptions) => showNotification({ ...opts, type: 'success' }),

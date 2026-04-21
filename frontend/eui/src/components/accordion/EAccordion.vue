@@ -1,3 +1,8 @@
+<!--
+  EAccordion 折叠面板组件
+  基于 reka-ui AccordionRoot 原语封装，支持单选/多选展开模式
+  通过 items 数据驱动或通过具名插槽自定义内容
+-->
 <script setup lang="ts">
 import { ChevronDown } from 'lucide-vue-next'
 import {
@@ -17,6 +22,9 @@ const props = withDefaults(defineProps<EAccordionProps>(), {
 
 const emit = defineEmits<EAccordionEmits>()
 
+/**
+ * 转发 reka-ui 的值变化事件到外部 v-model
+ */
 function onUpdate(value: string | string[] | undefined) {
   emit('update:modelValue', value)
 }

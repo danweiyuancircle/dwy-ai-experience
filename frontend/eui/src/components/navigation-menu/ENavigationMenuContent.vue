@@ -1,3 +1,7 @@
+<!--
+  ENavigationMenuContent 导航菜单展开内容
+  配合 Trigger 使用，承载二级导航内容；动画走 data-motion 由 reka-ui 控制
+-->
 <script setup lang="ts">
 import { NavigationMenuContent } from 'reka-ui'
 import { cn } from '@/utils/cn'

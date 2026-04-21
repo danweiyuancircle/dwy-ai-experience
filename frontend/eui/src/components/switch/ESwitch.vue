@@ -1,3 +1,8 @@
+<!--
+  ESwitch 开关组件
+  基于 reka-ui Switch 封装，modelValue 为布尔值
+  通过 writable computed 桥接 props/emit，支持 reka-ui 的 v-model 协议
+-->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { SwitchRoot, SwitchThumb } from 'reka-ui'

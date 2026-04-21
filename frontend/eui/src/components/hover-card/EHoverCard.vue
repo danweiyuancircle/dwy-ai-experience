@@ -1,3 +1,7 @@
+<!--
+  EHoverCard 悬浮卡片组件
+  基于 reka-ui HoverCard 原语封装，trigger 插槽为触发区，默认插槽为卡片内容
+-->
 <script setup lang="ts">
 import { HoverCardRoot, HoverCardTrigger, HoverCardPortal, HoverCardContent } from 'reka-ui'
 import { cn } from '@/utils/cn'

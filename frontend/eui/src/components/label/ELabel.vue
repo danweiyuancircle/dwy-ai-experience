@@ -1,3 +1,8 @@
+<!--
+  ELabel 表单标签组件
+  基于 reka-ui Label 原语，为关联的表单控件提供语义化 label
+  点击 label 会自动聚焦对应控件
+-->
 <script setup lang="ts">
 import { Label } from 'reka-ui'
 import { cn } from '@/utils/cn'

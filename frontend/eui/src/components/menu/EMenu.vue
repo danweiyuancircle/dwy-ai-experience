@@ -1,3 +1,8 @@
+<!--
+  EMenu 侧边栏导航菜单组件
+  支持两级菜单、折叠态、uniqueOpened 手风琴模式
+  router=true 时从全局 $router 读取实例做跳转，避免硬依赖 vue-router
+-->
 <script setup lang="ts">
 import { ref, getCurrentInstance } from 'vue'
 import { ChevronDown } from 'lucide-vue-next'
@@ -23,9 +28,8 @@ const emit = defineEmits<EMenuEmits>()
 const expandedKeys = ref<Set<string>>(new Set(props.defaultOpeneds))
 
 /**
- * Resolve the vue-router instance from the app's global properties.
- * vue-router registers $router on globalProperties via app.use(router).
- * This avoids a hard import dependency on the vue-router package.
+ * 从 app globalProperties 读取 vue-router 实例
+ * 走动态查找而非 import，避免强依赖 vue-router 包
  */
 const routerInstance = props.router
   ? (getCurrentInstance()?.appContext.config.globalProperties.$router as
@@ -33,21 +37,26 @@ const routerInstance = props.router
       | undefined)
   : undefined
 
+/** 判断菜单项是否当前激活 */
 function isActive(key: string): boolean {
   return props.modelValue === key
 }
 
+/** 判断子菜单是否展开 */
 function isExpanded(key: string): boolean {
   return expandedKeys.value.has(key)
 }
 
+/**
+ * 切换子菜单展开状态
+ * uniqueOpened=true 时先清空其他展开项再加入当前项
+ */
 function toggleExpand(key: string) {
   const next = new Set(expandedKeys.value)
   if (next.has(key)) {
     next.delete(key)
   } else {
     if (props.uniqueOpened) {
-      // Close all other expanded sub-menus
       next.clear()
     }
     next.add(key)
@@ -55,6 +64,9 @@ function toggleExpand(key: string) {
   expandedKeys.value = next
 }
 
+/**
+ * 菜单项选中处理：派发事件，若启用 router 则触发路由跳转
+ */
 function handleSelect(item: MenuItem) {
   emit('update:modelValue', item.key)
   emit('select', item.key)
@@ -64,6 +76,7 @@ function handleSelect(item: MenuItem) {
   }
 }
 
+/** 是否存在有效子菜单 */
 function hasChildren(item: MenuItem): boolean {
   return !!item.children && item.children.length > 0
 }

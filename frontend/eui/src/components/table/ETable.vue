@@ -1,3 +1,9 @@
+<!--
+  ETable 数据表格组件
+  支持排序、选择、展开行、固定列、汇总行、虚拟滚动、列宽拖拽等企业级功能
+  columns 数组按 fixed 字段自动计算 sticky 偏移量实现左右列固定
+  数据量大时开启 virtual 虚拟滚动，仅渲染可视窗口内的行以保持流畅滚动
+-->
 <script setup lang="ts">
 import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
 import { LoaderCircle, ArrowUpDown, ArrowUp, ArrowDown, ChevronRight } from 'lucide-vue-next'
@@ -30,7 +36,7 @@ const sortState = ref<{ key: string; direction: 'asc' | 'desc' | null }>({
   direction: null,
 })
 
-// Sorted data — sort locally, also emit for parent override
+// 本地排序结果；同时抛出 sort 事件便于外部接管（如接服务端排序）
 const sortedData = computed(() => {
   if (!sortState.value.key || !sortState.value.direction) return props.data
   const key = sortState.value.key
@@ -122,9 +128,9 @@ function isRowSelected(row: Record<string, any>, index: number): boolean {
   return props.selectedKeys.includes(getRowKey(row, index))
 }
 
-// --- Fixed columns ---
+// --- 固定列逻辑 ---
 
-/** Resolve a column width to a numeric pixel value for sticky offset calculation */
+/** 将列宽统一解析为像素数值，用于计算 sticky 偏移 */
 function resolveWidth(width: number | string | undefined): number {
   if (width == null) return 0
   if (typeof width === 'number') return width
@@ -132,27 +138,27 @@ function resolveWidth(width: number | string | undefined): number {
   return Number.isNaN(num) ? 0 : num
 }
 
-/** Columns fixed to the left, in their original order */
+/** 所有左固定列（保持原顺序） */
 const leftFixedColumns = computed(() =>
   props.columns.filter((c) => c.fixed === 'left'),
 )
 
-/** Columns fixed to the right, in their original order */
+/** 所有右固定列（保持原顺序） */
 const rightFixedColumns = computed(() =>
   props.columns.filter((c) => c.fixed === 'right'),
 )
 
-/** Map column key -> sticky left/right offset in px */
+/** 每列对应的 sticky 偏移量映射（key → 侧 + px 偏移） */
 const fixedOffsets = computed(() => {
   const map: Record<string, { side: 'left' | 'right'; offset: number }> = {}
 
-  // Left fixed: accumulate from left to right
+  // 左固定列：从左到右累加偏移
   let leftAcc = 0
-  // Account for selectable checkbox column (w-10 = 40px) before left-fixed columns
+  // 选择列宽度 40px，需计入偏移
   if (props.selectable) {
     leftAcc += 40
   }
-  // Account for expandable column (w-10 = 40px) before left-fixed columns
+  // 展开列宽度 40px，需计入偏移
   if (props.expandable) {
     leftAcc += 40
   }
@@ -161,10 +167,9 @@ const fixedOffsets = computed(() => {
     leftAcc += resolveWidth(col.width)
   }
 
-  // Right fixed: accumulate from right to left
+  // 右固定列：从右到左累加偏移
   let rightAcc = 0
-  // Account for actions column if present — placed after right-fixed columns
-  // Actions column is after data columns, so it doesn't shift right-fixed offsets
+  // 操作列在数据列之后，不影响右固定偏移
   const reversed = [...rightFixedColumns.value].reverse()
   for (const col of reversed) {
     map[col.key] = { side: 'right', offset: rightAcc }
@@ -189,19 +194,19 @@ function getFixedClass(column: TableColumn): string {
   if (!info) return ''
 
   if (info.side === 'left') {
-    // Last left-fixed column gets the right shadow
+    // 最后一个左固定列加右侧阴影，提示可滚动内容
     const leftCols = leftFixedColumns.value
     const isLast = leftCols[leftCols.length - 1]?.key === column.key
     return cn('bg-background', isLast && 'shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]')
   }
 
-  // First right-fixed column (in original order) gets the left shadow
+  // 第一个右固定列加左侧阴影，提示左侧存在被遮挡内容
   const rightCols = rightFixedColumns.value
   const isFirst = rightCols[0]?.key === column.key
   return cn('bg-background', isFirst && 'shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]')
 }
 
-// --- Expandable rows ---
+// --- 行展开 ---
 
 function isRowExpanded(row: Record<string, any>, index: number): boolean {
   return props.expandedRowKeys.includes(getRowKey(row, index))
@@ -219,7 +224,7 @@ function toggleRowExpand(row: Record<string, any>, index: number) {
   emit('update:expandedRowKeys', current)
 }
 
-// --- Row class name ---
+// --- 行 class 支持函数式 ---
 
 function getRowClassName(row: Record<string, any>, index: number): string {
   if (!props.rowClassName) return ''
@@ -227,7 +232,7 @@ function getRowClassName(row: Record<string, any>, index: number): string {
   return props.rowClassName
 }
 
-// --- Summary row ---
+// --- 汇总行 ---
 
 const summaryValues = computed<(string | number)[]>(() => {
   if (!props.showSummary) return []
@@ -236,7 +241,7 @@ const summaryValues = computed<(string | number)[]>(() => {
     return props.summaryMethod(props.data, props.columns)
   }
 
-  // Auto-sum: for each column, sum numeric values; first column shows "合计"
+  // 默认汇总：第一列显示「合计」，其余列对纯数字列求和
   return props.columns.map((col, colIndex) => {
     if (colIndex === 0) return '合计'
     const values = props.data.map((row) => row[col.key])
@@ -246,11 +251,12 @@ const summaryValues = computed<(string | number)[]>(() => {
   })
 })
 
-// --- Virtual scrolling ---
+// --- 虚拟滚动 ---
 
 const virtualContainerRef = ref<HTMLElement | null>(null)
 const scrollTop = ref(0)
 const containerHeight = ref(0)
+/** 上下额外渲染的缓冲行数，缓解快速滚动时的白屏 */
 const VIRTUAL_BUFFER = 5
 
 function handleVirtualScroll(event: Event) {
@@ -308,11 +314,11 @@ onBeforeUnmount(() => {
   }
 })
 
-// --- Column resize ---
+// --- 列宽拖拽 ---
 
 const columnWidths = ref<Record<string, number>>({})
 
-/** Get effective column width — local override or from column config */
+/** 获取最终列宽：本地拖拽后的宽度优先于列配置声明 */
 function getColumnWidth(column: TableColumn): number | string | undefined {
   if (props.resizable && columnWidths.value[column.key]) {
     return columnWidths.value[column.key]
@@ -333,19 +339,21 @@ let resizeCol: string | null = null
 let resizeStartX = 0
 let resizeStartWidth = 0
 
+/**
+ * 列宽拖拽开始：记录起始位置与宽度，注册全局 mousemove/mouseup 监听
+ */
 function onResizeMouseDown(event: MouseEvent, column: TableColumn) {
   event.preventDefault()
   event.stopPropagation()
   resizeCol = column.key
 
-  // Determine current width
+  // 读取初始宽度：优先本地拖拽值 → 配置值 → 实际渲染宽度
   const currentWidth = columnWidths.value[column.key]
   if (currentWidth) {
     resizeStartWidth = currentWidth
   } else if (column.width) {
     resizeStartWidth = typeof column.width === 'number' ? column.width : parseFloat(column.width) || 100
   } else {
-    // Measure actual rendered width from the th element
     const th = (event.target as HTMLElement).closest('th')
     resizeStartWidth = th ? th.offsetWidth : 100
   }

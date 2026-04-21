@@ -1,4 +1,10 @@
+<!--
+  EColorPicker 颜色选择器组件
+  基于原生 <input type="color"> + reka-ui Popover 封装
+  支持自定义预设色板与 alpha 透明度通道（8 位十六进制）
+-->
 <script lang="ts">
+// 默认预设色板，覆盖常用的高饱和度基础色
 const DEFAULT_PRESETS = [
   '#000000', '#ffffff', '#ef4444', '#f97316', '#eab308',
   '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6',
@@ -28,13 +34,13 @@ const emit = defineEmits<EColorPickerEmits>()
 const inputValue = ref(props.modelValue ?? '#000000')
 const alpha = ref(1)
 
+// 外部值变化时同步：8 位十六进制拆分出 alpha，6 位则 alpha 置为 1
 watch(() => props.modelValue, (val) => {
   if (!val) {
     inputValue.value = '#000000'
     alpha.value = 1
     return
   }
-  // Parse alpha from 8-digit hex if present
   if (val.length === 9 && val.startsWith('#')) {
     inputValue.value = val.slice(0, 7)
     alpha.value = parseInt(val.slice(7, 9), 16) / 255
@@ -44,12 +50,18 @@ watch(() => props.modelValue, (val) => {
   }
 })
 
+/**
+ * 将 6 位 hex 与 alpha 合成为 8 位 hex，alpha=1 时仍返回 6 位以保持兼容
+ */
 function buildColorWithAlpha(hex: string, a: number): string {
   if (a >= 1) return hex.slice(0, 7)
   const alphaHex = Math.round(a * 255).toString(16).padStart(2, '0')
   return `${hex.slice(0, 7)}${alphaHex}`
 }
 
+/**
+ * 颜色值变化统一出口：根据 showAlpha 决定是否拼接 alpha 通道
+ */
 function handleColorChange(val: string) {
   inputValue.value = val
   const finalValue = props.showAlpha ? buildColorWithAlpha(val, alpha.value) : val
@@ -57,6 +69,9 @@ function handleColorChange(val: string) {
   emit('change', finalValue)
 }
 
+/**
+ * 透明度滑块变化处理，重新合成 8 位 hex 并派发
+ */
 function handleAlphaChange(event: Event) {
   const val = parseFloat((event.target as HTMLInputElement).value)
   alpha.value = val
@@ -65,11 +80,15 @@ function handleAlphaChange(event: Event) {
   emit('change', finalValue)
 }
 
+/**
+ * 输入框 / 原生 color input 事件统一入口
+ */
 function handleInput(event: Event) {
   const val = (event.target as HTMLInputElement).value
   handleColorChange(val)
 }
 
+/** 点击预设色板快速选色 */
 function selectPreset(color: string) {
   handleColorChange(color)
 }

@@ -1,3 +1,8 @@
+<!--
+  EPagination 分页组件
+  基于 reka-ui Pagination 封装，类 Element Plus API
+  通过 layout 字符串自由组合「总数/每页条数/上一页/页码/下一页/跳转」等区块
+-->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import {
@@ -57,7 +62,7 @@ function onSizeChange(event: Event) {
   const size = Number(target.value)
   emit('update:pageSize', size)
   emit('size-change', size)
-  // Reset to page 1 when size changes
+  // 每页条数改变时强制跳回第 1 页，避免超出新的页数范围
   emit('update:modelValue', 1)
   emit('change', 1)
 }

@@ -1,8 +1,17 @@
+/**
+ * EButton 按钮组件的类型定义
+ * 使用 CVA 管理 variant / size 组合样式
+ */
 import type { VariantProps } from 'class-variance-authority'
 import type { PrimitiveProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
 import { cva } from 'class-variance-authority'
 
+/**
+ * EButton 样式变体配置
+ * variant: default / destructive / outline / secondary / ghost / link
+ * size: default / sm / lg / icon / icon-sm / icon-lg
+ */
 export const buttonVariants = cva(
   "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
   {
@@ -33,12 +42,21 @@ export const buttonVariants = cva(
   },
 )
 
+/** CVA 派生的 variant/size props 类型 */
 export type ButtonVariants = VariantProps<typeof buttonVariants>
 
+/**
+ * EButton 按钮 Props（继承 reka-ui Primitive 的 as / asChild 能力）
+ */
 export interface EButtonProps extends PrimitiveProps {
+  /** 自定义 class，透传到根元素 */
   class?: HTMLAttributes['class']
+  /** 样式变体 */
   variant?: ButtonVariants['variant']
+  /** 尺寸 */
   size?: ButtonVariants['size']
+  /** 是否禁用 */
   disabled?: boolean
+  /** 是否处于加载中：会显示 spinner 并禁用点击 */
   loading?: boolean
 }

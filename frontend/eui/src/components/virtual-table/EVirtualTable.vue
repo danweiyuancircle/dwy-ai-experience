@@ -1,3 +1,8 @@
+<!--
+  EVirtualTable 简化版虚拟表格
+  相比 ETable 更轻量，仅提供基础展示能力；通过固定容器高度 + 表头 sticky 实现可滚动区
+  实际大数据量渲染推荐使用 ETable 的 virtual 开关；此组件保留作为独立视图
+-->
 <script setup lang="ts">
 import { LoaderCircle } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
@@ -15,6 +20,9 @@ const props = withDefaults(defineProps<EVirtualTableProps>(), {
 
 const emit = defineEmits<EVirtualTableEmits>()
 
+/**
+ * 根据列配置的对齐方向返回对应的 Tailwind class
+ */
 function getCellAlign(align?: string) {
   if (align === 'center') return 'text-center'
   if (align === 'right') return 'text-right'

@@ -1,3 +1,8 @@
+<!--
+  EToggleGroup 开关按钮组
+  将多个 EToggle 组织为互斥（single）或多选（multiple）的按钮组
+  通过 provide 将 variant/size 透传给子 EToggle，避免每个子项重复配置
+-->
 <script setup lang="ts">
 import { ToggleGroupRoot } from 'reka-ui'
 import { computed, provide } from 'vue'
