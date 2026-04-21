@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from './index'
-import { phoneSchema, emailSchema, idCardSchema, urlSchema, requiredSchema, minLengthSchema, maxLengthSchema } from './schemas'
+import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@/validators'
+import { phoneSchema, emailSchema, idCardSchema, urlSchema, requiredSchema, minLengthSchema, maxLengthSchema } from '@/validators/schemas'
 
 // ============================================================
 // Original validator function tests (21 tests)

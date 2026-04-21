@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { formatRelativeTime, formatDate, formatDateTime, formatTime, formatBy } from './index'
+import { formatRelativeTime, formatDate, formatDateTime, formatTime, formatBy } from '@/date'
 
 describe('formatDate', () => {
   it('formats Date object to YYYY-MM-DD', () => {

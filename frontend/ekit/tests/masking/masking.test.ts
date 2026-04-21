@@ -9,7 +9,7 @@ import {
   maskIp,
   maskLicensePlate,
   maskText,
-} from './index'
+} from '@/masking'
 
 describe('maskPhone', () => {
   it('标准11位手机号', () => {

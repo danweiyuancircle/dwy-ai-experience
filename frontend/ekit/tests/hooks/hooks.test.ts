@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { ref, nextTick } from 'vue'
-import { useDebounce } from './index'
+import { useDebounce } from '@/hooks'
 
 describe('useDebounce', () => {
   it('returns initial value immediately', () => {

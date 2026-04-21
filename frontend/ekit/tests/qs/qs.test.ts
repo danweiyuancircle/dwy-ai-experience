@@ -1,9 +1,9 @@
 describe('qs', () => {
-  let stringify: typeof import('./index').stringify
-  let parse: typeof import('./index').parse
+  let stringify: typeof import('@/qs').stringify
+  let parse: typeof import('@/qs').parse
 
   beforeAll(async () => {
-    const mod = await import('./index')
+    const mod = await import('@/qs')
     stringify = mod.stringify
     parse = mod.parse
   })

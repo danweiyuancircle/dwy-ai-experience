@@ -8,7 +8,7 @@
 
 ## 1. date 模块（19 个）
 
-`src/date/date.test.ts`
+`tests/date/date.test.ts`
 
 ### formatDate
 | # | 用例 | 输入 | 预期输出 |
@@ -53,7 +53,7 @@
 
 ## 2. request 模块（15 个）
 
-`src/request/request.test.ts`
+`tests/request/request.test.ts`
 
 ### createRequest
 | # | 用例 |
@@ -94,7 +94,7 @@
 
 ## 3. validators 模块（40 个）
 
-`src/validators/validators.test.ts`
+`tests/validators/validators.test.ts`
 
 ### 布尔函数（21 个）
 
@@ -124,7 +124,7 @@
 
 ## 4. storage 模块（12 个）
 
-`src/storage/storage.test.ts`
+`tests/storage/storage.test.ts`
 
 | # | 分组 | 用例 |
 |---|------|------|
@@ -138,7 +138,7 @@
 
 ## 5. cookie 模块（13 个）
 
-`src/cookie/cookie.test.ts`
+`tests/cookie/cookie.test.ts`
 
 | # | 分组 | 用例 |
 |---|------|------|
@@ -156,7 +156,7 @@
 
 ## 6. copy 模块（6 个）
 
-`src/copy/copy.test.ts`
+`tests/copy/copy.test.ts`
 
 | # | 用例 |
 |---|------|
@@ -171,7 +171,7 @@
 
 ## 7. qs 模块（9 个）
 
-`src/qs/qs.test.ts`
+`tests/qs/qs.test.ts`
 
 | # | 分组 | 用例 |
 |---|------|------|
@@ -189,7 +189,7 @@
 
 ## 8. file 模块（16 个）
 
-`src/file/file.test.ts`
+`tests/file/file.test.ts`
 
 ### formatFileSize（8 个）
 | # | 输入 | 预期 |
@@ -223,7 +223,7 @@
 
 ## 9. hooks 模块（4 个）
 
-`src/hooks/hooks.test.ts`
+`tests/hooks/hooks.test.ts`
 
 | # | 用例 |
 |---|------|
@@ -236,7 +236,7 @@
 
 ## 10. hooks/vueuse 模块（5 个）
 
-`src/hooks/vueuse.test.ts`
+`tests/hooks/vueuse.test.ts`
 
 | # | 用例 |
 |---|------|
@@ -250,7 +250,7 @@
 
 ## 11. masking 模块（49 个）
 
-`src/masking/masking.test.ts`
+`tests/masking/masking.test.ts`
 
 | 函数 | 用例数 | 测试要点 |
 |------|--------|---------|

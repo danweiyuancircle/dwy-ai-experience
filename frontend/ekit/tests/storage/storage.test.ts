@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { storage } from './index'
+import { storage } from '@/storage'
 
 describe('storage', () => {
   beforeEach(() => {

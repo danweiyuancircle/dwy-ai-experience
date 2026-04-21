@@ -7,7 +7,7 @@ import {
   unwrapPlugin,
   refreshTokenPlugin,
   type RequestPlugin,
-} from './index'
+} from '@/request'
 
 // Mock axios — vi.hoisted runs before vi.mock hoisting
 const { axiosFn } = vi.hoisted(() => {

@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import { copyText, useClipboard } from './index'
+import { copyText, useClipboard } from '@/copy'
 
 const writeTextMock = vi.fn().mockResolvedValue(undefined)
 
