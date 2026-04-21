@@ -5,7 +5,7 @@ const content = `
 ## date — 日期格式化
 
 \`\`\`ts
-import { formatDate, formatDateTime, formatTime, formatRelativeTime } from '@danweiyuan/ekit'
+import { formatDate, formatDateTime, formatTime, formatRelativeTime } from '@dwydev/ekit'
 \`\`\`
 
 所有函数接收 \`string | number | Date\` 类型输入。

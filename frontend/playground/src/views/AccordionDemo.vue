@@ -77,9 +77,9 @@ const slotsData = [
           <template #item2>
             <div class="space-y-2 text-sm text-muted-foreground">
               <p>通过 pnpm 安装：</p>
-              <code class="bg-muted px-2 py-1 rounded text-xs block">pnpm add @danweiyuan/eui</code>
+              <code class="bg-muted px-2 py-1 rounded text-xs block">pnpm add @dwydev/eui</code>
               <p>在 main.ts 中引入：</p>
-              <code class="bg-muted px-2 py-1 rounded text-xs block">import EUI from '@danweiyuan/eui'</code>
+              <code class="bg-muted px-2 py-1 rounded text-xs block">import EUI from '@dwydev/eui'</code>
             </div>
           </template>
           <template #item3>

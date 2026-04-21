@@ -108,7 +108,7 @@ export function createUser() { ... }
 
 ```typescript
 // api/client.ts
-import { createRequest } from '@danweiyuan/ekit'
+import { createRequest } from '@dwydev/ekit'
 
 export const request = createRequest({
   baseURL: import.meta.env.VITE_API_BASE_URL,

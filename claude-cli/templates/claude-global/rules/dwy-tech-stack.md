@@ -29,8 +29,8 @@ description: 跨栈技术选型强制约束(FastAPI/Vue3/Flutter/UV/pnpm/Docker/
 |------|---------|---------|
 | 框架 | Vue 3 (Composition API) | React, Svelte, Angular, Vue 2 |
 | 构建工具 | Vite | Webpack, Rollup, esbuild 直接用 |
-| 组件库 | @danweiyuan/eui | Element Plus, Ant Design Vue, Naive UI |
-| 工具库 | @danweiyuan/ekit | 手写 request/storage/validators |
+| 组件库 | @dwydev/eui | Element Plus, Ant Design Vue, Naive UI |
+| 工具库 | @dwydev/ekit | 手写 request/storage/validators |
 | 状态管理 | Pinia (Setup Store) | Vuex, 手动 reactive/provide |
 | 样式 | Tailwind CSS 4 | Sass/Less 手写、CSS Modules、UnoCSS |
 | 包管理 | pnpm | npm, yarn |

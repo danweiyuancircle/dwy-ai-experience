@@ -1,4 +1,4 @@
-import { createRequest } from '@danweiyuan/ekit'
+import { createRequest } from '@dwydev/ekit'
 
 const request = createRequest({ baseURL: '/api' })
 

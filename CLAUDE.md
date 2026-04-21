@@ -14,8 +14,8 @@ pnpm install                                          # 前端 + CLI 依赖
 cd backend && uv venv && uv pip install -e ".[dev]"   # 后端依赖
 
 # 构建
-pnpm build:eui                    # @danweiyuan/eui (Vite)
-pnpm build:ekit                   # @danweiyuan/ekit (Vite)
+pnpm build:eui                    # @dwydev/eui (Vite)
+pnpm build:ekit                   # @dwydev/ekit (Vite)
 pnpm build:frontend               # 同时构建 eui + ekit
 
 # 测试
@@ -28,15 +28,15 @@ cd backend && pytest tests/test_security.py -v        # 后端单个模块测试
 cd backend && ruff check src/ && ruff format --check src/
 
 # 发布
-pnpm build:eui && pnpm publish:eui      # @danweiyuan/eui → npm
-pnpm build:ekit && pnpm publish:ekit    # @danweiyuan/ekit → npm
+pnpm build:eui && pnpm publish:eui      # @dwydev/eui → npm
+pnpm build:ekit && pnpm publish:ekit    # @dwydev/ekit → npm
 source .key && pnpm publish:eapi        # dwyeapi → PyPI (uv build && uv publish)
 pnpm publish:cli                        # create-dwy → npm
 ```
 
 ## Architecture
 
-### frontend/eui/ — `@danweiyuan/eui`
+### frontend/eui/ — `@dwydev/eui`
 
 Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风格 + Element Plus 式 API。
 
@@ -50,7 +50,7 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 - **路径别名**: `@/` → `./src/`
 - **测试**: Vitest + jsdom
 
-### frontend/ekit/ — `@danweiyuan/ekit`
+### frontend/ekit/ — `@dwydev/ekit`
 
 轻量工具库，6 个模块：
 
@@ -158,8 +158,8 @@ eui、ekit、eapi 三个基础库被多个项目依赖，变更必须严格遵�
 
 | 包名 | scope | 版本文件 | 测试命令 | 构建命令 | 发布命令 | 验证命令 |
 |------|-------|---------|---------|---------|---------|---------|
-| @danweiyuan/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | pnpm publish:eui | npm view @danweiyuan/eui version |
-| @danweiyuan/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | pnpm publish:ekit | npm view @danweiyuan/ekit version |
+| @dwydev/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | pnpm publish:eui | npm view @dwydev/eui version |
+| @dwydev/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | pnpm publish:ekit | npm view @dwydev/ekit version |
 | dwyeapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | source .key && pnpm publish:eapi | pip index versions dwyeapi |
 | create-dwy | cli | claude-cli/package.json | — | — | pnpm publish:cli | npm view create-dwy version |
 
@@ -169,7 +169,7 @@ eui、ekit、eapi 三个基础库被多个项目依赖，变更必须严格遵�
 
 ### Tag 命名
 
-- 单包：`@danweiyuan/eui@1.3.0`、`create-dwy@0.6.0`
+- 单包：`@dwydev/eui@1.3.0`、`create-dwy@0.6.0`
 - 多包同时发布：每个包各打一个 tag
 
 ### CHANGELOG

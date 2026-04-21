@@ -5,7 +5,7 @@ const content = `
 ## hooks — Vue Composables
 
 \`\`\`ts
-import { useDebounce, useClickOutside, useEventListener } from '@danweiyuan/ekit'
+import { useDebounce, useClickOutside, useEventListener } from '@dwydev/ekit'
 \`\`\`
 
 ### useDebounce(value, delay?)

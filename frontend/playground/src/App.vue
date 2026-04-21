@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { useTheme, EConfigProvider } from '@danweiyuan/eui'
+import { useTheme, EConfigProvider } from '@dwydev/eui'
 import { Toaster as EToastRoot } from 'vue-sonner'
 import { Sun, Moon, Search } from 'lucide-vue-next'
 import SearchDialog from './components/SearchDialog.vue'

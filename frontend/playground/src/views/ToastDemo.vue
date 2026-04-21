@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import DemoBlock from '../components/DemoBlock.vue'
 import ComponentDoc from '../components/ComponentDoc.vue'
 import PropsTable from '../components/PropsTable.vue'
-import { useToast } from '@danweiyuan/eui'
+import { useToast } from '@dwydev/eui'
 
 const toast = useToast()
 
@@ -82,7 +82,7 @@ const propsData = [
       <DemoBlock
         title="消息类型"
         description="点击按钮触发不同类型的 Toast 通知"
-        code='import { useToast } from "@danweiyuan/eui"
+        code='import { useToast } from "@dwydev/eui"
 
 const toast = useToast()
 toast.success("操作成功！")

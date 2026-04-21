@@ -1,10 +1,10 @@
 {
-  "name": "@danweiyuan/eui",
+  "name": "@dwydev/eui",
   "version": "1.2.13",
   "type": "module",
   "description": "Vue 3 component library — shadcn-vue visuals + Element Plus API + Tailwind CSS 4",
   "license": "MIT",
-  "author": "danweiyuan",
+  "author": "dwydev",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

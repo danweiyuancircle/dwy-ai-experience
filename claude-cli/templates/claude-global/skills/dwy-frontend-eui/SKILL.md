@@ -1,9 +1,9 @@
 ---
 name: dwy-frontend-eui
-description: "@danweiyuan/eui Vue 3 组件库速查。触发条件：使用 Vue 3 构建页面、选择 UI 组件、查询 eui 组件 API 时。"
+description: "@dwydev/eui Vue 3 组件库速查。触发条件：使用 Vue 3 构建页面、选择 UI 组件、查询 eui 组件 API 时。"
 ---
 
-# @danweiyuan/eui 组件速查
+# @dwydev/eui 组件速查
 
 基于 Reka-ui 原语层 + shadcn-vue 设计风格 + Element Plus 式 API 的 Vue 3 组件库。
 
@@ -21,23 +21,23 @@ description: "@danweiyuan/eui Vue 3 组件库速查。触发条件：使用 Vue 
 ## 安装与引入
 
 ```bash
-pnpm add @danweiyuan/eui
+pnpm add @dwydev/eui
 ```
 
 ```ts
 // 按需导入（推荐）
-import { EButton, EInput, ETable } from '@danweiyuan/eui'
+import { EButton, EInput, ETable } from '@dwydev/eui'
 
 // 全局注册（Vue plugin）
-import EUI from '@danweiyuan/eui'
+import EUI from '@dwydev/eui'
 app.use(EUI)
 ```
 
 ```ts
 // 主题 CSS（必须引入）
-import '@danweiyuan/eui/theme'          // 基础样式 + tokens
-import '@danweiyuan/eui/theme/dark'     // 暗色模式（可选）
-import '@danweiyuan/eui/theme/tokens'   // 仅 design tokens（可选）
+import '@dwydev/eui/theme'          // 基础样式 + tokens
+import '@dwydev/eui/theme/dark'     // 暗色模式（可选）
+import '@dwydev/eui/theme/tokens'   // 仅 design tokens（可选）
 ```
 
 ### 全局配置 EConfigProvider（必须）
@@ -54,7 +54,7 @@ import '@danweiyuan/eui/theme/tokens'   // 仅 design tokens（可选）
 ```vue
 <!-- App.vue -->
 <script setup lang="ts">
-import { EConfigProvider } from '@danweiyuan/eui'
+import { EConfigProvider } from '@dwydev/eui'
 </script>
 
 <template>
@@ -319,7 +319,7 @@ frontend/eui/src/components/{component-name}/types.ts
 - **样式工具**: 使用 `cn()` 合并 Tailwind 类名，自动解决冲突
 
 ```ts
-import { cn } from '@danweiyuan/eui'
+import { cn } from '@dwydev/eui'
 cn('px-2 py-1', isActive && 'bg-primary text-white', className)
 ```
 

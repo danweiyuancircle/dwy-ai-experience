@@ -1,6 +1,6 @@
 # EUI 页面设计风格规范
 
-> AI 使用 @danweiyuan/eui 编写 UI 页面时必须遵循此规范。
+> AI 使用 @dwydev/eui 编写 UI 页面时必须遵循此规范。
 
 ## 一、设计风格定位
 

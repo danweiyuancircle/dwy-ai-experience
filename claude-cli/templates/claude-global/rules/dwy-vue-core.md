@@ -559,8 +559,8 @@ import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import axios from 'axios'
 
-// 3. 内部包（@danweiyuan/*）
-import { EButton, EInput } from '@danweiyuan/eui'
+// 3. 内部包（@dwydev/*）
+import { EButton, EInput } from '@dwydev/eui'
 
 // 4. 项目内模块
 import { useAuthStore } from '@/stores/auth'

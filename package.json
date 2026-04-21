@@ -2,13 +2,13 @@
   "name": "dwy-shared",
   "private": true,
   "scripts": {
-    "build:eui": "pnpm -F @danweiyuan/eui build",
-    "build:ekit": "pnpm -F @danweiyuan/ekit build",
+    "build:eui": "pnpm -F @dwydev/eui build",
+    "build:ekit": "pnpm -F @dwydev/ekit build",
     "build:cli": "echo 'cli has no build step'",
-    "build:frontend": "pnpm -F @danweiyuan/eui build && pnpm -F @danweiyuan/ekit build",
+    "build:frontend": "pnpm -F @dwydev/eui build && pnpm -F @dwydev/ekit build",
     "test:eapi": "cd backend && pytest tests/ -v",
-    "publish:eui": "pnpm -F @danweiyuan/eui publish --access public --no-git-checks",
-    "publish:ekit": "pnpm -F @danweiyuan/ekit publish --access public --no-git-checks",
+    "publish:eui": "pnpm -F @dwydev/eui publish --access public --no-git-checks",
+    "publish:ekit": "pnpm -F @dwydev/ekit publish --access public --no-git-checks",
     "publish:cli": "cd claude-cli && npm publish --access public",
     "publish:eapi": "cd backend && uv build && uv publish",
     "changelog": "changelogen"

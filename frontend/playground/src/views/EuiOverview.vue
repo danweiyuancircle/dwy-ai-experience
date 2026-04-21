@@ -35,7 +35,7 @@ const categories = [
   <div class="max-w-4xl">
     <!-- Header -->
     <div class="mb-8">
-      <h1 class="text-3xl font-bold mb-2">@danweiyuan/eui</h1>
+      <h1 class="text-3xl font-bold mb-2">@dwydev/eui</h1>
       <p class="text-muted-foreground text-lg">
         Vue 3 组件库 — 基于 Reka-ui + shadcn-vue 设计风格 + Element Plus 式 API
       </p>
@@ -52,12 +52,12 @@ const categories = [
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-4">安装</h2>
       <ECard>
-        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>pnpm add @danweiyuan/eui
+        <pre class="text-sm font-mono bg-muted rounded-md p-4 overflow-x-auto"><code>pnpm add @dwydev/eui
 
 # 全局注册
 import { createApp } from 'vue'
-import EUI from '@danweiyuan/eui'
-import '@danweiyuan/eui/theme'
+import EUI from '@dwydev/eui'
+import '@dwydev/eui/theme'
 
 const app = createApp(App)
 app.use(EUI)</code></pre>

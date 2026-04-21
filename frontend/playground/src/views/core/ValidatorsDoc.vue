@@ -5,7 +5,7 @@ const content = `
 ## validators — 校验函数
 
 \`\`\`ts
-import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@danweiyuan/ekit'
+import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@dwydev/ekit'
 \`\`\`
 
 | 函数 | 签名 | 规则 |

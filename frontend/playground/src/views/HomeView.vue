@@ -90,7 +90,7 @@ const stats = [
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <ECard>
           <div class="font-medium mb-2">前端</div>
-          <pre class="text-sm font-mono bg-muted rounded-md p-3 overflow-x-auto"><code>pnpm add @danweiyuan/eui @danweiyuan/ekit</code></pre>
+          <pre class="text-sm font-mono bg-muted rounded-md p-3 overflow-x-auto"><code>pnpm add @dwydev/eui @dwydev/ekit</code></pre>
         </ECard>
         <ECard>
           <div class="font-medium mb-2">后端</div>

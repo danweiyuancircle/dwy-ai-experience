@@ -1,21 +1,21 @@
 ---
 name: dwy-frontend-ekit
-description: "@danweiyuan/ekit 前端工具库速查。触发条件：需要 HTTP 请求封装、localStorage、表单校验、日期格式化、Vue composable 工具时。"
+description: "@dwydev/ekit 前端工具库速查。触发条件：需要 HTTP 请求封装、localStorage、表单校验、日期格式化、Vue composable 工具时。"
 ---
 
-# @danweiyuan/ekit 工具库速查
+# @dwydev/ekit 工具库速查
 
 Vue 3 项目通用工具库，包含 6 个模块：request、storage、validators、date、hooks、masking。
 
 ## 安装
 
 ```bash
-pnpm add @danweiyuan/ekit
+pnpm add @dwydev/ekit
 # peerDependencies: axios ^1.0.0, vue ^3.4.0
 ```
 
 ```ts
-import { createRequest, useStorage, isPhone, formatDate, useDebounce, maskPhone } from '@danweiyuan/ekit'
+import { createRequest, useStorage, isPhone, formatDate, useDebounce, maskPhone } from '@dwydev/ekit'
 ```
 
 ## 查阅源码
@@ -27,7 +27,7 @@ import { createRequest, useStorage, isPhone, formatDate, useDebounce, maskPhone 
 ## request — Axios 插件化封装
 
 ```ts
-import { createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin } from '@danweiyuan/ekit'
+import { createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin } from '@dwydev/ekit'
 ```
 
 ### createRequest(options?)
@@ -89,7 +89,7 @@ refreshTokenPlugin({
 ## storage — localStorage 封装
 
 ```ts
-import { useStorage, storage } from '@danweiyuan/ekit'
+import { useStorage, storage } from '@dwydev/ekit'
 ```
 
 ### useStorage(key, defaultValue) — 响应式
@@ -115,7 +115,7 @@ const config = useStorage<{ theme: string }>('config', { theme: 'light' })
 ## validators — 校验函数
 
 ```ts
-import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@danweiyuan/ekit'
+import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from '@dwydev/ekit'
 ```
 
 | 函数 | 签名 | 规则 |
@@ -133,7 +133,7 @@ import { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } f
 ## date — 日期格式化
 
 ```ts
-import { formatDate, formatDateTime, formatTime, formatRelativeTime, formatBy } from '@danweiyuan/ekit'
+import { formatDate, formatDateTime, formatTime, formatRelativeTime, formatBy } from '@dwydev/ekit'
 ```
 
 所有函数接收 `string | number | Date` 类型输入。
@@ -151,7 +151,7 @@ import { formatDate, formatDateTime, formatTime, formatRelativeTime, formatBy } 
 ## hooks — Vue Composables
 
 ```ts
-import { useDebounce, useClickOutside, useEventListener } from '@danweiyuan/ekit'
+import { useDebounce, useClickOutside, useEventListener } from '@dwydev/ekit'
 ```
 
 ### useDebounce(value, delay?)
@@ -186,7 +186,7 @@ target 可以是 `EventTarget` 或 `Ref<EventTarget>`。自动在 onMounted/onBe
 ## masking — PII 数据脱敏
 
 ```ts
-import { maskPhone, maskEmail, maskIdCard, maskBankCard, maskName, maskAddress, maskIp, maskLicensePlate, maskText } from '@danweiyuan/ekit'
+import { maskPhone, maskEmail, maskIdCard, maskBankCard, maskName, maskAddress, maskIp, maskLicensePlate, maskText } from '@dwydev/ekit'
 ```
 
 纯函数模块，无外部依赖。所有函数对空字符串、格式不匹配的输入原样返回，不抛异常。

@@ -7,8 +7,8 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@danweiyuan/ekit": "workspace:^",
-    "@danweiyuan/eui": "workspace:^",
+    "@dwydev/ekit": "workspace:^",
+    "@dwydev/eui": "workspace:^",
     "fuse.js": "^7.1.0",
     "lucide-vue-next": "^1.0.0",
     "markdown-it": "^14.1.1",
