@@ -1,14 +1,26 @@
 /**
  * Cookie 读写封装
- * 基于 js-cookie，提供 JSON 自动序列化/反序列化和 Vue 响应式包装
+ * 基于 js-cookie；对外的选项契约由 ekit 自行定义，屏蔽底层库类型（方便以后替换）
+ * 支持 JSON 自动序列化/反序列化和 Vue 响应式包装
  * 业务不直接用 document.cookie 或 js-cookie，统一走本模块保证序列化一致
  */
 import { ref, watch } from 'vue'
 import type { Ref } from 'vue'
 import Cookies from 'js-cookie'
 
-/** Cookie 属性配置，透传自 js-cookie（如 expires、path、domain、secure、sameSite 等） */
-export type CookieAttributes = Cookies.CookieAttributes
+/** Cookie 写入选项（ekit 对外契约，不直接泄露 js-cookie 类型） */
+export interface CookieOptions {
+  /** 过期时间：天数（number）或 Date 对象；不传则为会话级 cookie */
+  expires?: number | Date
+  /** Cookie 作用路径，默认 '/' */
+  path?: string
+  /** Cookie 作用域名（不含协议和端口） */
+  domain?: string
+  /** 是否仅 HTTPS 下发送 */
+  secure?: boolean
+  /** 跨站策略 */
+  sameSite?: 'strict' | 'lax' | 'none'
+}
 
 /**
  * Cookie 同步读写对象，支持 JSON 自动序列化
@@ -32,7 +44,7 @@ export const cookie = {
    * @param value 要写入的值
    * @param options cookie 属性（过期时间、作用域等）
    */
-  set(key: string, value: any, options?: CookieAttributes): void {
+  set(key: string, value: any, options?: CookieOptions): void {
     const v = typeof value === 'string' ? value : JSON.stringify(value)
     Cookies.set(key, v, options)
   },
@@ -41,7 +53,7 @@ export const cookie = {
    * @param key cookie 键名
    * @param options 删除时需匹配 path/domain（与写入时保持一致）
    */
-  remove(key: string, options?: CookieAttributes): void {
+  remove(key: string, options?: CookieOptions): void {
     Cookies.remove(key, options)
   },
 }

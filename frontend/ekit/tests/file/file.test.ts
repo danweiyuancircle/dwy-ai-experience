@@ -69,7 +69,7 @@ describe('downloadFile', () => {
     const mockRequest = vi.fn().mockResolvedValue(mockResponse)
     const mockInstance = { request: mockRequest } as any
 
-    await downloadFile('/api/file', { requestInstance: mockInstance, filename: 'test.pdf' })
+    await downloadFile('/api/file', { requester: mockInstance, filename: 'test.pdf' })
 
     expect(mockRequest).toHaveBeenCalledWith({
       url: '/api/file',
@@ -90,7 +90,7 @@ describe('downloadFile', () => {
     const mockInstance = { request: mockRequest } as any
 
     await downloadFile('/api/export', {
-      requestInstance: mockInstance,
+      requester: mockInstance,
       method: 'POST',
       data: { ids: [1, 2, 3] },
       filename: 'export.xlsx',
@@ -115,7 +115,7 @@ describe('downloadFile', () => {
     const mockRequest = vi.fn().mockResolvedValue(mockResponse)
     const mockInstance = { request: mockRequest } as any
 
-    await downloadFile('/api/file', { requestInstance: mockInstance })
+    await downloadFile('/api/file', { requester: mockInstance })
 
     expect(saveAs).toHaveBeenCalledWith(expect.any(Blob), 'report.pdf')
   })
@@ -130,7 +130,7 @@ describe('downloadFile', () => {
     const mockRequest = vi.fn().mockResolvedValue(mockResponse)
     const mockInstance = { request: mockRequest } as any
 
-    await downloadFile('/api/file', { requestInstance: mockInstance })
+    await downloadFile('/api/file', { requester: mockInstance })
 
     expect(saveAs).toHaveBeenCalledWith(expect.any(Blob), '报表.pdf')
   })
@@ -143,7 +143,7 @@ describe('downloadFile', () => {
     const mockRequest = vi.fn().mockResolvedValue(mockResponse)
     const mockInstance = { request: mockRequest } as any
 
-    await downloadFile('/api/file', { requestInstance: mockInstance })
+    await downloadFile('/api/file', { requester: mockInstance })
 
     expect(saveAs).toHaveBeenCalledWith(expect.any(Blob), 'download')
   })
@@ -158,7 +158,7 @@ describe('downloadFile', () => {
     const mockRequest = vi.fn().mockResolvedValue(mockResponse)
     const mockInstance = { request: mockRequest } as any
 
-    await downloadFile('/api/file', { requestInstance: mockInstance, filename: 'my-file.pdf' })
+    await downloadFile('/api/file', { requester: mockInstance, filename: 'my-file.pdf' })
 
     expect(saveAs).toHaveBeenCalledWith(expect.any(Blob), 'my-file.pdf')
   })
@@ -172,7 +172,7 @@ describe('downloadFile', () => {
     const mockInstance = { request: mockRequest } as any
 
     await downloadFile('/api/file', {
-      requestInstance: mockInstance,
+      requester: mockInstance,
       filename: 'test.pdf',
       headers: { 'X-Custom': 'value' },
     })

@@ -1,5 +1,80 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
-import { formatRelativeTime, formatDate, formatDateTime, formatTime, formatBy } from '@/date'
+import {
+  now,
+  formatTimestamp,
+  formatInTimezone,
+  formatRelativeTime,
+  formatDate,
+  formatDateTime,
+  formatTime,
+  formatBy,
+} from '@/date'
+
+describe('now', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('returns current UTC timestamp in milliseconds', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-04-22T02:30:00Z'))
+    expect(now()).toBe(new Date('2026-04-22T02:30:00Z').getTime())
+  })
+
+  it('return type is number', () => {
+    expect(typeof now()).toBe('number')
+  })
+})
+
+describe('formatTimestamp', () => {
+  it('formats timestamp with default format YYYY-MM-DD HH:mm:ss', () => {
+    const ts = new Date(2026, 3, 22, 10, 30, 45).getTime()
+    expect(formatTimestamp(ts)).toBe('2026-04-22 10:30:45')
+  })
+
+  it('formats timestamp with custom template', () => {
+    const ts = new Date(2026, 3, 22, 10, 30, 45).getTime()
+    expect(formatTimestamp(ts, 'YYYY/MM/DD')).toBe('2026/04/22')
+    expect(formatTimestamp(ts, 'HH:mm')).toBe('10:30')
+    expect(formatTimestamp(ts, 'YYYY年MM月DD日')).toBe('2026年04月22日')
+  })
+
+  it('pads single-digit month/day/hour/minute/second', () => {
+    const ts = new Date(2026, 0, 1, 8, 5, 3).getTime()
+    expect(formatTimestamp(ts)).toBe('2026-01-01 08:05:03')
+  })
+})
+
+describe('formatInTimezone', () => {
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('formats current time in a given timezone (default format)', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-04-22T02:30:00Z'))
+    expect(formatInTimezone('Asia/Shanghai')).toBe('2026-04-22 10:30:00')
+  })
+
+  it('formats a given timestamp in a given timezone', () => {
+    const utcTs = new Date('2026-04-22T02:30:00Z').getTime()
+    expect(formatInTimezone('Asia/Shanghai', utcTs)).toBe('2026-04-22 10:30:00')
+    expect(formatInTimezone('America/New_York', utcTs)).toBe('2026-04-21 22:30:00')
+    expect(formatInTimezone('UTC', utcTs)).toBe('2026-04-22 02:30:00')
+  })
+
+  it('respects custom format template', () => {
+    const utcTs = new Date('2026-04-22T02:30:00Z').getTime()
+    expect(formatInTimezone('Asia/Shanghai', utcTs, 'YYYY/MM/DD HH:mm')).toBe('2026/04/22 10:30')
+    expect(formatInTimezone('Asia/Shanghai', utcTs, 'YYYY-MM-DD')).toBe('2026-04-22')
+  })
+
+  it('uses current time when timestamp is not provided', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-04-22T02:30:00Z'))
+    expect(formatInTimezone('Asia/Shanghai', undefined, 'HH:mm')).toBe('10:30')
+  })
+})
 
 describe('formatDate', () => {
   it('formats Date object to YYYY-MM-DD', () => {

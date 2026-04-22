@@ -3,21 +3,41 @@
  * 按模块分组导出：request（HTTP 请求）、storage（本地存储）、cookie、date（日期格式化）、
  * validators（表单校验）、copy（剪贴板）、qs（查询字符串）、file（文件下载）、hooks（Vue 组合式函数）、
  * masking（PII 数据脱敏）。业务代码统一从此入口导入。
+ *
+ * 所有对外契约均为 ekit 自有类型，不导出底层库（axios / dayjs / qs / js-cookie 等）的实例、命名空间、类型别名
  */
 
 // Request
 export { createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin } from './request'
-export type { RequestPlugin, CreateRequestOptions } from './request'
+export type {
+  HttpMethod,
+  HttpResponseType,
+  HttpConfig,
+  HttpResponse,
+  HttpError,
+  HttpClient,
+  HttpPlugin,
+  CreateRequestOptions,
+} from './request'
 
 // Storage
 export { useStorage, storage } from './storage'
 
 // Cookie
 export { useCookie, cookie } from './cookie'
-export type { CookieAttributes } from './cookie'
+export type { CookieOptions } from './cookie'
 
 // Date
-export { formatRelativeTime, formatDate, formatDateTime, formatTime, formatBy, dayjs } from './date'
+export {
+  now,
+  formatTimestamp,
+  formatInTimezone,
+  formatRelativeTime,
+  formatDate,
+  formatDateTime,
+  formatTime,
+  formatBy,
+} from './date'
 
 // Validators
 export { isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength } from './validators'
@@ -28,11 +48,11 @@ export { copyText, useClipboard } from './copy'
 
 // QS
 export { stringify, parse } from './qs'
-export type { IStringifyOptions, IParseOptions } from './qs'
+export type { StringifyOptions, ParseOptions } from './qs'
 
 // File
 export { downloadFile, saveBlob, formatFileSize } from './file'
-export type { DownloadOptions } from './file'
+export type { DownloadOptions, FileRequester } from './file'
 
 // Hooks
 export { useDebounce, useClickOutside, useEventListener } from './hooks'

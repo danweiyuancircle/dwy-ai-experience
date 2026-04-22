@@ -1,66 +1,91 @@
 # @dwydev/ekit 测试用例清单
 
-> 回测基准：188 个测试用例，11 个测试文件。版本变更后必须全部通过。
+> 回测基准：200 个测试用例，11 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd frontend/ekit && pnpm vitest run`
 
 ---
 
-## 1. date 模块（19 个）
+## 1. date 模块（28 个）
 
 `tests/date/date.test.ts`
 
-### formatDate
-| # | 用例 | 输入 | 预期输出 |
-|---|------|------|---------|
-| 1 | Date 对象格式化 | `new Date(2025, 0, 5)` | `'2025-01-05'` |
-| 2 | 时间戳格式化 | `new Date(2025, 5, 15).getTime()` | `'2025-06-15'` |
-| 3 | ISO 字符串格式化 | `'2025-03-01T12:00:00Z'` | 匹配 `YYYY-MM-DD` |
-| 4 | 单位数月/日补零 | `new Date(2025, 0, 1)` | `'2025-01-01'` |
+对外 API 已屏蔽 dayjs 实例 / `dayjs.Dayjs` 类型；只暴露 `number / string / Date` 原生类型。
 
-### formatDateTime
-| # | 用例 | 输入 | 预期输出 |
-|---|------|------|---------|
-| 5 | 完整日期时间 | `new Date(2025, 5, 15, 9, 5, 3)` | `'2025-06-15 09:05:03'` |
-| 6 | 时分秒补零 | `new Date(2025, 0, 1, 0, 0, 0)` | `'2025-01-01 00:00:00'` |
+### now（2 个）
+| # | 用例 | 预期 |
+|---|------|------|
+| 1 | 返回当前 UTC 时间戳（毫秒） | `now() === Date.now()` |
+| 2 | 返回值类型为 number | `typeof now() === 'number'` |
 
-### formatTime
-| # | 用例 | 输入 | 预期输出 |
-|---|------|------|---------|
-| 7 | 时分格式化 | `14:30` | `'14:30'` |
-| 8 | 单位数补零 | `8:05` | `'08:05'` |
+### formatTimestamp（3 个）
+| # | 用例 | 输入 | 预期 |
+|---|------|------|------|
+| 3 | 默认格式 `YYYY-MM-DD HH:mm:ss` | 时间戳 | `'2026-04-22 10:30:45'` |
+| 4 | 自定义模板 | `'YYYY/MM/DD'` / `'HH:mm'` / `'YYYY年MM月DD日'` | 对应字符串 |
+| 5 | 单位数月/日/时/分/秒补零 | `2026-01-01 08:05:03` | `'2026-01-01 08:05:03'` |
 
-### formatRelativeTime
-| # | 用例 | 场景 | 预期输出 |
-|---|------|------|---------|
-| 9 | falsy 输入 | `''` / `0` | `''` |
-| 10 | < 1 分钟 | 30 秒前 | `'刚刚'` |
-| 11 | < 60 分钟 | 10 分钟前 | `'10 分钟前'` |
-| 12 | < 24 小时 | 3 小时前 | `'3 小时前'` |
-| 13 | < 30 天 | 7 天前 | `'7 天前'` |
-| 14 | >= 30 天 | 90 天前 | `'2025-01-01'`（YYYY-MM-DD） |
-| 15 | 时间戳输入 | number | 正确解析 |
-| 16 | ISO 字符串输入 | string | 正确解析 |
+### formatInTimezone（4 个）
+| # | 用例 | 输入 | 预期 |
+|---|------|------|------|
+| 6 | 默认格式 + 当前时间（仅传 timezone） | `'Asia/Shanghai'` at UTC 02:30 | `'2026-04-22 10:30:00'` |
+| 7 | 指定时间戳 + 多个时区 | Shanghai / New_York / UTC | 各时区正确偏移 |
+| 8 | 自定义格式模板 | `'YYYY/MM/DD HH:mm'` | 自定义格式 |
+| 9 | timestamp 省略时用当前时间 | `'Asia/Shanghai'` + `undefined` + `'HH:mm'` | `'10:30'` |
 
-### formatBy
-| # | 用例 | 输入 | 预期输出 |
-|---|------|------|---------|
-| 17 | 自定义模板 | `'YYYY/MM/DD'` | `'2025/06/15'` |
-| 18 | 时间戳 + 模板 | number + `'MM-DD'` | 正确格式 |
-| 19 | ISO 字符串 + 模板 | string + `'YYYY'` | 年份字符串 |
+### formatDate（4 个）
+| # | 用例 | 输入 | 预期 |
+|---|------|------|------|
+| 10 | Date 对象格式化 | `new Date(2025, 0, 5)` | `'2025-01-05'` |
+| 11 | 时间戳格式化 | `Date.getTime()` | `'2025-06-15'` |
+| 12 | ISO 字符串格式化 | `'2025-03-01T12:00:00Z'` | 匹配 `YYYY-MM-DD` |
+| 13 | 单位数补零 | `new Date(2025, 0, 1)` | `'2025-01-01'` |
+
+### formatDateTime（2 个）
+| # | 用例 | 输入 | 预期 |
+|---|------|------|------|
+| 14 | 完整日期时间 | `new Date(2025, 5, 15, 9, 5, 3)` | `'2025-06-15 09:05:03'` |
+| 15 | 时分秒补零 | `new Date(2025, 0, 1, 0, 0, 0)` | `'2025-01-01 00:00:00'` |
+
+### formatTime（2 个）
+| # | 用例 | 输入 | 预期 |
+|---|------|------|------|
+| 16 | 时分格式化 | `14:30` | `'14:30'` |
+| 17 | 单位数补零 | `8:05` | `'08:05'` |
+
+### formatRelativeTime（8 个）
+| # | 用例 | 场景 | 预期 |
+|---|------|------|------|
+| 18 | falsy 输入 | `''` / `0` | `''` |
+| 19 | < 1 分钟 | 30 秒前 | `'刚刚'` |
+| 20 | < 60 分钟 | 10 分钟前 | `'10 分钟前'` |
+| 21 | < 24 小时 | 3 小时前 | `'3 小时前'` |
+| 22 | < 30 天 | 7 天前 | `'7 天前'` |
+| 23 | >= 30 天 | 90 天前 | `'2025-01-01'` |
+| 24 | 时间戳输入 | number | 正确解析 |
+| 25 | ISO 字符串输入 | string | 正确解析 |
+
+### formatBy（3 个）
+| # | 用例 | 输入 | 预期 |
+|---|------|------|------|
+| 26 | 自定义模板 | `'YYYY/MM/DD'` / `'HH:mm:ss'` / `'YYYY年MM月DD日'` | 对应格式 |
+| 27 | 时间戳 + 模板 | number + `'MM-DD HH:mm'` | 正确格式 |
+| 28 | ISO 字符串 + 模板 | string + `'YYYY-MM-DD'` | 年月日 |
 
 ---
 
-## 2. request 模块（15 个）
+## 2. request 模块（16 个）
 
 `tests/request/request.test.ts`
+
+重构后 `createRequest` 返回 ekit 自有的 `HttpClient`，不暴露 axios。插件契约为 `HttpConfig / HttpResponse / HttpError`。
 
 ### createRequest
 | # | 用例 |
 |---|------|
-| 1 | 使用默认选项创建 axios 实例 |
-| 2 | 使用自定义选项创建 |
-| 3 | 注册请求和响应拦截器 |
+| 1 | 返回 HttpClient（含 request/get/post/put/delete/patch/head 7 个方法） |
+| 2 | 不暴露 axios-specific 属性（interceptors / defaults / create 均为 undefined） |
+| 3 | 接受自定义选项（baseURL / timeout / headers / plugins）不抛错 |
 
 ### tokenPlugin
 | # | 用例 |
@@ -77,7 +102,7 @@
 ### unwrapPlugin
 | # | 用例 |
 |---|------|
-| 8 | code=200 时返回解包数据 |
+| 8 | code=200 时把 response.data 替换为业务 payload |
 | 9 | code≠200 时 reject |
 | 10 | message 为空时使用默认消息 |
 | 11 | 非包装响应透传 |
@@ -85,10 +110,11 @@
 ### refreshTokenPlugin
 | # | 用例 |
 |---|------|
-| 12 | 401 时调用 refreshFn 并重试请求 |
+| 12 | 401 时调用 refreshFn，通过 retry 回调重放原请求 |
 | 13 | 无 refresh token 时调用 onRefreshFail |
 | 14 | 登录 URL 跳过刷新 |
-| 15 | 从响应数据提取错误消息 |
+| 15 | 从响应 data.detail 提取错误消息 |
+| 16 | refreshFn 抛错时调用 onRefreshFail |
 
 ---
 
@@ -122,9 +148,11 @@
 
 ---
 
-## 4. storage 模块（12 个）
+## 4. storage 模块（15 个）
 
 `tests/storage/storage.test.ts`
+
+### storage 静态对象（12 个）
 
 | # | 分组 | 用例 |
 |---|------|------|
@@ -133,6 +161,14 @@
 | 10 | 非 JSON | JSON 解析失败时返回原始值 |
 | 11 | remove | 删除 key |
 | 12 | clear | 清空所有 |
+
+### useStorage（再导出 @vueuse/core，3 个）
+
+| # | 用例 |
+|---|------|
+| 13 | 空 key 返回默认值 |
+| 14 | 写入 ref → localStorage 自动同步（number 走 JSON serializer） |
+| 15 | 读取已有 localStorage（string 默认 serializer 不做 JSON 解析） |
 
 ---
 
@@ -154,18 +190,17 @@
 
 ---
 
-## 6. copy 模块（6 个）
+## 6. copy 模块（3 个）
 
 `tests/copy/copy.test.ts`
+
+useClipboard 行为由 @vueuse/core 保证，这里只做再导出的冒烟测试。
 
 | # | 用例 |
 |---|------|
 | 1 | copyText 调用 clipboard.writeText |
-| 2 | useClipboard.isSupported 为 true |
-| 3 | copy 后 text 和 copied 更新 |
-| 4 | 1500ms 后 copied 重置为 false |
-| 5 | 无 clipboard 时 isSupported 为 false |
-| 6 | 无 clipboard 时 copy 不执行 |
+| 2 | useClipboard 是函数 |
+| 3 | useClipboard() 返回 { text, copy, copied, isSupported }，isSupported 是 ref（有 .value） |
 
 ---
 
@@ -221,16 +256,20 @@
 
 ---
 
-## 9. hooks 模块（4 个）
+## 9. hooks 模块（6 个）
 
 `tests/hooks/hooks.test.ts`
+
+useDebounce 薄封装 `@vueuse/core` 的 `refDebounced`，保持 ekit 默认 300ms。useClickOutside/useEventListener 直接再导出。
 
 | # | 用例 |
 |---|------|
 | 1 | useDebounce 返回初始值 |
 | 2 | useDebounce 延迟更新值 |
 | 3 | useDebounce 快速变化只保留最后值 |
-| 4 | useDebounce 默认 300ms 延迟 |
+| 4 | useDebounce 默认 300ms 延迟（VueUse 默认 200，ekit wrapper 覆盖） |
+| 5 | useClickOutside（再导出 onClickOutside）是函数 |
+| 6 | useEventListener（再导出）是函数 |
 
 ---
 
@@ -274,7 +313,7 @@ cd frontend/ekit && pnpm vitest run
 
 # 2. 期望结果
 # Test Files  11 passed (11)
-# Tests       188 passed (188)
+# Tests       200 passed (200)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run src/date
