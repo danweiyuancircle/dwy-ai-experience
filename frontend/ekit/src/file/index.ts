@@ -1,9 +1,26 @@
 /**
  * 文件下载 / Blob 保存 / 文件大小格式化工具
  * 基于 file-saver；支持自动从响应头 Content-Disposition 解析文件名，不需要手动拼接 a[download]
+ * 请求器契约由 ekit 自行定义（FileRequester），不依赖具体 HTTP 库
  */
 import { saveAs } from 'file-saver'
-import type { AxiosInstance } from 'axios'
+
+/**
+ * 文件请求器契约（ekit 对外契约，不直接泄露 axios 类型）
+ * axios 实例结构上满足此接口，可直接作为 requester 传入
+ */
+export interface FileRequester {
+  request(config: {
+    url: string
+    method?: 'GET' | 'POST'
+    data?: any
+    headers?: Record<string, string>
+    responseType: 'blob'
+  }): Promise<{
+    data: Blob | ArrayBuffer
+    headers?: Record<string, string | undefined>
+  }>
+}
 
 /**
  * 文件下载配置
@@ -17,21 +34,21 @@ export interface DownloadOptions {
   data?: any
   /** 自定义请求头（如业务需要的 token） */
   headers?: Record<string, string>
-  /** 自定义 axios 实例；不传则动态 import 默认 axios，避免本模块强制依赖 axios */
-  requestInstance?: AxiosInstance
+  /** 自定义请求器；不传则动态 import 默认 axios，避免本模块强制依赖 axios */
+  requester?: FileRequester
 }
 
 /**
  * 请求并下载文件（二进制）
  * 通过 responseType: 'blob' 拿到二进制，再交给 file-saver 触发浏览器下载
  * @param url 下载地址
- * @param options 下载配置（方法/参数/文件名/请求实例）
+ * @param options 下载配置（方法/参数/文件名/请求器）
  */
 export async function downloadFile(url: string, options: DownloadOptions = {}): Promise<void> {
-  const { filename, method = 'GET', data, headers, requestInstance } = options
+  const { filename, method = 'GET', data, headers, requester } = options
 
   // 没传实例时才动态 import axios，保证没有下载需求的项目不打包 axios
-  const http = requestInstance ?? (await import('axios')).default
+  const http: FileRequester = requester ?? ((await import('axios')).default as unknown as FileRequester)
 
   const response = await http.request({
     url,
@@ -41,7 +58,7 @@ export async function downloadFile(url: string, options: DownloadOptions = {}): 
     responseType: 'blob',
   })
 
-  const blob = new Blob([response.data])
+  const blob = response.data instanceof Blob ? response.data : new Blob([response.data])
 
   // 优先使用用户指定的文件名，其次解析 Content-Disposition，最后兜底
   const resolvedFilename = filename ?? extractFilename(response.headers?.['content-disposition']) ?? 'download'

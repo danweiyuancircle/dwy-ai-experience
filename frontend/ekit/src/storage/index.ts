@@ -1,30 +1,9 @@
 /**
  * localStorage 读写封装
- * 提供 JSON 自动序列化/反序列化和 Vue 响应式包装；业务不直接用 localStorage，统一走本模块避免序列化不一致
+ * useStorage 直接再导出 @vueuse/core 的实现：自动 JSON 序列化、跨标签页同步、SSR-safe
+ * 静态 storage 对象保留用于非组件场景，内部走原生 localStorage + JSON
  */
-import { ref, watch, type Ref } from 'vue'
-
-/**
- * 响应式 localStorage composable，值变化时自动同步到 localStorage
- * 设为 null/undefined 会自动移除对应 key
- * @param key localStorage 键名
- * @param defaultValue 首次无值时的默认值
- * @returns 与 localStorage 双向绑定的 ref
- */
-export function useStorage<T>(key: string, defaultValue: T): Ref<T> {
-  const stored = localStorage.getItem(key)
-  const data = ref<T>(stored ? JSON.parse(stored) : defaultValue) as Ref<T>
-
-  watch(data, (val) => {
-    if (val === null || val === undefined) {
-      localStorage.removeItem(key)
-    } else {
-      localStorage.setItem(key, JSON.stringify(val))
-    }
-  }, { deep: true })
-
-  return data
-}
+export { useStorage } from '@vueuse/core'
 
 /**
  * localStorage 同步读写对象，支持 JSON 自动序列化

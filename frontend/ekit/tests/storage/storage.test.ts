@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { storage } from '@/storage'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { nextTick } from 'vue'
+import { storage, useStorage } from '@/storage'
 
 describe('storage', () => {
   beforeEach(() => {
@@ -77,5 +78,30 @@ describe('storage', () => {
       expect(storage.get('a')).toBeUndefined()
       expect(storage.get('b')).toBeUndefined()
     })
+  })
+})
+
+describe('useStorage (re-exported from @vueuse/core)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('returns default value when key is empty', () => {
+    const v = useStorage<string>('ek-test-key', 'fallback')
+    expect(v.value).toBe('fallback')
+  })
+
+  it('syncs writes to localStorage', async () => {
+    const v = useStorage<number>('ek-count', 0)
+    v.value = 42
+    await nextTick()
+    expect(JSON.parse(localStorage.getItem('ek-count')!)).toBe(42)
+  })
+
+  it('reads existing value from localStorage (string serializer, no JSON)', () => {
+    // VueUse useStorage 对 string 默认使用 string serializer（不做 JSON 解析）
+    localStorage.setItem('ek-name', 'Alice')
+    const v = useStorage<string>('ek-name', '')
+    expect(v.value).toBe('Alice')
   })
 })

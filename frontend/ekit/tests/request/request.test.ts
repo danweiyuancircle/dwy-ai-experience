@@ -1,169 +1,169 @@
+/**
+ * request 模块测试
+ * 重构后 createRequest 返回 ekit 自有的 HttpClient（不再暴露 AxiosInstance）
+ * 插件契约为 HttpConfig / HttpResponse / HttpError（不再是 axios 类型）
+ */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import axios from 'axios'
 import {
   createRequest,
   tokenPlugin,
   headerPlugin,
   unwrapPlugin,
   refreshTokenPlugin,
-  type RequestPlugin,
+  type HttpConfig,
+  type HttpResponse,
+  type HttpError,
 } from '@/request'
 
-// Mock axios — vi.hoisted runs before vi.mock hoisting
-const { axiosFn } = vi.hoisted(() => {
-  return { axiosFn: vi.fn() }
-})
-
-vi.mock('axios', () => {
-  const interceptors = () => {
-    const handlers: any[] = []
-    return {
-      use: (fulfilled: any, rejected: any) => handlers.push({ fulfilled, rejected }),
-      handlers,
-    }
-  }
-
-  const createMock = vi.fn(() => {
-    const instance: any = vi.fn()
-    instance.interceptors = {
-      request: interceptors(),
-      response: interceptors(),
-    }
-    return instance
-  })
-
-  return {
-    default: Object.assign(axiosFn, {
-      create: createMock,
-    }),
-  }
-})
-
 describe('createRequest', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
+  it('returns an HttpClient with request / get / post / put / delete / patch / head methods', () => {
+    const client = createRequest()
+    for (const m of ['request', 'get', 'post', 'put', 'delete', 'patch', 'head'] as const) {
+      expect(typeof (client as any)[m]).toBe('function')
+    }
   })
 
-  it('creates axios instance with default options', () => {
-    createRequest()
-    expect(axios.create).toHaveBeenCalledWith({
-      baseURL: '/api',
-      timeout: 30000,
-    })
+  it('does not expose axios-specific properties (interceptors / defaults / create)', () => {
+    const client = createRequest() as any
+    expect(client.interceptors).toBeUndefined()
+    expect(client.defaults).toBeUndefined()
+    expect(client.create).toBeUndefined()
   })
 
-  it('creates axios instance with custom options', () => {
-    createRequest({ baseURL: '/v2', timeout: 5000 })
-    expect(axios.create).toHaveBeenCalledWith({
-      baseURL: '/v2',
-      timeout: 5000,
-    })
-  })
-
-  it('registers request and response interceptors', () => {
-    const instance = createRequest()
-    expect(instance.interceptors.request.handlers).toHaveLength(1)
-    expect(instance.interceptors.response.handlers).toHaveLength(1)
+  it('accepts custom options without throwing', () => {
+    expect(() =>
+      createRequest({
+        baseURL: '/v2',
+        timeout: 5000,
+        headers: { 'X-App': 'ekit' },
+        plugins: [],
+      }),
+    ).not.toThrow()
   })
 })
 
 describe('tokenPlugin', () => {
-  it('sets Authorization header when token exists', () => {
+  it('sets Authorization header when token exists', async () => {
     const plugin = tokenPlugin({ getToken: () => 'my-token' })
-    const config = { headers: {} } as any
-    const result = plugin.onRequest!(config)
-    expect((result as any).headers.Authorization).toBe('Bearer my-token')
+    const config: HttpConfig = { headers: {} }
+    const result = await plugin.onRequest!(config)
+    expect(result.headers?.Authorization).toBe('Bearer my-token')
   })
 
-  it('does not set header when token is null', () => {
+  it('does not set header when token is null', async () => {
     const plugin = tokenPlugin({ getToken: () => null })
-    const config = { headers: {} } as any
-    plugin.onRequest!(config)
-    expect((config as any).headers.Authorization).toBeUndefined()
+    const config: HttpConfig = { headers: {} }
+    const result = await plugin.onRequest!(config)
+    expect(result.headers?.Authorization).toBeUndefined()
   })
 })
 
 describe('headerPlugin', () => {
-  it('sets custom header when value exists', () => {
+  it('sets custom header when value exists', async () => {
     const plugin = headerPlugin({ name: 'X-Tenant', getValue: () => 'tenant-1' })
-    const config = { headers: {} } as any
-    plugin.onRequest!(config)
-    expect(config.headers['X-Tenant']).toBe('tenant-1')
+    const config: HttpConfig = { headers: {} }
+    const result = await plugin.onRequest!(config)
+    expect(result.headers?.['X-Tenant']).toBe('tenant-1')
   })
 
-  it('does not set header when value is null', () => {
+  it('does not set header when value is null', async () => {
     const plugin = headerPlugin({ name: 'X-Tenant', getValue: () => null })
-    const config = { headers: {} } as any
-    plugin.onRequest!(config)
-    expect(config.headers['X-Tenant']).toBeUndefined()
+    const config: HttpConfig = { headers: {} }
+    const result = await plugin.onRequest!(config)
+    expect(result.headers?.['X-Tenant']).toBeUndefined()
   })
 })
 
 describe('unwrapPlugin', () => {
   const plugin = unwrapPlugin()
 
-  it('returns unwrapped data when code is 200', async () => {
-    const response = { data: { code: 200, data: { id: 1 }, message: 'ok' } } as any
+  function makeResponse<T>(data: T): HttpResponse<T> {
+    return { data, status: 200, statusText: 'OK', headers: {}, config: {} }
+  }
+
+  it('replaces response.data with business payload when code is 200', async () => {
+    const response = makeResponse({ code: 200, data: { id: 1 }, message: 'ok' })
     const result = await plugin.onResponse!(response)
-    expect(result).toEqual({ code: 200, data: { id: 1 }, message: 'ok' })
+    expect(result.data).toEqual({ id: 1 })
   })
 
   it('rejects when code is not 200', async () => {
-    const response = { data: { code: 400, message: '参数错误' } } as any
+    const response = makeResponse({ code: 400, message: '参数错误' })
     await expect(plugin.onResponse!(response)).rejects.toThrow('参数错误')
   })
 
   it('rejects with default message when message is empty', async () => {
-    const response = { data: { code: 500 } } as any
+    const response = makeResponse({ code: 500 })
     await expect(plugin.onResponse!(response)).rejects.toThrow('Error')
   })
 
   it('passes through non-wrapped responses', async () => {
-    const response = { data: 'plain text' } as any
+    const response = makeResponse('plain text')
     const result = await plugin.onResponse!(response)
     expect(result).toBe(response)
   })
 })
 
 describe('refreshTokenPlugin', () => {
-  it('calls refreshFn on 401 and retries request', async () => {
+  function makeError(overrides: Partial<HttpError> & { config?: HttpConfig; response?: Partial<HttpResponse> } = {}): HttpError {
+    const err = new Error(overrides.message ?? 'Request failed') as HttpError
+    err.config = overrides.config
+    err.response = overrides.response
+      ? {
+          data: undefined,
+          status: 401,
+          statusText: '',
+          headers: {},
+          config: {},
+          ...overrides.response,
+        }
+      : undefined
+    return err
+  }
+
+  it('calls refreshFn on 401 and retries request via retry callback', async () => {
     const refreshFn = vi.fn().mockResolvedValue('new-token')
+    const retry = vi.fn().mockResolvedValue({ data: 'retried', status: 200, statusText: 'OK', headers: {}, config: {} })
     const onRefreshFail = vi.fn()
 
     const plugin = refreshTokenPlugin({
       getRefreshToken: () => 'refresh-123',
       refreshFn,
       onRefreshFail,
+      retry,
     })
 
-    const error = {
+    const error = makeError({
       response: { status: 401 },
       config: { url: '/api/users', headers: {} },
-    } as any
-
-    // Mock axios callable to return resolved value on retry
-    axiosFn.mockResolvedValueOnce({ data: 'retried' })
+    })
 
     const result = await plugin.onResponseError!(error)
     expect(refreshFn).toHaveBeenCalledWith('refresh-123')
-    expect(error.config.headers.Authorization).toBe('Bearer new-token')
-    expect(result).toEqual({ data: 'retried' })
+    expect(retry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: '/api/users',
+        headers: expect.objectContaining({ Authorization: 'Bearer new-token' }),
+      }),
+    )
+    expect(result).toEqual(expect.objectContaining({ data: 'retried' }))
+    expect(onRefreshFail).not.toHaveBeenCalled()
   })
 
   it('calls onRefreshFail when no refresh token', async () => {
     const onRefreshFail = vi.fn()
-
     const plugin = refreshTokenPlugin({
       getRefreshToken: () => null,
       refreshFn: vi.fn(),
       onRefreshFail,
+      retry: vi.fn(),
     })
 
-    const error = {
+    const error = makeError({
       response: { status: 401 },
       config: { url: '/api/users', headers: {} },
       message: 'Unauthorized',
-    } as any
+    })
 
     await expect(plugin.onResponseError!(error)).rejects.toThrow('Unauthorized')
     expect(onRefreshFail).toHaveBeenCalled()
@@ -171,37 +171,61 @@ describe('refreshTokenPlugin', () => {
 
   it('skips refresh for login URL', async () => {
     const refreshFn = vi.fn()
-    const onRefreshFail = vi.fn()
-
+    const retry = vi.fn()
     const plugin = refreshTokenPlugin({
       getRefreshToken: () => 'token',
       refreshFn,
-      onRefreshFail,
+      onRefreshFail: vi.fn(),
+      retry,
     })
 
-    const error = {
-      response: { status: 401, data: { message: '认证失败' } },
+    const error = makeError({
+      response: { status: 401, data: { message: '认证失败' } as any },
       config: { url: '/auth/login', headers: {} },
       message: 'Unauthorized',
-    } as any
+    })
 
     await expect(plugin.onResponseError!(error)).rejects.toThrow('认证失败')
     expect(refreshFn).not.toHaveBeenCalled()
+    expect(retry).not.toHaveBeenCalled()
   })
 
-  it('extracts error message from response data', async () => {
+  it('extracts error message from response data.detail', async () => {
     const plugin = refreshTokenPlugin({
       getRefreshToken: () => null,
       refreshFn: vi.fn(),
       onRefreshFail: vi.fn(),
+      retry: vi.fn(),
     })
 
-    const error = {
-      response: { status: 401, data: { detail: '令牌过期' } },
+    const error = makeError({
+      response: { status: 401, data: { detail: '令牌过期' } as any },
       config: { url: '/api/data', headers: {} },
       message: 'Unauthorized',
-    } as any
+    })
 
     await expect(plugin.onResponseError!(error)).rejects.toThrow('令牌过期')
   })
+
+  it('calls onRefreshFail when refreshFn throws', async () => {
+    const onRefreshFail = vi.fn()
+    const retry = vi.fn()
+    const plugin = refreshTokenPlugin({
+      getRefreshToken: () => 'refresh-123',
+      refreshFn: vi.fn().mockRejectedValue(new Error('refresh failed')),
+      onRefreshFail,
+      retry,
+    })
+
+    const error = makeError({
+      response: { status: 401 },
+      config: { url: '/api/users', headers: {} },
+      message: 'Unauthorized',
+    })
+
+    await expect(plugin.onResponseError!(error)).rejects.toThrow('Unauthorized')
+    expect(onRefreshFail).toHaveBeenCalled()
+    expect(retry).not.toHaveBeenCalled()
+  })
 })
+
