@@ -52,16 +52,20 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 
 ### frontend/ekit/ — `@dwydev/ekit`
 
-轻量工具库，6 个模块：
+轻量工具库，薄封装主流开源库（axios / dayjs / zod / js-cookie / qs / file-saver / @vueuse/core），**严禁重复造轮子**（详见"ekit 依赖选择原则"）：
 
-| 模块 | 内容 |
-|------|------|
-| request | Axios 工厂 `createRequest()`，插件架构（token/header/unwrap/refreshToken） |
-| storage | `useStorage()` composable + 静态 storage 对象（localStorage 封装） |
-| date | formatRelativeTime, formatDate, formatDateTime, formatTime |
-| validators | isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength |
-| hooks | useDebounce, useClickOutside, useEventListener |
-| masking | maskPhone, maskEmail, maskIdCard, maskBankCard, maskName, maskAddress, maskIp, maskLicensePlate, maskText |
+| 模块 | 内容 | 底层依赖 |
+|------|------|---------|
+| request | `createRequest()` + 插件（token/header/unwrap/refreshToken） | axios |
+| storage | `useStorage()` + 静态 storage 对象 | @vueuse/core / localStorage |
+| cookie | `useCookie()` + 静态 cookie 对象 | js-cookie |
+| date | now / formatTimestamp / formatInTimezone / formatRelativeTime / formatDate / formatDateTime / formatTime / formatBy | dayjs（内部使用，不对外暴露实例/类型） |
+| validators | isPhone / isEmail / isIdCard / isUrl / isRequired / minLength / maxLength + zod schema | zod |
+| copy | copyText / useClipboard | @vueuse/core |
+| qs | stringify / parse | qs |
+| file | downloadFile / saveBlob / formatFileSize | file-saver |
+| hooks | 再导出 @vueuse/core：useDebounce / useClickOutside / useEventListener / useThrottle / useWindowSize / useMediaQuery / useIntersectionObserver / useResizeObserver | @vueuse/core |
+| masking | maskPhone / maskEmail / maskIdCard / maskBankCard / maskName / maskAddress / maskIp / maskLicensePlate / maskText | 自写（无合适开源） |
 
 request 模块的 401 刷新 token 逻辑会自动重试失败请求，响应 unwrap 约定格式 `{ code, data, message }`。
 
@@ -143,6 +147,63 @@ eui、ekit、eapi 三个基础库被多个项目依赖，变更必须严格遵�
 - **禁止** `TEST_CASES.md` 与实际测试文件不同步
 - **禁止**删除模块时不删除对应测试
 - **禁止**新增模块时不创建测试文件
+
+## ekit 依赖选择原则
+
+ekit 是**薄封装层**，定位"再导出 + 少量适配"。禁止重复造轮子，所有工具必须优先用成熟开源库。自写实现几乎一定比开源库兼容性差（缺 fallback、SSR-safe、跨标签页同步、边界处理）。
+
+### 决策顺序（强制）
+
+1. **`@vueuse/core` 有现成的** → 直接再导出（参考 `src/hooks/vueuse.ts` 模式）
+2. **有其他成熟开源库**（npm stars > 1k、近 6 个月有维护） → 薄封装，只加 JSON 序列化、中文默认值等必要适配
+3. **都没有** → 才可自写，且必须在 PR / commit body 说明"调研了哪些库、为何不用"
+
+### 各模块依赖映射表
+
+| 模块 | 必须使用的开源依赖 | 封装策略 |
+|------|-------------------|---------|
+| request | axios | 工厂 + 插件链（token / header / unwrap / refreshToken） |
+| storage | `@vueuse/core` 的 `useStorage` | composable 直接再导出；静态 `storage` 对象可保留（非组件场景） |
+| cookie | js-cookie | 薄封装 + JSON 自动序列化 |
+| date | dayjs | 统一格式化/运算入口；**禁止** `new Date()` / `toLocaleString()` 手写 |
+| validators | zod | schema 为主，`isXxx` 布尔壳调 `safeParse` |
+| copy | `@vueuse/core` 的 `useClipboard` | 再导出；`copyText(text)` 可作为一次性快捷函数保留 |
+| qs | qs | 再导出 `stringify` / `parse` |
+| file | file-saver | 下载文件入口 `downloadFile` / `saveBlob` |
+| hooks | `@vueuse/core` | **全部再导出**：`useDebounce`(→`refDebounced`) / `useClickOutside`(→`onClickOutside`) / `useEventListener` / `useThrottle` / `useWindowSize` 等 |
+| masking | —（无开源方案） | 自写，PR 说明原因 |
+
+### 禁止事项
+
+- **禁止**在 ekit 中重新实现 `@vueuse/core` 已提供的 composable（`useClipboard`、`useStorage`、`useEventListener`、`onClickOutside`、`refDebounced`、`useMediaQuery`、`useIntersectionObserver` 等）
+- **禁止**直接 `navigator.clipboard.writeText` / `localStorage.getItem` / `document.addEventListener` 手写同步/监听逻辑
+- **禁止**自写日期运算（加减、比较、起止），一律走 dayjs API
+- **禁止**为了"轻量"而不依赖 VueUse：`@vueuse/core` 已是 eui 的 peerDep，ekit 再依赖零成本
+
+### 对外不泄露底层库类型（防腐层原则）
+
+ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类型**，不能让底层库的类型名渗透到公共 API。这样以后要替换底层实现（axios → fetch、dayjs → date-fns、qs → native URLSearchParams 等），消费者代码不用改。
+
+#### 硬性规则
+
+- **禁止**从 `src/index.ts` re-export 底层库的实例 / 类 / 命名空间（反例：`export { dayjs }`、`export { default as axios }`）
+- **禁止**从 `src/index.ts` re-export 底层库的类型别名（反例：`export type { AxiosInstance, IStringifyOptions, CookieAttributes }`）
+- **禁止**函数签名直接暴露底层库类型（反例：`createRequest(): AxiosInstance`、`now(): dayjs.Dayjs`）
+- **允许**底层库类型**仅出现在 `src/{module}/` 内部实现文件**（如 `src/request/client.ts` 用 axios 类型适配）
+
+#### 对外契约规范
+
+- **HTTP**：`HttpClient / HttpConfig / HttpResponse / HttpError / HttpPlugin / HttpMethod / HttpResponseType`
+- **QS**：`StringifyOptions / ParseOptions`
+- **Cookie**：`CookieOptions`
+- **File**：`FileRequester / DownloadOptions`
+- **Date**：`DateInput`（string | number | Date）、函数返回 `Date / string / number` 原生类型
+
+#### 例外（刻意暴露的集成点）
+
+- **validators** 导出的 zod schema（`phoneSchema` 等）是**刻意**的公共 API，供消费者配合 `vee-validate` 使用，不视为泄露
+- **VueUse 再导出**（`useStorage / useClipboard / useDebounce` 等）是 Vue 生态共识接口，替换成本远大于收益，不视为泄露
+- **插件内部**（如 `HttpPlugin` 的 `onRequest / onResponse`）参数类型必须是 ekit 自有契约，禁止掺入 axios 类型
 
 ## Git Commit Scope
 
