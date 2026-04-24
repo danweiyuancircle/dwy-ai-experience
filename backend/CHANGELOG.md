@@ -1,5 +1,96 @@
 # dwyeapi
 
+## 0.7.0
+
+### Minor Changes
+
+- **新增 `dwyeapi.health` 模块** — 提供 `create_health_router(service_name, version, path="/health", include_in_schema=True)` 工厂函数,返回只有一个 GET 端点的 `APIRouter`,响应走 `ApiResponse[dict]` 信封,载荷为 `{"service", "version", "status": "alive"}`。
+  - **只探活,不探依赖**:端点**不**连接 PostgreSQL / Redis / 第三方 API。健康端点通常对公网开放,若内置 readiness check,攻击者可以用低频高并发请求把压力放大到 DB/缓存层,变成 DoS 放大器。需要 readiness 语义的业务应在业务项目内自行实现,并挂鉴权或限制在内网。
+  - 顶层导出:`from dwyeapi import health` 或 `from dwyeapi.health import create_health_router`。
+- **扩展 `register_exception_handlers`** — 新增 3 个 handler,让所有非业务异常也走统一 `ApiResponse` 信封,避免 FastAPI 默认的 `{"detail": ...}` 格式绕过信封。
+  - `RequestValidationError` → 422 + `code="VALIDATION_ERROR"`。行为变化:FastAPI 默认 `{"detail":[{"loc":[...], "msg":"..."}]}` → 信封 `{code:"VALIDATION_ERROR", message:"请求参数校验失败", data:{"errors":[{"field": "body.qty", "message": "Input should be a valid integer..."}]}, timestamp}`。field 保留完整路径(含 `body` / `query` 段)便于前端精确定位来源。**注意**:`field` 是 pydantic `loc` tuple 的 `.` 拼接,数组索引会以数字段出现(如 `body.items.0.name`),少数 pydantic 内部段(如 discriminator union 校验失败时的 `tagged-union-tag`)对前端不直接可读,建议前端把 `field` **仅用于错误提示与日志展示**,不要按 dot path 精确回填表单字段。
+  - `HTTPException` → 透传原始 `status_code` + `headers` + 信封。`code=f"HTTP_{status_code}"`,`message=str(detail)`。**关键**:`exc.headers` 原样透传,保留 OAuth2 `WWW-Authenticate: Bearer` 等协商头,否则标准客户端无法按规范重试。
+  - 未捕获 `Exception` fallback → 500 + `code="INTERNAL_ERROR"` + 脱敏。
+    - `is_dev()` 为 True:`message=f"服务器内部错误: {exc!s}"`,方便定位。
+    - `is_prod()` 为 True:`message="服务器内部错误"`,防止 KeyError 字段名、文件路径、SQL 片段等内部信息泄露。
+    - 两种环境都通过 `logger.exception("未捕获异常")` 把完整 traceback 写到日志,确保排障证据不丢失。
+### 示例
+
+```python
+# main.py
+from fastapi import FastAPI
+from dwyeapi import __version__ as eapi_version
+from dwyeapi.exceptions import register_exception_handlers
+from dwyeapi.health import create_health_router
+
+app = FastAPI()
+register_exception_handlers(app)  # 自动包含 4 个 AppError + 3 个框架异常 handler
+app.include_router(
+    create_health_router(service_name="quant-cloud", version="1.0.0"),
+)
+```
+
+前端/客户端:
+
+```ts
+// 422 VALIDATION_ERROR 响应
+interface ValidationErrorData {
+  errors: Array<{ field: string; message: string }>;
+}
+
+// 401 OAuth2 challenge — 响应头保留 WWW-Authenticate: Bearer
+if (res.status === 401 && res.headers.get("WWW-Authenticate")) { ... }
+```
+
+## 0.6.0
+
+### Breaking Changes
+
+- **响应信封重构为泛型 Pydantic 模型** — `dwyeapi.response` 由 dict 构造函数改为 `ApiResponse[T]` + `PageData[T]` 泛型类,路由 `response_model` 可声明为 `ApiResponse[UserResponse]` / `ApiResponse[PageData[UserResponse]]`,OpenAPI schema 100% 准确,前端可用 openapi-typescript 自动生成 TS 类型。
+  - **移除**旧 API:`success(data, message)` / `fail(code, message)` / `paginated(items, total, page, page_size)` 三个函数全部删除,不提供兼容别名。
+  - **新增** `ApiResponse[T]`:字段 `code: str = "SUCCESS"` / `message: str = "success"` / `data: T | None = None` / `timestamp: int`(自动取当前秒)。
+  - **新增** `ApiResponse.ok(data, message="success") -> ApiResponse[T]` classmethod:构造单体成功响应。
+  - **新增** `ApiResponse.page(items, total, page, page_size, message="success") -> ApiResponse[PageData[T]]` classmethod:构造分页成功响应。
+  - **新增** `PageData[T]`:字段 `items: list[T]` / `total: int` / `page: int` / `page_size: int`,配合 `ApiResponse` 使用。
+  - **两者均从顶层 `dwyeapi` 直接导出**:`from dwyeapi import ApiResponse, PageData`。
+- **`code` 字段类型统一为 `str`** — 成功态固定 `"SUCCESS"`,错误态由业务异常 `AppError.code` 决定(如 `"NOT_FOUND"` / `"INSUFFICIENT_BALANCE"`)。旧版成功态 `code: 200`(int)、失败态 `code: str` 的混用被消除,前端拦截器判断逻辑统一。
+- **异常 handler 响应格式对齐 ApiResponse 信封** — `register_exception_handlers` 注册的 4 个 handler 不再返回 `{code, message}` 精简字典,改为返回完整 `{code, message, data: null, timestamp}` 信封。HTTP 状态码保持不变(404/422/403/401)。业务错误码(`NOT_FOUND` / `INSUFFICIENT_BALANCE` / `PERMISSION_DENIED` / `AUTHENTICATION_FAILED`)通过 `code` 字段返回,前端可配合状态码与 `code` 做双重判断。
+
+### 迁移指南
+
+```python
+# 旧
+from dwyeapi.response import success, paginated
+return success(data=user.model_dump())
+return paginated(items=items, total=total, page=1, page_size=20)
+
+# 新
+from dwyeapi import ApiResponse, PageData
+
+@router.get("/me", response_model=ApiResponse[UserResponse])
+async def get_me(...) -> ApiResponse[UserResponse]:
+    return ApiResponse.ok(UserResponse(...))
+
+@router.get("/", response_model=ApiResponse[PageData[UserBrief]])
+async def list_users(...) -> ApiResponse[PageData[UserBrief]]:
+    items, total = await service.list(...)
+    return ApiResponse.page(items, total, page, page_size)
+```
+
+前端拦截器:
+
+```ts
+interface ApiResponse<T> {
+  code: string;         // "SUCCESS" | "NOT_FOUND" | ...
+  message: string;
+  data: T | null;
+  timestamp: number;
+}
+
+// 成功判断
+if (res.data.code === "SUCCESS") { ... }
+```
+
 ## 0.5.0
 
 ### Minor Changes

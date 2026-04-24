@@ -75,7 +75,7 @@
 
 ---
 
-## 4. exceptions 模块（10 个）
+## 4. exceptions 模块（15 个）
 
 `tests/test_exceptions.py`
 
@@ -90,41 +90,63 @@
 | 5 | PermissionDeniedError 默认值 | message `"权限不足"`，code `"PERMISSION_DENIED"` |
 | 6 | AuthenticationError 默认值 | message `"认证失败"`，code `"AUTHENTICATION_FAILED"` |
 
-### ExceptionHandlers（4 个）
+### ExceptionHandlers — AppError 子类（4 个）
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
-| 7 | NotFoundError → 404 | 响应体包含 code 和 message |
-| 8 | BusinessError → 422 | 响应体包含业务错误码和消息 |
-| 9 | PermissionDeniedError → 403 | HTTP 状态码正确映射 |
-| 10 | AuthenticationError → 401 | HTTP 状态码正确映射 |
+| 7 | NotFoundError → 404 | 响应体符合 ApiResponse 信封（code/message/data=null/timestamp） |
+| 8 | BusinessError → 422 | 响应体符合 ApiResponse 信封，code 为业务错误码 |
+| 9 | PermissionDeniedError → 403 | HTTP 状态码正确映射，code=PERMISSION_DENIED |
+| 10 | AuthenticationError → 401 | HTTP 状态码正确映射，code=AUTHENTICATION_FAILED |
+
+### ExceptionHandlers — 框架异常（5 个,0.7.0 新增）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 11 | RequestValidationError → 422 + 结构化 errors | code=`VALIDATION_ERROR`,message=`请求参数校验失败`,data.errors 为 `[{field, message}]` 列表 |
+| 12 | HTTPException → 透传状态码 + headers | 418 响应码,`code=HTTP_418`,响应头 `X-Test: yes` 透传 |
+| 13 | HTTPException OAuth2 `WWW-Authenticate` 保留 | 401 响应头 `WWW-Authenticate: Bearer` 不丢失 |
+| 14 | 未捕获 Exception dev 模式含详情 | ENVIRONMENT=dev 时 message 含 `str(exc)`(如 KeyError 字段名),便于调试 |
+| 15 | 未捕获 Exception prod 模式脱敏 | ENVIRONMENT=prod 时 message 固定 `服务器内部错误`,内部信息(字段名等)不泄露 |
 
 ---
 
-## 5. response 模块（6 个）
+## 5. response 模块（13 个）
 
 `tests/test_response.py`
 
-### Success（3 个）
+### ApiResponseOk（5 个）— `ApiResponse.ok(data)`
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
-| 1 | 默认 message 为 "success" | code=200，包含 timestamp 字段 |
-| 2 | 自定义 message | 传入 message="created" 正确覆盖 |
-| 3 | data 为 None | 不传 data 时默认 None |
+| 1 | 默认 code 和 message | code="SUCCESS"、message="success"、timestamp 为 int |
+| 2 | 自定义 message | 传入 message="created" 正确覆盖，code 仍为 SUCCESS |
+| 3 | data 可为 None | 不传 data 时 data=None |
+| 4 | data 为 Pydantic 模型 | model_dump 正确序列化嵌套数据 |
+| 5 | 序列化结构 | 字段集合为 {code, message, data, timestamp} |
 
-### Fail（2 个）
-
-| # | 用例 | 测试要点 |
-|---|------|---------|
-| 4 | 默认 code=400，message="fail" | 无参数时使用默认值 |
-| 5 | 自定义 code 和 message | 传入 code=500 正确覆盖 |
-
-### Paginated（1 个）
+### ApiResponsePage（4 个）— `ApiResponse.page(items, total, page, page_size)`
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
-| 6 | 分页响应结构 | data 包含 items、total、page、page_size 四个字段 |
+| 6 | 分页结构 | data 为 PageData 实例，items/total/page/page_size 正确赋值 |
+| 7 | 分页序列化 | model_dump 输出 {items, total, page, page_size} 四字段 |
+| 8 | 空分页 | items=[]、total=0 合法 |
+| 9 | 自定义 message | 分页响应可携带自定义提示信息 |
+
+### ApiResponseDirectConstruction（2 个）— 错误态直接实例化
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 10 | 自定义 code 构造 | code="NOT_FOUND"、data=None，供 handler 使用 |
+| 11 | 错误响应序列化 | 输出 {code, message, data: null, timestamp} |
+
+### PageData（2 个）— 独立使用
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 12 | 独立实例化 | PageData[Item] 泛型实例化正确 |
+| 13 | from_attributes | `model_validate` 可从对象属性构造 |
 
 ---
 
@@ -447,7 +469,32 @@
 
 ---
 
-## 12. providers factory 环境校验（5 个,位于 `tests/providers/`）
+## 12. health 模块（7 个,0.7.0 新增）
+
+`tests/test_health.py`
+
+### HealthRouter（5 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 默认 `/health` 路径返回 alive | 200,`code=SUCCESS`,data `{service, version, status:"alive"}` 正确 |
+| 2 | 自定义 `path="/api/healthz"` | 新路径 200,旧 `/health` 404 |
+| 3 | `include_in_schema=False` 隐藏于 OpenAPI | `GET /openapi.json` 的 `paths` 不含该路径 |
+| 4 | 默认 `include_in_schema=True` 暴露于 OpenAPI | OpenAPI `paths` 含 `/health` |
+| 5 | 响应信封形状 | 字段集合 `{code, message, data, timestamp}`,data 子字段 `{service, version, status}` |
+
+### 参数化回显（2 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 6 | `svc-a / 0.0.1` 组合回显 | data.service / data.version 与入参一致 |
+| 7 | `svc-b / 10.20.30` 组合回显 | data.service / data.version 与入参一致 |
+
+> 注:`create_health_router` 内部不调用任何数据库 / Redis / 外部服务,"只探活不探依赖"的设计通过代码审查即可验证,未单独写验证依赖缺席的测试。
+
+---
+
+## 13. providers factory 环境校验（5 个,位于 `tests/providers/`）
 
 `tests/providers/test_email_factory.py` 和 `tests/providers/test_sms_factory.py` 中与 environment 机制相关的新增用例:
 
@@ -470,7 +517,8 @@
 cd backend && python -m pytest tests/ -v
 
 # 2. 期望结果
-# 163 passed
+# 212 passed(0.7.0 新增 12 个:exceptions +5,health +7)
+# 允许 2 个预先存在的 tests/providers/test_sms_base.py::test_verify_code_* 失败,与本次改动无关
 
 # 3. 单模块测试（调试用）
 python -m pytest tests/test_config.py -v
@@ -484,4 +532,5 @@ python -m pytest tests/test_dependencies.py -v
 python -m pytest tests/test_tasks.py -v
 python -m pytest tests/test_masking.py -v
 python -m pytest tests/test_logger.py -v
+python -m pytest tests/test_health.py -v
 ```
