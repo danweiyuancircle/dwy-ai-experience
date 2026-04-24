@@ -1,5 +1,23 @@
 # @dwydev/ekit
 
+## 0.7.0
+
+### Breaking Changes
+
+- `unwrapPlugin` 成功判定从 `code === 200`（数字）改为 `code === "SUCCESS"`（字符串），对齐 dwyeapi v0.7.0 响应信封。升级后必须同步后端至 `dwyeapi ≥ 0.7.0`
+
+### Minor Changes
+
+- 新增 dwyeapi 响应契约类型：`ApiResponse<T>` / `PageData<T>` / `ValidationErrorData` / `ValidationFieldError` / `CommonBusinessCode` / `BusinessCode`
+- 新增 `SUCCESS_CODE` 常量导出
+- 新增响应错误辅助工具：`extractValidationErrors`（自动剥离 `body./query./path./header./cookie.` 前缀，与 vee-validate `setErrors` 兼容）、`isApiBusinessError` 类型守卫、`ApiBusinessError` 类型
+- `HttpError` 新增可选字段 `businessCode`（业务错误码）和 `apiResponse`（原始信封），unwrapPlugin 失败时自动附加，业务可按 `err.businessCode` 分支处理
+- `refreshTokenPlugin` 消息提取优先级调整为 `message → detail → error.message`（优先 dwyeapi 的 `message`，兼容 FastAPI 默认 `detail`），并在 reject 时透传 `businessCode` / `apiResponse`
+
+### Docs
+
+- `SKILL.md` / `README.md` / playground `RequestDoc.vue` 同步到新契约，补齐业务错误码表和 vee-validate 回填示例
+
 ## 0.4.0
 
 ### Minor Changes
