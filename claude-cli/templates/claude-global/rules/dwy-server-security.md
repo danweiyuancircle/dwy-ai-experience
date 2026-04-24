@@ -132,7 +132,6 @@ certbot --nginx -d example.com
 
 **4. 全局限制（server 块）**
 ```nginx
-client_max_body_size 1m;        # 无文件上传业务时默认 1m
 client_body_timeout 10s;
 client_header_timeout 10s;
 limit_conn conn_limit 20;
@@ -203,7 +202,6 @@ if ($is_scanner) {
 ### 违规检测
 如果 Nginx 配置中出现以下情况，必须提示用户：
 - 缺少 `limit_req` 频率限制
-- `client_max_body_size` 大于 10m（除非有文件上传业务）
 - API 路径允许 PUT/DELETE 但业务不需要
 - 缺少 `location ~ /\.` 敏感文件屏蔽
 - 使用 `proxy_pass` 但未设置 `proxy_connect_timeout`

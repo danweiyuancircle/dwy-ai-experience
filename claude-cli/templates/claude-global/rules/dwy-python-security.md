@@ -180,13 +180,10 @@ class ListParams(BaseModel):
 
 | 字段类型 | 校验 |
 |---------|------|
-| 字符串 | `min_length` + `max_length` |
 | 数字 | `ge` + `le`(最小值 + 最大值) |
 | 邮箱 | `EmailStr` |
 | 手机号 | `pattern=r"^1[3-9]\d{9}$"` |
 | URL | `HttpUrl` |
-| 列表 | `max_length`（限制数组长度） |
-| 文件大小 | 后端二次校验（不信任前端） |
 
 ## 五、响应安全
 
