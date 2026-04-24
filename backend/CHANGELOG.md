@@ -1,5 +1,13 @@
 # dwyeapi
 
+## 0.7.1
+
+### Patch Changes
+
+- **`BaseSettings.log_dir` 默认值由 `None` 改为 `"."`** — 文件日志默认启用,写到进程当前目录。此前 `None` 表示关闭文件输出,业务项目若未显式配置 `LOG_DIR`,全部日志只进控制台,排障时难以回溯。显式传 `None` 仍可关闭文件输出(只保留控制台)。
+- **所有 `BaseSettings` 字段改用 `Field(..., description="中文说明")` 标注含义** — 16 个配置项(database_url / redis_url / secret_key / jwt_algorithm / access_token_expire_minutes / environment / allowed_origins / task_*×3 / log_*×8)全部带中文 description,进入 Pydantic schema / OpenAPI / IDE hover 提示。同时按"基础 / 异步任务 / 日志"三组分节注释。
+- **修正 `tests/providers/test_sms_base.py` 的基类测试** — 原测试用 `MockSmsProvider` 验证基类严格一次性校验,但 Mock 有意重写 `verify_code` 为宽松校验(任意 4-8 位数字通过,方便 curl 调试),导致基类严格语义未被覆盖。新增本地 `_StrictSmsProvider` 子类(仅实现 `_send`,不重写 `verify_code`)给两个测试使用,真正覆盖基类逻辑。
+
 ## 0.7.0
 
 ### Minor Changes
