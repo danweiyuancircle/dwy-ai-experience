@@ -8,7 +8,16 @@
  */
 
 // Request
-export { createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin } from './request'
+export {
+  createRequest,
+  tokenPlugin,
+  headerPlugin,
+  unwrapPlugin,
+  refreshTokenPlugin,
+  SUCCESS_CODE,
+  extractValidationErrors,
+  isApiBusinessError,
+} from './request'
 export type {
   HttpMethod,
   HttpResponseType,
@@ -18,6 +27,13 @@ export type {
   HttpClient,
   HttpPlugin,
   CreateRequestOptions,
+  ApiResponse,
+  PageData,
+  ValidationFieldError,
+  ValidationErrorData,
+  CommonBusinessCode,
+  BusinessCode,
+  ApiBusinessError,
 } from './request'
 
 // Storage

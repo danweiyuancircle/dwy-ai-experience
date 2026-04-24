@@ -136,9 +136,11 @@ export function createUser(data: UserCreate) {
 前端的解包逻辑必须与后端 eapi response 格式对齐：
 
 ```
-后端返回: { code: 200, message: "success", data: {...}, timestamp: ... }
-                                                  ↓ unwrap
+后端返回: { code: "SUCCESS", message: "success", data: {...}, timestamp: ... }
+                                                      ↓ unwrap
 前端拿到: {...}  (直接是 data 的内容)
 ```
 
-分页响应解包后拿到 `{ items, total, page, page_size }`。
+分页响应解包后拿到 `{ items, total, page, page_size }`（保持 snake_case 对齐后端 JSON）。
+
+业务失败时（`code !== "SUCCESS"`），unwrapPlugin 抛出的 HttpError 携带 `businessCode` 和 `apiResponse`。业务 catch 中用 `isApiBusinessError(err)` 做类型守卫后按 `err.businessCode` 分支（如 `NOT_FOUND` / `VALIDATION_ERROR` / `PERMISSION_DENIED`）；`VALIDATION_ERROR` 场景可用 `extractValidationErrors(err)` 直接给 vee-validate 的 `setErrors` 回填。

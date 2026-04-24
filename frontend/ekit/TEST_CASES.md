@@ -1,6 +1,6 @@
 # @dwydev/ekit 测试用例清单
 
-> 回测基准：200 个测试用例，11 个测试文件。版本变更后必须全部通过。
+> 回测基准：216 个测试用例，12 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd frontend/ekit && pnpm vitest run`
 
@@ -74,11 +74,11 @@
 
 ---
 
-## 2. request 模块（16 个）
+## 2. request 模块（32 个）
 
-`tests/request/request.test.ts`
+`tests/request/request.test.ts` (21 个) + `tests/request/helpers.test.ts` (11 个)
 
-重构后 `createRequest` 返回 ekit 自有的 `HttpClient`，不暴露 axios。插件契约为 `HttpConfig / HttpResponse / HttpError`。
+重构后 `createRequest` 返回 ekit 自有的 `HttpClient`，不暴露 axios。插件契约为 `HttpConfig / HttpResponse / HttpError`。响应契约对齐 dwyeapi v0.7.0 的 `ApiResponse` 信封（code 为字符串 `"SUCCESS"`）。
 
 ### createRequest
 | # | 用例 |
@@ -102,19 +102,47 @@
 ### unwrapPlugin
 | # | 用例 |
 |---|------|
-| 8 | code=200 时把 response.data 替换为业务 payload |
-| 9 | code≠200 时 reject |
-| 10 | message 为空时使用默认消息 |
-| 11 | 非包装响应透传 |
+| 8 | code="SUCCESS" 时把 response.data 替换为业务 payload |
+| 9 | PageData 结构（items/total/page/page_size）完整透传 |
+| 10 | code≠"SUCCESS" 时 reject（如 NOT_FOUND） |
+| 11 | reject 的 HttpError 携带 businessCode 和 apiResponse（VALIDATION_ERROR 场景） |
+| 12 | message 为空时使用默认消息 |
+| 13 | 非 ApiResponse 响应（纯字符串）透传 |
+| 14 | 无 code 字段的对象响应透传 |
 
 ### refreshTokenPlugin
 | # | 用例 |
 |---|------|
-| 12 | 401 时调用 refreshFn，通过 retry 回调重放原请求 |
-| 13 | 无 refresh token 时调用 onRefreshFail |
-| 14 | 登录 URL 跳过刷新 |
-| 15 | 从响应 data.detail 提取错误消息 |
-| 16 | refreshFn 抛错时调用 onRefreshFail |
+| 15 | 401 时调用 refreshFn，通过 retry 回调重放原请求 |
+| 16 | 无 refresh token 时调用 onRefreshFail |
+| 17 | 登录 URL 跳过刷新 |
+| 18 | 错误消息优先取 ApiResponse 的 message（非 FastAPI 的 detail） |
+| 19 | 无 message 时回退取 detail |
+| 20 | body 为 ApiResponse 形态时 reject 的 HttpError 携带 businessCode/apiResponse |
+| 21 | refreshFn 抛错时调用 onRefreshFail |
+
+### helpers（11 个）
+
+`tests/request/helpers.test.ts`
+
+#### isApiBusinessError
+| # | 用例 |
+|---|------|
+| 1 | 含 businessCode + apiResponse 的 Error 返回 true |
+| 2 | 普通 Error 返回 false |
+| 3 | 非 Error 值（null/undefined/string/plain object）返回 false |
+
+#### extractValidationErrors
+| # | 用例 |
+|---|------|
+| 4 | HttpError 输入转为 { field: message } 扁平对象 |
+| 5 | 剥离 body./query./path./header./cookie. 前缀 |
+| 6 | 嵌套 dot 路径（body.items.0.name）保留 |
+| 7 | 同字段多条错误后者覆盖前者 |
+| 8 | 接受完整 ApiResponse 信封作为输入 |
+| 9 | 接受裸 ValidationErrorData 作为输入 |
+| 10 | 非校验错误输入返回空对象 |
+| 11 | errors 空数组返回空对象 |
 
 ---
 
@@ -312,8 +340,8 @@ useDebounce 薄封装 `@vueuse/core` 的 `refDebounced`，保持 ekit 默认 300
 cd frontend/ekit && pnpm vitest run
 
 # 2. 期望结果
-# Test Files  11 passed (11)
-# Tests       200 passed (200)
+# Test Files  12 passed (12)
+# Tests       216 passed (216)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run src/date

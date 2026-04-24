@@ -66,7 +66,7 @@ class UnwrapInterceptor extends Interceptor {
   void onResponse(Response response, ResponseInterceptorHandler handler) {
     final data = response.data;
     if (data is Map && data.containsKey('code') && data.containsKey('data')) {
-      // eapi 格式: {code: 200, message: "success", data: {...}}
+      // eapi 格式: {code: "SUCCESS", message: "success", data: {...}, timestamp: ...}
       response.data = data['data'];
     }
     handler.next(response);
@@ -214,9 +214,9 @@ class DioClient {
 前端和 Flutter 的解包逻辑必须与后端 eapi response 格式对齐：
 
 ```
-后端返回: { code: 200, message: "success", data: {...}, timestamp: ... }
-                                                  ↓ unwrap
+后端返回: { code: "SUCCESS", message: "success", data: {...}, timestamp: ... }
+                                                      ↓ unwrap
 前端/Flutter 拿到: {...}  (直接是 data 的内容)
 ```
 
-分页响应解包后拿到 `{ items, total, page, page_size }`。
+分页响应解包后拿到 `{ items, total, page, page_size }`（保持 snake_case 对齐后端 JSON）。

@@ -51,7 +51,7 @@ const http = createRequest({
 |------|------|
 | `tokenPlugin({ getToken })` | 每次请求注入 `Authorization: Bearer <token>` |
 | `headerPlugin({ name, getValue })` | 每次请求注入自定义 header（值为 null 时跳过） |
-| `unwrapPlugin()` | 解包 `{ code, data, message }` 响应；`code !== 200` 时 reject |
+| `unwrapPlugin()` | 解包 dwyeapi `{ code, message, data, timestamp }` 响应；`code !== "SUCCESS"` 时 reject（附带 `businessCode` / `apiResponse`） |
 | `refreshTokenPlugin({ isLoginUrl?, getRefreshToken, refreshFn, onRefreshFail })` | 401 时自动刷新 token 并重试原请求，刷新失败调用 `onRefreshFail` |
 
 #### `RequestPlugin` 接口

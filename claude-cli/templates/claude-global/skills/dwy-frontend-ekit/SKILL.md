@@ -1,9 +1,9 @@
 ---
 name: dwy-frontend-ekit
-description: "@dwydev/ekit 前端工具库速查（v0.6.0）。触发条件：HTTP 请求、localStorage/Cookie、表单校验、日期/时区、剪贴板、查询字符串、文件下载、PII 脱敏、Vue composable 工具。"
+description: "@dwydev/ekit 前端工具库速查（v0.7.0）。触发条件：HTTP 请求、dwyeapi 响应契约对接、localStorage/Cookie、表单校验、日期/时区、剪贴板、查询字符串、文件下载、PII 脱敏、Vue composable 工具。"
 ---
 
-# @dwydev/ekit 工具库速查（v0.6.0）
+# @dwydev/ekit 工具库速查（v0.7.0）
 
 Vue 3 项目通用工具库，**薄封装层**：底层用 axios / dayjs / zod / js-cookie / qs / file-saver / @vueuse/core，**对外只暴露 ekit 自有契约**，不泄露底层库类型。
 
@@ -60,10 +60,13 @@ import { now, formatTimestamp } from '@dwydev/ekit'  // 不需要 dayjs 实例
 ```ts
 import {
   createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin,
+  SUCCESS_CODE, extractValidationErrors, isApiBusinessError,
 } from '@dwydev/ekit'
 import type {
   HttpClient, HttpConfig, HttpResponse, HttpError, HttpPlugin,
   HttpMethod, HttpResponseType, CreateRequestOptions,
+  ApiResponse, PageData, ValidationErrorData, ValidationFieldError,
+  CommonBusinessCode, BusinessCode, ApiBusinessError,
 } from '@dwydev/ekit'
 ```
 
@@ -116,6 +119,8 @@ interface HttpError<T = any> extends Error {
   config?: HttpConfig
   response?: HttpResponse<T>
   code?: string
+  businessCode?: string                  // v0.7.0 新增：后端业务错误码（如 "NOT_FOUND"）
+  apiResponse?: ApiResponse<unknown>     // v0.7.0 新增：原始 dwyeapi 响应信封
 }
 ```
 
@@ -138,7 +143,7 @@ interface HttpPlugin {
 |------|------|------|
 | `tokenPlugin` | 注入 `Authorization: Bearer <token>` | `{ getToken: () => string \| null }` |
 | `headerPlugin` | 注入自定义动态 header | `{ name: string, getValue: () => string \| null }` |
-| `unwrapPlugin` | 解包 `{ code, data, message }`，code !== 200 时 reject；非该格式原样透传 | 无 |
+| `unwrapPlugin` | 解包 dwyeapi `{ code, message, data, timestamp }`，code !== `"SUCCESS"` 时 reject（附带 `businessCode` / `apiResponse`）；非该格式原样透传 | 无 |
 | `refreshTokenPlugin` | 401 自动刷新并重放 | 见下 |
 
 ### refreshTokenPlugin（带 retry 注入）
@@ -168,6 +173,69 @@ http = createRequest({
   ],
 })
 ```
+
+### 响应契约对齐 dwyeapi v0.7.0
+
+所有接口统一信封 `{ code, message, data, timestamp }`，`code === "SUCCESS"` 表示业务成功。unwrapPlugin 自动按此契约解包，业务代码拿到的 `response.data` 就是纯业务数据或 `PageData<T>`。
+
+```ts
+import { SUCCESS_CODE } from '@dwydev/ekit'
+import type { ApiResponse, PageData } from '@dwydev/ekit'
+
+// 单体响应
+const res = await http.get<User>('/users/1')
+// res.data: User（unwrap 后是 User 不是 ApiResponse<User>）
+
+// 分页响应
+const list = await http.get<PageData<User>>('/users?page=1&page_size=20')
+list.data.items          // User[]
+list.data.total          // number
+list.data.page           // number
+list.data.page_size      // number（保持 snake_case 对齐后端 JSON）
+```
+
+**内置业务错误码（`CommonBusinessCode`）：**
+
+| code | HTTP | 含义 |
+|------|------|------|
+| `SUCCESS` | 200 | 业务成功，unwrap 自动解包 data |
+| `NOT_FOUND` | 404 | 资源不存在 |
+| `BUSINESS_ERROR` | 422 | 业务规则不允许（基础码；业务常自定义为 `INSUFFICIENT_BALANCE` 等） |
+| `PERMISSION_DENIED` | 403 | 无权限 |
+| `AUTHENTICATION_FAILED` | 401 | 认证失败 |
+| `VALIDATION_ERROR` | 422 | 请求参数校验失败，`data.errors` 为字段错误数组 |
+| `INTERNAL_ERROR` | 500 | 服务器错误 |
+| `HTTP_{status_code}` | 原状态 | 第三方 HTTPException 透传（如 OAuth2 的 `HTTP_401`） |
+
+`BusinessCode = CommonBusinessCode | (string & {})`：既自动补全常见码，又允许业务 `BusinessError(code="CUSTOM")` 自定义。
+
+### 捕获业务错误：isApiBusinessError + extractValidationErrors
+
+unwrapPlugin 失败时抛 `HttpError`，附带 `businessCode`（业务错误码）和 `apiResponse`（原始信封）。业务 catch 直接按 code 分支：
+
+```ts
+import { isApiBusinessError, extractValidationErrors } from '@dwydev/ekit'
+
+try {
+  await http.post('/orders', body)
+} catch (err) {
+  if (!isApiBusinessError(err)) {
+    message.error('网络异常')
+    return
+  }
+  switch (err.businessCode) {
+    case 'INSUFFICIENT_BALANCE': showRecharge(); break
+    case 'NOT_FOUND': message.warning('订单不存在'); break
+    case 'VALIDATION_ERROR':
+      // err.apiResponse.data.errors: [{ field: "body.email", message: "..." }, ...]
+      form.setErrors(extractValidationErrors(err))
+      break
+    default: message.error(err.message)
+  }
+}
+```
+
+`extractValidationErrors` 自动剥离 `body. / query. / path. / header. / cookie.` 前缀，返回 `{ field: message }` 扁平对象，与 vee-validate 的 `form.setErrors` 直接兼容。嵌套字段路径（如 `body.items.0.name`）保留为 `items.0.name`。输入可以是 HttpError、完整 ApiResponse、或裸 `ValidationErrorData`，非校验错误时返回空对象。
 
 ---
 

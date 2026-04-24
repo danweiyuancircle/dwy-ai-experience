@@ -2,7 +2,9 @@
  * 内置 HTTP 插件：token / header / unwrap / refreshToken
  * 只依赖 ekit 自己的 HttpPlugin / HttpConfig / HttpResponse / HttpError 契约，不依赖 axios
  */
-import type { HttpConfig, HttpPlugin, HttpResponse } from './types'
+import type { ApiResponse } from './api'
+import { SUCCESS_CODE } from './api'
+import type { HttpConfig, HttpError, HttpPlugin, HttpResponse } from './types'
 
 /**
  * Token 注入插件：为每个请求附加 Authorization: Bearer <token>
@@ -38,16 +40,25 @@ export function headerPlugin(options: { name: string; getValue: () => string | n
 }
 
 /**
- * 响应解包插件：将后端统一格式 { code, data, message } 中 code !== 200 的情况转为 reject
+ * 响应解包插件：对齐 dwyeapi v0.7.0 的 ApiResponse 信封
+ * { code, message, data, timestamp }，code !== "SUCCESS" 时转为 reject
  * 解包后 response.data 直接是业务数据；不是该格式的响应原样透传，兼容第三方接口
+ *
+ * 失败时抛出的 HttpError 携带 businessCode（业务错误码字符串）和 apiResponse（原始信封），
+ * 业务 catch 可按 businessCode 分支处理，VALIDATION_ERROR 时可从 apiResponse.data.errors 取字段错误
  */
 export function unwrapPlugin(): HttpPlugin {
   return {
     onResponse(response) {
-      const payload = response.data as any
+      const payload = response.data as Partial<ApiResponse> | null | undefined
       if (payload && typeof payload === 'object' && 'code' in payload) {
-        if (payload.code !== 200) {
-          return Promise.reject(new Error(payload.message || 'Error')) as any
+        if (payload.code !== SUCCESS_CODE) {
+          const err = new Error(payload.message || 'Error') as HttpError
+          err.businessCode = payload.code
+          err.apiResponse = payload as ApiResponse<unknown>
+          err.config = response.config
+          err.response = response
+          return Promise.reject(err) as any
         }
         // 把 response.data 替换为业务数据（payload.data），保留 response 壳
         return { ...response, data: payload.data }
@@ -100,10 +111,18 @@ export function refreshTokenPlugin(options: {
           options.onRefreshFail()
         }
       }
-      // 统一错误消息：优先后端 detail/message，再退回 HttpError.message
+      // 统一错误消息：优先 dwyeapi 的 message，其次兼容 FastAPI 默认的 detail，再退回 HttpError.message
       const data = error.response?.data as Record<string, any> | undefined
-      const msg = data?.detail || data?.message || error.message || 'Error'
-      return Promise.reject(new Error(msg))
+      const msg = data?.message || data?.detail || error.message || 'Error'
+      const next = new Error(msg) as HttpError
+      next.config = error.config
+      next.response = error.response
+      // 若后端 body 是 ApiResponse 形态，保留 businessCode/apiResponse 方便业务分支处理
+      if (data && typeof data === 'object' && 'code' in data) {
+        next.businessCode = data.code
+        next.apiResponse = data as ApiResponse<unknown>
+      }
+      return Promise.reject(next)
     },
   }
 }
