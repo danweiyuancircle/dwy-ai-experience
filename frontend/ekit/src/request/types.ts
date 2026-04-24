@@ -3,6 +3,7 @@
  * 对外导出的类型全部定义在这里，createRequest 内部用 axios 实现，但对外不泄露 axios 任何类型
  * 以后要替换底层库（fetch / ofetch 等），消费者代码不用改
  */
+import type { ApiResponse } from './api'
 
 /** 请求方法 */
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'HEAD' | 'OPTIONS'
@@ -38,6 +39,10 @@ export interface HttpError<T = any> extends Error {
   config?: HttpConfig
   response?: HttpResponse<T>
   code?: string
+  /** 后端业务错误码(如 "NOT_FOUND"),由 unwrapPlugin / refreshTokenPlugin 在解包 ApiResponse 后附加 */
+  businessCode?: string
+  /** 后端原始 ApiResponse 信封,便于 catch 中读取 timestamp 或 VALIDATION_ERROR 的 data.errors */
+  apiResponse?: ApiResponse<unknown>
 }
 
 /** HTTP 客户端接口 */

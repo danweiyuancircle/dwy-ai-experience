@@ -10,6 +10,8 @@ import {
   headerPlugin,
   unwrapPlugin,
   refreshTokenPlugin,
+  SUCCESS_CODE,
+  type ApiResponse,
   type HttpConfig,
   type HttpResponse,
   type HttpError,
@@ -81,24 +83,68 @@ describe('unwrapPlugin', () => {
     return { data, status: 200, statusText: 'OK', headers: {}, config: {} }
   }
 
-  it('replaces response.data with business payload when code is 200', async () => {
-    const response = makeResponse({ code: 200, data: { id: 1 }, message: 'ok' })
+  function makeApiResponse<T>(overrides: Partial<ApiResponse<T>>): ApiResponse<T> {
+    return {
+      code: SUCCESS_CODE,
+      message: 'success',
+      data: null,
+      timestamp: 1713610245,
+      ...overrides,
+    } as ApiResponse<T>
+  }
+
+  it('replaces response.data with business payload when code is "SUCCESS"', async () => {
+    const response = makeResponse(makeApiResponse({ data: { id: 1 } }))
     const result = await plugin.onResponse!(response)
     expect(result.data).toEqual({ id: 1 })
   })
 
-  it('rejects when code is not 200', async () => {
-    const response = makeResponse({ code: 400, message: '参数错误' })
-    await expect(plugin.onResponse!(response)).rejects.toThrow('参数错误')
+  it('keeps PageData structure intact when code is "SUCCESS"', async () => {
+    const response = makeResponse(
+      makeApiResponse({ data: { items: [{ id: 1 }], total: 50, page: 2, page_size: 20 } }),
+    )
+    const result = await plugin.onResponse!(response)
+    expect(result.data).toEqual({ items: [{ id: 1 }], total: 50, page: 2, page_size: 20 })
+  })
+
+  it('rejects when code is not "SUCCESS"', async () => {
+    const response = makeResponse(makeApiResponse({ code: 'NOT_FOUND', message: '用户不存在' }))
+    await expect(plugin.onResponse!(response)).rejects.toThrow('用户不存在')
+  })
+
+  it('rejects with HttpError carrying businessCode and apiResponse', async () => {
+    const apiResp = makeApiResponse({
+      code: 'VALIDATION_ERROR',
+      message: '请求参数校验失败',
+      data: { errors: [{ field: 'body.email', message: 'invalid email' }] },
+    })
+    const response = makeResponse(apiResp)
+    try {
+      await plugin.onResponse!(response)
+      throw new Error('should have rejected')
+    } catch (err) {
+      const e = err as HttpError
+      expect(e).toBeInstanceOf(Error)
+      expect(e.message).toBe('请求参数校验失败')
+      expect(e.businessCode).toBe('VALIDATION_ERROR')
+      expect(e.apiResponse).toEqual(apiResp)
+      expect(e.response).toBe(response)
+    }
   })
 
   it('rejects with default message when message is empty', async () => {
-    const response = makeResponse({ code: 500 })
+    const response = makeResponse(makeApiResponse({ code: 'INTERNAL_ERROR', message: '' }))
     await expect(plugin.onResponse!(response)).rejects.toThrow('Error')
   })
 
   it('passes through non-wrapped responses', async () => {
     const response = makeResponse('plain text')
+    const result = await plugin.onResponse!(response)
+    expect(result).toBe(response)
+  })
+
+  it('passes through responses without code field', async () => {
+    const response = makeResponse({ foo: 'bar' })
     const result = await plugin.onResponse!(response)
     expect(result).toBe(response)
   })
@@ -190,7 +236,34 @@ describe('refreshTokenPlugin', () => {
     expect(retry).not.toHaveBeenCalled()
   })
 
-  it('extracts error message from response data.detail', async () => {
+  it('prefers ApiResponse message over FastAPI detail field', async () => {
+    const plugin = refreshTokenPlugin({
+      getRefreshToken: () => null,
+      refreshFn: vi.fn(),
+      onRefreshFail: vi.fn(),
+      retry: vi.fn(),
+    })
+
+    const error = makeError({
+      response: {
+        status: 401,
+        data: {
+          code: 'AUTHENTICATION_FAILED',
+          message: '认证失败',
+          data: null,
+          timestamp: 1713610245,
+          // 额外的 detail 字段，message 优先
+          detail: 'legacy detail',
+        } as any,
+      },
+      config: { url: '/api/data', headers: {} },
+      message: 'Unauthorized',
+    })
+
+    await expect(plugin.onResponseError!(error)).rejects.toThrow('认证失败')
+  })
+
+  it('falls back to FastAPI detail field when ApiResponse message missing', async () => {
     const plugin = refreshTokenPlugin({
       getRefreshToken: () => null,
       refreshFn: vi.fn(),
@@ -205,6 +278,37 @@ describe('refreshTokenPlugin', () => {
     })
 
     await expect(plugin.onResponseError!(error)).rejects.toThrow('令牌过期')
+  })
+
+  it('attaches businessCode and apiResponse to rejected error when body is ApiResponse', async () => {
+    const plugin = refreshTokenPlugin({
+      getRefreshToken: () => null,
+      refreshFn: vi.fn(),
+      onRefreshFail: vi.fn(),
+      retry: vi.fn(),
+    })
+
+    const apiResp = {
+      code: 'AUTHENTICATION_FAILED',
+      message: '认证失败',
+      data: null,
+      timestamp: 1713610245,
+    }
+    const error = makeError({
+      response: { status: 401, data: apiResp as any },
+      config: { url: '/api/data', headers: {} },
+      message: 'Unauthorized',
+    })
+
+    try {
+      await plugin.onResponseError!(error)
+      throw new Error('should have rejected')
+    } catch (err) {
+      const e = err as HttpError
+      expect(e.message).toBe('认证失败')
+      expect(e.businessCode).toBe('AUTHENTICATION_FAILED')
+      expect(e.apiResponse).toEqual(apiResp)
+    }
   })
 
   it('calls onRefreshFail when refreshFn throws', async () => {
