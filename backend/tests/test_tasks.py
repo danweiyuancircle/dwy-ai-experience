@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 from dwyeapi.database import Base
 from dwyeapi.tasks.model import Task, TaskStatus
 from dwyeapi.tasks.registry import TaskRegistry
-from dwyeapi.tasks.schema import TaskCreate, TaskListResponse, TaskResponse
+from dwyeapi.tasks.schema import TaskCreate, TaskResponse
 from dwyeapi.tasks.service import (
     append_task_log,
     create_task,
@@ -147,11 +147,16 @@ class TestSchemas:
         assert resp.status == TaskStatus.SUCCESS
         assert resp.progress == 100
 
-    def test_task_list_response(self):
-        """TaskListResponse should hold items and total."""
-        data = TaskListResponse(items=[], total=0)
-        assert data.items == []
-        assert data.total == 0
+    def test_task_page_response(self):
+        """ApiResponse.page wraps tasks into PageData envelope."""
+        from dwyeapi.response import ApiResponse, PageData
+
+        resp = ApiResponse.page(items=[], total=0, page=1, page_size=20)
+        assert isinstance(resp.data, PageData)
+        assert resp.data.items == []
+        assert resp.data.total == 0
+        assert resp.data.page == 1
+        assert resp.data.page_size == 20
 
 
 # ---------------------------------------------------------------------------

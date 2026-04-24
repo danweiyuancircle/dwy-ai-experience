@@ -1,7 +1,7 @@
 """任务系统现成可挂载的 FastAPI router。
 
 提供提交、查询、列表、取消、重试等接口,业务项目通过
-``app.include_router(task_router)`` 直接挂载。
+``app.include_router(task_router)`` 直接挂载。所有接口返回统一 ``ApiResponse`` 信封。
 """
 
 from __future__ import annotations
@@ -12,11 +12,11 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from dwyeapi.exceptions import BusinessError, NotFoundError
-from dwyeapi.response import success
+from dwyeapi.response import ApiResponse, PageData
 from dwyeapi.tasks import pool
 from dwyeapi.tasks.model import TaskStatus
 from dwyeapi.tasks.registry import registry
-from dwyeapi.tasks.schema import TaskCreate, TaskListResponse, TaskResponse
+from dwyeapi.tasks.schema import TaskCreate, TaskResponse
 from dwyeapi.tasks.service import (
     append_task_log,
     create_task,
@@ -48,20 +48,12 @@ async def _db_dependency() -> AsyncGenerator[AsyncSession]:
         yield session
 
 
-@task_router.post("", summary="提交耗时任务")
+@task_router.post("", response_model=ApiResponse[TaskResponse], summary="提交耗时任务")
 async def submit_task(
     body: TaskCreate,
     db: AsyncSession = Depends(_db_dependency),
-) -> dict:
-    """提交一个新的异步任务到后台执行。
-
-    Args:
-        body: 任务创建请求体,包含 task_type 与 params。
-        db: 注入的数据库会话。
-
-    Returns:
-        统一成功响应,data 中返回创建好的任务详情。
-    """
+) -> ApiResponse[TaskResponse]:
+    """提交一个新的异步任务到后台执行。"""
     if not registry.has(body.task_type):
         raise BusinessError(f"不支持的任务类型: {body.task_type}", code="INVALID_TASK_TYPE")
 
@@ -71,49 +63,30 @@ async def submit_task(
     arq_pool = await pool.get_pool()
     await arq_pool.enqueue_job("_task_executor", task.id, body.task_type, body.params)
 
-    return success(data=TaskResponse.model_validate(task).model_dump(mode="json"))
+    return ApiResponse.ok(TaskResponse.model_validate(task))
 
 
-@task_router.get("/{task_id}", summary="查询任务状态")
+@task_router.get("/{task_id}", response_model=ApiResponse[TaskResponse], summary="查询任务状态")
 async def query_task(
     task_id: str,
     db: AsyncSession = Depends(_db_dependency),
-) -> dict:
-    """查询指定任务的当前状态。
-
-    Args:
-        task_id: 任务唯一标识。
-        db: 注入的数据库会话。
-
-    Returns:
-        统一成功响应,data 中返回任务详情。
-    """
+) -> ApiResponse[TaskResponse]:
+    """查询指定任务的当前状态。"""
     task = await get_task(db, task_id)
     if not task:
         raise NotFoundError("任务")
-    return success(data=TaskResponse.model_validate(task).model_dump(mode="json"))
+    return ApiResponse.ok(TaskResponse.model_validate(task))
 
 
-@task_router.get("", summary="任务列表")
+@task_router.get("", response_model=ApiResponse[PageData[TaskResponse]], summary="任务列表")
 async def query_task_list(
     db: AsyncSession = Depends(_db_dependency),
     page: int = Query(default=1, ge=1, description="页码"),
     page_size: int = Query(default=20, ge=1, le=100, description="每页条数"),
     status: TaskStatus | None = Query(default=None, description="状态筛选"),
     task_type: str | None = Query(default=None, description="任务类型筛选"),
-) -> dict:
-    """分页查询任务列表,支持按状态和类型过滤。
-
-    Args:
-        db: 注入的数据库会话。
-        page: 页码(从 1 开始)。
-        page_size: 每页条数(1-100)。
-        status: 可选,按任务状态过滤。
-        task_type: 可选,按任务类型过滤。
-
-    Returns:
-        统一成功响应,data 中返回分页后的任务列表。
-    """
+) -> ApiResponse[PageData[TaskResponse]]:
+    """分页查询任务列表,支持按状态和类型过滤。"""
     items, total = await list_tasks(
         db,
         page=page,
@@ -121,29 +94,23 @@ async def query_task_list(
         status=status,
         task_type=task_type,
     )
-    data = TaskListResponse(
+    return ApiResponse.page(
         items=[TaskResponse.model_validate(t) for t in items],
         total=total,
+        page=page,
+        page_size=page_size,
     )
-    return success(data=data.model_dump(mode="json"))
 
 
-@task_router.post("/{task_id}/cancel", summary="取消任务")
+@task_router.post("/{task_id}/cancel", response_model=ApiResponse[TaskResponse], summary="取消任务")
 async def cancel_task(
     task_id: str,
     db: AsyncSession = Depends(_db_dependency),
-) -> dict:
+) -> ApiResponse[TaskResponse]:
     """请求取消一个运行中或排队中的任务。
 
     实现方式是在 Redis 设置 ``task_cancel:{task_id}`` 标志,任务函数通过
     ``ctx.is_cancelled()`` 读取并按需退出;已结束的任务不能再被取消。
-
-    Args:
-        task_id: 任务唯一标识。
-        db: 注入的数据库会话。
-
-    Returns:
-        统一成功响应,data 中返回任务最新状态。
     """
     task = await get_task(db, task_id)
     if not task:
@@ -157,24 +124,17 @@ async def cancel_task(
     arq_pool = await pool.get_pool()
     await arq_pool.set(f"task_cancel:{task_id}", b"1", ex=7200)
 
-    return success(data=TaskResponse.model_validate(task).model_dump(mode="json"))
+    return ApiResponse.ok(TaskResponse.model_validate(task))
 
 
-@task_router.post("/{task_id}/retry", summary="重试任务")
+@task_router.post("/{task_id}/retry", response_model=ApiResponse[TaskResponse], summary="重试任务")
 async def retry_task(
     task_id: str,
     db: AsyncSession = Depends(_db_dependency),
-) -> dict:
+) -> ApiResponse[TaskResponse]:
     """重试一个失败或已取消的任务。
 
     把状态重置为 PENDING、清空 result、进度归零,再次入队到 ARQ。
-
-    Args:
-        task_id: 任务唯一标识。
-        db: 注入的数据库会话。
-
-    Returns:
-        统一成功响应,data 中返回任务最新状态。
     """
     task = await get_task(db, task_id)
     if not task:
@@ -203,4 +163,4 @@ async def retry_task(
 
     # 刷新以拿到最新状态
     await db.refresh(task)
-    return success(data=TaskResponse.model_validate(task).model_dump(mode="json"))
+    return ApiResponse.ok(TaskResponse.model_validate(task))
