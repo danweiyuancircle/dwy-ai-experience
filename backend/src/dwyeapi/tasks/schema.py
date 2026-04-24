@@ -29,10 +29,3 @@ class TaskResponse(BaseModel):
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
-
-
-class TaskListResponse(BaseModel):
-    """任务分页列表响应体,``total`` 用于前端分页组件计算总页数。"""
-
-    items: list[TaskResponse]
-    total: int
