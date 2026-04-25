@@ -1,5 +1,36 @@
 # dwyeapi
 
+## 0.8.0
+
+### Minor Changes
+
+- **Email Provider 品牌化模板** —— `EmailProviderBase` 新增 `_render_code_html()` / `_render_code_text()` 共享渲染方法,`ResendEmailProvider` 替换原本简陋的硬编码 HTML 为专业品牌化模板(深色 hero 渐变页眉 + 居中验证码卡片 + 安全提示 + 客服联系 + 页脚版权)。同时附 text 版本,降低 163/QQ 等国内邮箱反垃圾误判概率,提升 Gmail/Outlook/Apple Mail 兼容性。
+  - 模板使用 table 布局 + inline CSS,主流邮件客户端零兼容问题。
+  - `brand_name` 等动态文案经 `html.escape()` 转义,即使配置含 `<script>` 也不会破坏 HTML 结构。
+  - `Resend.from` 自动拼接为 `"brand_name <from_email>"`,收件人看到的发件人显示名即品牌名。
+- **`EmailSettings` 顶层新增 5 个品牌字段** —— 与 provider 解耦的"邮件外观"参数,切换 provider(resend / aliyun)时品牌信息保留。
+  - `brand_name`:品牌名,展示在页眉与页脚版权(也作发件人显示名)。
+  - `brand_tagline`:品牌副标语(英文/口号),展示在页眉右上。
+  - `brand_url`:品牌官网,展示在页脚链接。
+  - `brand_slogan`:页脚版权下方一行说明文案。
+  - `support_email`:客服邮箱,展示在邮件正文底部。
+  - 全部默认空串,**完全向后兼容**。已有项目升级到 0.8.0 不改任何配置即可继续运行,只是邮件依然走通用模板。
+- **`AliyunEmailProvider` 占位实现同步参数签名** —— 构造器接收同一组品牌字段并透传给基类,首次接入项目时直接 `self._render_code_html(code)` 复用模板,无需重复造轮子。
+
+### `.env` 升级示例
+
+```bash
+EMAIL__PROVIDER=resend
+EMAIL__BRAND_NAME=宽舟科技
+EMAIL__BRAND_TAGLINE=QuantZone
+EMAIL__BRAND_URL=https://quantzone.tech
+EMAIL__BRAND_SLOGAN=专业量化数据服务平台
+EMAIL__SUPPORT_EMAIL=support@quantzone.tech
+EMAIL__RESEND__API_KEY=re_xxx
+EMAIL__RESEND__FROM_EMAIL=noreply@quantzone.tech
+EMAIL__RESEND__SUBJECT=【宽舟科技】您的验证码
+```
+
 ## 0.7.1
 
 ### Patch Changes
