@@ -18,7 +18,15 @@ def make_email_provider(settings: EmailSettings) -> EmailProvider:
         ValueError: 未知 provider、必填配置缺失,或 prod 环境下选择 mock provider。
         ImportError: provider 对应的 extra 未安装。
     """
-    common = {"code_ttl": settings.code_ttl, "code_length": settings.code_length}
+    common = {
+        "code_ttl": settings.code_ttl,
+        "code_length": settings.code_length,
+        "brand_name": settings.brand_name,
+        "brand_tagline": settings.brand_tagline,
+        "brand_url": settings.brand_url,
+        "brand_slogan": settings.brand_slogan,
+        "support_email": settings.support_email,
+    }
 
     match settings.provider:
         case "mock":

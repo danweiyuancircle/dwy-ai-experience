@@ -11,7 +11,8 @@ from dwyeapi.providers.email.base import DEFAULT_CODE_LENGTH, DEFAULT_CODE_TTL, 
 class AliyunEmailProvider(EmailProviderBase):
     """基于阿里云邮件推送的 Email Provider(占位)。
 
-    首次接入项目时基于 `alibabacloud_dm20151123` SDK 实现 `_send()`。
+    首次接入项目时基于 `alibabacloud_dm20151123` SDK 实现 `_send()`,
+    调用时使用 `self._render_code_html(code)` / `self._render_code_text(code)` 复用品牌模板。
     """
 
     def __init__(
@@ -23,6 +24,11 @@ class AliyunEmailProvider(EmailProviderBase):
         subject: str = "验证码",
         code_ttl: int = DEFAULT_CODE_TTL,
         code_length: int = DEFAULT_CODE_LENGTH,
+        brand_name: str = "",
+        brand_tagline: str = "",
+        brand_url: str = "",
+        brand_slogan: str = "",
+        support_email: str = "",
         redis: aioredis.Redis | None = None,
     ) -> None:
         """初始化。
@@ -30,7 +36,16 @@ class AliyunEmailProvider(EmailProviderBase):
         Raises:
             ImportError: 未安装 alibabacloud_dm20151123 时抛出。
         """
-        super().__init__(code_ttl=code_ttl, code_length=code_length, redis=redis)
+        super().__init__(
+            code_ttl=code_ttl,
+            code_length=code_length,
+            brand_name=brand_name,
+            brand_tagline=brand_tagline,
+            brand_url=brand_url,
+            brand_slogan=brand_slogan,
+            support_email=support_email,
+            redis=redis,
+        )
         try:
             import alibabacloud_dm20151123  # noqa: F401
         except ImportError as e:
@@ -38,7 +53,7 @@ class AliyunEmailProvider(EmailProviderBase):
         self._access_key_id = access_key_id
         self._access_key_secret = access_key_secret
         self._account_name = account_name
-        self._from_alias = from_alias
+        self._from_alias = from_alias or brand_name
         self._subject = subject
 
     async def _send(self, target: str, code: str) -> bool:
