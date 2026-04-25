@@ -25,6 +25,11 @@ class ResendEmailProvider(EmailProviderBase):
         subject: str = "验证码",
         code_ttl: int = DEFAULT_CODE_TTL,
         code_length: int = DEFAULT_CODE_LENGTH,
+        brand_name: str = "",
+        brand_tagline: str = "",
+        brand_url: str = "",
+        brand_slogan: str = "",
+        support_email: str = "",
         redis: aioredis.Redis | None = None,
     ) -> None:
         """初始化 Resend Provider。
@@ -35,31 +40,43 @@ class ResendEmailProvider(EmailProviderBase):
             subject: 邮件主题。
             code_ttl: 验证码有效期(秒)。
             code_length: 验证码位数。
+            brand_name: 品牌名,影响发件人显示名("brand_name <from_email>")与 HTML/text 模板。
+            brand_tagline: 品牌副标语。
+            brand_url: 品牌官网。
+            brand_slogan: 页脚说明。
+            support_email: 客服邮箱。
             redis: 可选显式注入的 Redis 连接。
 
         Raises:
             ImportError: 未安装 resend 包时抛出,提示用户安装对应 extra。
         """
-        super().__init__(code_ttl=code_ttl, code_length=code_length, redis=redis)
+        super().__init__(
+            code_ttl=code_ttl,
+            code_length=code_length,
+            brand_name=brand_name,
+            brand_tagline=brand_tagline,
+            brand_url=brand_url,
+            brand_slogan=brand_slogan,
+            support_email=support_email,
+            redis=redis,
+        )
         try:
             import resend
         except ImportError as e:
             raise ImportError("使用 ResendEmailProvider 需要安装: pip install dwyeapi[email-resend]") from e
         resend.api_key = api_key
         self._resend = resend
-        self._from = from_email
+        self._from = f"{brand_name} <{from_email}>" if brand_name else from_email
         self._subject = subject
 
     async def _send(self, target: str, code: str) -> bool:
-        """调用 Resend API 发送邮件。"""
-        minutes = self._ttl // 60
+        """调用 Resend API 发送邮件 -- 同时附 HTML 与 text,优化反垃圾评分。"""
         params = {
             "from": self._from,
             "to": [target],
             "subject": self._subject,
-            "html": (
-                f"<p>您的验证码是 <strong>{code}</strong>,{minutes} 分钟内有效。</p><p>若非本人操作,请忽略此邮件。</p>"
-            ),
+            "html": self._render_code_html(code),
+            "text": self._render_code_text(code),
         }
         try:
             resp = await self._resend.Emails.send_async(params)
