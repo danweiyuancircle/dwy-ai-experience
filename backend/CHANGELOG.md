@@ -1,5 +1,12 @@
 # dwyeapi
 
+## 0.8.2
+
+### Patch Changes
+
+- **`TimestampMixin` 字段补 column comment** — `created_at` / `updated_at` 各加 `comment="创建时间"` / `comment="更新时间"`。继承 `TimestampMixin` 的项目在 alembic autogenerate 后,迁移会自动 `op.alter_column(..., comment=...)` 把注释 push 到 PostgreSQL `pg_description`,DBeaver / Navicat / `psql \d+` 看表结构时就能看到字段说明。无运行时行为变化。
+- **`tasks.Task` 模型 7 个字段补 column comment** — `id` / `task_type` / `status` / `params` / `result` / `progress` / `logs` 全部加 `comment="..."` + 行尾 `#` 中文注释,与 `dwy-python-orm` 规则中"字段文档化规范"对齐。继承 `dwyeapi.tasks` 的项目下次 alembic autogenerate 会生成 `op.alter_column(..., comment=...)` 把注释 push 到数据库,SQL 工具看 `tasks` 表即可读到字段说明。无运行时行为变化。
+
 ## 0.8.0
 
 ### Minor Changes

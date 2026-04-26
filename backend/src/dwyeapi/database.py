@@ -24,8 +24,10 @@ class TimestampMixin:
     影响排序,也保证事务回滚时时间戳与数据保持一致。
     """
 
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+    created_at: Mapped[datetime] = mapped_column(server_default=func.now(), comment="创建时间")
+    updated_at: Mapped[datetime] = mapped_column(
+        server_default=func.now(), onupdate=func.now(), comment="更新时间"
+    )
 
 
 def create_async_engine_factory(
