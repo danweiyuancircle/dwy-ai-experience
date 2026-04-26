@@ -36,10 +36,10 @@ class Task(Base, TimestampMixin):
 
     __tablename__ = "tasks"
 
-    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_generate_task_id)
-    task_type: Mapped[str] = mapped_column(String(50), index=True)
-    status: Mapped[TaskStatus] = mapped_column(Enum(TaskStatus), default=TaskStatus.PENDING)
-    params: Mapped[dict] = mapped_column(JSON)
-    result: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=None)
-    progress: Mapped[int] = mapped_column(Integer, default=0)
-    logs: Mapped[str] = mapped_column(Text, default="")
+    id: Mapped[str] = mapped_column(String(64), primary_key=True, default=_generate_task_id, comment="任务 ID")  # 任务 ID
+    task_type: Mapped[str] = mapped_column(String(50), index=True, comment="任务类型")  # 任务类型
+    status: Mapped[TaskStatus] = mapped_column(Enum(TaskStatus), default=TaskStatus.PENDING, comment="执行状态")  # 执行状态
+    params: Mapped[dict] = mapped_column(JSON, comment="任务参数(JSON)")  # 任务参数(JSON)
+    result: Mapped[dict | None] = mapped_column(JSON, nullable=True, default=None, comment="执行结果(JSON)")  # 执行结果(JSON)
+    progress: Mapped[int] = mapped_column(Integer, default=0, comment="进度百分比 0-100")  # 进度百分比 0-100
+    logs: Mapped[str] = mapped_column(Text, default="", comment="执行日志")  # 执行日志
