@@ -211,21 +211,75 @@ export const modules: ModuleConfig[] = [
           { name: 'dwy-frontend-eui', path: '/claude/skills/dwy-frontend-eui' },
           { name: 'dwy-frontend-ekit', path: '/claude/skills/dwy-frontend-ekit' },
           { name: 'dwy-backend-eapi', path: '/claude/skills/dwy-backend-eapi' },
-          { name: 'dwy-auto-sync', path: '/claude/skills/dwy-auto-sync' },
+          { name: 'dwy-cli-sync-local', path: '/claude/skills/dwy-cli-sync-local' },
           { name: 'dwy-dev-qa', path: '/claude/skills/dwy-dev-qa' },
+          { name: 'dwy-pentest', path: '/claude/skills/dwy-pentest' },
+          { name: 'dwy-publish', path: '/claude/skills/dwy-publish' },
         ],
       },
       {
-        title: 'Rules',
+        title: 'Rules · 技术选型与项目结构',
         items: [
-          { name: 'server-security', path: '/claude/rules/server-security' },
-          { name: 'git-security', path: '/claude/rules/git-security' },
-          { name: 'python-code-style', path: '/claude/rules/python-code-style' },
-          { name: 'vue-code-style', path: '/claude/rules/vue-code-style' },
-          { name: 'backend-security', path: '/claude/rules/backend-security' },
-          { name: 'agent-team-execution', path: '/claude/rules/agent-team-execution' },
-          { name: 'agent-team-patterns', path: '/claude/rules/agent-team-patterns' },
-          { name: 'prefer-open-source', path: '/claude/rules/prefer-open-source' },
+          { name: 'dwy-tech-stack', path: '/claude/rules/dwy-tech-stack' },
+          { name: 'dwy-project-structure', path: '/claude/rules/dwy-project-structure' },
+          { name: 'dwy-prefer-open-source', path: '/claude/rules/dwy-prefer-open-source' },
+        ],
+      },
+      {
+        title: 'Rules · 开发流程与提交',
+        items: [
+          { name: 'dwy-tdd-development', path: '/claude/rules/dwy-tdd-development' },
+          { name: 'dwy-git-commit-convention', path: '/claude/rules/dwy-git-commit-convention' },
+          { name: 'dwy-git-security', path: '/claude/rules/dwy-git-security' },
+        ],
+      },
+      {
+        title: 'Rules · 安全',
+        items: [
+          { name: 'dwy-server-security', path: '/claude/rules/dwy-server-security' },
+          { name: 'dwy-payload-limits', path: '/claude/rules/dwy-payload-limits' },
+        ],
+      },
+      {
+        title: 'Rules · API 与数据库',
+        items: [
+          { name: 'dwy-api-design', path: '/claude/rules/dwy-api-design' },
+          { name: 'dwy-db-migration', path: '/claude/rules/dwy-db-migration' },
+        ],
+      },
+      {
+        title: 'Rules · Python 后端',
+        items: [
+          { name: 'dwy-python-core', path: '/claude/rules/dwy-python-core' },
+          { name: 'dwy-python-fastapi', path: '/claude/rules/dwy-python-fastapi' },
+          { name: 'dwy-python-orm', path: '/claude/rules/dwy-python-orm' },
+          { name: 'dwy-python-security', path: '/claude/rules/dwy-python-security' },
+          { name: 'dwy-python-testing', path: '/claude/rules/dwy-python-testing' },
+        ],
+      },
+      {
+        title: 'Rules · Vue 前端',
+        items: [
+          { name: 'dwy-vue-core', path: '/claude/rules/dwy-vue-core' },
+          { name: 'dwy-vue-api', path: '/claude/rules/dwy-vue-api' },
+          { name: 'dwy-vue-pinia', path: '/claude/rules/dwy-vue-pinia' },
+          { name: 'dwy-vue-testing', path: '/claude/rules/dwy-vue-testing' },
+        ],
+      },
+      {
+        title: 'Rules · Flutter 移动端',
+        items: [
+          { name: 'dwy-flutter-core', path: '/claude/rules/dwy-flutter-core' },
+          { name: 'dwy-flutter-network', path: '/claude/rules/dwy-flutter-network' },
+          { name: 'dwy-flutter-router', path: '/claude/rules/dwy-flutter-router' },
+          { name: 'dwy-flutter-testing', path: '/claude/rules/dwy-flutter-testing' },
+        ],
+      },
+      {
+        title: 'Rules · 基础设施',
+        items: [
+          { name: 'dwy-docker-spec', path: '/claude/rules/dwy-docker-spec' },
+          { name: 'dwy-dolphindb-spec', path: '/claude/rules/dwy-dolphindb-spec' },
         ],
       },
       {
