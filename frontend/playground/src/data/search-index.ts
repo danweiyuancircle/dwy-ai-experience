@@ -92,20 +92,48 @@ const searchItems: SearchItem[] = [
   { title: 'dependencies 依赖', module: 'EApi', path: '/eapi/dependencies', content: 'create_get_db FastAPI Depends 依赖注入' },
   // CLI
   { title: 'create-dwy', module: 'CLI', path: '/cli/create-dwy', content: 'dwy create dwy sync 项目脚手架 配置同步' },
-  // Claude Code
-  { title: 'dwy-frontend-eui', module: 'Claude Code', path: '/claude/skills/dwy-frontend-eui', content: 'EUI 组件库 skill Vue 3' },
-  { title: 'dwy-frontend-ekit', module: 'Claude Code', path: '/claude/skills/dwy-frontend-ekit', content: 'EKit 工具库 skill request storage' },
-  { title: 'dwy-backend-eapi', module: 'Claude Code', path: '/claude/skills/dwy-backend-eapi', content: 'EApi 基础设施 skill FastAPI' },
-  { title: 'dwy-auto-sync', module: 'Claude Code', path: '/claude/skills/dwy-auto-sync', content: '发版后自动同步 CLI skill npm publish' },
+  // Claude Code · Skills
+  { title: 'dwy-frontend-eui', module: 'Claude Code', path: '/claude/skills/dwy-frontend-eui', content: 'EUI 组件库 skill Vue 3 reka-ui shadcn' },
+  { title: 'dwy-frontend-ekit', module: 'Claude Code', path: '/claude/skills/dwy-frontend-ekit', content: 'EKit 工具库 skill request storage validators date hooks' },
+  { title: 'dwy-backend-eapi', module: 'Claude Code', path: '/claude/skills/dwy-backend-eapi', content: 'EApi 基础设施 skill FastAPI SQLAlchemy Redis' },
+  { title: 'dwy-cli-sync-local', module: 'Claude Code', path: '/claude/skills/dwy-cli-sync-local', content: 'CLI 发版后同步本地全局 dwy 命令 skill npm publish' },
   { title: 'dwy-dev-qa', module: 'Claude Code', path: '/claude/skills/dwy-dev-qa', content: '开发质量保障流程 code review 测试 skill' },
-  { title: 'server-security', module: 'Claude Code', path: '/claude/rules/server-security', content: '服务器安全 端口 Nginx Docker rule' },
-  { title: 'git-security', module: 'Claude Code', path: '/claude/rules/git-security', content: 'Git 提交安全 敏感数据 rule' },
-  { title: 'python-code-style', module: 'Claude Code', path: '/claude/rules/python-code-style', content: 'Python FastAPI 代码规范 rule' },
-  { title: 'vue-code-style', module: 'Claude Code', path: '/claude/rules/vue-code-style', content: 'Vue 前端代码规范 rule' },
-  { title: 'backend-security', module: 'Claude Code', path: '/claude/rules/backend-security', content: '后端安全规范 rule' },
-  { title: 'agent-team-execution', module: 'Claude Code', path: '/claude/rules/agent-team-execution', content: 'Agent 并行执行规则 rule' },
-  { title: 'agent-team-patterns', module: 'Claude Code', path: '/claude/rules/agent-team-patterns', content: 'Agent 并行模式速查 rule' },
-  { title: 'prefer-open-source', module: 'Claude Code', path: '/claude/rules/prefer-open-source', content: '优先开源方案 rule' },
+  { title: 'dwy-pentest', module: 'Claude Code', path: '/claude/skills/dwy-pentest', content: '白帽渗透测试 安全评估 漏洞扫描 skill' },
+  { title: 'dwy-publish', module: 'Claude Code', path: '/claude/skills/dwy-publish', content: '发版流程 测试 bump changelog publish tag skill' },
+  // Claude Code · Rules · 技术选型与项目结构
+  { title: 'dwy-tech-stack', module: 'Claude Code', path: '/claude/rules/dwy-tech-stack', content: '跨栈技术选型强制约束 FastAPI Vue Flutter rule' },
+  { title: 'dwy-project-structure', module: 'Claude Code', path: '/claude/rules/dwy-project-structure', content: '项目结构 monorepo 目录约定 rule' },
+  { title: 'dwy-prefer-open-source', module: 'Claude Code', path: '/claude/rules/dwy-prefer-open-source', content: '优先成熟开源方案 不重复造轮子 rule' },
+  // Claude Code · Rules · 开发流程与提交
+  { title: 'dwy-tdd-development', module: 'Claude Code', path: '/claude/rules/dwy-tdd-development', content: 'TDD 测试驱动开发 先测试后代码 rule' },
+  { title: 'dwy-git-commit-convention', module: 'Claude Code', path: '/claude/rules/dwy-git-commit-convention', content: 'Git commit 规范 type scope subject rule' },
+  { title: 'dwy-git-security', module: 'Claude Code', path: '/claude/rules/dwy-git-security', content: 'Git 提交安全 敏感数据 .env 密钥 rule' },
+  // Claude Code · Rules · 安全
+  { title: 'dwy-server-security', module: 'Claude Code', path: '/claude/rules/dwy-server-security', content: '服务器安全 端口 Nginx Docker rule' },
+  { title: 'dwy-payload-limits', module: 'Claude Code', path: '/claude/rules/dwy-payload-limits', content: '数据载荷三层长度限制 前端 网关 后端 rule' },
+  // Claude Code · Rules · API 与数据库
+  { title: 'dwy-api-design', module: 'Claude Code', path: '/claude/rules/dwy-api-design', content: 'API 设计 RESTful 路径 命名 rule' },
+  { title: 'dwy-db-migration', module: 'Claude Code', path: '/claude/rules/dwy-db-migration', content: '数据库迁移 Alembic schema rule' },
+  // Claude Code · Rules · Python 后端
+  { title: 'dwy-python-core', module: 'Claude Code', path: '/claude/rules/dwy-python-core', content: 'Python 基础风格 类型标注 注释 rule' },
+  { title: 'dwy-python-fastapi', module: 'Claude Code', path: '/claude/rules/dwy-python-fastapi', content: 'FastAPI 路由 依赖注入 中间件 rule' },
+  { title: 'dwy-python-orm', module: 'Claude Code', path: '/claude/rules/dwy-python-orm', content: 'SQLAlchemy 异步 ORM 模型 关联 rule' },
+  { title: 'dwy-python-security', module: 'Claude Code', path: '/claude/rules/dwy-python-security', content: 'Python 后端安全 输入校验 注入 rule' },
+  { title: 'dwy-python-testing', module: 'Claude Code', path: '/claude/rules/dwy-python-testing', content: 'Python 测试 pytest fixture rule' },
+  // Claude Code · Rules · Vue 前端
+  { title: 'dwy-vue-core', module: 'Claude Code', path: '/claude/rules/dwy-vue-core', content: 'Vue 3 基础风格 Composition API setup rule' },
+  { title: 'dwy-vue-api', module: 'Claude Code', path: '/claude/rules/dwy-vue-api', content: 'Vue API 调用 axios 请求 rule' },
+  { title: 'dwy-vue-pinia', module: 'Claude Code', path: '/claude/rules/dwy-vue-pinia', content: 'Pinia Setup Store 状态管理 rule' },
+  { title: 'dwy-vue-testing', module: 'Claude Code', path: '/claude/rules/dwy-vue-testing', content: 'Vue 测试 Vitest jsdom rule' },
+  // Claude Code · Rules · Flutter 移动端
+  { title: 'dwy-flutter-core', module: 'Claude Code', path: '/claude/rules/dwy-flutter-core', content: 'Flutter Riverpod 基础风格 rule' },
+  { title: 'dwy-flutter-network', module: 'Claude Code', path: '/claude/rules/dwy-flutter-network', content: 'Flutter Dio 网络请求 rule' },
+  { title: 'dwy-flutter-router', module: 'Claude Code', path: '/claude/rules/dwy-flutter-router', content: 'Flutter GoRouter 路由 rule' },
+  { title: 'dwy-flutter-testing', module: 'Claude Code', path: '/claude/rules/dwy-flutter-testing', content: 'Flutter 测试 widget integration rule' },
+  // Claude Code · Rules · 基础设施
+  { title: 'dwy-docker-spec', module: 'Claude Code', path: '/claude/rules/dwy-docker-spec', content: 'Docker Compose 容器化 rule' },
+  { title: 'dwy-dolphindb-spec', module: 'Claude Code', path: '/claude/rules/dwy-dolphindb-spec', content: 'DolphinDB 时序数据库 量化金融 rule' },
+  // Claude Code · Hooks
   { title: 'pre-git-commit', module: 'Claude Code', path: '/claude/hooks/pre-git-commit-sensitive-check', content: '提交前敏感信息检查 hook' },
   // Blocks
   { title: 'Login 居中卡片', module: 'EUI 组件', path: '/eui/blocks/login-01', content: 'login 登录 卡片 block' },
