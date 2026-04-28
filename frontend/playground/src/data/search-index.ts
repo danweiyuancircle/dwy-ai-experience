@@ -132,7 +132,6 @@ const searchItems: SearchItem[] = [
   { title: 'dwy-flutter-testing', module: 'Claude Code', path: '/claude/rules/dwy-flutter-testing', content: 'Flutter 测试 widget integration rule' },
   // Claude Code · Rules · 基础设施
   { title: 'dwy-docker-spec', module: 'Claude Code', path: '/claude/rules/dwy-docker-spec', content: 'Docker Compose 容器化 rule' },
-  { title: 'dwy-dolphindb-spec', module: 'Claude Code', path: '/claude/rules/dwy-dolphindb-spec', content: 'DolphinDB 时序数据库 量化金融 rule' },
   // Claude Code · Hooks
   { title: 'pre-git-commit', module: 'Claude Code', path: '/claude/hooks/pre-git-commit-sensitive-check', content: '提交前敏感信息检查 hook' },
   // Blocks

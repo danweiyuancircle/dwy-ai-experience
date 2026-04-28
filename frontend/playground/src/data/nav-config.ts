@@ -279,7 +279,6 @@ export const modules: ModuleConfig[] = [
         title: 'Rules · 基础设施',
         items: [
           { name: 'dwy-docker-spec', path: '/claude/rules/dwy-docker-spec' },
-          { name: 'dwy-dolphindb-spec', path: '/claude/rules/dwy-dolphindb-spec' },
         ],
       },
       {
