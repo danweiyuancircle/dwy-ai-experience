@@ -494,19 +494,22 @@
 
 ---
 
-## 13. providers factory 环境校验（5 个,位于 `tests/providers/`）
+## 13. providers email factory（8 个,位于 `tests/providers/test_email_factory.py`）
 
-`tests/providers/test_email_factory.py` 和 `tests/providers/test_sms_factory.py` 中与 environment 机制相关的新增用例:
+内置 resend + 自定义注册机制相关用例:
 
-| # | 文件 | 用例 | 测试要点 |
-|---|------|------|---------|
-| 1 | test_email_factory.py | test_mock_provider_forbidden_in_prod | prod + mock → ValueError,消息含 `EMAIL__PROVIDER=mock` |
-| 2 | test_email_factory.py | test_resend_provider_unaffected_in_prod | prod + resend 正常构造(回归保护) |
-| 3 | test_sms_factory.py | test_mock_provider_forbidden_in_prod | prod + mock → ValueError,消息含 `SMS__PROVIDER=mock` |
-| 4 | test_sms_factory.py | test_aliyun_provider_unaffected_in_prod | prod + aliyun 正常构造(回归保护) |
-| 5 | tests/providers/conftest.py | autouse fixture 默认 dev | 非环境校验类用例在 dev 下跑,不污染既有 mock 测试 |
+| # | 类 | 用例 | 测试要点 |
+|---|----|------|---------|
+| 1 | TestResendBuiltin | test_resend_requires_api_key | provider=resend 缺 api_key → ValueError |
+| 2 | TestResendBuiltin | test_resend_with_api_key_constructs | resend 装好 api_key 后正常构造 |
+| 3 | TestCustomRegistration | test_register_and_resolve | 注册自定义 provider 后,工厂能解析返回该实例 |
+| 4 | TestCustomRegistration | test_register_builtin_name_raises | 用 'resend' 注册抛 ValueError |
+| 5 | TestCustomRegistration | test_register_empty_name_raises | 空字符串名注册抛 ValueError |
+| 6 | TestCustomRegistration | test_register_duplicate_overrides | 同名重复注册允许覆盖,后注册生效 |
+| 7 | TestCustomRegistration | test_unknown_provider_raises | 未注册名调用工厂抛 ValueError |
+| 8 | TestCustomRegistration | test_factory_receives_full_settings | 注册的工厂能拿到完整 EmailSettings(common 字段透传) |
 
-> 注: providers 模块其余测试用例(email/sms base、各 provider 实现)暂未纳入本文件,与代码保持同步由开发者各自维护。
+`tests/providers/test_email_base.py` 与 `tests/providers/test_email_resend_import.py` 验证基类 Redis 验证码 + 模板逻辑与 resend extra 缺失时的友好报错,共 8 个用例,代码自维护。
 
 ---
 
@@ -517,8 +520,7 @@
 cd backend && python -m pytest tests/ -v
 
 # 2. 期望结果
-# 212 passed(0.7.0 新增 12 个:exceptions +5,health +7)
-# 允许 2 个预先存在的 tests/providers/test_sms_base.py::test_verify_code_* 失败,与本次改动无关
+# 全部 passed(SMS 模块已删除,仅保留 email + 其余基础设施模块)
 
 # 3. 单模块测试（调试用）
 python -m pytest tests/test_config.py -v
