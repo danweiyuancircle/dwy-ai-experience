@@ -19,7 +19,7 @@ pip install dwyeapi
 - `response` — Unified API response helpers
 - `pagination` — PaginationParams + paginate helper
 - `logger` — Facade logger (loguru-backed) with daily + size rotation and stdlib interception; downstream code depends on `dwyeapi.logger.Logger`, not loguru directly
-- `providers.email` / `providers.sms` — pluggable 验证码 Provider 工厂 (mock / resend / aliyun)
+- `providers.email` — 邮件验证码 Provider 工厂(内置 resend;支持业务通过 `register_email_provider` 注入自定义实现)
 
 ## Environment (dev / prod)
 
@@ -54,6 +54,3 @@ app = FastAPI(
 engine = create_async_engine_factory(settings.database_url, echo=is_dev())
 ```
 
-### Mock provider 仅 dev 可用
-
-`providers.email` / `providers.sms` 的 `provider="mock"` 只在 `ENVIRONMENT=dev` 下可用。prod 环境下调用 `make_email_provider()` / `make_sms_provider()` 会抛 `ValueError`,保证正式环境一旦误配置 `EMAIL__PROVIDER=mock` 会启动失败(fail fast),而不会静默吞掉真实验证码。

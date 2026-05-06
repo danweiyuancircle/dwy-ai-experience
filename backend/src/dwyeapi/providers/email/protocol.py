@@ -6,7 +6,7 @@ from typing import Protocol
 class EmailProvider(Protocol):
     """邮箱验证码服务抽象接口。
 
-    实现类:MockEmailProvider(开发)、ResendEmailProvider(生产)、AliyunEmailProvider(生产备选)。
+    内置实现:ResendEmailProvider;业务可通过 `register_email_provider` 注入自定义实现。
     通过 `dwyeapi.providers.email.make_email_provider(settings.email)` 工厂根据配置选择实现。
     """
 

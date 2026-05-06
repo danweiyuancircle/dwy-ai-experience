@@ -1,5 +1,29 @@
 # dwyeapi
 
+## 0.9.0
+
+### Minor Changes
+
+- **Email Provider 注入扩展点** —— 新增 `register_email_provider(name, factory)` 公开 API + 模块级注册表。业务项目继承 `EmailProviderBase` 实现 `_send`,再用 `register_email_provider("tencent_ses", build_fn)` 注册即可,`.env` 设 `EMAIL__PROVIDER=tencent_ses` 自动装配。Redis 验证码生成/存取/校验、品牌化 HTML+text 模板由基类全部复用,业务只关心发送通道。
+- **`EmailSettings.provider` 字段类型放宽** —— 由 `Literal["mock", "resend", "aliyun"]` 改为 `str`,默认 `"resend"`。Pydantic 静态校验交给 `make_email_provider()` 运行时校验,允许任意自定义 provider 名称。
+
+### Breaking Changes
+
+- **删除 `MockEmailProvider`** —— 开发环境如需 no-op 邮件发送,业务自行注册一个测试 provider。
+- **删除 `AliyunEmailProvider` 与 `AliyunEmailConfig`** —— 阿里云邮件接入改为业务自实现 + `register_email_provider` 注入。
+- **删除整个 `dwyeapi.providers.sms` 模块** —— 包含 `SmsProvider` Protocol、`SmsProviderBase`、`MockSmsProvider`、`AliyunSmsProvider`、`SmsSettings` 等全部符号。短信验证码能力不再由 eapi 提供,业务项目自行实现。
+- **删除 extras**:`email-aliyun` / `sms-aliyun` / `sms`;`email` 聚合 extra 现在仅含 `email-resend`。
+- **移除 `EmailSettings.aliyun` 嵌套字段**,以及邮箱工厂中的 `is_prod()` 校验(随 mock 一并去除)。
+
+### 升级指南
+
+依赖 ~0.8 版本的项目升级到 0.9.0 时:
+
+1. `.env` 里 `EMAIL__PROVIDER=mock` / `EMAIL__PROVIDER=aliyun` 改为 `resend`,或注册业务自己的 provider
+2. 移除 `EMAIL__ALIYUN__*` / `SMS__*` 相关环境变量
+3. 业务代码 `from dwyeapi.providers.sms import ...` 全部失效,需自实现短信发送
+4. 自定义邮件 provider 推荐用法见 `dwyeapi.providers.email` 模块 docstring
+
 ## 0.8.2
 
 ### Patch Changes

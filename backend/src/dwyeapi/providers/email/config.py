@@ -1,7 +1,5 @@
 """Email Provider 配置模型。"""
 
-from typing import Literal
-
 from pydantic import BaseModel, Field
 
 
@@ -26,35 +24,6 @@ class ResendConfig(BaseModel):
     )
 
 
-class AliyunEmailConfig(BaseModel):
-    """阿里云邮件推送 Provider 配置。
-
-    EMAIL__PROVIDER=aliyun 时生效;空串默认仅为 pydantic 嵌套实例化需要,
-    真正启用时凭证 + account_name 必须通过 .env 显式提供。
-    """
-
-    access_key_id: str = Field(
-        default="",
-        description="[必填: aliyun] 阿里云 AccessKey ID",
-    )
-    access_key_secret: str = Field(
-        default="",
-        description="[必填: aliyun] 阿里云 AccessKey Secret",
-    )
-    account_name: str = Field(
-        default="",
-        description="[必填: aliyun] 发信地址,需在阿里云邮件推送控制台预先配置",
-    )
-    from_alias: str = Field(
-        default="",
-        description="发件人显示名,留空则展示 account_name",
-    )
-    subject: str = Field(
-        default="验证码",
-        description="验证码邮件主题",
-    )
-
-
 class EmailSettings(BaseModel):
     """Email 模块配置 -- 业务项目嵌入 Settings 的入口。
 
@@ -70,9 +39,12 @@ class EmailSettings(BaseModel):
         EMAIL__RESEND__API_KEY=re_xxx
     """
 
-    provider: Literal["mock", "resend", "aliyun"] = Field(
-        default="mock",
-        description='Email Provider 选择:"mock"(dev 限定,打印到日志)/ "resend" / "aliyun"',
+    provider: str = Field(
+        default="resend",
+        description=(
+            "Email Provider 名称。内置仅支持 'resend';"
+            "业务可通过 register_email_provider(name, factory) 注册自定义 provider 后填入对应名称"
+        ),
     )
     code_ttl: int = Field(
         default=300,
@@ -105,8 +77,4 @@ class EmailSettings(BaseModel):
     resend: ResendConfig = Field(
         default_factory=ResendConfig,
         description="Resend 配置,provider=resend 时必填",
-    )
-    aliyun: AliyunEmailConfig = Field(
-        default_factory=AliyunEmailConfig,
-        description="阿里云邮件推送配置,provider=aliyun 时必填",
     )

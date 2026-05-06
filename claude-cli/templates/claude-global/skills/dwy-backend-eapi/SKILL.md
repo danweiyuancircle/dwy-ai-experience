@@ -84,7 +84,7 @@ app = FastAPI(
 engine = create_async_engine_factory(settings.database_url, echo=is_dev())
 ```
 
-**mock provider 仅 dev 可用**: `providers.email` / `providers.sms` 在 prod 环境下选 `provider="mock"` 会让 `make_email_provider()` / `make_sms_provider()` 抛 `ValueError`,防止误配置静默吞掉验证码。
+**Email Provider 注入**: `providers.email` 内置仅 `resend`;业务自定义发送通道(腾讯云 SES、AWS SES、自建 SMTP 等)需继承 `EmailProviderBase` 实现 `_send`,再调 `register_email_provider("name", factory)` 注册,`.env` 设 `EMAIL__PROVIDER=name` 启用。验证码 + Redis + 品牌化模板由基类全部复用。
 
 ---
 

@@ -1,8 +1,39 @@
-"""Email Provider 工厂 -- 根据配置选择实现。"""
+"""Email Provider 工厂 -- 内置 resend,支持外部注册自定义 provider。"""
 
-from dwyeapi.config import is_prod
+from collections.abc import Callable
+
+from dwyeapi.logger import get_logger
 from dwyeapi.providers.email.config import EmailSettings
 from dwyeapi.providers.email.protocol import EmailProvider
+
+logger = get_logger(__name__)
+
+EmailProviderFactory = Callable[[EmailSettings], EmailProvider]
+
+_BUILTIN_RESEND = "resend"
+_PROVIDER_REGISTRY: dict[str, EmailProviderFactory] = {}
+
+
+def register_email_provider(name: str, factory: EmailProviderFactory) -> None:
+    """注册自定义 Email Provider。
+
+    业务项目继承 `EmailProviderBase` 实现 `_send` 后,通过此函数注册到工厂,
+    `.env` 设 `EMAIL__PROVIDER=<name>` 即可启用。
+
+    Args:
+        name: provider 名称,与 EMAIL__PROVIDER 环境变量值对应。
+        factory: 工厂函数,接收 EmailSettings 返回 EmailProvider 实例。
+
+    Raises:
+        ValueError: 名称为空或与内置名称冲突。
+    """
+    if not name:
+        raise ValueError("provider 名称不能为空")
+    if name == _BUILTIN_RESEND:
+        raise ValueError(f"'{name}' 为内置 provider 名称,不可覆盖")
+    if name in _PROVIDER_REGISTRY:
+        logger.warning("Email provider %s 被覆盖注册", name)
+    _PROVIDER_REGISTRY[name] = factory
 
 
 def make_email_provider(settings: EmailSettings) -> EmailProvider:
@@ -15,8 +46,8 @@ def make_email_provider(settings: EmailSettings) -> EmailProvider:
         实现了 `EmailProvider` Protocol 的实例。
 
     Raises:
-        ValueError: 未知 provider、必填配置缺失,或 prod 环境下选择 mock provider。
-        ImportError: provider 对应的 extra 未安装。
+        ValueError: 未知 provider 或必填配置缺失。
+        ImportError: resend extra 未安装。
     """
     common = {
         "code_ttl": settings.code_ttl,
@@ -28,42 +59,22 @@ def make_email_provider(settings: EmailSettings) -> EmailProvider:
         "support_email": settings.support_email,
     }
 
-    match settings.provider:
-        case "mock":
-            if is_prod():
-                raise ValueError(
-                    "EMAIL__PROVIDER=mock 在 prod 环境下被禁止;"
-                    "请设置 ENVIRONMENT=dev 或改用真实 provider(resend/aliyun)"
-                )
-            from dwyeapi.providers.email.mock import MockEmailProvider
+    if settings.provider == _BUILTIN_RESEND:
+        from dwyeapi.providers.email.resend import ResendEmailProvider
 
-            return MockEmailProvider(**common)
+        if not settings.resend.api_key:
+            raise ValueError("EMAIL__RESEND__API_KEY 未配置")
+        return ResendEmailProvider(
+            api_key=settings.resend.api_key,
+            from_email=settings.resend.from_email,
+            subject=settings.resend.subject,
+            **common,
+        )
 
-        case "resend":
-            from dwyeapi.providers.email.resend import ResendEmailProvider
+    if settings.provider in _PROVIDER_REGISTRY:
+        return _PROVIDER_REGISTRY[settings.provider](settings)
 
-            if not settings.resend.api_key:
-                raise ValueError("EMAIL__RESEND__API_KEY 未配置")
-            return ResendEmailProvider(
-                api_key=settings.resend.api_key,
-                from_email=settings.resend.from_email,
-                subject=settings.resend.subject,
-                **common,
-            )
-
-        case "aliyun":
-            from dwyeapi.providers.email.aliyun import AliyunEmailProvider
-
-            if not settings.aliyun.access_key_id or not settings.aliyun.access_key_secret:
-                raise ValueError("EMAIL__ALIYUN__ACCESS_KEY_ID/SECRET 未配置")
-            return AliyunEmailProvider(
-                access_key_id=settings.aliyun.access_key_id,
-                access_key_secret=settings.aliyun.access_key_secret,
-                account_name=settings.aliyun.account_name,
-                from_alias=settings.aliyun.from_alias,
-                subject=settings.aliyun.subject,
-                **common,
-            )
-
-        case _:
-            raise ValueError(f"未知 email provider: {settings.provider}")
+    raise ValueError(
+        f"未知 email provider: {settings.provider};"
+        f"内置仅支持 'resend',自定义 provider 需先调用 register_email_provider 注册"
+    )
