@@ -93,12 +93,12 @@ function onGroupItemUpdate(optionValue: string | number, checked: boolean | 'ind
     >
       <CheckboxRoot
         data-slot="checkbox"
-        :checked="isOptionChecked(option.value)"
+        :model-value="isOptionChecked(option.value)"
         :disabled="disabled || option.disabled"
         :class="cn(
           'peer border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
         )"
-        @update:checked="(val: boolean | 'indeterminate') => onGroupItemUpdate(option.value, val)"
+        @update:model-value="(val: boolean | 'indeterminate') => onGroupItemUpdate(option.value, val)"
       >
         <CheckboxIndicator
           data-slot="checkbox-indicator"
@@ -124,13 +124,13 @@ function onGroupItemUpdate(optionValue: string | number, checked: boolean | 'ind
   >
     <CheckboxRoot
       data-slot="checkbox"
-      :checked="checked"
+      :model-value="checked"
       :disabled="disabled"
       :class="cn(
         'peer border-input data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground data-[state=checked]:border-primary data-[state=indeterminate]:bg-primary data-[state=indeterminate]:text-primary-foreground data-[state=indeterminate]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
         props.class,
       )"
-      @update:checked="onUpdate"
+      @update:model-value="onUpdate"
     >
       <CheckboxIndicator
         data-slot="checkbox-indicator"

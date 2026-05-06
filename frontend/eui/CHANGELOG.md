@@ -1,5 +1,12 @@
 # @dwydev/eui
 
+## 2.0.1
+
+### Patch Changes
+
+- **ECheckbox / EToggle / EMenubarCheckboxItem**: 适配 reka-ui v2 v-model API 改名（`checked`/`pressed` → `modelValue`），修复外层 v-model 不更新导致 UI 看似已勾选但状态未同步的问题
+- **测试**: 新增 ECheckbox 点击触发 `update:modelValue` 的回归测试
+
 ## 1.3.0
 
 ### Minor Changes
