@@ -21,10 +21,10 @@ const emit = defineEmits<EToggleEmits>()
 <template>
   <Toggle
     data-slot="toggle"
-    :pressed="props.modelValue"
+    :model-value="props.modelValue"
     :disabled="props.disabled"
     :class="cn(toggleVariants({ variant: props.variant, size: props.size }), props.class)"
-    @update:pressed="(val: boolean) => emit('update:modelValue', val)"
+    @update:model-value="(val: boolean) => emit('update:modelValue', val)"
   >
     <slot />
   </Toggle>

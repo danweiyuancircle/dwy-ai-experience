@@ -57,13 +57,23 @@ describe('ECheckbox', () => {
     expect(wrapper.find('[data-slot="checkbox-wrapper"]').classes()).toContain('cursor-pointer')
   })
 
-  it('passes indeterminate as checked value to reka-ui', () => {
+  it('renders indeterminate data-state on reka-ui CheckboxRoot', () => {
     const wrapper = mount(ECheckbox, {
       props: { modelValue: false, indeterminate: true },
     })
     const btn = wrapper.find('[data-slot="checkbox"]')
-    // The component sets checked='indeterminate' on CheckboxRoot
-    expect(btn.attributes('checked')).toBe('indeterminate')
+    expect(btn.attributes('data-state')).toBe('indeterminate')
+  })
+
+  it('emits update:modelValue when reka-ui CheckboxRoot toggles', async () => {
+    // 回归保护：reka-ui v2 改名 checked → modelValue 后桥接断裂，
+    // UI 显示已勾选但外层 v-model 不更新（注册页"请先同意协议"误报的根因）
+    const wrapper = mount(ECheckbox, {
+      props: { modelValue: false },
+    })
+    await wrapper.find('[data-slot="checkbox"]').trigger('click')
+    expect(wrapper.emitted('update:modelValue')).toBeTruthy()
+    expect(wrapper.emitted('update:modelValue')![0]).toEqual([true])
   })
 
   it('renders group mode when options are provided', () => {
