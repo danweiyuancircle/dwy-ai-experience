@@ -54,6 +54,29 @@ else
   echo ""
   echo "--- client_max_body_size (对齐 dwy-payload-limits) ---"
   echo "$NGINX_DUMP" | grep -E "^[[:space:]]*client_max_body_size" || echo "[!] 未显式配置 client_max_body_size"
+
+  echo ""
+  echo "--- 限流配置 (limit_req / limit_conn 防 CC / 暴力请求) ---"
+  ZONE_DEFS=$(echo "$NGINX_DUMP" | grep -E "^[[:space:]]*limit_(req|conn)_zone" || true)
+  if [[ -z "$ZONE_DEFS" ]]; then
+    echo "[!] CRITICAL: 未发现任何 limit_req_zone / limit_conn_zone 定义,无 CC 攻击防护"
+  else
+    echo "已定义 zone:"
+    echo "$ZONE_DEFS"
+    echo ""
+    echo "应用位置 (limit_req / limit_conn):"
+    echo "$NGINX_DUMP" | grep -E "^[[:space:]]*limit_(req|conn)[[:space:]]" || echo "[!] zone 已定义但未在 server/location 中应用"
+    echo ""
+    LIMIT_STATUS=$(echo "$NGINX_DUMP" | grep -E "^[[:space:]]*limit_req_status" | head -1)
+    echo "limit_req_status: ${LIMIT_STATUS:-(默认 503,建议 429)}"
+  fi
+
+  echo ""
+  echo "--- 慢速攻击防护 (slowloris) ---"
+  for d in client_body_timeout client_header_timeout send_timeout keepalive_timeout; do
+    val=$(echo "$NGINX_DUMP" | grep -E "^[[:space:]]*${d}[[:space:]]" | head -1)
+    echo "${d}: ${val:-(未显式配置,使用默认)}"
+  done
 fi
 
 echo ""

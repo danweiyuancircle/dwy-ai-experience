@@ -83,9 +83,51 @@ done
 
 echo ""
 echo "--- docker daemon 配置 ---"
-sudo -n cat /etc/docker/daemon.json 2>/dev/null || cat /etc/docker/daemon.json 2>/dev/null || echo "[i] 无 daemon.json 或不可读"
+DAEMON_JSON=$(sudo -n cat /etc/docker/daemon.json 2>/dev/null || cat /etc/docker/daemon.json 2>/dev/null || echo "")
+if [[ -z "$DAEMON_JSON" ]]; then
+  echo "[i] 无 daemon.json 或不可读"
+else
+  echo "$DAEMON_JSON"
+fi
+
+echo ""
+echo "--- 容器 RestartPolicy (服务器重启后能否自动起来) ---"
+for c in $(docker ps -aq 2>/dev/null); do
+  name=$(docker inspect -f '{{.Name}}' "$c" 2>/dev/null | sed 's|^/||')
+  policy=$(docker inspect -f '{{.HostConfig.RestartPolicy.Name}}' "$c" 2>/dev/null)
+  state=$(docker inspect -f '{{.State.Status}}' "$c" 2>/dev/null)
+  case "$policy" in
+    always|unless-stopped)
+      echo "  [OK] $name  state=$state  policy=$policy"
+      ;;
+    on-failure)
+      echo "  [!] $name  state=$state  policy=on-failure (手动 stop / OOM 后不会重启)"
+      ;;
+    no|"")
+      [[ "$state" == "running" ]] \
+        && echo "  [!!!] CRITICAL: $name  state=running  policy=${policy:-no} (服务器重启后不会自动启动)" \
+        || echo "  [i] $name  state=$state  policy=${policy:-no}"
+      ;;
+    *)
+      echo "  [?] $name  policy=$policy (未知)"
+      ;;
+  esac
+done
+
+echo ""
+echo "--- 日志驱动配置 (防容器日志写满磁盘) ---"
+LOG_DRIVER=$(echo "$DAEMON_JSON" | grep -oE '"log-driver"[[:space:]]*:[[:space:]]*"[^"]+"' | head -1)
+LOG_MAX_SIZE=$(echo "$DAEMON_JSON" | grep -oE '"max-size"[[:space:]]*:[[:space:]]*"[^"]+"' | head -1)
+LOG_MAX_FILE=$(echo "$DAEMON_JSON" | grep -oE '"max-file"[[:space:]]*:[[:space:]]*"[^"]+"' | head -1)
+echo "log-driver: ${LOG_DRIVER:-(默认 json-file)}"
+echo "max-size:   ${LOG_MAX_SIZE:-(未配置, 单容器日志可无限增长)}"
+echo "max-file:   ${LOG_MAX_FILE:-(未配置)}"
+if [[ -z "$LOG_MAX_SIZE" ]]; then
+  echo "[!!] HIGH: 未限制单容器日志大小,长跑容器可能写满磁盘"
+  echo "      建议: daemon.json 加 \"log-opts\": {\"max-size\": \"100m\", \"max-file\": \"3\"}"
+fi
 
 echo ""
 echo "--- docker compose 文件位置 (用于人工核查) ---"
-sudo -n find /home /opt /srv /root -maxdepth 5 -name "docker-compose*.yml" -o -name "compose.yml" 2>/dev/null | head -10
+sudo -n find /home /opt /srv /root -maxdepth 5 \( -name "docker-compose*.yml" -o -name "compose.yml" \) 2>/dev/null | head -10
 REMOTE

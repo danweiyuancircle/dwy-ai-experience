@@ -38,7 +38,7 @@ description: "部署后线上环境基础安全巡检：远程 SSH 到目标服�
 1. 收集目标信息  → 确认 SSH 连接、目标服务范围
 2. 连通性测试    → SSH 登录、sudo 权限确认
 3. 基础环境识别  → 系统版本、已部署服务清单
-4. 分类检查      → SSH / Nginx / DB / HTTPS / Env / Docker / Services
+4. 分类检查      → SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience（subagent 并行）
 5. 生成报告      → 按等级聚合,Markdown 格式
 6. 修复建议      → 每条问题给出修复方向(不执行)
 ```
@@ -107,9 +107,34 @@ ssh ${TARGET} "
 
 ---
 
-## Step 4: 分类检查
+## Step 4: 分类检查（并行执行）
 
-按以下顺序执行各类检查脚本，**每类独立成段**，单类失败不影响其他类继续：
+**优先采用 Claude Code subagent 并行**：把每一类检查派给一个独立的 general-purpose Agent 执行，所有 Agent 在**同一条消息里发出**，并行跑各自的 `check_xxx.sh`。每个 Agent 独立 SSH 到目标服务器，互不干扰；主 Claude 收到所有 Agent 的原始输出后再汇总成 Step 5 的 Markdown 报告。
+
+**派遣模板**（每个分类一个 Agent，并行）：
+
+```
+description: "巡检 {分类名}"
+subagent_type: "general-purpose"
+prompt:
+  对目标服务器执行 {分类名} 类巡检。
+  - SSH 目标: {host}:{port}
+  - 用户: {user}
+  - 私钥: {key}
+  - sudo: {yes/no}
+  - 执行: cat ~/.claude/skills/dwy-deploy-audit/scripts/{check_xxx.sh} | ssh -o ConnectTimeout=10 -i {key} -p {port} {user}@{host} "bash -s"
+  - 要求:
+    1. 把脚本输出原样粘贴回来,不要自行解读、归纳或省略
+    2. 不重试失败的命令
+    3. 仅在脚本结尾追加一行: "EXIT_CODE: <ssh 实际退出码>"
+    4. 如 SSH 连接本身失败,只回报错误,不再尝试其他动作
+```
+
+**为什么并行**：服务器侧的检查命令是独立只读，互不依赖。串行 7 类约 60s，并行约 10s 内完成。多 Agent 也避免主上下文被原始输出淹没。
+
+**何时退化为串行**：用户机器禁用 Agent / 显式要求串行 / 目标服务器并发 SSH 受限（≥ 8 个 sshd MaxStartups 默认 10:30:60，并行没问题）。退化命令：`bash {scripts}/run_all.sh ${TARGET}`。
+
+**各类检查内容如下：**
 
 ### 4.1 SSH 安全 — `{scripts}/check_ssh.sh`
 
@@ -137,6 +162,11 @@ ssh ${TARGET} "
 | `access_log` | 已开启 | **high**(用户特别要求) |
 | `error_log` | 已开启,级别 ≥ warn | high |
 | `client_max_body_size` | 显式配置,业务非上传 ≤ 10m(对齐 dwy-payload-limits) | medium |
+| `limit_req_zone` 已定义 | 至少 1 个 zone（防 CC 攻击 / 暴力请求） | high |
+| `limit_req` 应用到敏感路由 | 登录 / 注册 / 验证码 / 高频 API 必须有 | **critical** |
+| `limit_conn_zone` + `limit_conn` | 限制同 IP 高并发连接 | medium |
+| `limit_req_status` | 建议 `429`（默认 503 易被误判为后端故障） | low |
+| `client_body_timeout` / `client_header_timeout` | ≤ 10s（防 slowloris 慢速攻击） | medium |
 | `add_header Strict-Transport-Security` | `max-age=31536000` | high |
 | `add_header X-Frame-Options` | `DENY` 或 `SAMEORIGIN` | medium |
 | `add_header X-Content-Type-Options` | `nosniff` | medium |
@@ -167,6 +197,8 @@ ssh ${TARGET} "
 | 6379 公网可达性 | 公网不可达 | **critical** |
 | `requirepass` | 已设置且 ≥ 32 字符随机串 | **critical** |
 | `protected-mode` | `yes` | high |
+| `maxmemory` | 已设置（推荐物理内存 50%–70%）,**禁止** `0`（无上限） | high |
+| `maxmemory-policy` | 业务侧已感知（`allkeys-lru` / `volatile-lru` 常见，`noeviction` 需特别确认） | info |
 | `rename-command` | 危险命令(FLUSHALL/CONFIG)已重命名 | medium |
 | Redis 版本 | 非已知 CVE 版本 | medium |
 
@@ -202,6 +234,10 @@ ssh ${TARGET} "
 | `--privileged` 容器 | 无 | **critical** |
 | Docker 版本 | 非已知 CVE 版本 | medium |
 | Docker daemon 远程 API | 未暴露 2375/2376 公网 | **critical** |
+| 容器 `RestartPolicy` | `always` 或 `unless-stopped`（**服务器重启后自动起来**） | **critical** |
+| 容器 `RestartPolicy=no` 但正在 running | 不允许（重启会丢） | **critical** |
+| 容器 `RestartPolicy=on-failure` | 不推荐（手动 stop / OOM 后不会重启） | high |
+| daemon 日志驱动 `log-opts.max-size` | 已配置（≤ 100m，防容器日志写满磁盘） | high |
 
 ### 4.7 依赖服务连通性 — `{scripts}/check_services.sh`
 
@@ -212,6 +248,37 @@ ssh ${TARGET} "
 | 跨服务网络 | 应用 → DB/Redis 连通正常 | info |
 | 防火墙规则 | iptables / ufw / firewalld 已启用 | high |
 | 外部访问入口 | 仅 80/443 + SSH 端口 | high |
+
+### 4.8 自愈与资源耗尽防护 — `{scripts}/check_resilience.sh`
+
+服务器意外重启后能否自动恢复，以及在异常负载下能否守住底线。
+
+**B. 系统服务开机自启**（默认清单 + 自动探测）
+
+| 检查项 | 期望值 | 严重级 |
+|--------|--------|--------|
+| `sshd` is-enabled | enabled（不起就再也连不上） | **critical** |
+| `nginx` is-enabled | enabled | **critical** |
+| `docker` is-enabled | enabled（影响所有容器） | **critical** |
+| `postgresql` is-enabled | enabled | **critical** |
+| `redis` / `redis-server` is-enabled | enabled | high |
+| `frps` / `frpc` is-enabled（如部署） | enabled | high |
+| `fail2ban` is-enabled（如安装） | enabled | medium |
+| 应用主进程 systemd unit | enabled | **critical** |
+| running 但 disabled 的服务 | 不应存在（重启即丢失） | high |
+| 自动探测：`systemctl list-unit-files --state=enabled` | 输出供人工核对应用进程是否在内 | info |
+
+**D. 资源耗尽防护**
+
+| 检查项 | 期望值 | 严重级 |
+|--------|--------|--------|
+| `swap` 已配置 | ≥ 1GB（OOM 缓冲） | medium |
+| 根分区使用率 | < 80% | medium（≥ 90% critical） |
+| `/etc/logrotate.conf` 存在 | 是 | high |
+| 关键服务有 `/etc/logrotate.d/<name>` | nginx / postgresql / redis 等都应有 | high |
+| nginx / postgres / redis 进程 `ulimit -n` | ≥ 4096，建议 65535 | medium |
+| `/proc/pressure/memory`（PSI） | 输出供观察当前内存压力 | info |
+| 容器 `HostConfig.Memory` | 关键容器应有内存上限 | medium |
 
 ---
 
@@ -225,7 +292,7 @@ ssh ${TARGET} "
 **目标:** {host}
 **时间:** {iso8601}
 **执行人:** {user}@{client}
-**覆盖类别:** SSH / Nginx / DB / HTTPS / Env / Docker / Services
+**覆盖类别:** SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience
 
 ## 摘要
 
