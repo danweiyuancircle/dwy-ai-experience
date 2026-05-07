@@ -65,6 +65,20 @@ export function unwrapPlugin(): HttpPlugin {
       }
       return response
     },
+    /**
+     * dwyeapi 业务错误用 4xx + ApiResponse 信封表示(典型:VALIDATION_ERROR=422、
+     * EMAIL_EXISTS=422、INVALID_EMAIL_CODE=422 等)。axios 见 4xx 直接走 onResponseError,
+     * 此处把 error.response.data 中的 code/message 提到 HttpError 上,
+     * 业务 catch 才能拿 businessCode 做分支。无 ApiResponse 形态时不动 error。
+     */
+    onResponseError(error) {
+      const payload = error.response?.data as Partial<ApiResponse> | null | undefined
+      if (payload && typeof payload === 'object' && typeof payload.code === 'string') {
+        error.businessCode = payload.code
+        error.apiResponse = payload as ApiResponse<unknown>
+        if (payload.message) error.message = payload.message
+      }
+    },
   }
 }
 

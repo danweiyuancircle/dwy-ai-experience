@@ -1,5 +1,11 @@
 # @dwydev/ekit
 
+## 0.7.1
+
+### Patch Changes
+
+- `unwrapPlugin` 补齐 `onResponseError` 钩子,从 `error.response.data` 提取 `code`/`message` 挂到 `HttpError` 上。修复 dwyeapi 业务错走 4xx(典型如 `EMAIL_EXISTS=422`、`VALIDATION_ERROR=422`、`INVALID_EMAIL_CODE=422`)时,axios 走 onResponseError 路径导致 `businessCode` 不被设置,业务 catch 拿不到错误码无法分支的问题。配套 3 个新增回归测试。
+
 ## 0.7.0
 
 ### Breaking Changes
