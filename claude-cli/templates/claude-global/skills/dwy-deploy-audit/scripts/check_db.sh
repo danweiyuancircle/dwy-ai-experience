@@ -72,6 +72,34 @@ else
   fi
 
   echo ""
+  echo "--- maxmemory 判定 (运行时取值,优于 conf 文件) ---"
+  MAXMEM=$(timeout 3 redis-cli -h 127.0.0.1 CONFIG GET maxmemory 2>/dev/null | tail -1)
+  MAXMEM_POLICY=$(timeout 3 redis-cli -h 127.0.0.1 CONFIG GET maxmemory-policy 2>/dev/null | tail -1)
+  if [[ -z "$MAXMEM" ]]; then
+    echo "[i] redis-cli 无密码连接失败,从 conf 文件读取"
+    MAXMEM=$(grep -E "^[[:space:]]*maxmemory[[:space:]]" "$REDIS_CONF" 2>/dev/null | awk '{print $2}' | tail -1)
+    MAXMEM_POLICY=$(grep -E "^[[:space:]]*maxmemory-policy[[:space:]]" "$REDIS_CONF" 2>/dev/null | awk '{print $2}' | tail -1)
+  fi
+  echo "maxmemory: ${MAXMEM:-(未取得)}"
+  echo "maxmemory-policy: ${MAXMEM_POLICY:-(未取得)}"
+
+  TOTAL_MEM=$(awk '/MemTotal/ {print $2}' /proc/meminfo 2>/dev/null)
+  if [[ -n "$TOTAL_MEM" ]]; then
+    TOTAL_MEM_BYTES=$((TOTAL_MEM * 1024))
+    echo "服务器总内存: $((TOTAL_MEM / 1024)) MB ($TOTAL_MEM_BYTES bytes)"
+  fi
+
+  if [[ "$MAXMEM" == "0" || -z "$MAXMEM" ]]; then
+    echo "[!!!] HIGH: maxmemory=0(无上限),Redis 可能耗尽服务器内存触发 OOM kill"
+    echo "      建议: 设置为服务器物理内存的 50%-70% (CONFIG SET maxmemory <bytes>)"
+  else
+    echo "[OK] maxmemory 已设置"
+    if [[ "$MAXMEM_POLICY" == "noeviction" ]]; then
+      echo "[!] INFO: maxmemory-policy=noeviction,达到上限时拒写但不淘汰,业务方需感知"
+    fi
+  fi
+
+  echo ""
   echo "--- 尝试无密码连接 (如能成功 → CRITICAL) ---"
   if timeout 3 redis-cli -h 127.0.0.1 ping 2>/dev/null | grep -q PONG; then
     echo "[!!!] CRITICAL: Redis 127.0.0.1 无密码可连!"
