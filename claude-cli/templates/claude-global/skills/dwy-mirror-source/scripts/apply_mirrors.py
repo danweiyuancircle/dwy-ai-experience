@@ -168,38 +168,75 @@ def apply_uv(provider: str, project: Path) -> list[Change]:
         return []
 
     changes: list[Change] = []
-    target = MIRRORS[provider]["uv"]
+    target_index = MIRRORS[provider]["uv"]
+    target_python = MIRRORS[provider]["uv_python_install"]
     user_uv = home() / ".config/uv/uv.toml"
 
-    # 用户级
-    new_block = f'[[index]]\nurl = "{target}"\ndefault = true\n'
     old = read_text_safe(user_uv) if user_uv.exists() else ""
 
-    if user_uv.exists():
+    # 解析现有内容
+    existing_index = ""
+    existing_python_mirror = ""
+    if old:
         try:
-            with user_uv.open("rb") as f:
-                data = tomllib.load(f)
-            existing = data.get("index", []) or []
-            urls = [i.get("url", "") for i in existing if isinstance(i, dict)]
-            if urls and is_private_registry(urls[0]):
-                return [Change("uv", "user", str(user_uv), "skip", note="检测到私服，跳过")]
-            if any(re.search(p, urls[0] if urls else "", re.IGNORECASE)
-                   for p in KNOWN_GOOD["pip"]):
-                # 已加速，不动
-                pass
-            else:
-                # 简单做法：替换 [[index]] 块
-                new = re.sub(r"\[\[index\]\][^\[]*?(?=\n\[|\Z)", new_block.strip(),
-                             old, count=1, flags=re.DOTALL)
-                if "[[index]]" not in new:
-                    new = (old.rstrip() + "\n\n" + new_block) if old else new_block
-                changes.append(Change("uv", "user", str(user_uv), "modify", old, new))
+            data = tomllib.loads(old)
+            indexes = data.get("index", []) or []
+            urls = [i.get("url", "") for i in indexes if isinstance(i, dict)]
+            existing_index = urls[0] if urls else ""
+            existing_python_mirror = data.get("python-install-mirror", "")
+        except tomllib.TOMLDecodeError:
+            return [Change("uv", "user", str(user_uv), "skip",
+                           note="uv.toml 解析失败，请手动修复")]
+
+    # 私服跳过
+    if existing_index and is_private_registry(existing_index):
+        return [Change("uv", "user", str(user_uv), "skip", note="PyPI 索引是私服，跳过")]
+
+    # 计算新内容：python-install-mirror 总是放最前，再放 [[index]]
+    need_index = classify_url("pip", existing_index) != "ok"
+    need_python = "npmmirror.com" not in existing_python_mirror
+
+    if not need_index and not need_python:
+        return []
+
+    # 重新生成整个 uv.toml（用结构化方式更可靠）
+    new_lines = []
+    new_lines.append(f'python-install-mirror = "{target_python}"')
+    new_lines.append("")
+    new_lines.append("[[index]]")
+    new_lines.append(f'url = "{target_index}"')
+    new_lines.append("default = true")
+    new_content = "\n".join(new_lines) + "\n"
+
+    # 保留原 uv.toml 中其他字段（如 cache-dir、resolution 等）
+    if old:
+        try:
+            data = tomllib.loads(old)
+            preserved = {k: v for k, v in data.items()
+                         if k not in ("python-install-mirror", "index")}
+            if preserved:
+                # 简单序列化保留字段（仅基础类型，复杂结构保持原样附加）
+                extra_lines = []
+                for k, v in preserved.items():
+                    if isinstance(v, str):
+                        extra_lines.append(f'{k} = "{v}"')
+                    elif isinstance(v, bool):
+                        extra_lines.append(f'{k} = {"true" if v else "false"}')
+                    elif isinstance(v, (int, float)):
+                        extra_lines.append(f"{k} = {v}")
+                    # 其他复杂类型（dict/list）跳过，提示用户手动迁移
+                if extra_lines:
+                    new_content = "\n".join(extra_lines) + "\n\n" + new_content
         except tomllib.TOMLDecodeError:
             pass
-    else:
-        changes.append(Change("uv", "user", str(user_uv), "create", "", new_block))
 
-    # 项目级 pyproject.toml — 不做任何写入，因为 pyproject.toml 由项目维护
+    if old == new_content:
+        return []
+    note = "包含两套源：PyPI 包索引 + Python 解释器下载（python-install-mirror）"
+    changes.append(Change("uv", "user", str(user_uv),
+                          "create" if not old else "modify", old, new_content, note=note))
+
+    # 项目级 pyproject.toml — 不自动改
     pyproject = project / "pyproject.toml"
     if pyproject.exists():
         try:
@@ -209,7 +246,7 @@ def apply_uv(provider: str, project: Path) -> list[Change]:
             urls = [i.get("url", "") for i in indexes if isinstance(i, dict)]
             if not indexes:
                 changes.append(Change("uv", "project", str(pyproject), "skip",
-                                      note="项目级建议手动添加 [[tool.uv.index]]，不自动改 pyproject.toml"))
+                                      note="pyproject.toml 由项目维护，不自动改。建议手动添加 [[tool.uv.index]]"))
             elif urls and is_private_registry(urls[0]):
                 changes.append(Change("uv", "project", str(pyproject), "skip",
                                       note="项目使用私服，跳过"))

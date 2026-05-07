@@ -42,12 +42,13 @@ description: "国内镜像源加速配置检查与修复：扫描 pip/uv/poetry/
 | 类别 | 工具 | 用户级配置 | 项目级配置 |
 |------|------|-----------|-----------|
 | **Python** | pip | `~/.config/pip/pip.conf` 或 macOS 的 `~/Library/Application Support/pip/pip.conf` | — |
-| | uv | `~/.config/uv/uv.toml` | `pyproject.toml` 的 `[[tool.uv.index]]` |
+| | uv（**双源**） | `~/.config/uv/uv.toml` 同时含 `[[index]]` + `python-install-mirror` | `pyproject.toml` 的 `[[tool.uv.index]]` |
 | | poetry | `~/Library/Application Support/pypoetry/auth.toml` 等 | `pyproject.toml` 的 `[[tool.poetry.source]]` |
 | **Node** | npm | `~/.npmrc` | `.npmrc` |
 | | pnpm | `~/.npmrc`（共用） | `.npmrc` |
 | | yarn | `~/.yarnrc.yml` 或 `~/.yarnrc` | 同名项目级文件 |
-| **Docker** | daemon registry-mirrors | `~/.docker/daemon.json`（macOS Docker Desktop）/ `/etc/docker/daemon.json`（Linux） | — |
+| **Docker（双层）** | daemon registry-mirrors（**仅对 docker.io 生效**） | `~/.docker/daemon.json`（macOS Docker Desktop）/ `/etc/docker/daemon.json`（Linux） | — |
+| | gcr/ghcr/quay/k8s 等其他 registry 加速（必须改 image 引用） | 用户在 Dockerfile / k8s yaml 中直接换前缀 | 同左 |
 | **Go** | GOPROXY | `~/.config/go/env` 或 `~/Library/Application Support/go/env` | — |
 | **Rust** | cargo | `~/.cargo/config.toml` | `.cargo/config.toml` |
 | **JVM** | Maven | `~/.m2/settings.xml` | — |
@@ -160,6 +161,93 @@ python3 {scripts}/check_mirrors.py --only npm --verbose
 
 ---
 
+## uv 镜像源（多层）
+
+uv 实际有 **3 个独立的镜像源**，缺一个都会拖慢：
+
+| 层 | 配置项 | 作用 | 国内推荐源 |
+|----|--------|------|-----------|
+| 1. 包索引 | `[[index]]` 或 `UV_DEFAULT_INDEX` | 装 PyPI 包 | `https://mirrors.aliyun.com/pypi/simple/` |
+| 2. **Python 解释器下载** ⭐ | `python-install-mirror` 或 `UV_PYTHON_INSTALL_MIRROR` | `uv python install 3.12` 时下载解释器 | `https://registry.npmmirror.com/-/binary/python-build-standalone` |
+| 3. PyPy 解释器下载 | `pypy-install-mirror` 或 `UV_PYPY_INSTALL_MIRROR` | 下载 PyPy 解释器 | 国内**无可用镜像**，保留默认 |
+
+**关键点：** 第 2 层（Python 解释器）默认走 `github.com/astral-sh/python-build-standalone/releases`，国内不挂代理几乎无法下载。这是 `uv venv --python 3.12` 卡住的常见原因。
+
+完整 `~/.config/uv/uv.toml` 示例：
+
+```toml
+python-install-mirror = "https://registry.npmmirror.com/-/binary/python-build-standalone"
+
+[[index]]
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+```
+
+`apply_mirrors.py --tools uv` 会同时写入这两层。第 3 层 PyPy 不强制配置（国内无源）。
+
+---
+
+## Docker 镜像源（多层）
+
+Docker 镜像加速分**两类，互不替代**：
+
+### 类型 1：docker.io 加速 — `registry-mirrors`
+
+唯一作用于 `docker.io`（Docker Hub）。配置在 `~/.docker/daemon.json`：
+
+```json
+{
+  "registry-mirrors": [
+    "https://docker.m.daocloud.io",
+    "https://docker.mirrors.ustc.edu.cn"
+  ]
+}
+```
+
+`apply_mirrors.py --tools docker` 自动配置这一层。
+
+### 类型 2：gcr / ghcr / quay / k8s 等加速 — 改 image 引用
+
+**`registry-mirrors` 字段对它们完全无效**。必须把 image 名改前缀域名：
+
+| 源 registry | 镜像域名 | 用途 |
+|-------------|---------|------|
+| `gcr.io` | `gcr.m.daocloud.io` | Google Container Registry |
+| `ghcr.io` | `ghcr.m.daocloud.io` | GitHub Container Registry |
+| `quay.io` | `quay.m.daocloud.io` | Red Hat Quay |
+| `registry.k8s.io` | `k8s.m.daocloud.io` | Kubernetes 当前官方 registry |
+| `k8s.gcr.io` | `k8s-gcr.m.daocloud.io` | Kubernetes 旧仓库 |
+| `mcr.microsoft.com` | `mcr.m.daocloud.io` | Microsoft Container Registry |
+| `nvcr.io` | `nvcr.m.daocloud.io` | NVIDIA Container Registry |
+| `docker.elastic.co` | `elastic.m.daocloud.io` | Elastic 官方镜像 |
+| `registry.ollama.ai` | `ollama.m.daocloud.io` | Ollama 模型 |
+
+完整列表见 `references/mirror-providers.md`。
+
+**用法：**
+
+```bash
+# 原本（国内拉不动）
+docker pull gcr.io/google-containers/pause:3.9
+docker pull ghcr.io/astral-sh/uv:0.5.0
+
+# 改前缀域名走加速
+docker pull gcr.m.daocloud.io/google-containers/pause:3.9
+docker pull ghcr.m.daocloud.io/astral-sh/uv:0.5.0
+```
+
+```dockerfile
+# Dockerfile 同理
+FROM ghcr.m.daocloud.io/astral-sh/uv:0.5.0 AS uv
+FROM gcr.m.daocloud.io/distroless/python3:nonroot
+```
+
+**为什么不能自动配置？** 这层加速无法在 daemon.json 实现透明代理，必须显式改 image 字符串。Claude 在用户写 Dockerfile / k8s yaml 时，如发现使用了 gcr/ghcr/quay 等域名，**应主动提示**改前缀（可与 dwy-docker-image skill 协同：固定 tag 时一并替换 registry 域名）。
+
+> 提示：containerd（不是 Docker）支持 `[plugins."io.containerd.grpc.v1.cri".registry.mirrors]` 全局映射；Kubernetes 节点用 containerd 时可写到 `/etc/containerd/config.toml` 实现透明代理。Docker 引擎本身不支持。
+
+---
+
 ## 与其他 skill 的关系
 
 - **dwy-docker-image**：固定镜像版本（FROM 指令的 tag）
@@ -175,8 +263,11 @@ python3 {scripts}/check_mirrors.py --only npm --verbose
 | 检测项 | 严重程度 | 说明 |
 |--------|---------|------|
 | Python pip 用 `pypi.org/simple` 默认源 | warn | 改 `mirrors.aliyun.com/pypi/simple/` |
+| uv 缺 `python-install-mirror` | warn | `uv python install` 卡顿，添加 npmmirror 二进制源 |
+| uv 用了不稳定 GitHub 代理（如 ghfast/gh-proxy） | warn | 改用更稳定的 npmmirror.com/-/binary |
 | npm/pnpm 用 `registry.npmjs.org` | warn | 改 `registry.npmmirror.com` |
 | Docker 无 `registry-mirrors` | warn | 添加 `docker.m.daocloud.io` |
+| Dockerfile / k8s 用 `gcr.io/...`、`ghcr.io/...`、`registry.k8s.io/...` | warn | 改前缀为 `gcr.m.daocloud.io/...` 等（改 image 字符串） |
 | Go 未设 GOPROXY 或为 `direct` | warn | 改 `https://goproxy.cn,direct` |
 | Maven 默认 Central | warn | 添加 aliyun mirror |
 | Cargo 默认 crates.io | warn | 改 `rsproxy.cn` |
