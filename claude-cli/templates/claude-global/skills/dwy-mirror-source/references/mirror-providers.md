@@ -68,9 +68,24 @@
 | `https://mirrors.aliyun.com/pypi/`（无 `simple/`）| 路径错误 | `https://mirrors.aliyun.com/pypi/simple/` |
 | `http://...` 任何镜像源 | 不安全 | 一律 `https://` |
 
-## Docker 加速器对比
+## Docker 加速器（重点）
 
-Docker Hub 加速器经常有变动，建议保留多个备选：
+Docker 镜像加速分**两类**，互不替代：
+
+### 类型 1：docker.io 加速（registry-mirrors）
+
+仅作用于 Docker Hub（`docker.io`）。配置在 `~/.docker/daemon.json`：
+
+```json
+{
+  "registry-mirrors": [
+    "https://docker.m.daocloud.io",
+    "https://docker.mirrors.ustc.edu.cn"
+  ]
+}
+```
+
+可选加速器：
 
 | 加速器 | URL | 备注 |
 |--------|-----|------|
@@ -80,7 +95,50 @@ Docker Hub 加速器经常有变动，建议保留多个备选：
 | 阿里云专属 | `https://<your-id>.mirror.aliyuncs.com` | 阿里云用户专属，需登录获取 |
 | 腾讯云 | `https://mirror.ccs.tencentyun.com` | 仅腾讯云内网 |
 
-`apply_mirrors.py` 默认写入 `["docker.m.daocloud.io", "docker.mirrors.ustc.edu.cn"]` 双源，提高可用性。
+### 类型 2：非 docker.io registry 加速
+
+**`registry-mirrors` 字段对 gcr/ghcr/quay/k8s/mcr/nvcr 等其他 registry 完全无效**。要加速这类 image，必须**改 image 引用本身**。
+
+DaoCloud 维护的 11 个 registry 镜像（实测全部可达）：
+
+| 源 registry | 镜像域名 | 用途 |
+|-------------|---------|------|
+| `docker.io` | `docker.m.daocloud.io` | Docker Hub（也可走 registry-mirrors） |
+| `gcr.io` | `gcr.m.daocloud.io` | Google Container Registry |
+| `ghcr.io` | `ghcr.m.daocloud.io` | GitHub Container Registry |
+| `quay.io` | `quay.m.daocloud.io` | Red Hat Quay |
+| `k8s.gcr.io` | `k8s-gcr.m.daocloud.io` | Kubernetes 旧仓库（已迁出） |
+| `registry.k8s.io` | `k8s.m.daocloud.io` | Kubernetes 当前官方 registry |
+| `mcr.microsoft.com` | `mcr.m.daocloud.io` | Microsoft Container Registry |
+| `nvcr.io` | `nvcr.m.daocloud.io` | NVIDIA Container Registry |
+| `docker.elastic.co` | `elastic.m.daocloud.io` | Elastic 官方镜像 |
+| `dhi.io` | `dhi.m.daocloud.io` | Docker Hub Images |
+| `registry.ollama.ai` | `ollama.m.daocloud.io` | Ollama 模型（beta） |
+
+**用法示例：**
+
+```bash
+# 原本（拉不动）
+docker pull gcr.io/google-containers/pause:3.9
+docker pull ghcr.io/astral-sh/uv:latest
+docker pull registry.k8s.io/kube-apiserver:v1.30.0
+
+# 走加速（改前缀域名）
+docker pull gcr.m.daocloud.io/google-containers/pause:3.9
+docker pull ghcr.m.daocloud.io/astral-sh/uv:0.5.0
+docker pull k8s.m.daocloud.io/kube-apiserver:v1.30.0
+```
+
+```dockerfile
+# Dockerfile 内同样改前缀
+FROM ghcr.m.daocloud.io/astral-sh/uv:0.5.0 AS uv
+FROM gcr.m.daocloud.io/distroless/python3:nonroot
+```
+
+**关键限制：**
+- 这套加速**不能配在 daemon.json 里实现透明代理**（registry-mirrors 字段只识别 docker.io）
+- 必须显式写入 image 引用，无法自动改写
+- containerd / Kubernetes 可以用 `mirrors` 配置全局映射，但 Docker 不行
 
 ## 私服识别规则
 

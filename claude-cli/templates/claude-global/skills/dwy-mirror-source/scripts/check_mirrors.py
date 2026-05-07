@@ -44,6 +44,7 @@ MIRRORS = {
     "aliyun": {
         "pip": "https://mirrors.aliyun.com/pypi/simple/",
         "uv": "https://mirrors.aliyun.com/pypi/simple/",
+        "uv_python_install": "https://registry.npmmirror.com/-/binary/python-build-standalone",
         "poetry": "https://mirrors.aliyun.com/pypi/simple/",
         "npm": "https://registry.npmmirror.com",
         "docker": ["https://docker.m.daocloud.io", "https://docker.mirrors.ustc.edu.cn"],
@@ -61,6 +62,7 @@ MIRRORS = {
     "tsinghua": {
         "pip": "https://pypi.tuna.tsinghua.edu.cn/simple",
         "uv": "https://pypi.tuna.tsinghua.edu.cn/simple",
+        "uv_python_install": "https://registry.npmmirror.com/-/binary/python-build-standalone",
         "poetry": "https://pypi.tuna.tsinghua.edu.cn/simple",
         "npm": "https://registry.npmmirror.com",
         "docker": ["https://docker.m.daocloud.io"],
@@ -78,6 +80,7 @@ MIRRORS = {
     "ustc": {
         "pip": "https://mirrors.ustc.edu.cn/pypi/simple/",
         "uv": "https://mirrors.ustc.edu.cn/pypi/simple/",
+        "uv_python_install": "https://registry.npmmirror.com/-/binary/python-build-standalone",
         "poetry": "https://mirrors.ustc.edu.cn/pypi/simple/",
         "npm": "https://registry.npmmirror.com",
         "docker": ["https://docker.m.daocloud.io"],
@@ -313,29 +316,61 @@ def check_uv(provider: str, project: Path) -> list[CheckResult]:
         return [CheckResult("uv", "user", "-", "not_installed")]
 
     results: list[CheckResult] = []
-    recommended = MIRRORS[provider]["uv"]
+    recommended_index = MIRRORS[provider]["uv"]
+    recommended_python = MIRRORS[provider]["uv_python_install"]
 
-    # 用户级 uv.toml
     user_uv = home() / ".config/uv/uv.toml"
-    if is_macos():
-        # uv 在 macOS 也用 ~/.config/uv/ 作为默认配置目录
-        pass
 
+    # 用户级 uv.toml — 包含 [[index]] 和 python-install-mirror 两件事
+    user_data = {}
     if user_uv.exists():
         try:
             with user_uv.open("rb") as f:
-                data = tomllib.load(f)
-            indexes = data.get("index", []) or []
-            urls = [i.get("url", "") for i in indexes if isinstance(i, dict)]
-            current = urls[0] if urls else ""
-            status = classify_url("pip", current)
-            results.append(CheckResult("uv", "user", str(user_uv), status, current, recommended))
+                user_data = tomllib.load(f)
         except (tomllib.TOMLDecodeError, OSError) as e:
-            results.append(CheckResult("uv", "user", str(user_uv), "error", "", recommended,
+            results.append(CheckResult("uv", "user", str(user_uv), "error", "", recommended_index,
                                        note=f"解析失败: {e}"))
-    else:
+            return results
+
+    # uv index（PyPI 包索引）
+    indexes = user_data.get("index", []) or []
+    urls = [i.get("url", "") for i in indexes if isinstance(i, dict)]
+    current_index = urls[0] if urls else ""
+    if not user_uv.exists():
         results.append(CheckResult("uv", "user", str(user_uv), "missing",
-                                   "", recommended, note="uv.toml 不存在"))
+                                   "", recommended_index,
+                                   note="uv.toml 不存在（PyPI 包索引）"))
+    else:
+        status = classify_url("pip", current_index) if current_index else "no_config"
+        note = "" if current_index else "uv.toml 未声明 [[index]]"
+        results.append(CheckResult("uv-index", "user", str(user_uv), status,
+                                   current_index, recommended_index, note=note))
+
+    # uv python-install-mirror（Python 解释器下载源）
+    # 优先级：uv.toml 字段 > UV_PYTHON_INSTALL_MIRROR 环境变量 > 默认 GitHub
+    cfg_python_mirror = user_data.get("python-install-mirror", "")
+    env_python_mirror = os.environ.get("UV_PYTHON_INSTALL_MIRROR", "")
+    current_python = cfg_python_mirror or env_python_mirror
+    source_note = ""
+    if cfg_python_mirror:
+        source_note = "来自 uv.toml"
+    elif env_python_mirror:
+        source_note = "来自 UV_PYTHON_INSTALL_MIRROR 环境变量"
+
+    if current_python:
+        # 国内可用源：npmmirror.com/-/binary
+        if "npmmirror.com" in current_python or "registry.npmmirror.com" in current_python:
+            status = "ok"
+        elif is_private_registry(current_python):
+            status = "private"
+        else:
+            status = "warn"
+        results.append(CheckResult("uv-python", "user", str(user_uv), status,
+                                   current_python, recommended_python, note=source_note))
+    else:
+        results.append(CheckResult("uv-python", "user", str(user_uv), "missing",
+                                   "", recommended_python,
+                                   note="未配置 python-install-mirror，uv 装 Python 解释器走 GitHub releases，国内极慢"))
 
     # 项目级 pyproject.toml 中的 [[tool.uv.index]]
     pyproject = project / "pyproject.toml"
@@ -348,14 +383,15 @@ def check_uv(provider: str, project: Path) -> list[CheckResult]:
                 urls = [i.get("url", "") for i in indexes if isinstance(i, dict)]
                 current = urls[0] if urls else ""
                 status = classify_url("pip", current)
-                results.append(CheckResult("uv", "project", str(pyproject), status, current, recommended))
+                results.append(CheckResult("uv-index", "project", str(pyproject), status,
+                                           current, recommended_index))
             else:
-                results.append(CheckResult("uv", "project", str(pyproject), "no_config",
-                                           "", recommended,
+                results.append(CheckResult("uv-index", "project", str(pyproject), "no_config",
+                                           "", recommended_index,
                                            note="pyproject.toml 未声明 [[tool.uv.index]]"))
         except tomllib.TOMLDecodeError as e:
-            results.append(CheckResult("uv", "project", str(pyproject), "error", "", recommended,
-                                       note=f"解析失败: {e}"))
+            results.append(CheckResult("uv-index", "project", str(pyproject), "error",
+                                       "", recommended_index, note=f"解析失败: {e}"))
 
     return results
 
@@ -517,7 +553,8 @@ def check_docker(provider: str, _project: Path) -> list[CheckResult]:
     else:
         status = "warn"
     return [CheckResult("docker", "user", str(config_path), status,
-                        ", ".join(mirrors), recommended)]
+                        ", ".join(mirrors), recommended,
+                        note="此项仅加速 docker.io。gcr.io/ghcr.io/quay.io/registry.k8s.io 等需改 image 引用前缀，详见 SKILL.md")]
 
 
 def check_go(provider: str, _project: Path) -> list[CheckResult]:
