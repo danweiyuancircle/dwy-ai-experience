@@ -148,6 +148,46 @@ describe('unwrapPlugin', () => {
     const result = await plugin.onResponse!(response)
     expect(result).toBe(response)
   })
+
+  // dwyeapi 业务错走 4xx + ApiResponse 信封,axios 直接 onResponseError;
+  // 必须在此钩子里把 code/message 提到 HttpError 上,业务 catch 才能用 businessCode 分支
+  it('attaches businessCode/apiResponse from error.response.data on 4xx via onResponseError', async () => {
+    const apiResp = makeApiResponse({ code: 'EMAIL_EXISTS', message: '邮箱已注册' })
+    const error = new Error('Request failed with status code 422') as HttpError
+    error.response = {
+      data: apiResp,
+      status: 422,
+      statusText: 'Unprocessable Entity',
+      headers: {},
+      config: {},
+    }
+    await plugin.onResponseError!(error)
+    expect(error.businessCode).toBe('EMAIL_EXISTS')
+    expect(error.message).toBe('邮箱已注册')
+    expect(error.apiResponse).toEqual(apiResp)
+  })
+
+  it('leaves error untouched when response body is not ApiResponse shape', async () => {
+    const error = new Error('Server Error') as HttpError
+    error.response = {
+      data: '<html>500</html>',
+      status: 500,
+      statusText: 'Internal Server Error',
+      headers: {},
+      config: {},
+    }
+    await plugin.onResponseError!(error)
+    expect(error.businessCode).toBeUndefined()
+    expect(error.apiResponse).toBeUndefined()
+    expect(error.message).toBe('Server Error')
+  })
+
+  it('skips when error has no response (network error)', async () => {
+    const error = new Error('Network Error') as HttpError
+    await plugin.onResponseError!(error)
+    expect(error.businessCode).toBeUndefined()
+    expect(error.message).toBe('Network Error')
+  })
 })
 
 describe('refreshTokenPlugin', () => {
