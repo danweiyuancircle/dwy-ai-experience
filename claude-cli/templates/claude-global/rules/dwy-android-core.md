@@ -427,9 +427,75 @@ fun process(user: User?) {
 
 // ✅ 提前返回
 fun process(user: User?) {
-    if (user == null || !user.isActive) return
-    if (user.orders.isEmpty()) return
+    if (user == null || !user.isActive) {
+        return
+    }
+    if (user.orders.isEmpty()) {
+        return
+    }
     user.orders.forEach { ... }
+}
+```
+
+### 控制流大括号
+
+`if` / `else` / `else if` / `for` / `while` / `do-while` **即使只有一条语句**,必须使用 `{}` 包裹。
+
+**理由**:
+- 后续添加第二行时不会因为漏 `{}` 静默脱出条件体(经典回归 bug)
+- IDE 自动 reformat 与跨工具 merge 不会错位
+- Java 与 Kotlin 视觉一致,混编项目无歧义
+
+**例外**:Kotlin **表达式形式**的 `if`(用作赋值右值、`return` 表达式、单表达式函数体)允许单行无 `{}`:
+
+```kotlin
+val name = if (user.isVip) user.vipName else user.nickname    // ✅ 表达式 if
+return if (cond) doA() else doB()                              // ✅ 表达式 if
+fun grade(score: Int) = if (score >= 60) "PASS" else "FAIL"    // ✅ 单表达式函数
+```
+
+**反例**:
+
+```kotlin
+// ❌ 单行 if 语句无大括号 — 后续加一行就出 bug
+if (!initialized.compareAndSet(false, true)) return
+
+// ❌ 单行 for / while
+for (item in list) item.refresh()
+while (queue.isNotEmpty()) queue.poll().run()
+```
+
+```java
+// ❌ Java 同样禁止
+if (user == null) return;
+for (Order o : orders) o.cancel();
+```
+
+**正例**:
+
+```kotlin
+// ✅ if 语句必须 {}
+if (!initialized.compareAndSet(false, true)) {
+    return
+}
+
+for (item in list) {
+    item.refresh()
+}
+
+while (queue.isNotEmpty()) {
+    queue.poll().run()
+}
+```
+
+```java
+// ✅ Java 同样
+if (user == null) {
+    return;
+}
+
+for (Order o : orders) {
+    o.cancel();
 }
 ```
 
@@ -513,6 +579,7 @@ val result = calculate(x)
 | 硬编码 dp / sp 值 | `@dimen/` |
 | 硬编码颜色值 `#FF0000` | `@color/color_primary` |
 | 用户可见文案硬编码 | `@string/...` |
+| 单行 `if` / `for` / `while` / `do-while` 无 `{}`(Kotlin 表达式 `if` 除外) | 即使只一行也写 `{}`;详见 §四「控制流大括号」 |
 
 ## 九、代码自检(写代码时强制执行)
 
@@ -538,5 +605,6 @@ val result = calculate(x)
 | 16 | 嵌套不超过 3 层,函数体不超过 50 行,单文件不超过 500 行 | ✓ |
 | 17 | 资源命名遵守:`activity_*` / `fragment_*` / `item_*` / `tv_*` / `et_*` / `btn_*` 等约定 | ✓ |
 | 18 | 无注释掉的代码块(垃圾代码),TODO 必须带责任人 + 日期 + 上下文 | ✓ |
+| 19 | `if` / `else` / `else if` / `for` / `while` / `do-while` 语句即使单行也带 `{}`(Kotlin 表达式 `if` 除外) | ✓ |
 
 **不执行自检就提交代码 = 违规。**
