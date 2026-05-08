@@ -200,6 +200,64 @@ for f in $COMPOSE_FILES; do
 done
 
 echo ""
+echo "--- 日志兜底推荐档 (基于根盘 + 容器规模, 对照 SKILL.md 4.10) ---"
+ROOT_TOTAL_MB=$(df -BM --output=size / 2>/dev/null | tail -1 | tr -d ' M')
+ROOT_TOTAL_GB=$(( ${ROOT_TOTAL_MB:-0} / 1024 ))
+RUNNING_COUNT=$(docker ps -q 2>/dev/null | wc -l | tr -d ' ')
+echo "根盘容量: ${ROOT_TOTAL_GB} GB"
+echo "运行容器数: ${RUNNING_COUNT}"
+
+# 推荐档分级
+if   [[ $ROOT_TOTAL_GB -lt 50 ]];   then REC_TIER="入门"; REC_SIZE="10m"; REC_FILE="3"
+elif [[ $ROOT_TOTAL_GB -lt 150 ]]; then
+  REC_TIER="标准"
+  if [[ $RUNNING_COUNT -gt 5 ]]; then REC_SIZE="20m"; REC_FILE="5"
+  else                                REC_SIZE="50m"; REC_FILE="5"; fi
+else REC_TIER="大型"; REC_SIZE="100m"; REC_FILE="5"
+fi
+echo "推荐档: ${REC_TIER}"
+echo "推荐 daemon log-opts: max-size=${REC_SIZE}, max-file=${REC_FILE}, compress=true"
+
+# 拿当前 daemon.json log-opts (复用 check_docker.sh 的逻辑)
+DAEMON_JSON=$(sudo -n cat /etc/docker/daemon.json 2>/dev/null \
+              || cat /etc/docker/daemon.json 2>/dev/null || echo "")
+CUR_SIZE=$(echo "$DAEMON_JSON" | grep -oE '"max-size"[[:space:]]*:[[:space:]]*"[^"]+"' \
+            | head -1 | grep -oE '"[^"]+"$' | tr -d '"')
+CUR_FILE=$(echo "$DAEMON_JSON" | grep -oE '"max-file"[[:space:]]*:[[:space:]]*"[^"]+"' \
+            | head -1 | grep -oE '"[^"]+"$' | tr -d '"')
+echo "当前 daemon.json: max-size=${CUR_SIZE:-(未配置)}, max-file=${CUR_FILE:-(未配置)}"
+
+# 简单对比标记
+if [[ -z "$CUR_SIZE" ]]; then
+  echo "[!!!] CRITICAL: daemon 无 log-opts.max-size, 长跑容器日志会无限增长"
+elif [[ "$CUR_SIZE" == "$REC_SIZE" ]]; then
+  echo "[OK] max-size 与推荐档一致"
+else
+  echo "[i] 当前 max-size=${CUR_SIZE} 与推荐档 ${REC_SIZE} 不同 (主 Claude 据 SKILL.md 4.10 判定是否偏离 50%)"
+fi
+
+# 估算所有容器日志合计 quota = max-size × max-file × 容器数, 看占根盘比
+# 不依赖 bc(部分镜像/最小系统不带), 用 awk 解析单位
+if [[ -n "$CUR_SIZE" ]]; then
+  size_mb=$(echo "$CUR_SIZE" | awk '
+    BEGIN{IGNORECASE=1}
+    /[gG]$/ { sub(/[gG]$/,""); print int($0*1024); exit }
+    /[mM]$/ { sub(/[mM]$/,""); print int($0);      exit }
+    /[kK]$/ { sub(/[kK]$/,""); print int($0/1024); exit }
+            { print int($0); exit }
+  ')
+  file_n=${CUR_FILE:-1}
+  total_quota_mb=$(( ${size_mb:-0} * file_n * RUNNING_COUNT ))
+  if [[ "$ROOT_TOTAL_MB" -gt 0 ]]; then
+    pct=$(( total_quota_mb * 100 / ROOT_TOTAL_MB ))
+    echo "所有容器最大日志 quota 合计: ${total_quota_mb} MB (占根盘 ${pct}%, 期望 < 5%)"
+    if [[ "$pct" -gt 5 ]]; then
+      echo "[!!] HIGH: 日志 quota 合计 ${pct}% 已超根盘 5% 上限"
+    fi
+  fi
+fi
+
+echo ""
 echo "--- 资源占比汇总 (供 Claude 校验 65% 上限规则) ---"
 echo "宿主总内存: ${MEM_TOTAL_MB} MB"
 TOTAL_LIMIT_MB=$(docker ps -q 2>/dev/null \
