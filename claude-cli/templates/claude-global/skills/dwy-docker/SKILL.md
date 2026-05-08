@@ -91,19 +91,23 @@ AI 看到下列情况之一，立即进入「检查清单」：
 
 ### D. 一键启动脚本
 
-每个全栈项目根**必须**有两个脚本：
+每个全栈项目根**必须**有两个脚本，都采用**子命令模式 + 显式传参**设计：
 
-- `dev.sh` — 开发环境一键拉起全栈（基础设施容器化 + 应用宿主机热更新）
-- `prod.sh` — 生产环境管理入口，支持 `start` / `stop` / `restart` / `status` / `logs` / `update` 子命令
+- `dev.sh` — 开发环境管理：`start` / `stop` / `restart` / `infra` / `status` / `logs`
+- `prod.sh` — 生产环境管理：`start` / `stop` / `restart` / `status` / `logs` / `update`
+
+**两个脚本必须满足**：不传子命令或传错时**只打印 help 不执行任何动作**（生产最忌默认行为，运维手抖少敲一个词不能误启动服务）。
 
 | 检测 | 严重度 | 触发 AskUserQuestion |
 |---|---|---|
 | 项目根无 `dev.sh`（且确认是 dwy 风格 monorepo / 全栈项目） | low | ⚠ 仅在用户问"怎么启动"时提示创建 |
 | 项目根无 `prod.sh`（且已有 `docker-compose.prod.yml`） | medium | ⚠ 仅在用户问"怎么部署 / 怎么重启" 时提示创建 |
-| `prod.sh` 不支持 `start` / `stop` / `restart` 三个核心子命令 | medium | ✓ 必须 |
+| `dev.sh` 或 `prod.sh` 不支持 `start` / `stop` / `restart` 三个核心子命令 | medium | ✓ 必须 |
+| `dev.sh` 或 `prod.sh` 不传参数时直接执行启动逻辑（而非打印 help） | high | ✓ 必须 |
 | `prod.sh` 中 docker compose 命令未带 `--env-file` 加载 `.env.prod` | high | ✓ 必须 |
+| `dev.sh` 的 `start` 子命令缺少 `trap cleanup INT TERM EXIT`（Ctrl+C 后留下孤儿进程） | medium | ✓ 必须 |
 
-→ 模板见 `references/templates.md` 末尾「一键启动脚本」段。
+→ 模板见 `references/templates.md` 末尾「一键启动脚本」段，含 `dev.sh` 和 `prod.sh` 完整模板及设计理由。
 
 ---
 

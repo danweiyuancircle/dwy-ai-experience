@@ -233,36 +233,136 @@ dist/
 
 ## 一键启动脚本（`dev.sh` + `prod.sh`）
 
-每个项目根放两份脚本：`dev.sh` 用于本地开发（一键拉起全栈），`prod.sh` 用于生产环境管理（启动 / 停止 / 重启 / 状态 / 日志 / 更新）。
+每个项目根放两份脚本：`dev.sh` 用于本地开发，`prod.sh` 用于生产环境管理。两个脚本都采用**子命令模式 + 显式传参**设计。
 
-**为什么要有这个**：
-- `dev.sh` — 新人 clone 项目后一行命令跑起来全栈，不用查文档
+**两个脚本的统一约束**：
+
+- **必须显式传子命令**（`start` / `stop` / `restart` / ...），不传参数时**只打印帮助文档不执行任何动作**
+- 帮助文档必须列出所有子命令、参数含义、典型示例
+- 子命令未匹配（拼错或不支持）时同样打印帮助并以非零退出码退出
+
+**为什么强制传参 + 不传打印 help**：
+
+`bash dev.sh` / `bash prod.sh` 不带参数直接拉起服务是**危险的默认行为**。运维人员在生产 SSH 里手抖少敲一个词就可能误启动服务、覆盖容器、拉新镜像。强制传子命令让每一次操作都是**有意识的**，并且帮助文档让新接手项目的人不用看 README 就知道怎么用。
+
+**为什么要有这两个脚本**：
+
+- `dev.sh` — 新人 clone 项目后一行 `bash dev.sh start` 跑起来全栈，不用查文档；同时支持 `infra` 模式让你在 IDE 里断点调试应用
 - `prod.sh` — 运维人员（或部署 CI）用统一入口管理生产，避免每次手敲长串 `docker compose --env-file ... -f ... ...`，也避免漏 `--env-file` 等参数导致的事故
 
-### `dev.sh`（开发环境一键启动）
+### `dev.sh`（开发环境管理）
 
 ```bash
 #!/bin/bash
+# 开发环境管理脚本
+# 用法: bash dev.sh {start|stop|restart|infra|status|logs} [service]
+
 set -e
 
-# 启动基础设施
-docker compose -f docker-compose.dev.yml up -d
+COMPOSE_FILE="docker-compose.dev.yml"
 
-# 等待 PostgreSQL 就绪
-until docker compose -f docker-compose.dev.yml exec postgres pg_isready -U postgres; do
-  sleep 1
-done
+# 前置检查
+if [ ! -f "$COMPOSE_FILE" ]; then
+  echo "错误：当前目录找不到 $COMPOSE_FILE"
+  exit 1
+fi
 
-# 后端（热更新）
-cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload &
+# 统一调用 docker compose 的封装
+dc() {
+  docker compose -f "$COMPOSE_FILE" "$@"
+}
 
-# Worker（后台任务）
-cd backend && arq app.worker.WorkerSettings &
+# Ctrl+C 时清理所有后台进程和容器
+cleanup() {
+  echo ""
+  echo "→ 停止后台应用进程..."
+  jobs -p | xargs -r kill 2>/dev/null || true
+  echo "→ 停止基础设施容器..."
+  dc down
+  echo "✓ 已清理"
+}
 
-# 前端（热更新）
-cd frontend && pnpm dev &
+ACTION="${1:-}"
+SERVICE="${2:-}"
 
-wait
+case "$ACTION" in
+  start)
+    echo "→ 启动基础设施..."
+    dc up -d
+
+    echo "→ 等待 PostgreSQL 就绪..."
+    until dc exec postgres pg_isready -U postgres > /dev/null 2>&1; do
+      sleep 1
+    done
+
+    trap cleanup INT TERM EXIT
+
+    echo "→ 启动后端 (热更新)..."
+    (cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload) &
+
+    echo "→ 启动 Worker..."
+    (cd backend && arq app.worker.WorkerSettings) &
+
+    echo "→ 启动前端 (热更新)..."
+    (cd frontend && pnpm dev) &
+
+    echo ""
+    echo "✓ 全栈已启动。Ctrl+C 退出会自动清理所有进程和容器"
+    wait
+    ;;
+
+  stop)
+    echo "→ 停止基础设施..."
+    dc down
+    echo "✓ 已停止（volume 数据保留）"
+    ;;
+
+  restart)
+    echo "→ 重启基础设施容器..."
+    dc restart
+    echo "✓ 基础设施已重启。应用层（uvicorn / vite / arq）请重新跑 'bash dev.sh start'"
+    ;;
+
+  infra)
+    echo "→ 仅启动基础设施容器（不启动应用）..."
+    dc up -d
+    echo "✓ 基础设施已启动。应用请你自己在 IDE 里跑（方便断点调试）"
+    echo ""
+    dc ps
+    ;;
+
+  status)
+    dc ps
+    ;;
+
+  logs)
+    if [ -n "$SERVICE" ]; then
+      dc logs -f --tail=200 "$SERVICE"
+    else
+      dc logs -f --tail=200
+    fi
+    ;;
+
+  *)
+    cat <<EOF
+用法: bash dev.sh {start|stop|restart|infra|status|logs} [service]
+
+  start              一键拉起全栈：基础设施容器 + 后端 + Worker + 前端
+                     前台运行，Ctrl+C 退出会自动清理所有进程和容器
+  stop               停止并清理基础设施容器（volume 保留，下次 start 数据还在）
+  restart            重启基础设施容器（应用层不动，需自行重新启动）
+  infra              只启动基础设施容器，应用让你在 IDE 里跑（推荐：断点调试场景）
+  status             查看基础设施容器状态
+  logs [service]     实时查看基础设施日志（最近 200 行起），可指定 service
+
+示例:
+  bash dev.sh start           # 一键全栈，适合纯命令行开发
+  bash dev.sh infra           # 容器跑数据库，IDE 里跑应用（推荐用于断点调试）
+  bash dev.sh logs postgres   # 看 postgres 日志
+EOF
+    exit 1
+    ;;
+esac
 ```
 
 ### `prod.sh`（生产环境管理）
@@ -361,10 +461,19 @@ EOF
 esac
 ```
 
-**为什么这样设计**：
+**两个脚本共同的设计**：
 
-- **`dc()` 封装**：所有 docker compose 命令都自动带 `--env-file .env.prod -f docker-compose.prod.yml`，避免漏参数导致用错环境变量或错误 compose 文件
-- **`restart` 用 `docker compose restart` 而不是 `down + up`**：重启容器但不删除（保留容器内运行时状态），更快也更安全；只有 `update` 才会重建容器
+- **子命令模式**：所有操作必须显式传子命令（`start` / `stop` / `restart` / ...），不传或传错都只打印 help，不执行任何动作。生产环境最忌"默认行为"
+- **`dc()` 封装**：所有 docker compose 命令都自动带 `--env-file ... -f ...` 参数，杜绝漏参事故
+- **`restart` 走 `docker compose restart` 而不是 `down + up`**：重启容器但不删除（保留运行时状态），更快也更安全；只有 `update`（prod）/ 重新跑 `start`（dev）才会重建
 - **`stop` 走 `down` 而非 `stop`**：彻底清理网络和容器，下次 `start` 是全新的；volume 默认保留，不丢数据
+
+**`dev.sh` 特有设计**：
+
+- **`trap cleanup INT TERM EXIT`**：`start` 子命令前台运行（`wait` 阻塞），用户按 Ctrl+C 时会自动 kill 所有后台子进程（uvicorn / arq / vite）并 `docker compose down` 清理容器。避免出现"应用进程已退出但容器还在跑"的孤儿状态
+- **`infra` 子命令**：只启基础设施，应用让用户在 IDE 里跑。这是断点调试场景的最佳工作流，比"全栈启动后再 attach 调试器"轻量得多
+
+**`prod.sh` 特有设计**：
+
 - **前置检查 `.env.prod`**：生产环境变量缺失时第一时间退出，不会因为读到默认值跑起一个错误配置的服务
-- **`update` 单独命令**：日常运维（重启 / 看日志）不会误触发镜像拉取，只有显式 `update` 才会拉新镜像
+- **`update` 单独命令**：日常运维（重启 / 看日志）不会误触发镜像拉取，只有显式 `update` 才会拉新镜像并重建容器
