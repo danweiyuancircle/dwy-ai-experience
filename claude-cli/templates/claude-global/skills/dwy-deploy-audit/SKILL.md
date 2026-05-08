@@ -19,6 +19,14 @@ description: "部署后线上环境基础安全巡检：远程 SSH 到目标服�
 
 **脚本目录：** `~/.claude/skills/dwy-deploy-audit/scripts/`（以下简称 `{scripts}`）
 
+**详细检查规则索引：**
+
+| 文件 | 何时读 | 覆盖 |
+|------|--------|------|
+| `references/checks-network.md` | 即将运行 4.1 / 4.2 / 4.4 / 4.7 类检查或解读其输出时 | SSH / Nginx / HTTPS / 依赖服务连通性 |
+| `references/checks-data.md` | 即将运行 4.3 / 4.5 / 4.11 类检查或解读其输出时 | 数据库暴露 / 环境变量 / 凭证强度 |
+| `references/checks-runtime.md` | 即将运行 4.6 / 4.8 / 4.9 / 4.10 类检查或解读其输出时 | Docker / 自愈 / 日志防爆 / 资源推荐 |
+
 ---
 
 ## 强制原则
@@ -173,341 +181,73 @@ bash {scripts}/run_all.sh <target> [ssh_opts...] --serial > /tmp/dwy_audit_<tag>
 bash {scripts}/check_db.sh <target> [ssh_opts...]
 ```
 
-**各类检查内容如下：**
+**各类检查内容如下（详细规则见 references/）：**
 
 ### 4.1 SSH 安全 — `{scripts}/check_ssh.sh`
 
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| `PermitRootLogin` | `no` 或 `prohibit-password` | **critical** |
-| `PasswordAuthentication` | `no` (强制 key) | **high** |
-| `PermitEmptyPasswords` | `no` | **critical** |
-| `Port` | 非默认 22 (建议) | medium |
-| `Protocol` | 只允许 2 | high |
-| `MaxAuthTries` | ≤ 4 | medium |
-| `LoginGraceTime` | ≤ 60s | low |
-| `AllowUsers` / `AllowGroups` | 已配置白名单 | medium |
-| `/var/log/auth.log` 或 `journalctl _COMM=sshd` | 有日志 | high |
-| fail2ban / sshguard | 已安装并运行 | medium |
+检查 SSH 配置是否禁用密码登录、root 直登、是否暴露默认 22 端口，是否启用 fail2ban 等登录防爆机制。
+
+→ 详细检查项、期望值、严重级见 `references/checks-network.md` §「4.1 SSH 安全」
 
 ### 4.2 Nginx 配置 — `{scripts}/check_nginx.sh`
 
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| HTTP → HTTPS 强制跳转 | 80 端口 return 301 至 https | **critical** |
-| `ssl_protocols` | 仅 `TLSv1.2 TLSv1.3` | high |
-| `ssl_ciphers` | 排除弱加密(RC4/3DES/MD5) | high |
-| `server_tokens` | `off` | medium |
-| `access_log` | 已开启 | **high**(用户特别要求) |
-| `error_log` | 已开启,级别 ≥ warn | high |
-| `client_max_body_size` | 显式配置,业务非上传 ≤ 10m(对齐 dwy-payload-limits) | medium |
-| `limit_req_zone` 已定义 | 至少 1 个 zone（防 CC 攻击 / 暴力请求） | high |
-| `limit_req` 应用到敏感路由 | 登录 / 注册 / 验证码 / 高频 API 必须有 | **critical** |
-| `limit_conn_zone` + `limit_conn` | 限制同 IP 高并发连接 | medium |
-| `limit_req_status` | 建议 `429`（默认 503 易被误判为后端故障） | low |
-| `client_body_timeout` / `client_header_timeout` | ≤ 10s（防 slowloris 慢速攻击） | medium |
-| `add_header Strict-Transport-Security` | `max-age=31536000` | high |
-| `add_header X-Frame-Options` | `DENY` 或 `SAMEORIGIN` | medium |
-| `add_header X-Content-Type-Options` | `nosniff` | medium |
-| `add_header Content-Security-Policy` | 已配置 | low |
-| `autoindex` | `off` | high |
-| 暴露的 location | 排查 `/.git`、`/.env`、`/admin` 是否泄漏 | **critical** |
-| Nginx 版本 | 非已知 CVE 版本 | medium |
+检查 Nginx 的 HTTPS 强跳、TLS 协议/密码套件、安全 header、限流（limit_req / limit_conn）、慢速攻击防护与敏感路径暴露。
+
+→ 详细检查项、期望值、严重级见 `references/checks-network.md` §「4.2 Nginx 配置」
 
 ### 4.3 数据库暴露 — `{scripts}/check_db.sh`
 
-**PostgreSQL：**
+检查 PostgreSQL / Redis 的监听地址、公网可达性、认证强度、SSL、保护模式与版本 CVE。
 
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| `listen_addresses` | `localhost` 或内网 IP,**禁止** `*` | **critical** |
-| 5432 公网可达性 | 公网不可达 | **critical** |
-| `pg_hba.conf` 认证方式 | `scram-sha-256` 或 `md5`,**禁止** `trust` | **critical** |
-| `password_encryption` | `scram-sha-256` | high |
-| 默认账号 `postgres` 密码 | 已设置且非弱密码 | **critical** |
-| `ssl` | `on` (远程连接场景) | high |
-| `log_connections` / `log_disconnections` | `on` | medium |
-
-**Redis：**
-
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| `bind` | `127.0.0.1` 或内网 IP,**禁止** `0.0.0.0` 暴露 | **critical** |
-| 6379 公网可达性 | 公网不可达 | **critical** |
-| `requirepass` | 已设置且 ≥ 32 字符随机串 | **critical** |
-| `protected-mode` | `yes` | high |
-| `maxmemory` | 已设置（推荐物理内存 50%–70%）,**禁止** `0`（无上限） | high |
-| `maxmemory-policy` | 业务侧已感知（`allkeys-lru` / `volatile-lru` 常见，`noeviction` 需特别确认） | info |
-| `rename-command` | 危险命令(FLUSHALL/CONFIG)已重命名 | medium |
-| Redis 版本 | 非已知 CVE 版本 | medium |
+→ 详细检查项、期望值、严重级见 `references/checks-data.md` §「4.3 数据库暴露」
 
 ### 4.4 HTTPS 证书 — `{scripts}/check_https.sh`
 
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| 证书有效期 | 剩余 > 30 天 | high (< 7 天 critical) |
-| 证书域名匹配 | CN/SAN 包含访问域名 | **critical** |
-| 证书链完整 | 中间证书已配置 | high |
-| 自签证书 | 仅内网允许,公网为 critical | varies |
-| OCSP Stapling | 已启用 | low |
+检查证书有效期、域名匹配、证书链完整性、自签证书与 OCSP Stapling。
+
+→ 详细检查项、期望值、严重级见 `references/checks-network.md` §「4.4 HTTPS 证书」
 
 ### 4.5 环境变量 / 文件权限 — `{scripts}/check_env.sh`
 
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| `.env` 文件权限 | `600` 或更严 | **critical** |
-| `.env` 文件位置 | 不在 nginx `root` 目录下 | **critical** |
-| `nginx -T` 可达静态目录 | 不包含 `.env`、`.git`、密钥 | **critical** |
-| `/etc/shadow` 权限 | `640` 或 `600` | high |
-| 应用进程运行用户 | 非 root | high |
-| sudo 免密配置 | 仅必要命令 | medium |
+检查 `.env` 文件权限与位置、nginx 静态目录是否泄漏敏感文件、`/etc/shadow` 权限、应用进程运行用户与 sudo 配置。
+
+→ 详细检查项、期望值、严重级见 `references/checks-data.md` §「4.5 环境变量 / 文件权限」
 
 ### 4.6 Docker 安全 — `{scripts}/check_docker.sh`
 
-> **跨 skill 联动**:本节发现的镜像版本/镜像源问题,只**报告**不修复。具体修复路径:
-> - 镜像 tag 不固定 / `:latest` / 浮动 tag → 引导用户跑 `/dwy-docker-image`(走 query_dockerhub.py 选 N-1 minor)
-> - daemon 未配 registry-mirrors / 容器用境外 registry → 引导用户跑 `/dwy-mirror-source`(写阿里云/中科大/daocloud)
+检查 docker.sock 挂载、容器 root 运行、内部端口公网暴露、镜像 tag 固定度、`--privileged`、daemon 远程 API、RestartPolicy、daemon 日志驱动、registry-mirrors 与境外 registry 使用。
 
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| `/var/run/docker.sock` 挂载到容器 | 仅可信容器 | **critical** |
-| 容器以 root 运行 | 应使用非 root user | high |
-| 端口绑定 | DB/Redis 等内部服务**不应** `0.0.0.0:5432` 暴露 | **critical** |
-| 镜像 tag = `:latest` 或省略 tag | 固定到具体 patch | **critical** |
-| 镜像 tag = 浮动 tag(`:stable` `:mainline` `:alpine` `:bookworm` `:slim` `:edge` `:nightly` 等) | 固定到具体 patch | high |
-| 镜像 tag = 仅 major(`:7` `:16`) | 至少到 minor,推荐到 patch | high |
-| 镜像 tag = `major.minor`(`:7.4`)| 固定到 patch(`:7.4.9`) | medium |
-| 镜像 tag = `@sha256:...` digest | — | OK 加分 |
-| `--privileged` 容器 | 无 | **critical** |
-| Docker 版本 | 非已知 CVE 版本 | medium |
-| Docker daemon 远程 API | 未暴露 2375/2376 公网 | **critical** |
-| 容器 `RestartPolicy` | `always` 或 `unless-stopped`（**服务器重启后自动起来**） | **critical** |
-| 容器 `RestartPolicy=no` 但正在 running | 不允许（重启会丢） | **critical** |
-| 容器 `RestartPolicy=on-failure` | 不推荐（手动 stop / OOM 后不会重启） | high |
-| daemon 日志驱动 `log-opts.max-size` | 已配置（≤ 100m，防容器日志写满磁盘） | high |
-| **daemon `registry-mirrors`**(时区在 PRC 时) | 至少 1 个国内源(daocloud / aliyun / ustc / tsinghua) | high(PRC 无配置)/ info(境外) |
-| **运行容器使用境外 registry**(`gcr.io` `ghcr.io` `k8s.gcr.io` `quay.io` `mcr.microsoft.com` `nvcr.io` `docker.elastic.co`)且时区在 PRC | 改用 `<registry>.m.daocloud.io` 前缀(`registry-mirrors` **不**对它们生效) | high |
+→ 详细检查项、期望值、严重级（含跨 skill 联动指引）见 `references/checks-runtime.md` §「4.6 Docker 安全」
 
 ### 4.7 依赖服务连通性 — `{scripts}/check_services.sh`
 
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| 内部服务端口 | 仅内网/loopback 可达 | high |
-| 健康检查端点 | 返回 200 | medium |
-| 跨服务网络 | 应用 → DB/Redis 连通正常 | info |
-| 防火墙规则 | iptables / ufw / firewalld 已启用 | high |
-| 外部访问入口 | 仅 80/443 + SSH 端口 | high |
+检查内部服务端口可达性、健康检查端点、跨服务连通、防火墙与外部访问入口。
+
+→ 详细检查项、期望值、严重级见 `references/checks-network.md` §「4.7 依赖服务连通性」
 
 ### 4.8 自愈与资源耗尽防护 — `{scripts}/check_resilience.sh`
 
-服务器意外重启后能否自动恢复，以及在异常负载下能否守住底线。
+检查关键服务是否 systemd enable（重启自启）、swap、根分区使用率、logrotate、ulimit、内存压力与容器内存上限。
 
-**B. 系统服务开机自启**（默认清单 + 自动探测）
-
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| `sshd` is-enabled | enabled（不起就再也连不上） | **critical** |
-| `nginx` is-enabled | enabled | **critical** |
-| `docker` is-enabled | enabled（影响所有容器） | **critical** |
-| `postgresql` is-enabled | enabled | **critical** |
-| `redis` / `redis-server` is-enabled | enabled | high |
-| `frps` / `frpc` is-enabled（如部署） | enabled | high |
-| `fail2ban` is-enabled（如安装） | enabled | medium |
-| 应用主进程 systemd unit | enabled | **critical** |
-| running 但 disabled 的服务 | 不应存在（重启即丢失） | high |
-| 自动探测：`systemctl list-unit-files --state=enabled` | 输出供人工核对应用进程是否在内 | info |
-
-**D. 资源耗尽防护**
-
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| `swap` 已配置 | ≥ 1GB（OOM 缓冲） | medium |
-| 根分区使用率 | < 80% | medium（≥ 90% critical） |
-| `/etc/logrotate.conf` 存在 | 是 | high |
-| 关键服务有 `/etc/logrotate.d/<name>` | nginx / postgresql / redis 等都应有 | high |
-| nginx / postgres / redis 进程 `ulimit -n` | ≥ 4096，建议 65535 | medium |
-| `/proc/pressure/memory`（PSI） | 输出供观察当前内存压力 | info |
-| 容器 `HostConfig.Memory` | 关键容器应有内存上限 | medium |
+→ 详细检查项、期望值、严重级（B 节系统服务开机自启 + D 节资源耗尽防护）见 `references/checks-runtime.md` §「4.8 自愈与资源耗尽防护」
 
 ### 4.9 日志大小与防爆检查 — `{scripts}/check_logs.sh`
 
-防止日志写满磁盘把整机拖垮。check_resilience.sh 的 D 节给的是宏观信号（`/var/log` 总大小、logrotate 是否存在），本节按"日志源"细化到单文件粒度，并基于容器存活时长粗估"撑天数"。
+按"日志源"细化到单文件粒度，检查 Docker json-log、Nginx 日志、journal、应用日志，并基于容器存活时长粗估"撑天数"。
 
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| Docker 单容器 `*-json.log` 大小 | < 500 MB（daemon 配 log-opts max-size 时自动控） | high(>500 MB) / critical(>1 GB 且 daemon 无 log-opts) |
-| 容器自身 `LogConfig.Config` 覆盖 | 至少有 `max-size`，否则继承 daemon | high（容器 + daemon 都没配） |
-| Docker daemon `log-opts.max-size` | 已配置 ≤ 100m | high（同 check_docker.sh，本节关联展开） |
-| Nginx access.log / error.log 单文件 | < 500 MB | high |
-| `/etc/logrotate.d/nginx` | 存在 | high |
-| `journalctl --disk-usage` | < 2 GB | medium / high(≥ 2 GB 且 SystemMaxUse 未配) |
-| `/etc/systemd/journald.conf` `SystemMaxUse` | 已显式配置 | low |
-| 应用日志目录（`/var/log/<svc>` / `/opt/*/logs` / `/home/*/logs` / `/srv/*/logs`） | 列出 Top 10 供人工核对 | info |
-| 日志按当前 docker 容器存活时长粗估的撑天数 | > 90 天 | high(<90) / critical(<30) |
-
-**输出规约：** 脚本会汇总 `Docker json-log + Nginx + journal + 应用日志` 总占用，对照根盘可用空间，给出"按 docker 当前增速预计可撑 N 天"的粗估。粗估只算 docker json-log 增量，不含数据库/应用日志业务增量，因此**结论偏乐观**，作为下限警示使用。
+→ 详细检查项、期望值、严重级与撑天数粗估说明见 `references/checks-runtime.md` §「4.9 日志大小与防爆检查」
 
 ### 4.10 硬件识别与资源推荐 — `{scripts}/check_capacity.sh`
 
-> 脚本只输出 raw（硬件规格 + 当前容器 mem_limit + Postgres/Redis 启动参数 + compose 资源声明）；主 Claude 用下表生成 "推荐 vs 当前" 对比报告。详细推荐规则与配比公式参考 `dwy-docker-image` skill 第二部分。
+输出宿主硬件规格 + 当前容器 mem_limit + Postgres/Redis 启动参数 + compose 资源声明；主 Claude 对照分级表生成"推荐 vs 当前"对比报告。
 
-**容器资源推荐分级表（按宿主总内存）**
-
-| 宿主总内存 | Backend mem_limit | Postgres mem_limit / shm_size / shared_buffers / effective_cache_size | Redis mem_limit / maxmemory |
-|-----------|-------------------|--------------------------------------------------------------------|----------------------------|
-| 2 GB | 384m | 512m / 128m / 128MB / 384MB | 256m / 180mb |
-| 4 GB | 1g | 1g / 256m / 256MB / 768MB | 384m / 256mb |
-| 8 GB | 2g | 2g / 512m / 512MB / 1536MB | 768m / 512mb |
-| 16 GB | 4g | 4g / 1g / 1GB / 3GB | 1g / 700mb |
-
-**配比原则**
-
-- 容器 `mem_limit` 合计 ≤ 宿主总内存的 **65%**（预留 OS / 全局 nginx / 监控 agent / frpc 等）
-- Postgres `shared_buffers` = 容器 `mem_limit` 的 **25%**
-- Postgres `effective_cache_size` = 容器 `mem_limit` 的 **75%**
-- Redis `maxmemory` = 容器 `mem_limit` 的 **70%**（剩 30% 给 RDB/AOF fork 时 COW 留 buffer）
-- Redis `mem_limit` = `maxmemory ÷ 0.7` 向上取整
-
-**对比报告格式（主 Claude 在报告里生成）**
-
-```
-| 服务 | 配置项 | 推荐(基于 X GB 宿主) | 当前 | 状态 |
-|------|--------|--------------------|------|------|
-| backend | mem_limit | 1g | 无 | ❌ 缺失 |
-| db | mem_limit | 1g | 1g | ✅ |
-| db | shared_buffers | 256MB | 128MB(默认) | ⚠️ 偏低 |
-| db | shm_size | 256m | 64m(默认) | ⚠️ 偏低 |
-| redis | maxmemory | 256mb | 256mb | ✅ |
-| redis | mem_limit | 384m | 384m | ✅ |
-| redis | appendonly | yes | no | ⚠️ 重启丢数据 |
-```
-
-**严重等级标记规则**
-
-| 检查项 | 期望值 | 严重级 |
-|--------|--------|--------|
-| 关键服务（redis / postgres / mysql / mongo / clickhouse / elasticsearch）容器无 `mem_limit` | 已设置 | high |
-| Redis `--maxmemory` 未设置或 `0` | 已设置 | **critical** |
-| Postgres `shared_buffers` > 宿主总内存 50% | ≤ 宿主总内存 50% | high |
-| Postgres `shm_size` < 128m | ≥ 256m | medium |
-| Redis 未启用 AOF（`--appendonly yes`） | yes | medium |
-| 容器 `mem_limit` 合计 > 宿主总内存 75% | ≤ 65% | high |
-| `mem_limit` 偏离推荐表 ±50% 以上（主 Claude 判定） | 在分级表区间内 | medium |
-
----
-
-#### 日志大小推荐分级表（防容器日志无限增长撑爆磁盘）
-
-依据是 `<根盘容量>` × `<容器规模>`,**单容器最大日志占用 = `max-size` × `max-file`**;所有容器日志合计应 ≤ 根盘可用空间的 **5%**(留磁盘给数据/swap/OS)。
-
-**daemon 兜底配置(`/etc/docker/daemon.json` `log-opts`)**
-
-| 宿主规格 | 根盘 | 容器数(估) | `max-size` | `max-file` | 单容器 quota | 备注 |
-|---------|------|-----------|------------|-----------|-------------|------|
-| 入门 | < 50 GB | 任意 | `10m` | `3` | ~30 MB | 2-4 GB VM 入门款,日志少留磁盘 |
-| 标准 | 50-150 GB | ≤ 5 | `50m` | `5` | ~250 MB | 4-8 GB VM 通用 |
-| 标准 | 50-150 GB | > 5 | `20m` | `5` | ~100 MB | 容器多则降单容器 quota |
-| 大型 | > 150 GB | 任意 | `100m` | `5` | ~500 MB | 16+ GB 服务器,空间充裕 |
-
-**容器级覆盖(compose `logging.options`,优先于 daemon)**
-
-| 容器类型 | `max-size` | `max-file` | 理由 |
-|---------|-----------|-----------|------|
-| 数据库 (postgres / mysql / mongo) | `20m` | `10` | 慢查询日志价值高,保留更多滚动 |
-| Web 反代 (nginx access log 走 stdout) | `50m` | `5` | 写入量大,单文件可放宽 |
-| 应用后端 (FastAPI / Node 等) | `10m` | `5` | 通用 |
-| Redis / 缓存类 | `10m` | `3` | 写入少,保留少 |
-
-**daemon.json 模板**
-
-```json
-{
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "50m",
-    "max-file": "5",
-    "compress": "true"
-  }
-}
-```
-
-**严重等级标记(脚本侧 + 主 Claude 对照表)**
-
-| 判定 | 严重级 |
-|------|--------|
-| daemon 无 `log-opts.max-size` 且容器也无 `LogConfig.Config` | **critical** |
-| daemon `max-size` > 推荐档 50% 以上(如根盘 < 50 GB 用 100m) | high |
-| 容器无 `LogConfig.Config` 但 daemon 有兜底 | OK(走 daemon) |
-| 容器 `LogConfig.Config` 设了但 max-size 偏离推荐档 ±50% | medium |
-| 估算所有容器日志合计 > 根盘可用 5% | high |
-
----
+→ 容器资源推荐分级表、配比原则、对比报告格式、严重等级标记与日志大小推荐分级表见 `references/checks-runtime.md` §「4.10 硬件识别与资源推荐」
 
 ### 4.11 凭证强度审计 — `{scripts}/check_secrets.sh`
 
-> **强制脱敏:** 脚本能读密码,但**绝不输出明文**。所有结论以派生指标形式输出:`len=N classes=K strength=STRONG/MEDIUM/WEAK reason=xxx`。Claude 在生成报告时也**禁止**任何还原或猜测明文。
+读取 7 类凭证源（.env / docker env / Redis requirepass / Postgres POSTGRES_PASSWORD / frps/frpc auth.token / DolphinDB / SSH 私钥），输出强度派生指标 `len / classes / strength / reason`，**强制脱敏不输出明文**。
 
-**检查范围(7 类凭证源):**
-
-| # | 凭证源 | 提取方式 | 字段示例 |
-|---|--------|---------|---------|
-| 1 | `.env` 文件 | `find /home /opt /srv /root -name ".env*"` | `*PASSWORD* / *SECRET* / *TOKEN* / *KEY* / *AK / *SK` |
-| 2 | docker 容器内联 env | `docker inspect --format '{{range .Config.Env}}'` | 同上 |
-| 3 | Redis `--requirepass` | `docker inspect <redis> .Args` | requirepass 启动参数值 |
-| 4 | Postgres `POSTGRES_PASSWORD` | docker container env | POSTGRES_PASSWORD |
-| 5 | frps/frpc `auth.token` | find `frps.toml` `frpc.toml` `*.ini` | `token = ...` / `auth.token = ...` |
-| 6 | DolphinDB 配置 | find `dolphindb.cfg` / `cluster.cfg` / `controller.cfg` | `password / passwd / adminPassword` |
-| 7 | SSH 私钥 | `ssh-keygen -l -f ~/.ssh/id_*` | type + bits + perm |
-
-**强度评级算法(脚本侧):**
-
-| 条件 | 等级 | 严重级 |
-|------|------|--------|
-| 长度 < 8 | WEAK | **critical** |
-| 字典词命中(内置 30 词:`password / admin / root / test / changeme / 123 / qwerty / welcome / letmein / secret` 等) | WEAK | **critical** |
-| 长度 < 16 | MEDIUM | medium |
-| 字符类 < 3(大小写/数字/符号) | MEDIUM | medium |
-| 长度 ≥ 16 且 字符类 ≥ 3 | STRONG | OK |
-| **高敏字段附加门槛**(SECRET/JWT/TOKEN/API_KEY/AK/SK/PRIVATE_KEY 类):长度 < 32 | — | high |
-
-**SSH 私钥单独评级:**
-
-| 类型 / 位数 | 严重级 |
-|------------|--------|
-| ED25519 | OK |
-| RSA ≥ 4096 | OK |
-| RSA 3072 | OK(建议升 ed25519) |
-| RSA 2048 | medium |
-| RSA < 2048 | **critical** |
-| ECDSA(NIST 曲线) | medium(建议 ed25519) |
-| DSA | **critical**(已废弃) |
-| 私钥 perm ≠ 600/400 | high |
-
-**输出脱敏样例:**
-
-```
-[/opt/ai-quant/quant-cloud/backend/.env]
-  POSTGRES_PASSWORD     len=20 classes=4 strength=STRONG reason=ok           [OK]
-  REDIS_PASSWORD        len=20 classes=4 strength=STRONG reason=ok           [OK]
-  JWT_SECRET            len=12 classes=2 strength=MEDIUM reason=len<16       [!!] HIGH: 高敏字段建议 >= 32 字符随机串
-  OSS_ACCESS_KEY_SECRET len=8  classes=1 strength=WEAK   reason=dict_match   [!!!] CRITICAL: 弱凭证, 必须立即轮换
-
-[~/.ssh/id_rsa]
-  type=RSA bits=2048 perm=600                                                [!] MEDIUM: RSA-2048 可接受但建议升 ed25519 或 RSA-4096
-```
-
-**禁止事项:**
-
-- 禁止把密码明文(或片段、字符片段、md5/sha1 等单向哈希)写入报告
-- 禁止"我看到密码是 xxx**" 这类提示性表述
-- 禁止把 audit raw 输出原文复制到报告(必须只摘 strength/len/classes 三段)
-- 禁止建议用户"轮换为 abc123" 这种举例(用 `openssl rand -base64 24` 这种**生成命令**)
-
-**修复指引(脚本末尾自动输出):**
-
-- 通用密码 ≥ 16 字符 + 三类:`openssl rand -base64 24 | tr -d '=+/' | cut -c1-20`
-- 高敏 token ≥ 32 字符:`openssl rand -hex 32`
-- SSH key 升级:`ssh-keygen -t ed25519 -C "your@email"`
+→ 完整检查范围、强度评级算法、SSH 私钥单独评级、脱敏样例、禁止事项与修复指引见 `references/checks-data.md` §「4.11 凭证强度审计」
 
 ---
 
@@ -522,11 +262,11 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 | ✅ | 通过 | `[OK]` / `[OK+]` |
 | ❌ | 失败 | `[!!!] CRITICAL` / `[!!] HIGH` / `[!] MEDIUM` / `[!] LOW` |
 | ⊘ | 跳过 | `[i] xxx 未安装/未运行/不可读/跳过` |
-| ❓ | 未覆盖 | 本 SKILL.md 4.x 表格里有但 audit 输出没出现该项 |
+| ❓ | 未覆盖 | 本 skill `references/checks-*.md` 4.x 表格里有但 audit 输出没出现该项 |
 
 ### 主 Claude 生成报告的强制流程
 
-1. **拿"清单基准"**:本 SKILL.md `### 4.1` ~ `### 4.10` 各小节里的"**检查项**"列即为完整清单基准(共 ~120 项)
+1. **拿"清单基准"**:`references/checks-network.md` / `references/checks-data.md` / `references/checks-runtime.md` 各小节里的"**检查项**"列即为完整清单基准(共 ~120 项)
 2. **拿"实际数据"**:用 Read 工具读 `/tmp/dwy_audit_<host>.txt`(run_all.sh 输出)
 3. **逐项配对**:对清单每一项,在 audit 输出里 grep 对应关键词,按图标规则归类
 4. **不可省略**:即使某项是 ✅,**也要列出来**;不能只列失败
@@ -571,7 +311,7 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ## 完整检查清单
 
-> 按 SKILL.md 4.1-4.10 分组,每节一张表,节标题带通过率。
+> 按 references 中 4.1-4.11 分组,每节一张表,节标题带通过率。
 > 表头四列固定:`#` / `检查项` / `严重级` / `状态` / `实际值/备注`
 
 ### 4.1 SSH 安全 (8/10 ✅)
@@ -614,7 +354,7 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 [...]
 
 ### 4.10 硬件识别与资源推荐 (容器资源 5/7 + 日志推荐 4/5)
-**包含"推荐 vs 当前"对比表(见 SKILL.md 4.10),保留原对比格式**
+**包含"推荐 vs 当前"对比表(见 references/checks-runtime.md §4.10),保留原对比格式**
 
 ### 4.11 凭证强度审计 (12/15 ✅)
 
@@ -671,7 +411,7 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ## 未覆盖项 (❓) — 暴露脚本盲区
 
-> 这些项 SKILL.md 列了但 audit 输出没出现 — 说明脚本未实际检查或未输出该项判定。
+> 这些项 references/checks-*.md 列了但 audit 输出没出现 — 说明脚本未实际检查或未输出该项判定。
 > **行动:** 反馈到 dwy-deploy-audit skill 维护者,后续补强 check_*.sh。
 
 | 类目 | 检查项 | 备注 |
