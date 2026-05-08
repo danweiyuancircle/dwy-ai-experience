@@ -264,12 +264,20 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ### 4.6 Docker 安全 — `{scripts}/check_docker.sh`
 
+> **跨 skill 联动**:本节发现的镜像版本/镜像源问题,只**报告**不修复。具体修复路径:
+> - 镜像 tag 不固定 / `:latest` / 浮动 tag → 引导用户跑 `/dwy-docker-image`(走 query_dockerhub.py 选 N-1 minor)
+> - daemon 未配 registry-mirrors / 容器用境外 registry → 引导用户跑 `/dwy-mirror-source`(写阿里云/中科大/daocloud)
+
 | 检查项 | 期望值 | 严重级 |
 |--------|--------|--------|
 | `/var/run/docker.sock` 挂载到容器 | 仅可信容器 | **critical** |
 | 容器以 root 运行 | 应使用非 root user | high |
 | 端口绑定 | DB/Redis 等内部服务**不应** `0.0.0.0:5432` 暴露 | **critical** |
-| 镜像 tag | 非 `:latest` (生产) | medium |
+| 镜像 tag = `:latest` 或省略 tag | 固定到具体 patch | **critical** |
+| 镜像 tag = 浮动 tag(`:stable` `:mainline` `:alpine` `:bookworm` `:slim` `:edge` `:nightly` 等) | 固定到具体 patch | high |
+| 镜像 tag = 仅 major(`:7` `:16`) | 至少到 minor,推荐到 patch | high |
+| 镜像 tag = `major.minor`(`:7.4`)| 固定到 patch(`:7.4.9`) | medium |
+| 镜像 tag = `@sha256:...` digest | — | OK 加分 |
 | `--privileged` 容器 | 无 | **critical** |
 | Docker 版本 | 非已知 CVE 版本 | medium |
 | Docker daemon 远程 API | 未暴露 2375/2376 公网 | **critical** |
@@ -277,6 +285,8 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 | 容器 `RestartPolicy=no` 但正在 running | 不允许（重启会丢） | **critical** |
 | 容器 `RestartPolicy=on-failure` | 不推荐（手动 stop / OOM 后不会重启） | high |
 | daemon 日志驱动 `log-opts.max-size` | 已配置（≤ 100m，防容器日志写满磁盘） | high |
+| **daemon `registry-mirrors`**(时区在 PRC 时) | 至少 1 个国内源(daocloud / aliyun / ustc / tsinghua) | high(PRC 无配置)/ info(境外) |
+| **运行容器使用境外 registry**(`gcr.io` `ghcr.io` `k8s.gcr.io` `quay.io` `mcr.microsoft.com` `nvcr.io` `docker.elastic.co`)且时区在 PRC | 改用 `<registry>.m.daocloud.io` 前缀(`registry-mirrors` **不**对它们生效) | high |
 
 ### 4.7 依赖服务连通性 — `{scripts}/check_services.sh`
 
@@ -383,6 +393,53 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 | Redis 未启用 AOF（`--appendonly yes`） | yes | medium |
 | 容器 `mem_limit` 合计 > 宿主总内存 75% | ≤ 65% | high |
 | `mem_limit` 偏离推荐表 ±50% 以上（主 Claude 判定） | 在分级表区间内 | medium |
+
+---
+
+#### 日志大小推荐分级表（防容器日志无限增长撑爆磁盘）
+
+依据是 `<根盘容量>` × `<容器规模>`,**单容器最大日志占用 = `max-size` × `max-file`**;所有容器日志合计应 ≤ 根盘可用空间的 **5%**(留磁盘给数据/swap/OS)。
+
+**daemon 兜底配置(`/etc/docker/daemon.json` `log-opts`)**
+
+| 宿主规格 | 根盘 | 容器数(估) | `max-size` | `max-file` | 单容器 quota | 备注 |
+|---------|------|-----------|------------|-----------|-------------|------|
+| 入门 | < 50 GB | 任意 | `10m` | `3` | ~30 MB | 2-4 GB VM 入门款,日志少留磁盘 |
+| 标准 | 50-150 GB | ≤ 5 | `50m` | `5` | ~250 MB | 4-8 GB VM 通用 |
+| 标准 | 50-150 GB | > 5 | `20m` | `5` | ~100 MB | 容器多则降单容器 quota |
+| 大型 | > 150 GB | 任意 | `100m` | `5` | ~500 MB | 16+ GB 服务器,空间充裕 |
+
+**容器级覆盖(compose `logging.options`,优先于 daemon)**
+
+| 容器类型 | `max-size` | `max-file` | 理由 |
+|---------|-----------|-----------|------|
+| 数据库 (postgres / mysql / mongo) | `20m` | `10` | 慢查询日志价值高,保留更多滚动 |
+| Web 反代 (nginx access log 走 stdout) | `50m` | `5` | 写入量大,单文件可放宽 |
+| 应用后端 (FastAPI / Node 等) | `10m` | `5` | 通用 |
+| Redis / 缓存类 | `10m` | `3` | 写入少,保留少 |
+
+**daemon.json 模板**
+
+```json
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "50m",
+    "max-file": "5",
+    "compress": "true"
+  }
+}
+```
+
+**严重等级标记(脚本侧 + 主 Claude 对照表)**
+
+| 判定 | 严重级 |
+|------|--------|
+| daemon 无 `log-opts.max-size` 且容器也无 `LogConfig.Config` | **critical** |
+| daemon `max-size` > 推荐档 50% 以上(如根盘 < 50 GB 用 100m) | high |
+| 容器无 `LogConfig.Config` 但 daemon 有兜底 | OK(走 daemon) |
+| 容器 `LogConfig.Config` 设了但 max-size 偏离推荐档 ±50% | medium |
+| 估算所有容器日志合计 > 根盘可用 5% | high |
 
 ---
 
