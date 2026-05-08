@@ -38,7 +38,7 @@ description: "部署后线上环境基础安全巡检：远程 SSH 到目标服�
 1. 收集目标信息  → 确认 SSH 连接、目标服务范围
 2. 连通性测试    → SSH 登录、sudo 权限确认
 3. 基础环境识别  → 系统版本、已部署服务清单
-4. 分类检查      → SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience（subagent 并行）
+4. 分类检查      → SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity(主 Bash 调用 run_all.sh,11 路并行)
 5. 生成报告      → 按等级聚合,Markdown 格式
 6. 修复建议      → 每条问题给出修复方向(不执行)
 ```
@@ -109,30 +109,69 @@ ssh ${TARGET} "
 
 ## Step 4: 分类检查（并行执行）
 
-**优先采用 Claude Code subagent 并行**：把每一类检查派给一个独立的 general-purpose Agent 执行，所有 Agent 在**同一条消息里发出**，并行跑各自的 `check_xxx.sh`。每个 Agent 独立 SSH 到目标服务器，互不干扰；主 Claude 收到所有 Agent 的原始输出后再汇总成 Step 5 的 Markdown 报告。
+**主 Claude 直接用 Bash 调用 `run_all.sh`,11 路并行跑完全部检查类目**,把原始输出落到 `/tmp/dwy_audit_<host>.txt`,再由主 Claude `Read` 文件后做分析。
 
-**派遣模板**（每个分类一个 Agent，并行）：
+### 为什么不用 subagent 派遣
 
+实测踩坑后的结论(请勿绕过本节直接派 subagent):
+
+1. **subagent 读不到主用户的 `~/.ssh/config`** — 隔离环境下 alias 方式(如 `ssh tencent`)解析失败,报 `Could not resolve hostname :`(host 字段为空)。
+2. **`cat script.sh | ssh host "bash -s"` 调用方式是错的** — 本目录每个 `check_*.sh` **本身就是 wrapper,脚本内部已 ssh**,接收 `<target> [ssh_opts...]` 作为参数。被外层 ssh 再包一层会嵌套两次 ssh,失败。
+3. **subagent 多包一层反而引入协议偏差** — 主 Claude 直接 Bash 既快又能精确控制错误处理。
+
+### 调用方式（强制）
+
+**主流程：一键并行 + 落盘**
+
+```bash
+# 用户提供了 ssh alias(推荐,SSH config 已配好)
+bash {scripts}/run_all.sh <ssh_alias>           > /tmp/dwy_audit_<tag>.txt 2>&1
+
+# 用户提供显式参数
+bash {scripts}/run_all.sh <user>@<host> -p <port> -i <key>  > /tmp/dwy_audit_<tag>.txt 2>&1
 ```
-description: "巡检 {分类名}"
-subagent_type: "general-purpose"
-prompt:
-  对目标服务器执行 {分类名} 类巡检。
-  - SSH 目标: {host}:{port}
-  - 用户: {user}
-  - 私钥: {key}
-  - sudo: {yes/no}
-  - 执行: cat ~/.claude/skills/dwy-deploy-audit/scripts/{check_xxx.sh} | ssh -o ConnectTimeout=10 -i {key} -p {port} {user}@{host} "bash -s"
-  - 要求:
-    1. 把脚本输出原样粘贴回来,不要自行解读、归纳或省略
-    2. 不重试失败的命令
-    3. 仅在脚本结尾追加一行: "EXIT_CODE: <ssh 实际退出码>"
-    4. 如 SSH 连接本身失败,只回报错误,不再尝试其他动作
+
+`run_all.sh` 内部已实现 11 路并行（每个 section 独立后台进程，约 15–25s 完成全部 11 类）。完成后所有 section 按固定顺序串接到 stdout。主 Claude 用 `Read` 工具读取该 txt 后做分析。
+
+**输出文件命名规则**：`/tmp/dwy_audit_<host_or_alias>.txt`，便于用户回看 + 多次审计互不覆盖。
+
+### 脚本调用约定（理解原理用）
+
+每个 `check_xxx.sh` 是 wrapper，签名固定为：
+
+```bash
+bash {scripts}/check_xxx.sh <target> [ssh_opts...]
+# 例:
+bash {scripts}/check_ssh.sh root@host -p 22 -i ~/.ssh/key
+bash {scripts}/check_ssh.sh tencent              # alias 形式(主 Bash 可用)
 ```
 
-**为什么并行**：服务器侧的检查命令是独立只读，互不依赖。串行 7 类约 60s，并行约 10s 内完成。多 Agent 也避免主上下文被原始输出淹没。
+脚本内部用 `ssh "${SSH_OPTS[@]}" "${TARGET}" bash -s <<'REMOTE' ... REMOTE` 把检查体 heredoc 给远端执行。**不要再外层管道 / stdin 重定向**。
 
-**何时退化为串行**：用户机器禁用 Agent / 显式要求串行 / 目标服务器并发 SSH 受限（≥ 8 个 sshd MaxStartups 默认 10:30:60，并行没问题）。退化命令：`bash {scripts}/run_all.sh ${TARGET}`。
+```bash
+# ❌ 错误调用(嵌套 ssh,失败):
+cat {scripts}/check_ssh.sh | ssh root@host "bash -s"
+ssh root@host "bash -s" < {scripts}/check_ssh.sh
+
+# ✅ 正确调用:
+bash {scripts}/check_ssh.sh root@host -p 22 -i ~/.ssh/key
+```
+
+### 何时退化为串行
+
+目标服务器 `sshd MaxStartups` 限制并发，或网络抖动导致并发失败：
+
+```bash
+bash {scripts}/run_all.sh <target> [ssh_opts...] --serial > /tmp/dwy_audit_<tag>.txt 2>&1
+```
+
+### 单类目重跑
+
+某一类目失败需重跑时，直接调对应 `check_xxx.sh` 即可：
+
+```bash
+bash {scripts}/check_db.sh <target> [ssh_opts...]
+```
 
 **各类检查内容如下：**
 
@@ -280,6 +319,71 @@ prompt:
 | `/proc/pressure/memory`（PSI） | 输出供观察当前内存压力 | info |
 | 容器 `HostConfig.Memory` | 关键容器应有内存上限 | medium |
 
+### 4.9 日志大小与防爆检查 — `{scripts}/check_logs.sh`
+
+防止日志写满磁盘把整机拖垮。check_resilience.sh 的 D 节给的是宏观信号（`/var/log` 总大小、logrotate 是否存在），本节按"日志源"细化到单文件粒度，并基于容器存活时长粗估"撑天数"。
+
+| 检查项 | 期望值 | 严重级 |
+|--------|--------|--------|
+| Docker 单容器 `*-json.log` 大小 | < 500 MB（daemon 配 log-opts max-size 时自动控） | high(>500 MB) / critical(>1 GB 且 daemon 无 log-opts) |
+| 容器自身 `LogConfig.Config` 覆盖 | 至少有 `max-size`，否则继承 daemon | high（容器 + daemon 都没配） |
+| Docker daemon `log-opts.max-size` | 已配置 ≤ 100m | high（同 check_docker.sh，本节关联展开） |
+| Nginx access.log / error.log 单文件 | < 500 MB | high |
+| `/etc/logrotate.d/nginx` | 存在 | high |
+| `journalctl --disk-usage` | < 2 GB | medium / high(≥ 2 GB 且 SystemMaxUse 未配) |
+| `/etc/systemd/journald.conf` `SystemMaxUse` | 已显式配置 | low |
+| 应用日志目录（`/var/log/<svc>` / `/opt/*/logs` / `/home/*/logs` / `/srv/*/logs`） | 列出 Top 10 供人工核对 | info |
+| 日志按当前 docker 容器存活时长粗估的撑天数 | > 90 天 | high(<90) / critical(<30) |
+
+**输出规约：** 脚本会汇总 `Docker json-log + Nginx + journal + 应用日志` 总占用，对照根盘可用空间，给出"按 docker 当前增速预计可撑 N 天"的粗估。粗估只算 docker json-log 增量，不含数据库/应用日志业务增量，因此**结论偏乐观**，作为下限警示使用。
+
+### 4.10 硬件识别与资源推荐 — `{scripts}/check_capacity.sh`
+
+> 脚本只输出 raw（硬件规格 + 当前容器 mem_limit + Postgres/Redis 启动参数 + compose 资源声明）；主 Claude 用下表生成 "推荐 vs 当前" 对比报告。详细推荐规则与配比公式参考 `dwy-docker-image` skill 第二部分。
+
+**容器资源推荐分级表（按宿主总内存）**
+
+| 宿主总内存 | Backend mem_limit | Postgres mem_limit / shm_size / shared_buffers / effective_cache_size | Redis mem_limit / maxmemory |
+|-----------|-------------------|--------------------------------------------------------------------|----------------------------|
+| 2 GB | 384m | 512m / 128m / 128MB / 384MB | 256m / 180mb |
+| 4 GB | 1g | 1g / 256m / 256MB / 768MB | 384m / 256mb |
+| 8 GB | 2g | 2g / 512m / 512MB / 1536MB | 768m / 512mb |
+| 16 GB | 4g | 4g / 1g / 1GB / 3GB | 1g / 700mb |
+
+**配比原则**
+
+- 容器 `mem_limit` 合计 ≤ 宿主总内存的 **65%**（预留 OS / 全局 nginx / 监控 agent / frpc 等）
+- Postgres `shared_buffers` = 容器 `mem_limit` 的 **25%**
+- Postgres `effective_cache_size` = 容器 `mem_limit` 的 **75%**
+- Redis `maxmemory` = 容器 `mem_limit` 的 **70%**（剩 30% 给 RDB/AOF fork 时 COW 留 buffer）
+- Redis `mem_limit` = `maxmemory ÷ 0.7` 向上取整
+
+**对比报告格式（主 Claude 在报告里生成）**
+
+```
+| 服务 | 配置项 | 推荐(基于 X GB 宿主) | 当前 | 状态 |
+|------|--------|--------------------|------|------|
+| backend | mem_limit | 1g | 无 | ❌ 缺失 |
+| db | mem_limit | 1g | 1g | ✅ |
+| db | shared_buffers | 256MB | 128MB(默认) | ⚠️ 偏低 |
+| db | shm_size | 256m | 64m(默认) | ⚠️ 偏低 |
+| redis | maxmemory | 256mb | 256mb | ✅ |
+| redis | mem_limit | 384m | 384m | ✅ |
+| redis | appendonly | yes | no | ⚠️ 重启丢数据 |
+```
+
+**严重等级标记规则**
+
+| 检查项 | 期望值 | 严重级 |
+|--------|--------|--------|
+| 关键服务（redis / postgres / mysql / mongo / clickhouse / elasticsearch）容器无 `mem_limit` | 已设置 | high |
+| Redis `--maxmemory` 未设置或 `0` | 已设置 | **critical** |
+| Postgres `shared_buffers` > 宿主总内存 50% | ≤ 宿主总内存 50% | high |
+| Postgres `shm_size` < 128m | ≥ 256m | medium |
+| Redis 未启用 AOF（`--appendonly yes`） | yes | medium |
+| 容器 `mem_limit` 合计 > 宿主总内存 75% | ≤ 65% | high |
+| `mem_limit` 偏离推荐表 ±50% 以上（主 Claude 判定） | 在分级表区间内 | medium |
+
 ---
 
 ## Step 5: 生成报告
@@ -292,7 +396,7 @@ prompt:
 **目标:** {host}
 **时间:** {iso8601}
 **执行人:** {user}@{client}
-**覆盖类别:** SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience
+**覆盖类别:** SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity
 
 ## 摘要
 
