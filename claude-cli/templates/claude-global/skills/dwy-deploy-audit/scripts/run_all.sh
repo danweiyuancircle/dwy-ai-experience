@@ -12,7 +12,7 @@
 set -uo pipefail
 
 if [[ $# -lt 1 ]]; then
-  echo "Usage: $0 <user>@<host> [-p <port>] [-i <key>] [--serial]" >&2
+  echo "Usage: $0 <user>@<host|alias> [-p <port>] [-i <key>] [--serial]" >&2
   exit 1
 fi
 
@@ -33,12 +33,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TMP_DIR=$(mktemp -d -t dwy-audit-XXXXXX)
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-echo "========================================"
-echo " dwy-deploy-audit | target: ${TARGET}"
-echo " timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-echo " mode: $([ "$PARALLEL" = true ] && echo 'parallel (8 workers)' || echo 'serial')"
-echo "========================================"
-
 # 检查项: <section_name>:<script_name>
 SECTIONS=(
   "BASE_INFO:check_base.sh"
@@ -50,7 +44,15 @@ SECTIONS=(
   "DOCKER:check_docker.sh"
   "SERVICES:check_services.sh"
   "RESILIENCE:check_resilience.sh"
+  "LOGS:check_logs.sh"
+  "CAPACITY:check_capacity.sh"
 )
+
+echo "========================================"
+echo " dwy-deploy-audit | target: ${TARGET}"
+echo " timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+echo " mode: $([ "$PARALLEL" = true ] && echo "parallel (${#SECTIONS[@]} workers)" || echo 'serial')"
+echo "========================================"
 
 run_section() {
   local name="$1"
