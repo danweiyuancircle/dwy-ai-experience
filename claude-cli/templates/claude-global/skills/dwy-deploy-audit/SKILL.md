@@ -445,7 +445,26 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ## Step 5: 生成报告
 
-报告必须为 Markdown 格式，固定结构：
+报告必须为 Markdown 格式,**核心是"完整检查清单 + 状态可视化"** — 让用户一眼看到"检查了哪些 / 通过哪些 / 失败哪些 / 跳过哪些 / 未覆盖哪些"。
+
+### 状态图标统一
+
+| 图标 | 含义 | audit raw 输出触发条件 |
+|------|------|---------------------|
+| ✅ | 通过 | `[OK]` / `[OK+]` |
+| ❌ | 失败 | `[!!!] CRITICAL` / `[!!] HIGH` / `[!] MEDIUM` / `[!] LOW` |
+| ⊘ | 跳过 | `[i] xxx 未安装/未运行/不可读/跳过` |
+| ❓ | 未覆盖 | 本 SKILL.md 4.x 表格里有但 audit 输出没出现该项 |
+
+### 主 Claude 生成报告的强制流程
+
+1. **拿"清单基准"**:本 SKILL.md `### 4.1` ~ `### 4.10` 各小节里的"**检查项**"列即为完整清单基准(共 ~120 项)
+2. **拿"实际数据"**:用 Read 工具读 `/tmp/dwy_audit_<host>.txt`(run_all.sh 输出)
+3. **逐项配对**:对清单每一项,在 audit 输出里 grep 对应关键词,按图标规则归类
+4. **不可省略**:即使某项是 ✅,**也要列出来**;不能只列失败
+5. **未覆盖项必须显式列出**:暴露脚本侧的盲区,作为后续补强依据
+
+### 报告固定结构
 
 ```markdown
 # 部署巡检报告
@@ -455,45 +474,145 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 **执行人:** {user}@{client}
 **覆盖类别:** SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity
 
-## 摘要
+---
+
+## 摘要面板
+
+| 指标 | 值 |
+|------|---|
+| 总检查项 | N |
+| ✅ 通过 | A |
+| ❌ 失败 | B |
+| ⊘ 跳过 | C |
+| ❓ 未覆盖 | D |
+| **通过率** | **A / (A+B) = X%** |
+
+**失败按等级:**
 
 | 等级 | 数量 |
 |------|------|
-| Critical | N |
-| High | N |
-| Medium | N |
-| Low | N |
-| Info | N |
+| 🔴 Critical | N |
+| 🟠 High | N |
+| 🟡 Medium | N |
+| 🔵 Low | N |
+| ⚪ Info | N |
 
 **整体评估:** [一句话结论:可放行 / 需立即处理 / 建议优化]
 
-## 详细问题清单
+---
 
-### [CRITICAL] PostgreSQL listen_addresses 设置为 *
+## 完整检查清单
 
-**位置:** /etc/postgresql/15/main/postgresql.conf:59
-**当前值:** `listen_addresses = '*'`
-**期望值:** `listen_addresses = 'localhost,10.0.0.0/8'`
-**风险:** 数据库监听所有网卡,若防火墙未拦截则公网可直接访问数据库
-**修复建议:**
+> 按 SKILL.md 4.1-4.10 分组,每节一张表,节标题带通过率。
+> 表头四列固定:`#` / `检查项` / `严重级` / `状态` / `实际值/备注`
+
+### 4.1 SSH 安全 (8/10 ✅)
+
+| # | 检查项 | 严重级 | 状态 | 实际值 / 备注 |
+|---|--------|--------|------|--------------|
+| 1 | PermitRootLogin | critical | ✅ | prohibit-password |
+| 2 | PasswordAuthentication | high | ❌ | yes(期望 no) |
+| 3 | PermitEmptyPasswords | critical | ✅ | no |
+| 4 | Port | medium | ⊘ | sshd_config 不可读(无 sudo) |
+| 5 | Protocol | high | ✅ | 2 |
+| 6 | MaxAuthTries | medium | ✅ | 3 |
+| 7 | LoginGraceTime | low | ❓ | audit 输出未提及该项 |
+| 8 | AllowUsers / AllowGroups | medium | ❌ | 未配白名单 |
+| 9 | sshd 日志可见 | high | ✅ | journalctl _COMM=sshd 有输出 |
+| 10 | fail2ban / sshguard | medium | ⊘ | 未安装 |
+
+### 4.2 Nginx 配置 (12/19 ✅)
+[同上格式...]
+
+### 4.3 数据库暴露 (PostgreSQL 6/7 ✅, Redis 7/8 ✅)
+[同上格式,PG 与 Redis 各一张子表]
+
+### 4.4 HTTPS 证书 (4/5 ✅)
+[...]
+
+### 4.5 环境变量 / 文件权限 (5/6 ✅)
+[...]
+
+### 4.6 Docker 安全 (10/17 ✅)
+[...]
+
+### 4.7 依赖服务连通性 (4/5 ✅)
+[...]
+
+### 4.8 自愈与资源耗尽防护 (B 节 9/10 + D 节 6/7)
+[B 系统服务开机自启 + D 资源耗尽防护 各一张子表]
+
+### 4.9 日志大小与防爆检查 (7/9 ✅)
+[...]
+
+### 4.10 硬件识别与资源推荐 (容器资源 5/7 + 日志推荐 4/5)
+**包含"推荐 vs 当前"对比表(见 SKILL.md 4.10),保留原对比格式**
+
+---
+
+## 失败项详情(按严重级排序)
+
+> 仅展开 ❌ 项,按 critical → high → medium → low 排序;每条一段。
+
+### 🔴 [CRITICAL] PostgreSQL listen_addresses 设置为 *
+
+- **类目:** 4.3 数据库暴露
+- **位置:** /etc/postgresql/15/main/postgresql.conf:59
+- **当前值:** `listen_addresses = '*'`
+- **期望值:** `listen_addresses = 'localhost,10.0.0.0/8'`
+- **风险:** 数据库监听所有网卡,若防火墙未拦截则公网可直接访问数据库
+- **修复建议:**
   1. 编辑 postgresql.conf 改为内网地址
   2. 配合 pg_hba.conf 限制源 IP
   3. 重载: `sudo systemctl reload postgresql`
-**参考:** https://www.postgresql.org/docs/current/runtime-config-connection.html
+- **参考:** https://www.postgresql.org/docs/current/runtime-config-connection.html
 
-[继续列出每条问题...]
+### 🟠 [HIGH] ...
 
-## 通过项
+[继续列出每条 ❌ 项,严格按等级降序]
 
-- [x] SSH 已禁用 root 登录
-- [x] Nginx 已配置 HSTS
+---
+
+## 跳过项 (⊘)
+
+> 透明化暴露:列出所有 ⊘ 项 + 跳过原因,让用户决定是否追加权限/装服务后重跑。
+
+| 类目 | 检查项 | 跳过原因 |
+|------|--------|---------|
+| 4.1.4 SSH | Port | sshd_config 不可读(用户无 sudo) |
+| 4.1.10 SSH | fail2ban / sshguard | 未安装 |
+| ... | ... | ... |
+
+---
+
+## 未覆盖项 (❓) — 暴露脚本盲区
+
+> 这些项 SKILL.md 列了但 audit 输出没出现 — 说明脚本未实际检查或未输出该项判定。
+> **行动:** 反馈到 dwy-deploy-audit skill 维护者,后续补强 check_*.sh。
+
+| 类目 | 检查项 | 备注 |
+|------|--------|------|
+| 4.1.7 SSH | LoginGraceTime | check_ssh.sh 未输出该项 |
+| ... | ... | ... |
+
+---
+
+## 跨 skill 衍生建议
+
+根据本次失败项归纳的可执行后续动作:
+
+- 镜像版本不固定 (4.6) → 跑 `/dwy-docker-image` 选 N-1 minor
+- daemon 未配 registry-mirrors (4.6) → 跑 `/dwy-mirror-source` 写国内源
+- 容器资源偏离推荐 (4.10) → 改 `docker-compose.prod.yml` 的 mem_limit/maxmemory
 - ...
 
-## 未覆盖项
+---
 
-- 未执行渗透测试(如需要,使用 dwy-pentest)
+## 未覆盖范围(本 skill 边界外)
+
+- 未执行渗透测试(如需要,使用 `/dwy-pentest`)
 - 未审计应用层逻辑(SQL 注入 / XSS 等)
-- 未审计应用日志内容
+- 未审计应用日志内容(只看大小,不看内容合规)
 ```
 
 ---
