@@ -231,12 +231,20 @@ dist/
 
 ---
 
-## 一键启动脚本 `dev.sh`
+## 一键启动脚本（`dev.sh` + `prod.sh`）
 
-每个项目根放一份：
+每个项目根放两份脚本：`dev.sh` 用于本地开发（一键拉起全栈），`prod.sh` 用于生产环境管理（启动 / 停止 / 重启 / 状态 / 日志 / 更新）。
+
+**为什么要有这个**：
+- `dev.sh` — 新人 clone 项目后一行命令跑起来全栈，不用查文档
+- `prod.sh` — 运维人员（或部署 CI）用统一入口管理生产，避免每次手敲长串 `docker compose --env-file ... -f ... ...`，也避免漏 `--env-file` 等参数导致的事故
+
+### `dev.sh`（开发环境一键启动）
 
 ```bash
 #!/bin/bash
+set -e
+
 # 启动基础设施
 docker compose -f docker-compose.dev.yml up -d
 
@@ -257,4 +265,106 @@ cd frontend && pnpm dev &
 wait
 ```
 
-**为什么要有这个**：新人 clone 项目后能一行 `bash dev.sh` 跑起来全栈，不用查文档。
+### `prod.sh`（生产环境管理）
+
+```bash
+#!/bin/bash
+# 生产环境部署管理脚本
+# 用法: bash prod.sh {start|stop|restart|status|logs|update} [service]
+
+set -e
+
+COMPOSE_FILE="docker-compose.prod.yml"
+ENV_FILE=".env.prod"
+
+# 前置检查
+if [ ! -f "$COMPOSE_FILE" ]; then
+  echo "错误：当前目录找不到 $COMPOSE_FILE"
+  exit 1
+fi
+
+if [ ! -f "$ENV_FILE" ]; then
+  echo "错误：缺少 $ENV_FILE，请先从 .env.prod.example 复制并填写生产环境变量"
+  exit 1
+fi
+
+# 统一调用 docker compose 的封装（避免重复参数）
+dc() {
+  docker compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+}
+
+ACTION="${1:-}"
+SERVICE="${2:-}"
+
+case "$ACTION" in
+  start)
+    echo "→ 启动生产环境（后台运行）..."
+    dc up -d
+    echo "✓ 已启动。用 'bash prod.sh status' 查看状态"
+    ;;
+
+  stop)
+    echo "→ 停止生产环境..."
+    dc down
+    echo "✓ 已停止（volume 数据保留）"
+    ;;
+
+  restart)
+    if [ -n "$SERVICE" ]; then
+      echo "→ 重启服务 $SERVICE ..."
+      dc restart "$SERVICE"
+    else
+      echo "→ 重启所有服务..."
+      dc restart
+    fi
+    echo "✓ 已重启"
+    ;;
+
+  status)
+    dc ps
+    ;;
+
+  logs)
+    if [ -n "$SERVICE" ]; then
+      dc logs -f --tail=200 "$SERVICE"
+    else
+      dc logs -f --tail=200
+    fi
+    ;;
+
+  update)
+    echo "→ 拉取最新镜像并重建容器..."
+    dc pull
+    dc up -d --remove-orphans
+    echo "✓ 已更新到最新镜像"
+    ;;
+
+  *)
+    cat <<EOF
+用法: bash prod.sh {start|stop|restart|status|logs|update} [service]
+
+  start              启动所有服务（后台运行）
+  stop               停止所有服务并清理容器（volume 保留）
+  restart [service]  重启所有服务，或指定单个服务（不重建容器）
+  status             查看服务状态
+  logs [service]     实时查看日志（最近 200 行起），可指定 service
+  update             拉取最新镜像并重建容器（应用 compose 配置变更）
+
+示例:
+  bash prod.sh start
+  bash prod.sh restart backend
+  bash prod.sh logs nginx
+  bash prod.sh update
+EOF
+    exit 1
+    ;;
+esac
+```
+
+**为什么这样设计**：
+
+- **`dc()` 封装**：所有 docker compose 命令都自动带 `--env-file .env.prod -f docker-compose.prod.yml`，避免漏参数导致用错环境变量或错误 compose 文件
+- **`restart` 用 `docker compose restart` 而不是 `down + up`**：重启容器但不删除（保留容器内运行时状态），更快也更安全；只有 `update` 才会重建容器
+- **`stop` 走 `down` 而非 `stop`**：彻底清理网络和容器，下次 `start` 是全新的；volume 默认保留，不丢数据
+- **前置检查 `.env.prod`**：生产环境变量缺失时第一时间退出，不会因为读到默认值跑起一个错误配置的服务
+- **`update` 单独命令**：日常运维（重启 / 看日志）不会误触发镜像拉取，只有显式 `update` 才会拉新镜像

@@ -91,11 +91,19 @@ AI 看到下列情况之一，立即进入「检查清单」：
 
 ### D. 一键启动脚本
 
+每个全栈项目根**必须**有两个脚本：
+
+- `dev.sh` — 开发环境一键拉起全栈（基础设施容器化 + 应用宿主机热更新）
+- `prod.sh` — 生产环境管理入口，支持 `start` / `stop` / `restart` / `status` / `logs` / `update` 子命令
+
 | 检测 | 严重度 | 触发 AskUserQuestion |
 |---|---|---|
 | 项目根无 `dev.sh`（且确认是 dwy 风格 monorepo / 全栈项目） | low | ⚠ 仅在用户问"怎么启动"时提示创建 |
+| 项目根无 `prod.sh`（且已有 `docker-compose.prod.yml`） | medium | ⚠ 仅在用户问"怎么部署 / 怎么重启" 时提示创建 |
+| `prod.sh` 不支持 `start` / `stop` / `restart` 三个核心子命令 | medium | ✓ 必须 |
+| `prod.sh` 中 docker compose 命令未带 `--env-file` 加载 `.env.prod` | high | ✓ 必须 |
 
-→ 模板见 `references/templates.md` 末尾。
+→ 模板见 `references/templates.md` 末尾「一键启动脚本」段。
 
 ---
 
