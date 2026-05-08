@@ -231,7 +231,10 @@ else
     echo ""
     echo "[$f]"
     # 提 token = "xxx" / token = xxx / auth.token = xxx
-    token=$(sudo -n cat "$f" 2>/dev/null || cat "$f" 2>/dev/null \
+    # 注意: 必须用 { ...; } | grep 而非 cat || cat | grep
+    # 后者因 | 优先级高于 ||, 当 sudo 成功时只跑 sudo cat, 后续 pipeline 被丢弃,
+    # 导致 token 变量 = 整个文件内容, evaluate_secret 用 read 取第一行 (常是 bindPort=7000)
+    token=$( { sudo -n cat "$f" 2>/dev/null || cat "$f" 2>/dev/null; } \
             | grep -iE '^[[:space:]]*(auth\.)?token[[:space:]]*=' \
             | head -1 | sed -E 's/.*=//; s/^[[:space:]]*//; s/[[:space:]]*$//; s/^"//; s/"$//; s/^'\''//; s/'\''$//')
     if [[ -n "$token" ]]; then
