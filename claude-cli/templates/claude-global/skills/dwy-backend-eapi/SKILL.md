@@ -7,7 +7,7 @@ description: "dwyeapi FastAPI 后端基础设施速查。触发条件：使用 F
 
 FastAPI 项目基础设施包，Python 3.11+，全异步。11 个模块。
 
-> **Tasks 集成指南：** 详见同目录 [tasks-integration-guide.md](tasks-integration-guide.md)
+> **Tasks 集成指南：** 详见 [references/tasks-integration-guide.md](references/tasks-integration-guide.md)
 
 ## 安装
 
@@ -430,4 +430,4 @@ app.include_router(task_router)
 | GET | `/tasks` | 列表 (分页 + 筛选) |
 | POST | `/tasks/{task_id}/cancel` | 取消任务 |
 
-> **完整文档：** [tasks-integration-guide.md](tasks-integration-guide.md) — 包含 TaskContext API、数据模型、Worker 配置、取消机制等详细说明。
+> **完整文档：** [tasks-integration-guide.md](references/tasks-integration-guide.md) — 包含 TaskContext API、数据模型、Worker 配置、取消机制等详细说明。
