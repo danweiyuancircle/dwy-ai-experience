@@ -38,7 +38,7 @@ description: "部署后线上环境基础安全巡检：远程 SSH 到目标服�
 1. 收集目标信息  → 确认 SSH 连接、目标服务范围
 2. 连通性测试    → SSH 登录、sudo 权限确认
 3. 基础环境识别  → 系统版本、已部署服务清单
-4. 分类检查      → SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity(主 Bash 调用 run_all.sh,11 路并行)
+4. 分类检查      → SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity / Secrets(主 Bash 调用 run_all.sh,12 路并行)
 5. 生成报告      → 按等级聚合,Markdown 格式
 6. 修复建议      → 每条问题给出修复方向(不执行)
 ```
@@ -109,7 +109,7 @@ ssh ${TARGET} "
 
 ## Step 4: 分类检查（并行执行）
 
-**主 Claude 直接用 Bash 调用 `run_all.sh`,11 路并行跑完全部检查类目**,把原始输出落到 `/tmp/dwy_audit_<host>.txt`,再由主 Claude `Read` 文件后做分析。
+**主 Claude 直接用 Bash 调用 `run_all.sh`,12 路并行跑完全部检查类目**,把原始输出落到 `/tmp/dwy_audit_<host>.txt`,再由主 Claude `Read` 文件后做分析。
 
 ### 为什么不用 subagent 派遣
 
@@ -131,7 +131,7 @@ bash {scripts}/run_all.sh <ssh_alias>           > /tmp/dwy_audit_<tag>.txt 2>&1
 bash {scripts}/run_all.sh <user>@<host> -p <port> -i <key>  > /tmp/dwy_audit_<tag>.txt 2>&1
 ```
 
-`run_all.sh` 内部已实现 11 路并行（每个 section 独立后台进程，约 15–25s 完成全部 11 类）。完成后所有 section 按固定顺序串接到 stdout。主 Claude 用 `Read` 工具读取该 txt 后做分析。
+`run_all.sh` 内部已实现 12 路并行（每个 section 独立后台进程，约 15–30s 完成全部 12 类）。完成后所有 section 按固定顺序串接到 stdout。主 Claude 用 `Read` 工具读取该 txt 后做分析。
 
 **输出文件命名规则**：`/tmp/dwy_audit_<host_or_alias>.txt`，便于用户回看 + 多次审计互不覆盖。
 
@@ -443,6 +443,74 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ---
 
+### 4.11 凭证强度审计 — `{scripts}/check_secrets.sh`
+
+> **强制脱敏:** 脚本能读密码,但**绝不输出明文**。所有结论以派生指标形式输出:`len=N classes=K strength=STRONG/MEDIUM/WEAK reason=xxx`。Claude 在生成报告时也**禁止**任何还原或猜测明文。
+
+**检查范围(7 类凭证源):**
+
+| # | 凭证源 | 提取方式 | 字段示例 |
+|---|--------|---------|---------|
+| 1 | `.env` 文件 | `find /home /opt /srv /root -name ".env*"` | `*PASSWORD* / *SECRET* / *TOKEN* / *KEY* / *AK / *SK` |
+| 2 | docker 容器内联 env | `docker inspect --format '{{range .Config.Env}}'` | 同上 |
+| 3 | Redis `--requirepass` | `docker inspect <redis> .Args` | requirepass 启动参数值 |
+| 4 | Postgres `POSTGRES_PASSWORD` | docker container env | POSTGRES_PASSWORD |
+| 5 | frps/frpc `auth.token` | find `frps.toml` `frpc.toml` `*.ini` | `token = ...` / `auth.token = ...` |
+| 6 | DolphinDB 配置 | find `dolphindb.cfg` / `cluster.cfg` / `controller.cfg` | `password / passwd / adminPassword` |
+| 7 | SSH 私钥 | `ssh-keygen -l -f ~/.ssh/id_*` | type + bits + perm |
+
+**强度评级算法(脚本侧):**
+
+| 条件 | 等级 | 严重级 |
+|------|------|--------|
+| 长度 < 8 | WEAK | **critical** |
+| 字典词命中(内置 30 词:`password / admin / root / test / changeme / 123 / qwerty / welcome / letmein / secret` 等) | WEAK | **critical** |
+| 长度 < 16 | MEDIUM | medium |
+| 字符类 < 3(大小写/数字/符号) | MEDIUM | medium |
+| 长度 ≥ 16 且 字符类 ≥ 3 | STRONG | OK |
+| **高敏字段附加门槛**(SECRET/JWT/TOKEN/API_KEY/AK/SK/PRIVATE_KEY 类):长度 < 32 | — | high |
+
+**SSH 私钥单独评级:**
+
+| 类型 / 位数 | 严重级 |
+|------------|--------|
+| ED25519 | OK |
+| RSA ≥ 4096 | OK |
+| RSA 3072 | OK(建议升 ed25519) |
+| RSA 2048 | medium |
+| RSA < 2048 | **critical** |
+| ECDSA(NIST 曲线) | medium(建议 ed25519) |
+| DSA | **critical**(已废弃) |
+| 私钥 perm ≠ 600/400 | high |
+
+**输出脱敏样例:**
+
+```
+[/opt/ai-quant/quant-cloud/backend/.env]
+  POSTGRES_PASSWORD     len=20 classes=4 strength=STRONG reason=ok           [OK]
+  REDIS_PASSWORD        len=20 classes=4 strength=STRONG reason=ok           [OK]
+  JWT_SECRET            len=12 classes=2 strength=MEDIUM reason=len<16       [!!] HIGH: 高敏字段建议 >= 32 字符随机串
+  OSS_ACCESS_KEY_SECRET len=8  classes=1 strength=WEAK   reason=dict_match   [!!!] CRITICAL: 弱凭证, 必须立即轮换
+
+[~/.ssh/id_rsa]
+  type=RSA bits=2048 perm=600                                                [!] MEDIUM: RSA-2048 可接受但建议升 ed25519 或 RSA-4096
+```
+
+**禁止事项:**
+
+- 禁止把密码明文(或片段、字符片段、md5/sha1 等单向哈希)写入报告
+- 禁止"我看到密码是 xxx**" 这类提示性表述
+- 禁止把 audit raw 输出原文复制到报告(必须只摘 strength/len/classes 三段)
+- 禁止建议用户"轮换为 abc123" 这种举例(用 `openssl rand -base64 24` 这种**生成命令**)
+
+**修复指引(脚本末尾自动输出):**
+
+- 通用密码 ≥ 16 字符 + 三类:`openssl rand -base64 24 | tr -d '=+/' | cut -c1-20`
+- 高敏 token ≥ 32 字符:`openssl rand -hex 32`
+- SSH key 升级:`ssh-keygen -t ed25519 -C "your@email"`
+
+---
+
 ## Step 5: 生成报告
 
 报告必须为 Markdown 格式,**核心是"完整检查清单 + 状态可视化"** — 让用户一眼看到"检查了哪些 / 通过哪些 / 失败哪些 / 跳过哪些 / 未覆盖哪些"。
@@ -472,7 +540,7 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 **目标:** {host}
 **时间:** {iso8601}
 **执行人:** {user}@{client}
-**覆盖类别:** SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity
+**覆盖类别:** SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity / Secrets
 
 ---
 
@@ -547,6 +615,22 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ### 4.10 硬件识别与资源推荐 (容器资源 5/7 + 日志推荐 4/5)
 **包含"推荐 vs 当前"对比表(见 SKILL.md 4.10),保留原对比格式**
+
+### 4.11 凭证强度审计 (12/15 ✅)
+
+> **强制脱敏:** 不论 audit raw 输出包含什么,清单中**只能列** `key 名 / len / classes / strength / reason / 严重级`,不得出现密码片段、明文、md5/sha1 哈希。
+
+| # | 凭证源 | 字段 | 严重级 | 状态 | 强度详情 |
+|---|--------|------|--------|------|---------|
+| 1 | .env (cloud/backend) | POSTGRES_PASSWORD | critical | ✅ | len=20 classes=4 STRONG |
+| 2 | .env (cloud/backend) | REDIS_PASSWORD | critical | ✅ | len=20 classes=4 STRONG |
+| 3 | .env (cloud/backend) | JWT_SECRET | high | ❌ | len=12 classes=2 MEDIUM(高敏字段建议 ≥ 32) |
+| 4 | docker env (cloud-db) | POSTGRES_PASSWORD | critical | ✅ | len=20 classes=4 STRONG |
+| 5 | Redis --requirepass | (cloud-redis-1) | critical | ✅ | len=20 classes=4 STRONG |
+| 6 | frps.toml | auth.token | high | ⊘ | 未发现 frp 配置 |
+| 7 | DolphinDB cluster.cfg | adminPassword | high | ⊘ | 未发现 DolphinDB 配置 |
+| 8 | ~/.ssh/id_ed25519 | type+bits | high | ✅ | ED25519 perm=600 |
+| 9 | ~/.ssh/id_rsa | type+bits | medium | ❌ | RSA-2048 perm=600(建议升 ed25519) |
 
 ---
 

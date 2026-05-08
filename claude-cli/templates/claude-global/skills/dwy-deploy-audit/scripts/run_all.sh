@@ -46,6 +46,7 @@ SECTIONS=(
   "RESILIENCE:check_resilience.sh"
   "LOGS:check_logs.sh"
   "CAPACITY:check_capacity.sh"
+  "SECRETS:check_secrets.sh"
 )
 
 echo "========================================"
