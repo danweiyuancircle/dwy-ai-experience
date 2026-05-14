@@ -74,6 +74,26 @@ WHERE trade_date >= 2020.01.01, trade_date < 2020.02.01
 WHERE order_book_id in [`000001.XSHE`000002.XSHE]
 ```
 
+### 范围查询禁止链式过滤
+
+DolphinDB 不识别链式比较的两端边界，无法做分区剪枝。必须用 `between ... and ...` 或拆成两个独立条件。
+
+```sql
+-- ❌ 链式过滤 → 全表扫描（实测扫描 10091 个分区）
+select * from loadTable(dbName, tbName)
+where 2022.12.01 <= TradeDate <= 2022.12.03
+
+-- ✅ between ... and ... → 分区剪枝（实测扫描 90 个分区）
+select * from loadTable(dbName, tbName)
+where TradeDate between 2022.12.01 and 2022.12.03
+
+-- ✅ 拆成两个独立条件 → 分区剪枝
+select * from loadTable(dbName, tbName)
+where TradeDate >= 2022.12.01 and TradeDate <= 2022.12.03
+```
+
+可用 `[HINT_EXPLAIN]` 查看实际扫描的分区数验证：`select [HINT_EXPLAIN] * from ...` 输出中的 `partitions.local` 数量应等于范围内的分区数，而不是全库分区数。
+
 ### tickDB 分区列
 - 第一级：`trade_date`（VALUE 分区，按日）
 - 第二级：`order_book_id`（HASH 分区，20 桶）
@@ -87,6 +107,7 @@ WHERE order_book_id in [`000001.XSHE`000002.XSHE]
 - `date(...)` / `month(...)` / `year(...)` 包裹分区列
 - `WHERE 1=1` 无分区条件（全表扫描）
 - `select * from loadTable(...)` 无 WHERE 子句
+- 链式比较 `a <= col <= b`（必须改为 `between a and b` 或拆成两个独立条件）
 
 ## 四、批量写入
 
@@ -326,11 +347,87 @@ patch("app.services.tick_archive.run_ddb", ...)
 patch("app.services.tick_compute.run_ddb", ...)
 ```
 
-## 十二、检查清单
+## 十二、分区设计原则（建表时）
+
+### 单分区合理大小（压缩前）
+
+| 引擎 | 推荐范围 | 说明 |
+|---|---|---|
+| OLAP | 100MB ~ 300MB | 列存按分区粒度加载，过大易 OOM |
+| TSDB / PKEY | 400MB ~ 1GB | 内部还有 LevelFile 二级组织，单分区可大一些 |
+
+分区过小：元数据膨胀、查询时分区数爆炸、命中 `maxPartitionNumPerQuery` 限制（默认 65536）。
+分区过大：单分区加载内存压力大、并行度下降、删除/重写代价高。
+
+### 分区层级与类型
+
+| 维度 | 规则 |
+|---|---|
+| 层级 | 最少 1 级，最多 3 级；分区方案一经确定无法调整，库下所有表共用 |
+| 范围分区 (RANGE) | **只能向后扩展且无法自动扩展**，需手动 `addRangePartitions` |
+| 范围分区越界数据 | `allowMissingPartitions=true`（默认）会**静默丢弃**范围外数据；需要报错改为 `false` |
+| 值分区 (VALUE) | 可自动扩展（需 `newValuePartitionPolicy=add`）；**不宜初始化过多空分区** |
+| 哈希分区 (HASH) | 桶数固定，建库后不可改 |
+
+### 分区方案设计反例
+
+> 股票行情数据（每天 5000 万条记录），先按 `TradeDate` 值分区，再按 `SecurityID` 二级值分区。
+> 假设全是国内股票（约 5000 只），一天分区数就达 5000+。每天数据 3GB，**每个分区只有约 0.6MB**。
+
+后果：
+- 默认 `maxPartitionNumPerQuery=65536`，每天 5000 个分区，**查 14 天就报错**：`The number of partitions relevant to the query is too large`
+- 单分区 0.6MB 远低于 OLAP 100MB / TSDB 400MB 推荐下限，元数据开销远大于数据本身
+- 修复方向：二级分区改用 `HASH(SecurityID, 20)`（按经验固定 20 桶），或合并到日粒度单级分区
+
+### 设计检查项
+
+- [ ] 单分区估算大小是否落在引擎推荐区间？
+- [ ] 总分区数是否远低于单次查询 65536 上限？
+- [ ] 二级是否用了高基数列做 VALUE 分区？（高基数列优先 HASH）
+- [ ] RANGE 分区是否预留了 `addRangePartitions` 的扩展机制？是否需要 `allowMissingPartitions=false`？
+
+## 十三、字符串/BLOB/SYMBOL 长度限制
+
+自 **1.30.23 / 2.00.11** 版本起，分布式表写入对字符串类数据增加了硬性大小限制：
+
+| 类型 | 上限 | 超限行为 |
+|---|---|---|
+| `STRING` | < 64 KB | 静默截断到 65,535 字节（64 KB - 1） |
+| `BLOB` | < 64 MB | 静默截断到 67,108,863 字节（64 MB - 1） |
+| `SYMBOL` | ≤ 255 字节 | **直接抛异常**，写入失败 |
+
+### 强制规则
+
+写入前必须做长度校验，**特别是 SYMBOL 列会让整批写入失败**：
+
+```python
+# ✅ 写入前校验 SYMBOL 列长度
+MAX_SYMBOL_BYTES = 255
+oversize_mask = batch_df["order_book_id"].str.encode("utf-8").str.len() > MAX_SYMBOL_BYTES
+if oversize_mask.any():
+    raise BusinessError(
+        f"SYMBOL 列 order_book_id 有 {oversize_mask.sum()} 行超过 255 字节"
+    )
+```
+
+### 类型选择建议
+
+- 短编码字段（股票代码、因子名）→ `SYMBOL`，但必须保证 ≤ 255 字节
+- 用户可输入的中等长度文本（备注、描述）→ `STRING`，注意 64 KB 截断风险，超长字段做应用层校验
+- 大文本/二进制（JSON、文件）→ `BLOB`，超长会被截断而不是报错，**截断不可逆**，必须在应用层校验长度
+- 中文按 UTF-8 编码，1 字符 ≈ 3 字节，预估时按字节而非字符
+
+### 违规检测
+
+- 写入路径上对 `SYMBOL` 列没有长度校验 → 整批写入可能失败
+- 写入 `STRING`/`BLOB` 时没有长度上限断言 → 数据被静默截断，事后无法恢复
+
+## 十四、检查清单
 
 每次涉及 DolphinDB 的代码变更，必须逐条检查：
 
 - [ ] WHERE 条件是否命中分区列？是否有函数包裹分区列？
+- [ ] 范围条件是否使用 `between ... and ...` 或两个独立条件？是否存在链式比较 `a <= col <= b`？
 - [ ] 批量写入是否 ≤ 500K 行？是否有 `gc.collect()`？
 - [ ] 外部输入是否经过 `validators.py` 校验？
 - [ ] 使用 `run_ddb` 还是 `run_ddb_with_data`？场景是否匹配？
@@ -340,3 +437,5 @@ patch("app.services.tick_compute.run_ddb", ...)
 - [ ] 脚本中 backtick 列名是否在单行内？
 - [ ] 新增 service 文件的 `run_ddb` 导入是否在 conftest.py 中 mock？
 - [ ] 分页查询是否使用 `limit offset, count` 语法？（禁止 `LIMIT x OFFSET y`）
+- [ ] 新建库表时单分区估算大小是否在引擎推荐区间内？总分区数是否远低于 65536？
+- [ ] 写入路径对 `SYMBOL` 列是否有 ≤ 255 字节长度校验？`STRING` / `BLOB` 是否有上限断言以避免静默截断？

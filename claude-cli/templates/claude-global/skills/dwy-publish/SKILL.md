@@ -103,7 +103,7 @@ description: "发布版本：测试 → bump → changelog → build → publish
 # 暂存变更（version + changelog）
 git add <changed-files>
 
-# 提交（遵循 dwy-git-commit-convention）
+# 提交（遵循 dwy-git-commit）
 git commit -m "chore(<scope>): release v<version>"
 
 # 打 tag（按 Release 配置的命名规则）
