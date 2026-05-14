@@ -1,5 +1,12 @@
 # @dwydev/eui
 
+## 2.1.0
+
+### Minor Changes
+
+- **EDialog**: 新增 `showOverlay` prop（默认 `true`），传 `false` 时不渲染背景遮罩层，背景内容完全可见可交互
+- **EDialog**: 默认遮罩样式从 `bg-black/80` 调整为 `bg-black/30 backdrop-blur-sm`，降低不透明度并加入背景模糊，弹框打开时背景内容隐约可见
+
 ## 2.0.1
 
 ### Patch Changes

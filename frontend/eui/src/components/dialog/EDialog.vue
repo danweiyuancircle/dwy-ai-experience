@@ -26,6 +26,7 @@ const props = withDefaults(defineProps<EDialogProps>(), {
   closeOnPressEscape: true,
   fullscreen: false,
   destroyOnClose: true,
+  showOverlay: true,
 })
 
 const emit = defineEmits<EDialogEmits>()
@@ -114,9 +115,10 @@ function onPointerUp() {
 
     <DialogPortal>
       <DialogOverlay
+        v-if="showOverlay"
         data-slot="dialog-overlay"
         :class="cn(
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/30 backdrop-blur-sm',
         )"
       />
 
