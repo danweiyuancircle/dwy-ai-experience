@@ -22,8 +22,9 @@ program
 
 program
   .command('sync')
-  .description('交互式选择并同步 Claude Code 配置（skills/rules/commands/settings.json → 项目 .claude/；CLAUDE.md → 全局 ~/.claude/）')
-  .action(syncClaude)
+  .description('同步 Claude Code 配置到项目 .claude/（默认覆盖已选项；CLAUDE.md → 全局 ~/.claude/）')
+  .option('--no-cache', '忽略已选缓存，重新交互式选择（已选项默认勾选）')
+  .action((opts) => syncClaude(opts))
 
 program
   .command('sync-claude-md')

@@ -119,7 +119,7 @@ async function scanHooks(sourceDir) {
 /**
  * 用 inquirer 做交互式多选
  */
-async function promptSelection(items, category) {
+async function promptSelection(items, category, existingNames = new Set()) {
   if (items.length === 0) return []
 
   const { selected } = await inquirer.prompt([
@@ -131,12 +131,23 @@ async function promptSelection(items, category) {
         name: `${chalk.cyan(item.name)} ${chalk.gray('- ' + item.description.slice(0, 60))}${item.description.length > 60 ? '...' : ''}`,
         value: item,
         short: item.name,
+        checked: existingNames.has(item.name),
       })),
       pageSize: 15,
     },
   ])
 
   return selected
+}
+
+/**
+ * 扫描项目已选过的项（.claude/<type>s/ 下的子项名），返回 Set
+ */
+async function scanExisting(projectTargetDir, typePlural) {
+  const dir = path.join(projectTargetDir, typePlural)
+  if (!await fs.pathExists(dir)) return new Set()
+  const entries = await fs.readdir(dir)
+  return new Set(entries.filter(name => name !== '.gitkeep' && name !== '.DS_Store'))
 }
 
 /**
@@ -213,10 +224,12 @@ async function resolveSourceDir() {
 }
 
 /**
- * 主同步函数：交互式选择 + 同步到当前目录 .claude/（不含 CLAUDE.md）
- * CLAUDE.md 同步到全局 ~/.claude/
+ * 主同步函数：默认基于已选缓存覆盖同步，--no-cache 走交互式选择
+ * 项目级 .claude/ 接收 skills/rules/commands/hooks/settings.json
+ * 全局 ~/.claude/ 接收 CLAUDE.md
  */
-export async function syncClaude() {
+export async function syncClaude(opts = {}) {
+  const useCache = opts.cache !== false
   console.log(chalk.blue('\nScanning available Claude configuration...\n'))
 
   const sourceDir = await resolveSourceDir()
@@ -244,7 +257,7 @@ export async function syncClaude() {
     }
   }
 
-  // 扫描可用资源
+  // 扫描模板资源
   const skills = await scanSkills(sourceDir)
   const rules = await scanRules(sourceDir)
   const commands = await scanCommands(sourceDir)
@@ -252,15 +265,37 @@ export async function syncClaude() {
 
   console.log(chalk.yellow(`Found ${skills.length} skills, ${rules.length} rules, ${commands.length} commands, ${hooks.length} hooks\n`))
 
-  // 交互式选择
-  const selectedSkills = await promptSelection(skills, 'Skills')
-  const selectedRules = await promptSelection(rules, 'Rules')
-  const selectedCommands = await promptSelection(commands, 'Commands')
-  const selectedHooks = await promptSelection(hooks, 'Hooks')
+  // 扫描项目已选过的项
+  const existingSkills = await scanExisting(projectTargetDir, 'skills')
+  const existingRules = await scanExisting(projectTargetDir, 'rules')
+  const existingCommands = await scanExisting(projectTargetDir, 'commands')
+  const existingHooks = await scanExisting(projectTargetDir, 'hooks')
+  const hasAnyExisting = existingSkills.size + existingRules.size + existingCommands.size + existingHooks.size > 0
+
+  let selectedSkills, selectedRules, selectedCommands, selectedHooks
+
+  if (useCache && hasAnyExisting) {
+    // 缓存模式：直接取 模板 ∩ 已选 覆盖同步
+    selectedSkills = skills.filter(s => existingSkills.has(s.name))
+    selectedRules = rules.filter(r => existingRules.has(r.name))
+    selectedCommands = commands.filter(c => existingCommands.has(c.name))
+    selectedHooks = hooks.filter(h => existingHooks.has(h.name))
+    console.log(chalk.gray(`使用已选缓存覆盖同步（如需调整请加 --no-cache）：`))
+    console.log(chalk.gray(`  ${selectedSkills.length} skills, ${selectedRules.length} rules, ${selectedCommands.length} commands, ${selectedHooks.length} hooks\n`))
+  } else {
+    // 交互模式：已选项默认勾选
+    if (useCache && !hasAnyExisting) {
+      console.log(chalk.gray('首次同步，进入交互式选择...\n'))
+    }
+    selectedSkills = await promptSelection(skills, 'Skills', existingSkills)
+    selectedRules = await promptSelection(rules, 'Rules', existingRules)
+    selectedCommands = await promptSelection(commands, 'Commands', existingCommands)
+    selectedHooks = await promptSelection(hooks, 'Hooks', existingHooks)
+  }
 
   const totalSelected = selectedSkills.length + selectedRules.length + selectedCommands.length + selectedHooks.length
   if (totalSelected === 0) {
-    console.log(chalk.yellow('\nNo skills/rules/commands selected.'))
+    console.log(chalk.yellow('\nNo skills/rules/commands/hooks selected.'))
   }
 
   console.log(chalk.blue(`\nSyncing to ${projectTargetDir}...\n`))
