@@ -6,27 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/pre-git-commit-sensitive-check.sh"
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/post-sync-claude-global.sh"
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash ~/.claude/hooks/post-sync-claude-global.sh"
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/pre-git-commit-sensitive-check.sh"
           }
         ]
       }
