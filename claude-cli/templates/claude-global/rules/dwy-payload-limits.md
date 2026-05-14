@@ -1,3 +1,11 @@
+---
+description: 用户输入 / HTTP 请求体 / 文件上传的长度与大小限制。涉及表单字段 maxlength、Nginx client_max_body_size、Pydantic max_length、分页 page_size 上限、批量操作 items 限制、文件上传大小与像素校验时触发。
+paths:
+  - "**/*.vue"
+  - "**/*.py"
+  - "**/nginx*.conf"
+---
+
 # 数据载荷三层长度限制规则
 
 防止大文本 DoS、内存耗尽、带宽滥用。所有涉及用户输入 / HTTP 请求体 / 文件上传的场景必须遵循三层限制,单层失守即高风险。
