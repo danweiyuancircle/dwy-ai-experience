@@ -52,7 +52,7 @@ else
   echo "$NGINX_DUMP" | grep -E "^[[:space:]]*(access_log|error_log)" | head -10
 
   echo ""
-  echo "--- client_max_body_size (对齐 dwy-payload-limits) ---"
+  echo "--- client_max_body_size (业务非上传 ≤ 10m) ---"
   echo "$NGINX_DUMP" | grep -E "^[[:space:]]*client_max_body_size" || echo "[!] 未显式配置 client_max_body_size"
 
   echo ""

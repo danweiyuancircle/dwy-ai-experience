@@ -35,7 +35,7 @@
 | `server_tokens` | `off` | medium |
 | `access_log` | 已开启 | **high**(用户特别要求) |
 | `error_log` | 已开启,级别 ≥ warn | high |
-| `client_max_body_size` | 显式配置,业务非上传 ≤ 10m(对齐 dwy-payload-limits) | medium |
+| `client_max_body_size` | 显式配置,业务非上传 ≤ 10m | medium |
 | `limit_req_zone` 已定义 | 至少 1 个 zone（防 CC 攻击 / 暴力请求） | high |
 | `limit_req` 应用到敏感路由 | 登录 / 注册 / 验证码 / 高频 API 必须有 | **critical** |
 | `limit_conn_zone` + `limit_conn` | 限制同 IP 高并发连接 | medium |
