@@ -22,7 +22,7 @@ program
 
 program
   .command('sync <target>')
-  .description('Sync configuration (claude | project-claude)')
+  .description('Sync Claude configuration (claude | project-claude)')
   .action(async (target) => {
     if (target === 'claude') {
       await syncClaude()
