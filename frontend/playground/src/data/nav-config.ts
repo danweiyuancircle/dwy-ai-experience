@@ -208,9 +208,9 @@ export const modules: ModuleConfig[] = [
       {
         title: 'Skills',
         items: [
-          { name: 'dwy-frontend-eui', path: '/claude/skills/dwy-frontend-eui' },
-          { name: 'dwy-frontend-ekit', path: '/claude/skills/dwy-frontend-ekit' },
-          { name: 'dwy-backend-eapi', path: '/claude/skills/dwy-backend-eapi' },
+          { name: 'dwy-eui', path: '/claude/skills/dwy-eui' },
+          { name: 'dwy-ekit', path: '/claude/skills/dwy-ekit' },
+          { name: 'dwy-eapi', path: '/claude/skills/dwy-eapi' },
           { name: 'dwy-cli-sync-local', path: '/claude/skills/dwy-cli-sync-local' },
           { name: 'dwy-dev-qa', path: '/claude/skills/dwy-dev-qa' },
           { name: 'dwy-pentest', path: '/claude/skills/dwy-pentest' },

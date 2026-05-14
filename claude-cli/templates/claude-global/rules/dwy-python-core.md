@@ -631,7 +631,7 @@ async def create_user(body: UserCreate) -> UserResponse:
 
 ```
 需要某项基础设施功能
-  → 1. 检查 eapi 是否已提供（查阅 dwy-backend-eapi skill）
+  → 1. 检查 eapi 是否已提供（查阅 dwy-eapi skill）
     → 已提供：直接使用，不重复实现
     → 未提供：自行实现，代码注释中说明 eapi 不覆盖此功能
 ```

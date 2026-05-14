@@ -61,7 +61,7 @@ grep "path: '/eui/" frontend/playground/src/data/search-index.ts | sed "s/.*'\\/
 
 **检查方法：**
 1. 读 `frontend/ekit/src/index.ts` 的所有导出函数/类型名
-2. 对比 `claude-cli/templates/claude-global/skills/dwy-frontend-ekit/SKILL.md` 中列出的函数
+2. 对比 `claude-cli/templates/claude-global/skills/dwy-ekit/SKILL.md` 中列出的函数
 3. 对比 `frontend/playground/src/views/core/` 下各文档页面的内容
 
 **判定：** 源码导出了但 SKILL.md 或文档页没有 = 不通过。
@@ -72,7 +72,7 @@ grep "path: '/eui/" frontend/playground/src/data/search-index.ts | sed "s/.*'\\/
 
 **检查方法：**
 1. 读 `backend/src/dwyeapi/` 下所有 `.py` 文件的 public 函数/类名
-2. 对比 `claude-cli/templates/claude-global/skills/dwy-backend-eapi/SKILL.md` 中列出的函数
+2. 对比 `claude-cli/templates/claude-global/skills/dwy-eapi/SKILL.md` 中列出的函数
 3. 对比 `frontend/playground/src/views/backend/` 下各文档页面
 
 **判定：** 源码有但文档没有 = 不通过。新增了 .py 模块但没有对应文档页 = 不通过。

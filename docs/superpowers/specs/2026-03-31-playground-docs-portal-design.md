@@ -58,7 +58,7 @@
 ### Claude Code (12 页)
 
 - 概览首页
-- **Skills** (3 页): dwy-frontend-eui / dwy-frontend-core / dwy-backend-base
+- **Skills** (3 页): dwy-eui / dwy-ekit / dwy-eapi
 - **Rules** (5 页): server-security / git-security / python-code-style / vue-code-style / backend-security
 - **Hooks** (1 页): pre-git-commit-sensitive-check
 - **Settings** (1 页): settings.json 配置说明

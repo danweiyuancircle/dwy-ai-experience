@@ -1,8 +1,8 @@
 <script setup lang="ts">
 const skills = [
-  { name: 'dwy-frontend-eui', title: '@dwydev/eui', desc: 'Vue 3 组件库速查 — 89 组件完整 API', path: '/claude/skills/dwy-frontend-eui' },
-  { name: 'dwy-frontend-ekit', title: '@dwydev/ekit', desc: '前端工具库速查 — request/storage/validators/date/hooks', path: '/claude/skills/dwy-frontend-ekit' },
-  { name: 'dwy-backend-eapi', title: 'dwyeapi', desc: 'FastAPI 后端基础设施速查 — 8 模块全异步', path: '/claude/skills/dwy-backend-eapi' },
+  { name: 'dwy-eui', title: '@dwydev/eui', desc: 'Vue 3 组件库速查 — 89 组件完整 API', path: '/claude/skills/dwy-eui' },
+  { name: 'dwy-ekit', title: '@dwydev/ekit', desc: '前端工具库速查 — request/storage/validators/date/hooks', path: '/claude/skills/dwy-ekit' },
+  { name: 'dwy-eapi', title: 'dwyeapi', desc: 'FastAPI 后端基础设施速查 — 8 模块全异步', path: '/claude/skills/dwy-eapi' },
 ]
 
 const rules = [
