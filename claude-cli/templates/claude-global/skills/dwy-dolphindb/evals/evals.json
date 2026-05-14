@@ -39,6 +39,29 @@
         "输出中明确指出了连接池 upload + run 的问题",
         "输出中为每个问题都提供了修复后的代码片段"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "审查以下 DolphinDB 查询脚本是否能触发分区剪枝，并给出修复后的脚本：\n```sql\nselect * from loadTable(\"dfs://tickDB\", \"snapshots\")\nwhere 2022.12.01 <= TradeDate <= 2022.12.03\n  and order_book_id = \"000001.SZ\"\n```",
+      "expected_output": "审查必须指出：1) `2022.12.01 <= TradeDate <= 2022.12.03` 是链式比较，DolphinDB 不识别两端边界，无法做分区剪枝，会扫描全部分区；2) 给出修复方案：改为 `TradeDate between 2022.12.01 and 2022.12.03` 或拆成 `TradeDate >= 2022.12.01 and TradeDate <= 2022.12.03`；3) 同时指出 select * 浪费带宽，应只取需要的列。",
+      "files": [],
+      "assertions": [
+        "输出中明确指出了链式比较无法触发分区剪枝",
+        "输出中提供了 between ... and ... 或拆分为两个独立条件的修复方案",
+        "输出中提到了 select * 的问题"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "帮我设计一张存储股票 tick 数据的 DolphinDB 分布式表，每天约 5000 万条记录，覆盖国内 5000 只股票，使用 TSDB 引擎。给出分区方案并说明理由。",
+      "expected_output": "方案必须：1) 一级 VALUE 分区按 TradeDate，二级用 HASH 分区按 SecurityID（约 20 桶），而不是 VALUE 分区，避免每天 5000+ 个小分区命中 maxPartitionNumPerQuery=65536 限制；2) 估算单分区大小（每天 3GB / 20 桶 ≈ 150MB，落在 TSDB 推荐区间 400MB~1GB 之下但仍可接受，或调整桶数让单分区更接近 400MB）；3) 提醒分区方案一经确定无法调整；4) 提醒 SYMBOL 列 SecurityID 写入前需校验 ≤255 字节。",
+      "files": [],
+      "assertions": [
+        "方案中二级分区使用 HASH 而非 VALUE",
+        "方案中包含单分区大小估算并参考 TSDB 100MB~1GB 推荐区间",
+        "方案中提到 maxPartitionNumPerQuery=65536 或避免分区数爆炸",
+        "方案中提到 SYMBOL 列长度校验或 ≤255 字节限制"
+      ]
     }
   ]
 }
