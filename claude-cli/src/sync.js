@@ -260,11 +260,11 @@ export async function syncClaude() {
 }
 
 /**
- * 单独同步 CLAUDE.md 到当前项目 .claude/
+ * 单独同步 CLAUDE.md 到全局 ~/.claude/
  */
 export async function syncProjectClaudeMd() {
   const sourceDir = await resolveSourceDir()
-  const targetDir = path.join(process.cwd(), '.claude')
+  const targetDir = path.join(os.homedir(), '.claude')
 
   if (!await fs.pathExists(sourceDir)) {
     console.error(chalk.red('Error: claude-global templates not found in repo'))

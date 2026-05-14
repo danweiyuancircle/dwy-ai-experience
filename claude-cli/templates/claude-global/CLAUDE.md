@@ -6,11 +6,11 @@
 - **服务地址**：必须输出完整的 URL（如 `http://localhost:8000/api/users`），禁止省略协议、端口或路径
 - **数据库连接串**：必须输出完整连接字符串（如 `postgresql+asyncpg://user:pass@localhost:5432/mydb`），禁止只写主机名或库名
 
-## Agent 团队执行
+## 团队执行任务
 
-所有任务默认启用 agent team 模式执行：任务可拆分时优先并行派遣 Agent，具体派遣策略、并行度、worktree 隔离、review 闭环等由 Claude 自行判断，不在此处硬编码规则。
+任务执行优先使用 agent team 模式执行。
 
-## Behavioral Guidelines — 减少常见 LLM 编码错误的行为指南
+## 减少常见 LLM 编码错误的行为指南 (Behavioral Guidelines)
 
 与项目特定指令合并使用。
 
