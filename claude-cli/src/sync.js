@@ -275,11 +275,14 @@ export async function syncClaude(opts = {}) {
   let selectedSkills, selectedRules, selectedCommands, selectedHooks
 
   if (useCache && hasAnyExisting) {
-    // 缓存模式：直接取 模板 ∩ 已选 覆盖同步
+    // 缓存模式：模板 ∩ 已选 覆盖同步
     selectedSkills = skills.filter(s => existingSkills.has(s.name))
     selectedRules = rules.filter(r => existingRules.has(r.name))
     selectedCommands = commands.filter(c => existingCommands.has(c.name))
-    selectedHooks = hooks.filter(h => existingHooks.has(h.name))
+    // hooks 与 settings.json 引用配套：从未装过则装全部模板 hooks，已装过则按已选覆盖
+    selectedHooks = existingHooks.size > 0
+      ? hooks.filter(h => existingHooks.has(h.name))
+      : hooks
     console.log(chalk.gray(`使用已选缓存覆盖同步（如需调整请加 --no-cache）：`))
     console.log(chalk.gray(`  ${selectedSkills.length} skills, ${selectedRules.length} rules, ${selectedCommands.length} commands, ${selectedHooks.length} hooks\n`))
   } else {
