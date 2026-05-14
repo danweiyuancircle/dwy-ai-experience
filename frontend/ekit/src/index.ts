@@ -71,7 +71,8 @@ export { downloadFile, saveBlob, formatFileSize } from './file'
 export type { DownloadOptions, FileRequester } from './file'
 
 // Hooks
-export { useDebounce, useClickOutside, useEventListener } from './hooks'
+export { useDebounce, useClickOutside, useEventListener, useFormPersist, DEFAULT_SENSITIVE_FIELDS } from './hooks'
+export type { UseFormPersistOptions, UseFormPersistReturn } from './hooks'
 
 // Hooks (vueuse)
 export { useThrottle, useWindowSize, useMediaQuery, useIntersectionObserver, useResizeObserver } from './hooks/vueuse'

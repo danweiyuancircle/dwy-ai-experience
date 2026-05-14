@@ -1,5 +1,11 @@
 # @dwydev/ekit
 
+## 0.8.0
+
+### Minor Changes
+
+- **新增 `useFormPersist` composable**：让表单字段在页面刷新后自动从 sessionStorage 回填，提升填写中途意外刷新的体验。内置敏感字段排除清单（password / code / token / secret 等共 18 项，不区分大小写），调用方可通过 `exclude` 选项追加项目自定义字段；支持 `storage: 'local' | 'session'` 切换持久介质；返回 `{ form, reset, clear }`，提交成功后调 `reset()` 清空残留。导出 `DEFAULT_SENSITIVE_FIELDS` 常量与 `UseFormPersistOptions` / `UseFormPersistReturn` 类型
+
 ## 0.7.1
 
 ### Patch Changes
