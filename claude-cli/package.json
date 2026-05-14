@@ -1,6 +1,6 @@
 {
   "name": "create-dwy",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "项目脚手架与 Claude Code 配置同步工具",
   "type": "module",
   "bin": {
@@ -11,7 +11,12 @@
     "src",
     "templates"
   ],
-  "keywords": ["cli", "scaffold", "fastapi", "vue"],
+  "keywords": [
+    "cli",
+    "scaffold",
+    "fastapi",
+    "vue"
+  ],
   "license": "MIT",
   "author": "dwydev",
   "dependencies": {
