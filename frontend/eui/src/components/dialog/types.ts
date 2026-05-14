@@ -29,6 +29,8 @@ export interface EDialogProps {
   fullscreen?: boolean
   /** 关闭时是否卸载默认插槽内容（再次打开时重新挂载），默认 true */
   destroyOnClose?: boolean
+  /** 是否渲染背景遮罩层（含背景模糊），默认 true；设为 false 时弹框无遮罩，背景内容完全可见可交互 */
+  showOverlay?: boolean
 }
 
 /**
