@@ -9,6 +9,9 @@ import { refDebounced } from '@vueuse/core'
 
 export { onClickOutside as useClickOutside, useEventListener } from '@vueuse/core'
 
+export { useFormPersist, DEFAULT_SENSITIVE_FIELDS } from './useFormPersist'
+export type { UseFormPersistOptions, UseFormPersistReturn } from './useFormPersist'
+
 /**
  * 防抖 ref：源 ref 变化后延迟 delay 毫秒才更新输出 ref
  * 典型用途：搜索框输入后延迟触发请求
