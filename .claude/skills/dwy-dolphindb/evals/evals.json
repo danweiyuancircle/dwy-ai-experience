@@ -1,0 +1,44 @@
+{
+  "skill_name": "dwy-dolphindb",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "帮我写一个 Python 函数，把一个大 pandas DataFrame（约 200 万行 tick 数据）写入 DolphinDB 的 tickDB snapshots 表。表的分区列是 trade_date 和 order_book_id。函数接收 filepath（feather 格式）和 trade_date 参数。",
+      "expected_output": "生成的代码必须使用 DDBSession 复用连接、分批次 ≤500K 行写入、每批后 del + gc.collect()、用 pyarrow 分片读取、外部输入经过校验、使用 run_ddb_with_data 或 session.upload_and_run。不能出现连接池 upload、单次 append 全部数据、pd.read_feather 全量加载。",
+      "files": [],
+      "assertions": [
+        "代码中包含 BATCH_SIZE 且值 ≤ 500000",
+        "代码中使用了 gc.collect()",
+        "代码中没有使用 pd.read_feather 一次性读取大文件",
+        "代码中使用了 DDBSession 或 run_ddb_with_data 而非连接池做 upload",
+        "代码中包含对外部输入（如 trade_date、filepath）的校验逻辑"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "写一个 FastAPI 端点 /api/tick/query，接收 stock_code、start_date、end_date 参数，从 DolphinDB tickDB snapshots 表查询数据并返回。请直接写实现代码。",
+      "expected_output": "生成的代码必须对输入参数校验、WHERE 条件直接命中分区列（trade_date 和 order_book_id）而不使用函数包裹、只 select 需要的列、使用 DolphinDB 分页语法 limit offset, count（而非 LIMIT OFFSET）、使用 PIVOT BY 或合并聚合查询减少往返。",
+      "files": [],
+      "assertions": [
+        "WHERE 子句中没有 date()、month()、year() 等函数包裹分区列",
+        "查询中没有 select *",
+        "分页语法是 limit {offset}, {page_size} 而不是 limit {page_size} offset {offset}",
+        "代码中包含输入校验（validate_stock_code 或类似逻辑）",
+        "没有使用 asyncio.to_thread(pool.run)"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "审查以下代码是否符合 DolphinDB 开发规范，指出所有问题并给出修复后的代码：\n```python\nasync def import_tick_data(filepath: str, trade_date: str):\n    df = pd.read_feather(filepath)\n    script = f'append!{loadTable(\"dfs://tickDB\", \"snapshots\"), data}'\n    await run_ddb(f'upload data = {df}')\n    await run_ddb(script)\n    return {\"status\": \"ok\"}\n\nasync def query_ticks(stock_code: str, start: str, end: str):\n    script = (\n        f'select * from loadTable(\"dfs://tickDB\", \"snapshots\") '\n        f'where date(trade_date) >= {start} and date(trade_date) <= {end} '\n        f'and order_book_id = \"{stock_code}\" '\n        f'limit 100 offset 0'\n    )\n    return await run_ddb(script)\n```",
+      "expected_output": "审查报告必须指出：1) pd.read_feather 全量加载问题；2) 连接池 upload + run 导致变量跨连接不可见；3) 未校验 filepath、trade_date、stock_code；4) date(trade_date) 函数包裹分区列导致全表扫描；5) select *；6) limit 100 offset 0 语法错误；7) 缺少 BATCH_SIZE 和 gc.collect()。每项必须给出修复代码。",
+      "files": [],
+      "assertions": [
+        "输出中明确指出了 date(trade_date) 或分区列被函数包裹的问题",
+        "输出中明确指出了 select * 的问题",
+        "输出中明确指出了 limit 100 offset 0 语法错误",
+        "输出中明确指出了连接池 upload + run 的问题",
+        "输出中为每个问题都提供了修复后的代码片段"
+      ]
+    }
+  ]
+}

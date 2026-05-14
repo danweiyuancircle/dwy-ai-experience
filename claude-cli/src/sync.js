@@ -1,5 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
+import os from 'os'
 import inquirer from 'inquirer'
 import { ensureRepoCache, copyDir, chalk, PACKAGE_ROOT } from './utils.js'
 
@@ -59,7 +60,7 @@ async function scanRules(sourceDir) {
     const content = await fs.readFile(rulePath, 'utf-8')
     const description = extractDescription(content)
     rules.push({
-      name: entry.name.replace(/\.md$/, ''),
+      name: entry.name,
       description: description || '（无描述）',
       sourcePath: rulePath,
       type: 'rule',
@@ -189,17 +190,35 @@ async function resolveSourceDir() {
 }
 
 /**
- * 主同步函数：交互式选择 + 同步到当前目录 .claude/
+ * 主同步函数：交互式选择 + 同步到当前目录 .claude/（不含 CLAUDE.md）
+ * CLAUDE.md 同步到全局 ~/.claude/
  */
 export async function syncClaude() {
   console.log(chalk.blue('\nScanning available Claude configuration...\n'))
 
   const sourceDir = await resolveSourceDir()
-  const targetDir = path.join(process.cwd(), '.claude')
+  const projectTargetDir = path.join(process.cwd(), '.claude')
+  const globalTargetDir = path.join(os.homedir(), '.claude')
 
   if (!await fs.pathExists(sourceDir)) {
     console.error(chalk.red('Error: claude-global templates not found in repo'))
     process.exit(1)
+  }
+
+  // 如果当前目录没有 .claude，先确认是否在此创建
+  if (!await fs.pathExists(projectTargetDir)) {
+    const { shouldCreate } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'shouldCreate',
+        message: `当前目录 ${chalk.yellow(process.cwd())} 未找到 .claude 目录，是否在此创建？`,
+        default: false,
+      },
+    ])
+    if (!shouldCreate) {
+      console.log(chalk.yellow('\n已取消同步。'))
+      return
+    }
   }
 
   // 扫描可用资源
@@ -216,22 +235,50 @@ export async function syncClaude() {
 
   const totalSelected = selectedSkills.length + selectedRules.length + selectedCommands.length
   if (totalSelected === 0) {
-    console.log(chalk.yellow('\nNo items selected. Nothing to sync.'))
-    return
+    console.log(chalk.yellow('\nNo skills/rules/commands selected.'))
   }
 
-  console.log(chalk.blue(`\nSyncing ${totalSelected} items to ${targetDir}...\n`))
+  console.log(chalk.blue(`\nSyncing to ${projectTargetDir}...\n`))
 
-  await fs.ensureDir(targetDir)
+  await fs.ensureDir(projectTargetDir)
 
   let syncedCount = 0
-  syncedCount += await syncSelectedItems(selectedSkills, targetDir)
-  syncedCount += await syncSelectedItems(selectedRules, targetDir)
-  syncedCount += await syncSelectedItems(selectedCommands, targetDir)
-  syncedCount += await syncClaudeMd(sourceDir, targetDir)
-  syncedCount += await syncSettings(sourceDir, targetDir)
+  if (totalSelected > 0) {
+    syncedCount += await syncSelectedItems(selectedSkills, projectTargetDir)
+    syncedCount += await syncSelectedItems(selectedRules, projectTargetDir)
+    syncedCount += await syncSelectedItems(selectedCommands, projectTargetDir)
+  }
+  syncedCount += await syncSettings(sourceDir, projectTargetDir)
 
-  console.log(chalk.blue(`\nDone! Synced ${syncedCount} items to ${targetDir}`))
+  // CLAUDE.md 同步到全局
+  await fs.ensureDir(globalTargetDir)
+  syncedCount += await syncClaudeMd(sourceDir, globalTargetDir)
+
+  console.log(chalk.blue(`\nDone! Synced ${syncedCount} items.`))
+  console.log(chalk.gray(`  Project config → ${projectTargetDir}`))
+  console.log(chalk.gray(`  CLAUDE.md      → ${globalTargetDir}`))
+}
+
+/**
+ * 单独同步 CLAUDE.md 到当前项目 .claude/
+ */
+export async function syncProjectClaudeMd() {
+  const sourceDir = await resolveSourceDir()
+  const targetDir = path.join(process.cwd(), '.claude')
+
+  if (!await fs.pathExists(sourceDir)) {
+    console.error(chalk.red('Error: claude-global templates not found in repo'))
+    process.exit(1)
+  }
+
+  await fs.ensureDir(targetDir)
+  const synced = await syncClaudeMd(sourceDir, targetDir)
+
+  if (synced) {
+    console.log(chalk.blue(`\nDone! CLAUDE.md synced to ${targetDir}`))
+  } else {
+    console.log(chalk.yellow('\nCLAUDE.md not found in templates, nothing to sync.'))
+  }
 }
 
 

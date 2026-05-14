@@ -1,6 +1,6 @@
 ---
 name: dwy-eui
-description: "@dwydev/eui Vue 3 组件库速查。触发条件：使用 Vue 3 构建页面、选择 UI 组件、查询 eui 组件 API 时。"
+description: "@dwydev/eui Vue 3 组件库速查。当用户在使用 Vue 3 构建页面、选择 UI 组件、查询组件 API、写表单/表格/弹层/导航、配置主题或国际化、使用中后台或落地页设计规范时，**必须**使用此 skill。即使用户没有明确说'eui'，只要涉及 Vue 3 组件选型、页面布局、表单设计、数据展示、弹层交互、主题切换，也应触发。"
 ---
 
 # @dwydev/eui 组件速查
@@ -150,15 +150,16 @@ EConfigProvider 内部做了两件事：
 - 样式合并工具：`cn()` = clsx + tailwind-merge
 - 尺寸统一类型：`Size = 'sm' | 'default' | 'lg'`
 
-## 查阅完整 API
+## 查阅完整 API（按需读取源码）
 
-每个组件的完整 props/slots/events 定义在源码中：
+当需要某个组件的精确 props/slots/events/类型定义时，**必须**读取对应源码文件：
 
 ```
 frontend/eui/src/components/{component-name}/types.ts
+frontend/eui/src/components/{component-name}/EName.vue   # 模板和逻辑
 ```
 
-需要具体某个组件的详细 API 时，直接读取对应的 `types.ts` 文件。
+组件目录清单（89 个组件）：`frontend/eui/src/components/` 下包含 button、input、table、dialog、date-picker、chart、admin-layout、ai-chat 等。不确定组件名时，先 `ls frontend/eui/src/components/` 查看。
 
 ---
 
@@ -307,9 +308,11 @@ frontend/eui/src/components/{component-name}/types.ts
 | useMessage() | 全局消息提示 | { success, warning, error, info } — 每个接收 string 或 MessageOptions |
 | useNotification() | 通知 | { success, warning, error, info } — 接收 NotificationOptions(title, message, position, duration, onClick, closable) |
 | useMessageBox() | 对话确认 | { alert, confirm, prompt } — 返回 Promise<'confirm' \| 'cancel'> |
+| useToast() | Toast 通知（与 EToast 组件配合使用） | { toast, dismiss, toasts } — toast 接收 ToastOptions(title, description, variant) |
 | useTheme() | 主题管理 | { isDark, theme, setTheme, toggleDark, colorTheme, setColorTheme } |
 | useConfigProvider() | 读取全局配置 | { size, zIndex, locale } |
 | useFormField() | 表单字段上下文 | { id, name, formItemId, valid, isDirty, isTouched, error }（需在 FormField 内使用） |
+| useSecureValue() | 敏感输入安全绑定 | { isComposing, recordCursor, setCursor, setNativeValue, onCompositionStart, onCompositionEnd } — 通过 DOM property 赋值避免密码泄露到 HTML attribute |
 
 ## 主题系统
 
