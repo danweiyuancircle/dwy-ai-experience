@@ -101,14 +101,13 @@ const searchItems: SearchItem[] = [
   { title: 'dwy-git-commit', module: 'Claude Code', path: '/claude/skills/dwy-git-commit', content: 'Git commit 规范 type scope subject 中文 禁 AI 署名 敏感数据扫描 API Key Token 密钥 skill' },
   { title: 'dwy-pentest', module: 'Claude Code', path: '/claude/skills/dwy-pentest', content: '白帽渗透测试 安全评估 漏洞扫描 skill' },
   { title: 'dwy-publish', module: 'Claude Code', path: '/claude/skills/dwy-publish', content: '发版流程 测试 bump changelog publish tag skill' },
-  // Claude Code · Rules · 技术选型与项目结构
-  { title: 'dwy-tech-stack', module: 'Claude Code', path: '/claude/rules/dwy-tech-stack', content: '跨栈技术选型强制约束 FastAPI Vue Flutter rule' },
+  { title: 'dwy-tech-stack', module: 'Claude Code', path: '/claude/skills/dwy-tech-stack', content: '跨栈技术选型强制约束 FastAPI Vue Flutter UV pnpm Docker S3 DolphinDB skill' },
+  // Claude Code · Rules · 项目结构
   { title: 'dwy-project-structure', module: 'Claude Code', path: '/claude/rules/dwy-project-structure', content: '项目结构 monorepo 目录约定 rule' },
   // Claude Code · Rules · 开发流程与提交
   { title: 'dwy-tdd-development', module: 'Claude Code', path: '/claude/rules/dwy-tdd-development', content: 'TDD 测试驱动开发 先测试后代码 rule' },
   // Claude Code · Rules · 安全
   { title: 'dwy-server-security', module: 'Claude Code', path: '/claude/rules/dwy-server-security', content: '服务器安全 端口 Nginx Docker rule' },
-  { title: 'dwy-payload-limits', module: 'Claude Code', path: '/claude/rules/dwy-payload-limits', content: '数据载荷三层长度限制 前端 网关 后端 rule' },
   // Claude Code · Rules · API 与数据库
   { title: 'dwy-api-design', module: 'Claude Code', path: '/claude/rules/dwy-api-design', content: 'API 设计 RESTful 路径 命名 rule' },
   { title: 'dwy-db-migration', module: 'Claude Code', path: '/claude/rules/dwy-db-migration', content: '数据库迁移 Alembic schema rule' },

@@ -216,12 +216,12 @@ export const modules: ModuleConfig[] = [
           { name: 'dwy-git-commit', path: '/claude/skills/dwy-git-commit' },
           { name: 'dwy-pentest', path: '/claude/skills/dwy-pentest' },
           { name: 'dwy-publish', path: '/claude/skills/dwy-publish' },
+          { name: 'dwy-tech-stack', path: '/claude/skills/dwy-tech-stack' },
         ],
       },
       {
-        title: 'Rules · 技术选型与项目结构',
+        title: 'Rules · 项目结构',
         items: [
-          { name: 'dwy-tech-stack', path: '/claude/rules/dwy-tech-stack' },
           { name: 'dwy-project-structure', path: '/claude/rules/dwy-project-structure' },
         ],
       },
@@ -235,7 +235,6 @@ export const modules: ModuleConfig[] = [
         title: 'Rules · 安全',
         items: [
           { name: 'dwy-server-security', path: '/claude/rules/dwy-server-security' },
-          { name: 'dwy-payload-limits', path: '/claude/rules/dwy-payload-limits' },
         ],
       },
       {
