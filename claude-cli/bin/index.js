@@ -5,33 +5,24 @@ import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import { program } from 'commander'
 import { createProject } from '../src/create.js'
-import { syncClaude, syncProjectClaude } from '../src/sync.js'
+import { syncClaude } from '../src/sync.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'))
 
 program
   .name('dwy')
-  .description('Project scaffolding and Claude Code config sync')
+  .description('项目脚手架与 Claude Code 配置同步工具')
   .version(pkg.version)
 
 program
   .command('create [name]')
-  .description('Create a new project from template')
+  .description('从模板创建新项目')
   .action(createProject)
 
 program
-  .command('sync <target>')
-  .description('Sync Claude configuration (claude | project-claude)')
-  .action(async (target) => {
-    if (target === 'claude') {
-      await syncClaude()
-    } else if (target === 'project-claude') {
-      await syncProjectClaude()
-    } else {
-      console.error(`Unknown sync target: ${target}. Use "claude" or "project-claude".`)
-      process.exit(1)
-    }
-  })
+  .command('sync')
+  .description('交互式选择并同步 Claude Code 配置到当前目录的 .claude/')
+  .action(syncClaude)
 
 program.parse()

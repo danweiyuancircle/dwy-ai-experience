@@ -234,10 +234,4 @@ export async function syncClaude() {
   console.log(chalk.blue(`\nDone! Synced ${syncedCount} items to ${targetDir}`))
 }
 
-/**
- * 保留旧的 project-claude 同步逻辑
- */
-export async function syncProjectClaude() {
-  console.log(chalk.yellow('"dwy sync project-claude" is deprecated. Use "dwy sync claude" instead.'))
-  await syncClaude()
-}
+
