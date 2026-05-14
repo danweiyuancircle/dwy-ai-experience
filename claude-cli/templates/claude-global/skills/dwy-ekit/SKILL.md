@@ -1,5 +1,5 @@
 ---
-name: dwy-frontend-ekit
+name: dwy-ekit
 description: "@dwydev/ekit 前端工具库速查（v0.7.0）。触发条件：HTTP 请求、dwyeapi 响应契约对接、localStorage/Cookie、表单校验、日期/时区、剪贴板、查询字符串、文件下载、PII 脱敏、Vue composable 工具。"
 ---
 
