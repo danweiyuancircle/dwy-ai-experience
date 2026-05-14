@@ -27,7 +27,7 @@ program
 
 program
   .command('sync-claude-md')
-  .description('单独同步 CLAUDE.md 到当前目录的 .claude/')
+  .description('单独同步 CLAUDE.md 到全局 ~/.claude/')
   .action(syncProjectClaudeMd)
 
 program.parse()
