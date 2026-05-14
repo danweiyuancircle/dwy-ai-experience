@@ -93,9 +93,9 @@ const searchItems: SearchItem[] = [
   // CLI
   { title: 'create-dwy', module: 'CLI', path: '/cli/create-dwy', content: 'dwy create dwy sync 项目脚手架 配置同步' },
   // Claude Code · Skills
-  { title: 'dwy-frontend-eui', module: 'Claude Code', path: '/claude/skills/dwy-frontend-eui', content: 'EUI 组件库 skill Vue 3 reka-ui shadcn' },
-  { title: 'dwy-frontend-ekit', module: 'Claude Code', path: '/claude/skills/dwy-frontend-ekit', content: 'EKit 工具库 skill request storage validators date hooks' },
-  { title: 'dwy-backend-eapi', module: 'Claude Code', path: '/claude/skills/dwy-backend-eapi', content: 'EApi 基础设施 skill FastAPI SQLAlchemy Redis' },
+  { title: 'dwy-eui', module: 'Claude Code', path: '/claude/skills/dwy-eui', content: 'EUI 组件库 skill Vue 3 reka-ui shadcn' },
+  { title: 'dwy-ekit', module: 'Claude Code', path: '/claude/skills/dwy-ekit', content: 'EKit 工具库 skill request storage validators date hooks' },
+  { title: 'dwy-eapi', module: 'Claude Code', path: '/claude/skills/dwy-eapi', content: 'EApi 基础设施 skill FastAPI SQLAlchemy Redis' },
   { title: 'dwy-cli-sync-local', module: 'Claude Code', path: '/claude/skills/dwy-cli-sync-local', content: 'CLI 发版后同步本地全局 dwy 命令 skill npm publish' },
   { title: 'dwy-dev-qa', module: 'Claude Code', path: '/claude/skills/dwy-dev-qa', content: '开发质量保障流程 code review 测试 skill' },
   { title: 'dwy-pentest', module: 'Claude Code', path: '/claude/skills/dwy-pentest', content: '白帽渗透测试 安全评估 漏洞扫描 skill' },

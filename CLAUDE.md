@@ -104,14 +104,14 @@ Monorepo 文档门户，覆盖 EUI 组件 / EKit 工具 / Backend / CLI / Claude
 ## 文档同步约束
 
 - `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件
-- 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-frontend-eui/references/eui-integration-guide.md`
+- 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-eui/references/eui-integration-guide.md`
 - playground 的 `EuiIntegrationDoc.vue` 通过 `?raw` 导入同一文件，无需额外同步
 - `docs/tasks-integration-guide.md` 是 Tasks 集成指南的唯一源文件
-- 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-backend-eapi/references/tasks-integration-guide.md`
-- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `claude-cli/templates/claude-global/skills/dwy-backend-eapi/SKILL.md` 中的 tasks 章节
+- 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-eapi/references/tasks-integration-guide.md`
+- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `claude-cli/templates/claude-global/skills/dwy-eapi/SKILL.md` 中的 tasks 章节
 - `docs/eui-design-guide.md` 是 EUI 中后台设计规范的唯一源文件
 - `docs/eui-landing-design-guide.md` 是 EUI 落地页设计规范的唯一源文件
-- 以上两个文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-frontend-eui/references/` 对应文件
+- 以上两个文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-eui/references/` 对应文件
 
 ## 基础库开发规范
 
