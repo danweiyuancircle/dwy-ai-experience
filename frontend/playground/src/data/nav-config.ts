@@ -213,6 +213,7 @@ export const modules: ModuleConfig[] = [
           { name: 'dwy-eapi', path: '/claude/skills/dwy-eapi' },
           { name: 'dwy-cli-sync-local', path: '/claude/skills/dwy-cli-sync-local' },
           { name: 'dwy-dev-qa', path: '/claude/skills/dwy-dev-qa' },
+          { name: 'dwy-git-commit', path: '/claude/skills/dwy-git-commit' },
           { name: 'dwy-pentest', path: '/claude/skills/dwy-pentest' },
           { name: 'dwy-publish', path: '/claude/skills/dwy-publish' },
         ],
@@ -222,15 +223,12 @@ export const modules: ModuleConfig[] = [
         items: [
           { name: 'dwy-tech-stack', path: '/claude/rules/dwy-tech-stack' },
           { name: 'dwy-project-structure', path: '/claude/rules/dwy-project-structure' },
-          { name: 'dwy-prefer-open-source', path: '/claude/rules/dwy-prefer-open-source' },
         ],
       },
       {
         title: 'Rules · 开发流程与提交',
         items: [
           { name: 'dwy-tdd-development', path: '/claude/rules/dwy-tdd-development' },
-          { name: 'dwy-git-commit-convention', path: '/claude/rules/dwy-git-commit-convention' },
-          { name: 'dwy-git-security', path: '/claude/rules/dwy-git-security' },
         ],
       },
       {

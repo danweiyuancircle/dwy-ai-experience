@@ -98,16 +98,14 @@ const searchItems: SearchItem[] = [
   { title: 'dwy-eapi', module: 'Claude Code', path: '/claude/skills/dwy-eapi', content: 'EApi 基础设施 skill FastAPI SQLAlchemy Redis' },
   { title: 'dwy-cli-sync-local', module: 'Claude Code', path: '/claude/skills/dwy-cli-sync-local', content: 'CLI 发版后同步本地全局 dwy 命令 skill npm publish' },
   { title: 'dwy-dev-qa', module: 'Claude Code', path: '/claude/skills/dwy-dev-qa', content: '开发质量保障流程 code review 测试 skill' },
+  { title: 'dwy-git-commit', module: 'Claude Code', path: '/claude/skills/dwy-git-commit', content: 'Git commit 规范 type scope subject 中文 禁 AI 署名 敏感数据扫描 API Key Token 密钥 skill' },
   { title: 'dwy-pentest', module: 'Claude Code', path: '/claude/skills/dwy-pentest', content: '白帽渗透测试 安全评估 漏洞扫描 skill' },
   { title: 'dwy-publish', module: 'Claude Code', path: '/claude/skills/dwy-publish', content: '发版流程 测试 bump changelog publish tag skill' },
   // Claude Code · Rules · 技术选型与项目结构
   { title: 'dwy-tech-stack', module: 'Claude Code', path: '/claude/rules/dwy-tech-stack', content: '跨栈技术选型强制约束 FastAPI Vue Flutter rule' },
   { title: 'dwy-project-structure', module: 'Claude Code', path: '/claude/rules/dwy-project-structure', content: '项目结构 monorepo 目录约定 rule' },
-  { title: 'dwy-prefer-open-source', module: 'Claude Code', path: '/claude/rules/dwy-prefer-open-source', content: '优先成熟开源方案 不重复造轮子 rule' },
   // Claude Code · Rules · 开发流程与提交
   { title: 'dwy-tdd-development', module: 'Claude Code', path: '/claude/rules/dwy-tdd-development', content: 'TDD 测试驱动开发 先测试后代码 rule' },
-  { title: 'dwy-git-commit-convention', module: 'Claude Code', path: '/claude/rules/dwy-git-commit-convention', content: 'Git commit 规范 type scope subject rule' },
-  { title: 'dwy-git-security', module: 'Claude Code', path: '/claude/rules/dwy-git-security', content: 'Git 提交安全 敏感数据 .env 密钥 rule' },
   // Claude Code · Rules · 安全
   { title: 'dwy-server-security', module: 'Claude Code', path: '/claude/rules/dwy-server-security', content: '服务器安全 端口 Nginx Docker rule' },
   { title: 'dwy-payload-limits', module: 'Claude Code', path: '/claude/rules/dwy-payload-limits', content: '数据载荷三层长度限制 前端 网关 后端 rule' },
