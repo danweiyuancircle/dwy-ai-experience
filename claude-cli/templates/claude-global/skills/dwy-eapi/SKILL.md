@@ -1,6 +1,6 @@
 ---
 name: dwy-eapi
-description: "dwyeapi FastAPI 后端基础设施速查。触发条件：使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理、耗时任务处理时。"
+description: "dwyeapi FastAPI 后端基础设施速查。当用户使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理、写 API 响应/分页/日志/健康检查/数据脱敏、处理异步耗时任务、接入邮件验证码发送时，**必须**使用此 skill。即使用户没有明确说'dwyeapi'或'eapi'，只要涉及 FastAPI 项目的基础设施搭建、统一响应封装、异常处理、数据库会话管理、Redis 缓存、JWT 认证、后台任务队列、PII 脱敏、日志配置，也应触发。"
 ---
 
 # dwyeapi 后端基础设施速查
@@ -431,3 +431,65 @@ app.include_router(task_router)
 | POST | `/tasks/{task_id}/cancel` | 取消任务 |
 
 > **完整文档：** [tasks-integration-guide.md](references/tasks-integration-guide.md) — 包含 TaskContext API、数据模型、Worker 配置、取消机制等详细说明。
+
+---
+
+## 其他模块速查
+
+### logger — 基于 loguru 的全局日志
+
+```python
+from dwyeapi import logger
+
+logger.configure(level="INFO", log_dir="./logs", filename="app")
+log = logger.get_logger("users")
+log.info("用户 %s 登录", user_id)
+```
+
+| 函数 | 说明 |
+|------|------|
+| `logger.configure(...)` | 启动时调用一次；支持按天+按大小轮转、JSON 序列化、拦截 stdlib logging |
+| `logger.get_logger(name?)` | 返回 Logger 门面，支持 `%s` 占位符和 `exc_info=True` |
+| `logger.close()` | 关闭并恢复 stdlib logger（lifespan 结束时调用） |
+
+**详细配置参数**：读 `references/logger.md`
+
+### health — 健康检查路由工厂
+
+```python
+from dwyeapi.health import create_health_router
+
+router = create_health_router(service_name="my-api", version="1.0.0")
+app.include_router(router)
+# GET /health → {"service": "my-api", "version": "1.0.0", "status": "alive"}
+```
+
+只探活、不探依赖（防 DoS 放大）。业务如需 readiness 自行实现并限制内网访问。
+
+### providers.email — 邮件验证码发送（可插拔）
+
+内置仅 `resend`，业务可继承 `EmailProviderBase` 注入自定义通道（腾讯云 SES、AWS SES、SMTP 等）。验证码 + Redis + 品牌化模板由基类复用。
+
+```python
+from dwyeapi.providers.email import EmailSettings, make_email_provider, register_email_provider
+```
+
+| 导出项 | 说明 |
+|--------|------|
+| `EmailSettings` | 配置模型（code_ttl, brand_name, resend） |
+| `make_email_provider(settings)` | 工厂函数，按 `.env EMAIL__PROVIDER` 创建实例 |
+| `register_email_provider(name, factory)` | 注册自定义 provider |
+| `EmailProviderBase` | 抽象基类，继承后实现 `_send` 即可 |
+
+---
+
+## 查阅源码
+
+所有模块为单文件设计，直接阅读：
+
+```
+backend/src/dwyeapi/{module}.py
+backend/src/dwyeapi/providers/email/
+```
+
+模块清单：config、database、dependencies、security、exceptions、response、pagination、cache、dt、masking、logger、health、tasks、providers/email。

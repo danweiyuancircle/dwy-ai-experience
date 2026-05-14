@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import { program } from 'commander'
 import { createProject } from '../src/create.js'
-import { syncClaude } from '../src/sync.js'
+import { syncClaude, syncProjectClaudeMd } from '../src/sync.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'))
@@ -22,7 +22,12 @@ program
 
 program
   .command('sync')
-  .description('交互式选择并同步 Claude Code 配置到当前目录的 .claude/')
+  .description('交互式选择并同步 Claude Code 配置（skills/rules/commands/settings.json → 项目 .claude/；CLAUDE.md → 全局 ~/.claude/）')
   .action(syncClaude)
+
+program
+  .command('sync-claude-md')
+  .description('单独同步 CLAUDE.md 到当前目录的 .claude/')
+  .action(syncProjectClaudeMd)
 
 program.parse()
