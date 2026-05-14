@@ -94,6 +94,29 @@ async function scanCommands(sourceDir) {
 }
 
 /**
+ * 扫描 hooks 目录
+ */
+async function scanHooks(sourceDir) {
+  const hooksDir = path.join(sourceDir, 'hooks')
+  if (!await fs.pathExists(hooksDir)) return []
+
+  const entries = await fs.readdir(hooksDir, { withFileTypes: true })
+  const hooks = []
+
+  for (const entry of entries) {
+    if (entry.name === '.gitkeep') continue
+    hooks.push({
+      name: entry.name,
+      description: entry.isDirectory() ? '钩子目录' : '钩子脚本',
+      sourcePath: path.join(hooksDir, entry.name),
+      type: 'hook',
+    })
+  }
+
+  return hooks.sort((a, b) => a.name.localeCompare(b.name))
+}
+
+/**
  * 用 inquirer 做交互式多选
  */
 async function promptSelection(items, category) {
@@ -225,15 +248,17 @@ export async function syncClaude() {
   const skills = await scanSkills(sourceDir)
   const rules = await scanRules(sourceDir)
   const commands = await scanCommands(sourceDir)
+  const hooks = await scanHooks(sourceDir)
 
-  console.log(chalk.yellow(`Found ${skills.length} skills, ${rules.length} rules, ${commands.length} commands\n`))
+  console.log(chalk.yellow(`Found ${skills.length} skills, ${rules.length} rules, ${commands.length} commands, ${hooks.length} hooks\n`))
 
   // 交互式选择
   const selectedSkills = await promptSelection(skills, 'Skills')
   const selectedRules = await promptSelection(rules, 'Rules')
   const selectedCommands = await promptSelection(commands, 'Commands')
+  const selectedHooks = await promptSelection(hooks, 'Hooks')
 
-  const totalSelected = selectedSkills.length + selectedRules.length + selectedCommands.length
+  const totalSelected = selectedSkills.length + selectedRules.length + selectedCommands.length + selectedHooks.length
   if (totalSelected === 0) {
     console.log(chalk.yellow('\nNo skills/rules/commands selected.'))
   }
@@ -250,12 +275,26 @@ export async function syncClaude() {
   }
   syncedCount += await syncSettings(sourceDir, projectTargetDir)
 
+  // Hooks 同步到项目级 .claude/hooks/（settings.json 用 $CLAUDE_PROJECT_DIR 引用）
+  if (selectedHooks.length > 0) {
+    const hooksTargetDir = path.join(projectTargetDir, 'hooks')
+    await fs.ensureDir(hooksTargetDir)
+    for (const hook of selectedHooks) {
+      const dest = path.join(hooksTargetDir, hook.name)
+      await fs.copy(hook.sourcePath, dest, { overwrite: true })
+      await fs.chmod(dest, 0o755)
+      syncedCount++
+      console.log(chalk.green(`  ✓ hooks/${hook.name}`))
+    }
+  }
+
   // CLAUDE.md 同步到全局
   await fs.ensureDir(globalTargetDir)
   syncedCount += await syncClaudeMd(sourceDir, globalTargetDir)
 
   console.log(chalk.blue(`\nDone! Synced ${syncedCount} items.`))
   console.log(chalk.gray(`  Project config → ${projectTargetDir}`))
+  console.log(chalk.gray(`  Hooks          → ${path.join(projectTargetDir, 'hooks')}`))
   console.log(chalk.gray(`  CLAUDE.md      → ${globalTargetDir}`))
 }
 
