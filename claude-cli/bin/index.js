@@ -14,6 +14,14 @@ program
   .name('dwy')
   .description('项目脚手架与 Claude Code 配置管理工具')
   .version(pkg.version)
+  .addHelpText('after', `
+Examples:
+  $ dwy create my-app              创建新项目
+  $ dwy claude sync                同步 Claude 配置（基于已选覆盖）
+  $ dwy claude sync -i             重新交互式选择
+  $ dwy claude sync --dry-run      预演同步，不写入文件
+  $ dwy claude sync md             仅同步 CLAUDE.md 到 ~/.claude/
+`)
 
 program
   .command('create [name]')
