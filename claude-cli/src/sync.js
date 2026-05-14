@@ -4,6 +4,13 @@ import os from 'os'
 import inquirer from 'inquirer'
 import { ensureRepoCache, chalk } from './utils.js'
 
+const CATEGORIES = [
+  { key: 'skills', label: 'Skills' },
+  { key: 'rules', label: 'Rules' },
+  { key: 'commands', label: 'Commands' },
+  { key: 'hooks', label: 'Hooks' },
+]
+
 function extractDescription(content) {
   const match = content.match(/^---\s*\n([\s\S]*?)\n---/)
   if (!match) return ''
@@ -18,23 +25,19 @@ async function scanSkills(sourceDir) {
 
   const entries = await fs.readdir(skillsDir, { withFileTypes: true })
   const skills = []
-
   for (const entry of entries) {
     if (!entry.isDirectory()) continue
     const skillPath = path.join(skillsDir, entry.name)
     const skillMd = path.join(skillPath, 'SKILL.md')
     if (!await fs.pathExists(skillMd)) continue
-
     const content = await fs.readFile(skillMd, 'utf-8')
-    const description = extractDescription(content)
     skills.push({
       name: entry.name,
-      description: description || '（无描述）',
+      description: extractDescription(content) || '（无描述）',
       sourcePath: skillPath,
       type: 'skill',
     })
   }
-
   return skills.sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -44,20 +47,17 @@ async function scanRules(sourceDir) {
 
   const entries = await fs.readdir(rulesDir, { withFileTypes: true })
   const rules = []
-
   for (const entry of entries) {
     if (!entry.isFile() || !entry.name.endsWith('.md')) continue
     const rulePath = path.join(rulesDir, entry.name)
     const content = await fs.readFile(rulePath, 'utf-8')
-    const description = extractDescription(content)
     rules.push({
       name: entry.name,
-      description: description || '（无描述）',
+      description: extractDescription(content) || '（无描述）',
       sourcePath: rulePath,
       type: 'rule',
     })
   }
-
   return rules.sort((a, b) => a.name.localeCompare(b.name))
 }
 
@@ -66,19 +66,15 @@ async function scanCommands(sourceDir) {
   if (!await fs.pathExists(commandsDir)) return []
 
   const entries = await fs.readdir(commandsDir, { withFileTypes: true })
-  const commands = []
-
-  for (const entry of entries) {
-    if (entry.name === '.gitkeep') continue
-    commands.push({
-      name: entry.name,
-      description: entry.isDirectory() ? '命令目录' : '命令文件',
-      sourcePath: path.join(commandsDir, entry.name),
+  return entries
+    .filter(e => e.name !== '.gitkeep')
+    .map(e => ({
+      name: e.name,
+      description: e.isDirectory() ? '命令目录' : '命令文件',
+      sourcePath: path.join(commandsDir, e.name),
       type: 'command',
-    })
-  }
-
-  return commands.sort((a, b) => a.name.localeCompare(b.name))
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 async function scanHooks(sourceDir) {
@@ -86,40 +82,15 @@ async function scanHooks(sourceDir) {
   if (!await fs.pathExists(hooksDir)) return []
 
   const entries = await fs.readdir(hooksDir, { withFileTypes: true })
-  const hooks = []
-
-  for (const entry of entries) {
-    if (entry.name === '.gitkeep') continue
-    hooks.push({
-      name: entry.name,
-      description: entry.isDirectory() ? '钩子目录' : '钩子脚本',
-      sourcePath: path.join(hooksDir, entry.name),
+  return entries
+    .filter(e => e.name !== '.gitkeep')
+    .map(e => ({
+      name: e.name,
+      description: e.isDirectory() ? '钩子目录' : '钩子脚本',
+      sourcePath: path.join(hooksDir, e.name),
       type: 'hook',
-    })
-  }
-
-  return hooks.sort((a, b) => a.name.localeCompare(b.name))
-}
-
-async function promptSelection(items, category, existingNames = new Set()) {
-  if (items.length === 0) return []
-
-  const { selected } = await inquirer.prompt([
-    {
-      type: 'checkbox',
-      name: 'selected',
-      message: `选择要同步的 ${category}（空格勾选，回车确认）：`,
-      choices: items.map(item => ({
-        name: `${chalk.cyan(item.name)} ${chalk.gray('- ' + item.description.slice(0, 60))}${item.description.length > 60 ? '...' : ''}`,
-        value: item,
-        short: item.name,
-        checked: existingNames.has(item.name),
-      })),
-      pageSize: 15,
-    },
-  ])
-
-  return selected
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name))
 }
 
 async function scanExisting(projectTargetDir, typePlural) {
@@ -129,11 +100,87 @@ async function scanExisting(projectTargetDir, typePlural) {
   return new Set(entries.filter(name => name !== '.gitkeep' && name !== '.DS_Store'))
 }
 
-function logAction(dryRun, label) {
-  console.log(chalk.green(`  ${dryRun ? '[dry-run] ' : '✓ '}${label}`))
+async function promptSelection(items, label, defaultNames) {
+  if (items.length === 0) return []
+  const { selected } = await inquirer.prompt([{
+    type: 'checkbox',
+    name: 'selected',
+    message: `选择 ${label}（空格勾选，回车确认）：`,
+    choices: items.map(item => ({
+      name: `${chalk.cyan(item.name)} ${chalk.gray('- ' + item.description.slice(0, 60))}${item.description.length > 60 ? '...' : ''}`,
+      value: item,
+      short: item.name,
+      checked: defaultNames.has(item.name),
+    })),
+    pageSize: 15,
+  }])
+  return selected
 }
 
-async function syncSelectedItems(items, targetDir, dryRun) {
+/**
+ * 交互式选择：每步可回退到上一步，最后总览支持任意类别重选。
+ * 返回 { skills, rules, commands, hooks } 或 null（取消）。
+ */
+async function interactiveSelect(scans, existing) {
+  const sel = {}
+
+  // 第一轮：顺序遍历，每步给导航
+  let i = 0
+  while (i < CATEGORIES.length) {
+    const { key, label } = CATEGORIES[i]
+    const defaultNames = sel[key]
+      ? new Set(sel[key].map(x => x.name))
+      : existing[key]
+    sel[key] = await promptSelection(scans[key], label, defaultNames)
+
+    if (i === CATEGORIES.length - 1) break
+
+    const nextLabel = CATEGORIES[i + 1].label
+    const prevLabel = i > 0 ? CATEGORIES[i - 1].label : null
+    const { nav } = await inquirer.prompt([{
+      type: 'list',
+      name: 'nav',
+      message: `${label} 已选 ${sel[key].length} 项。下一步：`,
+      choices: [
+        { name: `→ 继续选 ${nextLabel}`, value: 'next' },
+        ...(prevLabel ? [{ name: `← 返回重选 ${prevLabel}`, value: 'back' }] : []),
+        { name: '✗ 取消同步', value: 'cancel' },
+      ],
+      default: 'next',
+    }])
+    if (nav === 'cancel') return null
+    i = nav === 'back' ? i - 1 : i + 1
+  }
+
+  // 第二轮：总览 + 任意重选
+  while (true) {
+    console.log(chalk.gray('\n选择汇总：'))
+    for (const { key, label } of CATEGORIES) {
+      console.log(chalk.gray(`  ${label.padEnd(10)} ${sel[key].length} 项`))
+    }
+    const { final } = await inquirer.prompt([{
+      type: 'list',
+      name: 'final',
+      message: '确认提交还是重选？',
+      choices: [
+        { name: '✓ 确认提交', value: 'confirm' },
+        ...CATEGORIES.map(c => ({ name: `重选 ${c.label}`, value: c.key })),
+        { name: '✗ 取消同步', value: 'cancel' },
+      ],
+      default: 'confirm',
+    }])
+    if (final === 'confirm') return sel
+    if (final === 'cancel') return null
+    const cat = CATEGORIES.find(c => c.key === final)
+    sel[final] = await promptSelection(scans[final], cat.label, new Set(sel[final].map(x => x.name)))
+  }
+}
+
+function logAction(dryRun, label, color = 'green', prefix = '✓') {
+  console.log(chalk[color](`  ${dryRun ? '[dry-run] ' : prefix + ' '}${label}`))
+}
+
+async function copyItems(items, targetDir, dryRun) {
   for (const item of items) {
     const dest = path.join(targetDir, item.type + 's', item.name)
     if (!dryRun) {
@@ -145,47 +192,7 @@ async function syncSelectedItems(items, targetDir, dryRun) {
   return items.length
 }
 
-async function syncSettings(sourceDir, targetDir, dryRun) {
-  const settingsSrc = path.join(sourceDir, 'settings.json')
-  if (!await fs.pathExists(settingsSrc)) return 0
-
-  const settingsDest = path.join(targetDir, 'settings.json')
-  const newSettings = await fs.readJson(settingsSrc)
-
-  let merged
-  let action
-  if (await fs.pathExists(settingsDest)) {
-    const existing = await fs.readJson(settingsDest)
-    merged = { ...existing }
-    for (const [key, value] of Object.entries(newSettings)) {
-      if (key in merged && typeof merged[key] === 'object' && !Array.isArray(merged[key])
-          && typeof value === 'object' && !Array.isArray(value)) {
-        merged[key] = { ...merged[key], ...value }
-      } else {
-        merged[key] = value
-      }
-    }
-    action = 'merged'
-  } else {
-    merged = newSettings
-    action = 'created'
-  }
-
-  if (!dryRun) await fs.writeJson(settingsDest, merged, { spaces: 2 })
-  logAction(dryRun, `settings.json — ${action}`)
-  return 1
-}
-
-async function syncClaudeMd(sourceDir, targetDir, dryRun) {
-  const claudeMdSrc = path.join(sourceDir, 'CLAUDE.md')
-  if (!await fs.pathExists(claudeMdSrc)) return 0
-
-  if (!dryRun) await fs.copy(claudeMdSrc, path.join(targetDir, 'CLAUDE.md'), { overwrite: true })
-  logAction(dryRun, 'CLAUDE.md')
-  return 1
-}
-
-async function syncHooks(items, targetDir, dryRun) {
+async function copyHooks(items, targetDir, dryRun) {
   if (items.length === 0) return 0
   const hooksTargetDir = path.join(targetDir, 'hooks')
   if (!dryRun) await fs.ensureDir(hooksTargetDir)
@@ -200,6 +207,90 @@ async function syncHooks(items, targetDir, dryRun) {
   return items.length
 }
 
+async function removeUnselected(typePlural, existingNames, selectedNames, targetDir, dryRun) {
+  let count = 0
+  for (const name of existingNames) {
+    if (selectedNames.has(name)) continue
+    const target = path.join(targetDir, typePlural, name)
+    if (!dryRun) await fs.remove(target)
+    logAction(dryRun, `${typePlural}/${name}`, 'red', '×')
+    count++
+  }
+  return count
+}
+
+/**
+ * 过滤模板 settings.json 中未选中 hooks 的引用。
+ * 识别规则：command 字段中匹配 $CLAUDE_PROJECT_DIR/.claude/hooks/<name> 的项。
+ */
+function filterSettingsByHooks(newSettings, selectedHookNames) {
+  if (!newSettings.hooks) return newSettings
+  const cloned = JSON.parse(JSON.stringify(newSettings))
+  const hookPathRegex = /\.claude\/hooks\/([^\s'"]+)/
+
+  for (const event of Object.keys(cloned.hooks)) {
+    const configs = cloned.hooks[event] || []
+    const kept = []
+    for (const cfg of configs) {
+      const remainingHooks = (cfg.hooks || []).filter(h => {
+        const m = h.command?.match(hookPathRegex)
+        if (!m) return true
+        return selectedHookNames.has(m[1])
+      })
+      if (remainingHooks.length > 0) kept.push({ ...cfg, hooks: remainingHooks })
+    }
+    if (kept.length > 0) cloned.hooks[event] = kept
+    else delete cloned.hooks[event]
+  }
+
+  if (Object.keys(cloned.hooks).length === 0) delete cloned.hooks
+  return cloned
+}
+
+async function syncSettings(sourceDir, targetDir, selectedHookNames, dryRun) {
+  const settingsSrc = path.join(sourceDir, 'settings.json')
+  if (!await fs.pathExists(settingsSrc)) return 0
+
+  const settingsDest = path.join(targetDir, 'settings.json')
+  const newSettings = await fs.readJson(settingsSrc)
+  const filteredNew = filterSettingsByHooks(newSettings, selectedHookNames)
+
+  let merged
+  let action
+  if (await fs.pathExists(settingsDest)) {
+    const existing = await fs.readJson(settingsDest)
+    merged = { ...existing }
+    for (const [key, value] of Object.entries(filteredNew)) {
+      if (key === 'hooks') continue
+      if (key in merged && typeof merged[key] === 'object' && !Array.isArray(merged[key])
+          && typeof value === 'object' && !Array.isArray(value)) {
+        merged[key] = { ...merged[key], ...value }
+      } else {
+        merged[key] = value
+      }
+    }
+    // hooks 字段由模板独占：模板有则覆盖，模板没有则删除
+    if (filteredNew.hooks) merged.hooks = filteredNew.hooks
+    else delete merged.hooks
+    action = 'merged'
+  } else {
+    merged = filteredNew
+    action = 'created'
+  }
+
+  if (!dryRun) await fs.writeJson(settingsDest, merged, { spaces: 2 })
+  logAction(dryRun, `settings.json — ${action}`)
+  return 1
+}
+
+async function syncClaudeMd(sourceDir, targetDir, dryRun) {
+  const claudeMdSrc = path.join(sourceDir, 'CLAUDE.md')
+  if (!await fs.pathExists(claudeMdSrc)) return 0
+  if (!dryRun) await fs.copy(claudeMdSrc, path.join(targetDir, 'CLAUDE.md'), { overwrite: true })
+  logAction(dryRun, 'CLAUDE.md')
+  return 1
+}
+
 async function resolveSourceDir() {
   const localTemplate = path.join(process.cwd(), 'claude-cli', 'templates', 'claude-global')
   if (await fs.pathExists(localTemplate)) {
@@ -212,7 +303,7 @@ async function resolveSourceDir() {
 
 /**
  * 入口：`dwy claude sync [target]`
- *   target=undefined  全量同步：项目 .claude/ + 全局 CLAUDE.md
+ *   target=undefined  同步项目 .claude/（不动全局 CLAUDE.md）
  *   target='md'       仅同步 CLAUDE.md → 全局 ~/.claude/
  */
 export async function syncClaude({ target, reselect = false, dryRun = false } = {}) {
@@ -222,17 +313,13 @@ export async function syncClaude({ target, reselect = false, dryRun = false } = 
     process.exit(1)
   }
 
-  const globalTargetDir = path.join(os.homedir(), '.claude')
-
   if (target === 'md') {
+    const globalTargetDir = path.join(os.homedir(), '.claude')
     if (!dryRun) await fs.ensureDir(globalTargetDir)
     console.log(chalk.blue(`\nSyncing CLAUDE.md to ${globalTargetDir}...\n`))
     const synced = await syncClaudeMd(sourceDir, globalTargetDir, dryRun)
-    if (!synced) {
-      console.log(chalk.yellow('CLAUDE.md not found in templates, nothing to sync.'))
-    } else {
-      console.log(chalk.blue(`\n${dryRun ? 'Dry-run complete.' : 'Done.'}`))
-    }
+    if (!synced) console.log(chalk.yellow('CLAUDE.md not found in templates, nothing to sync.'))
+    else console.log(chalk.blue(`\n${dryRun ? 'Dry-run complete.' : 'Done.'}`))
     return
   }
 
@@ -245,71 +332,82 @@ export async function syncClaude({ target, reselect = false, dryRun = false } = 
   const projectTargetDir = path.join(process.cwd(), '.claude')
 
   if (!await fs.pathExists(projectTargetDir)) {
-    const { shouldCreate } = await inquirer.prompt([
-      {
-        type: 'confirm',
-        name: 'shouldCreate',
-        message: `当前目录 ${chalk.yellow(process.cwd())} 未找到 .claude 目录，是否在此创建？`,
-        default: false,
-      },
-    ])
+    const { shouldCreate } = await inquirer.prompt([{
+      type: 'confirm',
+      name: 'shouldCreate',
+      message: `当前目录 ${chalk.yellow(process.cwd())} 未找到 .claude 目录，是否在此创建？`,
+      default: false,
+    }])
     if (!shouldCreate) {
       console.log(chalk.yellow('\n已取消同步。'))
       return
     }
   }
 
-  const skills = await scanSkills(sourceDir)
-  const rules = await scanRules(sourceDir)
-  const commands = await scanCommands(sourceDir)
-  const hooks = await scanHooks(sourceDir)
+  const scans = {
+    skills: await scanSkills(sourceDir),
+    rules: await scanRules(sourceDir),
+    commands: await scanCommands(sourceDir),
+    hooks: await scanHooks(sourceDir),
+  }
+  console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.rules.length} rules, ${scans.commands.length} commands, ${scans.hooks.length} hooks\n`))
 
-  console.log(chalk.yellow(`Found ${skills.length} skills, ${rules.length} rules, ${commands.length} commands, ${hooks.length} hooks\n`))
+  const existing = {
+    skills: await scanExisting(projectTargetDir, 'skills'),
+    rules: await scanExisting(projectTargetDir, 'rules'),
+    commands: await scanExisting(projectTargetDir, 'commands'),
+    hooks: await scanExisting(projectTargetDir, 'hooks'),
+  }
+  const hasAnyExisting = existing.skills.size + existing.rules.size + existing.commands.size + existing.hooks.size > 0
 
-  const existingSkills = await scanExisting(projectTargetDir, 'skills')
-  const existingRules = await scanExisting(projectTargetDir, 'rules')
-  const existingCommands = await scanExisting(projectTargetDir, 'commands')
-  const existingHooks = await scanExisting(projectTargetDir, 'hooks')
-  const hasAnyExisting = existingSkills.size + existingRules.size + existingCommands.size + existingHooks.size > 0
-
-  let selectedSkills, selectedRules, selectedCommands, selectedHooks
+  let selected
 
   if (!reselect && hasAnyExisting) {
-    selectedSkills = skills.filter(s => existingSkills.has(s.name))
-    selectedRules = rules.filter(r => existingRules.has(r.name))
-    selectedCommands = commands.filter(c => existingCommands.has(c.name))
-    // hooks 与 settings.json 引用配套：未装过则装全部模板，已装过则按已选覆盖
-    selectedHooks = existingHooks.size > 0
-      ? hooks.filter(h => existingHooks.has(h.name))
-      : hooks
-    console.log(chalk.gray(`使用已选覆盖同步（如需调整请加 -i / --reselect）：`))
-    console.log(chalk.gray(`  ${selectedSkills.length} skills, ${selectedRules.length} rules, ${selectedCommands.length} commands, ${selectedHooks.length} hooks\n`))
-  } else {
-    if (!reselect && !hasAnyExisting) {
-      console.log(chalk.gray('首次同步，进入交互式选择...\n'))
+    // 缓存模式：模板 ∩ 已选
+    selected = {
+      skills: scans.skills.filter(s => existing.skills.has(s.name)),
+      rules: scans.rules.filter(r => existing.rules.has(r.name)),
+      commands: scans.commands.filter(c => existing.commands.has(c.name)),
+      hooks: existing.hooks.size > 0
+        ? scans.hooks.filter(h => existing.hooks.has(h.name))
+        : scans.hooks,
     }
-    selectedSkills = await promptSelection(skills, 'Skills', existingSkills)
-    selectedRules = await promptSelection(rules, 'Rules', existingRules)
-    selectedCommands = await promptSelection(commands, 'Commands', existingCommands)
-    selectedHooks = await promptSelection(hooks, 'Hooks', existingHooks)
+    console.log(chalk.gray('使用已选覆盖同步（如需调整请加 -i / --reselect）：'))
+    console.log(chalk.gray(`  ${selected.skills.length} skills, ${selected.rules.length} rules, ${selected.commands.length} commands, ${selected.hooks.length} hooks\n`))
+  } else {
+    if (!reselect && !hasAnyExisting) console.log(chalk.gray('首次同步，进入交互式选择...\n'))
+    const result = await interactiveSelect(scans, existing)
+    if (result === null) {
+      console.log(chalk.yellow('\n已取消同步。'))
+      return
+    }
+    selected = result
   }
 
-  console.log(chalk.blue(`\n${dryRun ? '[dry-run] ' : ''}Syncing to ${projectTargetDir}...\n`))
+  const selectedHookNames = new Set(selected.hooks.map(h => h.name))
 
+  console.log(chalk.blue(`\n${dryRun ? '[dry-run] ' : ''}Syncing to ${projectTargetDir}...\n`))
   if (!dryRun) await fs.ensureDir(projectTargetDir)
 
   let syncedCount = 0
-  syncedCount += await syncSelectedItems(selectedSkills, projectTargetDir, dryRun)
-  syncedCount += await syncSelectedItems(selectedRules, projectTargetDir, dryRun)
-  syncedCount += await syncSelectedItems(selectedCommands, projectTargetDir, dryRun)
-  syncedCount += await syncSettings(sourceDir, projectTargetDir, dryRun)
-  syncedCount += await syncHooks(selectedHooks, projectTargetDir, dryRun)
+  let removedCount = 0
 
-  if (!dryRun) await fs.ensureDir(globalTargetDir)
-  syncedCount += await syncClaudeMd(sourceDir, globalTargetDir, dryRun)
+  syncedCount += await copyItems(selected.skills, projectTargetDir, dryRun)
+  syncedCount += await copyItems(selected.rules, projectTargetDir, dryRun)
+  syncedCount += await copyItems(selected.commands, projectTargetDir, dryRun)
+  syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, dryRun)
+  syncedCount += await copyHooks(selected.hooks, projectTargetDir, dryRun)
 
-  console.log(chalk.blue(`\n${dryRun ? 'Dry-run complete.' : 'Done!'} ${syncedCount} items.`))
+  // 删除已存在但本次未勾选的（仅 reselect 模式：缓存模式默认 selected ⊇ existing 不会触发）
+  if (reselect) {
+    removedCount += await removeUnselected('skills', existing.skills, new Set(selected.skills.map(s => s.name)), projectTargetDir, dryRun)
+    removedCount += await removeUnselected('rules', existing.rules, new Set(selected.rules.map(r => r.name)), projectTargetDir, dryRun)
+    removedCount += await removeUnselected('commands', existing.commands, new Set(selected.commands.map(c => c.name)), projectTargetDir, dryRun)
+    removedCount += await removeUnselected('hooks', existing.hooks, selectedHookNames, projectTargetDir, dryRun)
+  }
+
+  console.log(chalk.blue(`\n${dryRun ? 'Dry-run complete.' : 'Done!'} ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
   console.log(chalk.gray(`  Project config → ${projectTargetDir}`))
   console.log(chalk.gray(`  Hooks          → ${path.join(projectTargetDir, 'hooks')}`))
-  console.log(chalk.gray(`  CLAUDE.md      → ${globalTargetDir}`))
+  console.log(chalk.gray('  CLAUDE.md      → 跳过（用 `dwy claude sync md` 单独同步到 ~/.claude/）'))
 }
