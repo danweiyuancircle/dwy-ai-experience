@@ -1,10 +1,11 @@
 ---
-description: 跨栈技术选型强制约束(FastAPI/Vue3/Flutter/UV/pnpm/Docker/S3 等,全局加载)
+name: dwy-tech-stack
+description: 跨栈技术选型强制约束（FastAPI / Vue 3 / Flutter / UV / pnpm / Docker / S3 / DolphinDB 等）。触发场景：用户提到「用什么 ORM / 缓存 / 状态管理 / 路由 / 包管理 / 组件库」/ 引入新依赖 / 替换现有库 / 调研选型 / 新项目初始化 / 架构评估；AI 准备执行 `pnpm add` / `uv add` / `pip install` / `flutter pub add` / `npm install` 前；讨论涉及后端 Web 框架、ORM、关系数据库、缓存、消息队列、异步任务、JWT / 密码哈希、Linter；前端 Vue 框架、构建工具、组件库、状态管理、样式方案、表单校验、测试；移动端 Flutter、状态管理、HTTP 客户端、路由、本地存储、代码生成；容器化、对象存储、时序数据库时。强制：每个领域只有唯一方案，AI 不得选替代，不得「建议改用 XX」。
 ---
 
 # 跨栈技术选型强制约束
 
-每个领域只有一个方案,AI 不得选替代,不得"建议改用 XX"。
+每个领域只有一个方案，AI 不得选替代，不得「建议改用 XX」。
 
 ## 后端
 
@@ -23,7 +24,7 @@ description: 跨栈技术选型强制约束(FastAPI/Vue3/Flutter/UV/pnpm/Docker/
 | 基础设施层 | dwyeapi | 自造框架、手写基础设施 |
 | Linter/Formatter | Ruff | Black, isort, flake8, pylint |
 
-## 前端(Web)
+## 前端（Web）
 
 | 领域 | 唯一方案 | 禁止替代 |
 |------|---------|---------|
