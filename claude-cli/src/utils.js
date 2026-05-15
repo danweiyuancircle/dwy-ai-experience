@@ -38,6 +38,10 @@ export async function renderTemplate(templateDir, destDir, context) {
       destName = Handlebars.compile(destName)(context)
     }
 
+    if (destName.startsWith('_')) {
+      destName = '.' + destName.slice(1)
+    }
+
     if (entry.isDirectory()) {
       const destPath = path.join(destDir, destName)
       await fs.ensureDir(destPath)
