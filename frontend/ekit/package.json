@@ -1,6 +1,6 @@
 {
   "name": "@dwydev/ekit",
-  "version": "0.8.0",
+  "version": "0.9.0",
   "type": "module",
   "description": "Shared utilities, hooks, and helpers for dwydev projects",
   "license": "MIT",
@@ -52,7 +52,8 @@
     "zod": "^3.25.76"
   },
   "scripts": {
-    "build": "vite build",
-    "test": "vitest run"
+    "build": "vite build && node scripts/gen-manifest.mjs",
+    "test": "vitest run",
+    "gen-manifest": "node scripts/gen-manifest.mjs"
   }
 }
