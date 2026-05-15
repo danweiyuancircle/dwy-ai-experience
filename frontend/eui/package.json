@@ -1,6 +1,6 @@
 {
   "name": "@dwydev/eui",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "type": "module",
   "description": "Vue 3 component library — shadcn-vue visuals + Element Plus API + Tailwind CSS 4",
   "license": "MIT",
@@ -63,9 +63,10 @@
     "zod": "^3.25.0"
   },
   "scripts": {
-    "build": "vite build",
+    "build": "vite build && node scripts/gen-manifest.mjs",
     "dev": "vite build --watch",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gen-manifest": "node scripts/gen-manifest.mjs"
   }
 }
