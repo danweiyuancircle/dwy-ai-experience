@@ -154,11 +154,14 @@ export async function createProject(name) {
   }
 
   if (context.template === 'fullstack-monorepo') {
-    console.log(chalk.gray('  cp .env.example .env'))
+    console.log(chalk.gray('  cp backend/.env.example backend/.env'))
+    if (context.includeFrontend) {
+      console.log(chalk.gray('  cp frontend/.env.example frontend/.env'))
+    }
     console.log(chalk.gray('  cd backend && uv sync --dev && cd ..'))
     if (context.includeFrontend) {
       console.log(chalk.gray('  cd frontend && pnpm install && cd ..'))
     }
-    console.log(chalk.gray('  ./dev.sh'))
+    console.log(chalk.gray('  ./scripts/dev.sh'))
   }
 }

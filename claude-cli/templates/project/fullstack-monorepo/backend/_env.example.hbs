@@ -1,0 +1,26 @@
+# ============================================================
+# {{projectName}} backend — 环境变量样例
+# ============================================================
+# 复制为 backend/.env 并填入真实值。.env 已 gitignored。
+# dev 环境直接走 docker-compose.dev.yml(密码硬编码 postgres/postgres),
+# 此文件主要供 prod 部署(docker-compose.prod.yml 的 backend env_file)。
+
+# ── 基础 ──
+ENVIRONMENT=prod
+SECRET_KEY=change-me-in-production
+LOG_LEVEL=INFO
+
+# ── PostgreSQL ──
+# dev: 默认连本地 docker-compose.dev.yml(127.0.0.1:{{portPrefix}}5432/{{projectName}}, postgres/postgres)
+# prod: db 容器 service 名为 db(同 compose 网络下),端口仍是 5432
+DATABASE_URL=postgresql+asyncpg://app_user:CHANGE_ME@db:5432/{{projectName}}
+
+# ── Redis ──
+REDIS_URL=redis://:CHANGE_ME@redis:6379/0
+
+# ── 跨域 ──
+ALLOWED_ORIGINS=https://example.com
+
+# ── 服务端口 ──
+# 容器内固定 8000,docker-compose.prod.yml 映射到宿主 127.0.0.1:{{portPrefix}}8002
+BACKEND_PORT=8000

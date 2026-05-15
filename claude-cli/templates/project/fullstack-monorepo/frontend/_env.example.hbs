@@ -1,0 +1,19 @@
+# ============================================================
+# {{projectName}} frontend — Vite 环境变量样例
+# ============================================================
+# 复制为 frontend/.env 并按需调整。.env 已 gitignored。
+# Vite 约定:只有 VITE_ 前缀的变量会暴露给客户端 bundle。
+#
+# 多环境覆盖:
+#   .env                     所有模式
+#   .env.local               所有模式(本地,gitignored)
+#   .env.development         dev 模式
+#   .env.production          prod 模式
+
+# ── API 基础路径 ──
+# dev: '/api'(走 vite.config.ts 的 proxy → http://127.0.0.1:{{portPrefix}}8001)
+# prod: '/api' 或 'https://api.example.com'(由宿主 nginx 反代)
+VITE_API_BASE_URL=/api
+
+# ── 站点元信息 ──
+VITE_APP_TITLE={{projectName}}

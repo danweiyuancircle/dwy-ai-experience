@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 BACKEND_PORT={{portPrefix}}8001
 FRONTEND_PORT={{portPrefix}}5173
 BACKEND_PID=""
@@ -42,7 +42,7 @@ echo "▶ 启动 Docker 基础设施..."
 docker compose -f "$SCRIPT_DIR/docker-compose.dev.yml" up -d --remove-orphans
 
 echo "▶ 等待 PostgreSQL 就绪..."
-until docker compose -f "$SCRIPT_DIR/docker-compose.dev.yml" exec -T db pg_isready > /dev/null 2>&1; do
+until docker compose -f "$SCRIPT_DIR/docker-compose.dev.yml" exec -T db pg_isready -U postgres > /dev/null 2>&1; do
   sleep 1
 done
 
