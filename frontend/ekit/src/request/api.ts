@@ -59,9 +59,18 @@ export interface ValidationErrorData {
 /**
  * dwyeapi 内置的业务错误码。
  *
- * - NOT_FOUND / PERMISSION_DENIED / AUTHENTICATION_FAILED / VALIDATION_ERROR / INTERNAL_ERROR 由 handler 固定填入
- * - BUSINESS_ERROR 是基础码,业务常自定义(如 "INSUFFICIENT_BALANCE")
- * - HTTP_xxx 由 HTTPException handler 按原状态码生成(如 "HTTP_401")
+ * 业务码 → HTTP 状态 → 含义 → 典型处理：
+ *
+ * - `'SUCCESS'`               → 200 → 业务成功（不会进 catch；unwrapPlugin 自动解包 data）
+ * - `'NOT_FOUND'`             → 404 → 资源不存在 → 提示用户或跳 404 页
+ * - `'BUSINESS_ERROR'`        → 422 → 业务规则不允许 → 基础码；业务常自定义如 `'INSUFFICIENT_BALANCE'` / `'STOCK_EMPTY'`，按 code 分支显示对应交互
+ * - `'PERMISSION_DENIED'`     → 403 → 无权限 → 提示无权限或跳无权限页
+ * - `'AUTHENTICATION_FAILED'` → 401 → 认证失败 → 由 refreshTokenPlugin 处理；不会到业务 catch
+ * - `'VALIDATION_ERROR'`      → 422 → 请求参数校验失败 → data 为 ValidationErrorData，用 extractValidationErrors 提取后 setErrors 回填表单
+ * - `'INTERNAL_ERROR'`        → 500 → 服务器错误 → 提示用户稍后重试 + 上报
+ * - `` `HTTP_${number}` ``    → 原状态 → 第三方 HTTPException 透传（如 OAuth2 的 `'HTTP_401'`）
+ *
+ * BusinessCode = CommonBusinessCode | (string & {})：既保留常见码自动补全，又允许业务通过 BusinessError(code="CUSTOM") 自定义任意字符串。
  */
 export type CommonBusinessCode =
   | 'NOT_FOUND'
