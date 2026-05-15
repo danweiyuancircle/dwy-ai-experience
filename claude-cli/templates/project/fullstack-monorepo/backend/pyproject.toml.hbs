@@ -1,0 +1,84 @@
+[project]
+name = "{{projectName}}-backend"
+version = "0.1.0"
+description = "{{projectDescription}}"
+requires-python = ">=3.11"
+dependencies = [
+    # workspace members(本地 editable,详见 [tool.uv.sources])
+    "dwy-shared",
+    "{{scopePrefix}}-{{initialDomain}}",
+    # 单一版本中心 -- 所有 workspace member 用到的外部依赖在这里集中管理版本号,
+    # member 自己的 pyproject.toml 只写包名,uv workspace 解析时从顶层取约束。
+    "dwyeapi>=0.9.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "asyncpg>=0.30.0",
+    "redis[hiredis]>=5.0.0",
+    "pydantic[email]>=2.12.5",
+    "python-jose[cryptography]>=3.3.0",
+    "bcrypt>=4.0.0",
+    "alembic>=1.13.0",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.24.0",
+    "aiosqlite>=0.20.0",
+    "fakeredis[json,lua]>=2.21.0",
+    "ruff>=0.6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "B008",     # Depends() in function defaults is standard FastAPI pattern
+    "RUF001",   # Fullwidth punctuation in Chinese strings is intentional
+    "RUF002",   # Fullwidth punctuation in Chinese docstrings is intentional
+    "RUF003",   # Fullwidth punctuation in Chinese comments is intentional
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app", "dwy_shared", "{{scopePrefix}}_{{initialDomain}}"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[[tool.uv.index]]
+name = "aliyun"
+url = "https://mirrors.aliyun.com/pypi/simple/"
+default = true
+
+[[tool.uv.index]]
+name = "pypi-org"
+url = "https://pypi.org/simple/"
+explicit = true
+
+[tool.uv.workspace]
+# 后端 monorepo:每个 member 都有独立 pyproject.toml,具备独立发包能力
+# members:
+#   dwy-shared    -- 业务无关 kernel(数据库 / Redis / 中间件等),跨项目可复用
+#   {{scopePrefix}}-{{initialDomain}}   -- 初始业务包雏形,复制此目录改名即可新增业务包
+members = ["packages/*"]
+
+[tool.uv.sources]
+# dwyeapi 走 pypi-org(避免 aliyun 镜像延迟)
+dwyeapi = { index = "pypi-org" }
+# workspace member:本地引用,uv sync 自动 editable 安装
+dwy-shared = { workspace = true }
+{{scopePrefix}}-{{initialDomain}} = { workspace = true }

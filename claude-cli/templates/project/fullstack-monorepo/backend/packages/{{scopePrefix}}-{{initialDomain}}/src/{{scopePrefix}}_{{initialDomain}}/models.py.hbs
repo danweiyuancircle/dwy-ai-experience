@@ -1,0 +1,17 @@
+"""{{initialDomain}} ORM 模型。
+
+在此定义 SQLAlchemy 模型,Alembic 通过 alembic/env.py 的 import 发现表。
+
+示例:
+    from sqlalchemy.orm import Mapped, mapped_column
+    from dwyeapi.database import Base, TimestampMixin
+
+    class Item(Base, TimestampMixin):
+        __tablename__ = "{{initialDomain}}_item"
+        id: Mapped[int] = mapped_column(primary_key=True)
+        name: Mapped[str] = mapped_column(index=True)
+
+模板初始不定义任何模型,避免 alembic autogenerate 生成业务无关表。
+"""
+
+__all__: list[str] = []

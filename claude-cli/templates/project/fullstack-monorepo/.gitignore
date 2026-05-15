@@ -1,0 +1,37 @@
+# Env
+.env
+*.env
+.env.*
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+htmlcov/
+*.coverage
+
+# Node
+node_modules/
+.pnpm-store/
+*.log
+
+# Databases / artifacts
+*.sqlite
+*.sqlite3
+*.db
+*.dump
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db

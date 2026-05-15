@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16.12-alpine3.23
+    ports:
+      - "127.0.0.1:{{portPrefix}}5432:5432"
+    environment:
+      TZ: Asia/Shanghai
+      PGTZ: Asia/Shanghai
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    command: ["postgres", "-c", "timezone=Asia/Shanghai"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7.4.9-alpine3.21
+    ports:
+      - "127.0.0.1:{{portPrefix}}6379:6379"
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
+  redisdata:

@@ -1,0 +1,21 @@
+"""装配层配置 -- 嵌入各业务包 Config。
+
+继承 `dwyeapi.config.BaseSettings`,基类已统一提供 database_url / redis_url /
+secret_key / environment / allowed_origins / log_* 等字段,本文件只追加项目专属
+与插件嵌套配置。`.env` 使用双下划线分隔嵌套层级(例 `<DOMAIN_UPPER>__ENABLED=true`,
+其中 DOMAIN_UPPER 是 initialDomain 的全大写形式)。
+"""
+
+from dwyeapi.config import BaseSettings as DwyBaseSettings
+
+from {{scopePrefix}}_{{initialDomain}}.config import DomainConfig
+
+
+class Settings(DwyBaseSettings):
+    """装配层配置。"""
+
+    # ── 业务包嵌套 Config(各包字段在对应 Config 类定义)──
+    {{initialDomain}}: DomainConfig = DomainConfig()
+
+
+settings = Settings()

@@ -26,9 +26,10 @@ export async function createProject(name) {
       name: 'template',
       message: '选择项目模板:',
       choices: [
-        { name: 'web      — Vue 3 前端 (pnpm monorepo, eui + ekit + Tailwind)', value: 'web' },
-        { name: 'backend  — FastAPI 后端 (eapi + PostgreSQL + Redis + Docker)', value: 'backend' },
-        { name: 'mobile   — 移动端 (暂未实现)', value: 'mobile', disabled: '即将推出' },
+        { name: 'fullstack-monorepo — Vue 3 + FastAPI 全栈 monorepo (域分包 + Provider 模式)', value: 'fullstack-monorepo' },
+        { name: 'web                — Vue 3 前端 (pnpm monorepo, eui + ekit + Tailwind)', value: 'web' },
+        { name: 'backend            — FastAPI 后端 (eapi + PostgreSQL + Redis + Docker)', value: 'backend' },
+        { name: 'mobile             — 移动端 (暂未实现)', value: 'mobile', disabled: '即将推出' },
       ],
     },
   ])
@@ -76,6 +77,39 @@ export async function createProject(name) {
     ])
   }
 
+  if (common.template === 'fullstack-monorepo') {
+    extra = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'scopePrefix',
+        message: '业务包前缀 (生成 packages/<prefix>-<domain>/):',
+        default: 'app',
+        validate: (v) => /^[a-z][a-z0-9]*$/.test(v) || '只允许小写字母开头，字母数字',
+      },
+      {
+        type: 'input',
+        name: 'initialDomain',
+        message: '初始业务域 (示例域名):',
+        default: 'core',
+        validate: (v) => /^[a-z][a-z0-9]*$/.test(v) || '只允许小写字母开头，字母数字',
+      },
+      {
+        type: 'confirm',
+        name: 'includeFrontend',
+        message: '是否生成 frontend?',
+        default: true,
+      },
+      {
+        type: 'input',
+        name: 'portPrefix',
+        message: '端口前缀数字 (1-9，避免与其他项目冲突，如 2 → 28001/25173/25432/26379):',
+        default: '2',
+        validate: (v) => /^[1-9]$/.test(v) || '只允许 1-9 的单个数字',
+      },
+    ])
+    extra.apiProxy = `http://127.0.0.1:${extra.portPrefix}8001`
+  }
+
   const answers = { ...common, ...extra }
 
   const context = {
@@ -99,6 +133,10 @@ export async function createProject(name) {
   await fs.ensureDir(destDir)
   await renderTemplate(templateDir, destDir, context)
 
+  if (context.template === 'fullstack-monorepo' && context.includeFrontend === false) {
+    await fs.remove(path.join(destDir, 'frontend'))
+  }
+
   console.log(chalk.green(`\n✅ 项目 ${context.projectName} 创建成功!\n`))
   console.log(chalk.gray('Next steps:'))
   console.log(chalk.gray(`  cd ${context.projectName}`))
@@ -113,5 +151,14 @@ export async function createProject(name) {
   if (context.template === 'web') {
     console.log(chalk.gray('  pnpm install'))
     console.log(chalk.gray('  pnpm dev'))
+  }
+
+  if (context.template === 'fullstack-monorepo') {
+    console.log(chalk.gray('  cp .env.example .env'))
+    console.log(chalk.gray('  cd backend && uv sync --dev && cd ..'))
+    if (context.includeFrontend) {
+      console.log(chalk.gray('  cd frontend && pnpm install && cd ..'))
+    }
+    console.log(chalk.gray('  ./dev.sh'))
   }
 }

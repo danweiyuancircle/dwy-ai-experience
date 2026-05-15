@@ -1,0 +1,40 @@
+"""{{initialDomain}} 业务包入口。
+
+外部调用约定:
+    from {{scopePrefix}}_{{initialDomain}} import register
+    register(app, config=settings.{{initialDomain}}, **providers)
+
+包内通过 get_config() / get_provider() 拿到装配层注入的依赖,
+不直接 import app.config(避免循环依赖)。
+"""
+
+from fastapi import FastAPI
+
+from .config import DomainConfig
+from .router import router
+from .schemas import HealthResponse
+
+__all__ = ["DomainConfig", "HealthResponse", "get_config", "register", "router"]
+
+# 模块级状态:装配层 register() 注入,业务代码通过 get_config() 读取
+_config: DomainConfig | None = None
+
+
+def register(app: FastAPI, *, config: DomainConfig, **providers: object) -> None:
+    """装载本业务包到 FastAPI 应用。
+
+    Args:
+        app: FastAPI 实例。
+        config: 业务包配置(由装配层从 Settings 传入)。
+        **providers: 外部 Provider(如 sms_provider/oss_provider 等)。
+    """
+    global _config
+    _config = config
+    app.include_router(router)
+
+
+def get_config() -> DomainConfig:
+    """业务代码调用:获取本包配置。"""
+    if _config is None:
+        raise RuntimeError("{{scopePrefix}}_{{initialDomain}} 未调用 register(),配置不可用")
+    return _config

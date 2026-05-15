@@ -1,0 +1,68 @@
+# {{projectName}} backend
+
+FastAPI 后端,uv workspace monorepo。
+
+## 架构分层
+
+- **装配层** `src/app/` -- 只做装配:加载配置、初始化基础设施、注册业务包。**不写业务逻辑**
+- **业务包** `packages/<scope>-<domain>/` -- 业务实现,域分包,每个包独立 `pyproject.toml`
+
+## 域分包五件套
+
+每个业务包目录结构:
+
+```
+packages/{{scopePrefix}}-<domain>/
+  src/{{scopePrefix}}_<domain>/
+    __init__.py        # register(app, *, config, **providers) 入口
+    config.py          # 包级 DomainConfig(嵌入装配层 Settings)
+    router.py          # APIRouter,只做参数校验 + service 调用
+    service.py         # 业务逻辑,依赖通过 get_config() / get_provider() 注入
+    schemas.py         # Pydantic Request/Response
+    models.py          # SQLAlchemy ORM(可选)
+    protocols.py       # 外部服务 Protocol(SmsProvider / OssProvider 等)
+```
+
+## Provider 模式
+
+外部服务(数据库、Redis、SMS、OSS 等)抽象成 Protocol,具体实现由装配层 `src/app/factories.py` 按 `settings` 选择(dev=in-memory,prod=real),`main.py` 通过 `register(...)` 传给业务包。业务代码只依赖 Protocol 不依赖具体实现。
+
+## dwyeapi 优先
+
+数据库/Redis/JWT/响应封装/异常处理一律先用 `dwyeapi`,不重复造轮子。
+
+## 加新业务包
+
+1. 复制 `packages/{{scopePrefix}}-{{initialDomain}}/` 改名为 `{{scopePrefix}}-<newdomain>/`
+2. 改 `pyproject.toml` 的 `name`,改包内 `__init__.py` 的导出
+3. 根 `pyproject.toml` 的 `[tool.uv.sources]` 增加 workspace 引用
+4. `src/app/main.py` 增加 `register_<newdomain>(app, config=settings.<newdomain>, ...)`
+5. `src/app/config.py` 嵌入 `<newdomain>: <Newdomain>Config = ...`
+6. `alembic/env.py` 增加 `import {{scopePrefix}}_<newdomain>.models`
+
+## 常用命令
+
+```bash
+# 安装
+uv sync --extra dev
+
+# 启动 dev
+uv run uvicorn app.main:app --reload --port {{portPrefix}}8001
+
+# 测试
+uv run pytest tests/ -v
+
+# Lint
+uv run ruff check src/ packages/
+uv run ruff format src/ packages/
+
+# 迁移
+uv run alembic revision --autogenerate -m "msg"
+uv run alembic upgrade head
+```
+
+## 服务端口约定
+
+- Backend: `{{portPrefix}}8001`
+- PostgreSQL: `{{portPrefix}}5432`
+- Redis: `{{portPrefix}}6379`

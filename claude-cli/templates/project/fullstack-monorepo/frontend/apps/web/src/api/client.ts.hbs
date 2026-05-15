@@ -1,0 +1,11 @@
+import { createRequest } from '@dwydev/ekit'
+
+/**
+ * 全局 HTTP 客户端。
+ * - baseURL `/api` 走 vite dev proxy 转发到后端
+ * - token 注入 / 401 refresh / 响应 unwrap 由 ekit 插件链处理，按需开启
+ */
+export const http = createRequest({
+  baseURL: '/api',
+  timeout: 15000,
+})
