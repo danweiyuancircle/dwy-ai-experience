@@ -109,17 +109,15 @@ const searchItems: SearchItem[] = [
   // Claude Code · Rules · 安全
   { title: 'dwy-server-security', module: 'Claude Code', path: '/claude/rules/dwy-server-security', content: '服务器安全 端口 Nginx Docker rule' },
   // Claude Code · Rules · API 与数据库
-  { title: 'dwy-api-design', module: 'Claude Code', path: '/claude/rules/dwy-api-design', content: 'API 设计 RESTful 路径 命名 rule' },
   { title: 'dwy-db-migration', module: 'Claude Code', path: '/claude/rules/dwy-db-migration', content: '数据库迁移 Alembic schema rule' },
+  { title: 'dwy-postgres', module: 'Claude Code', path: '/claude/rules/dwy-postgres', content: 'PostgreSQL 参数化 应用用户权限 连接池 SSL 敏感字段加密 rule' },
+  { title: 'dwy-redis', module: 'Claude Code', path: '/claude/rules/dwy-redis', content: 'Redis 密码 危险命令 TTL key 前缀 敏感数据 rule' },
   // Claude Code · Rules · Python 后端
   { title: 'dwy-python-core', module: 'Claude Code', path: '/claude/rules/dwy-python-core', content: 'Python 基础风格 类型标注 注释 rule' },
-  { title: 'dwy-python-fastapi', module: 'Claude Code', path: '/claude/rules/dwy-python-fastapi', content: 'FastAPI 路由 依赖注入 中间件 rule' },
-  { title: 'dwy-python-orm', module: 'Claude Code', path: '/claude/rules/dwy-python-orm', content: 'SQLAlchemy 异步 ORM 模型 关联 rule' },
-  { title: 'dwy-python-security', module: 'Claude Code', path: '/claude/rules/dwy-python-security', content: 'Python 后端安全 输入校验 注入 rule' },
+  { title: 'dwy-python-backend', module: 'Claude Code', path: '/claude/rules/dwy-python-backend', content: 'FastAPI SQLAlchemy 后端安全 dwyeapi 路由 ORM 注入防护 限流 审计 rule' },
   { title: 'dwy-python-testing', module: 'Claude Code', path: '/claude/rules/dwy-python-testing', content: 'Python 测试 pytest fixture rule' },
   // Claude Code · Rules · Vue 前端
   { title: 'dwy-vue-core', module: 'Claude Code', path: '/claude/rules/dwy-vue-core', content: 'Vue 3 基础风格 Composition API setup rule' },
-  { title: 'dwy-vue-api', module: 'Claude Code', path: '/claude/rules/dwy-vue-api', content: 'Vue API 调用 axios 请求 rule' },
   { title: 'dwy-vue-pinia', module: 'Claude Code', path: '/claude/rules/dwy-vue-pinia', content: 'Pinia Setup Store 状态管理 rule' },
   { title: 'dwy-vue-testing', module: 'Claude Code', path: '/claude/rules/dwy-vue-testing', content: 'Vue 测试 Vitest jsdom rule' },
   // Claude Code · Rules · Flutter 移动端

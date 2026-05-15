@@ -238,19 +238,18 @@ export const modules: ModuleConfig[] = [
         ],
       },
       {
-        title: 'Rules · API 与数据库',
+        title: 'Rules · 数据库与基础设施',
         items: [
-          { name: 'dwy-api-design', path: '/claude/rules/dwy-api-design' },
           { name: 'dwy-db-migration', path: '/claude/rules/dwy-db-migration' },
+          { name: 'dwy-postgres', path: '/claude/rules/dwy-postgres' },
+          { name: 'dwy-redis', path: '/claude/rules/dwy-redis' },
         ],
       },
       {
         title: 'Rules · Python 后端',
         items: [
           { name: 'dwy-python-core', path: '/claude/rules/dwy-python-core' },
-          { name: 'dwy-python-fastapi', path: '/claude/rules/dwy-python-fastapi' },
-          { name: 'dwy-python-orm', path: '/claude/rules/dwy-python-orm' },
-          { name: 'dwy-python-security', path: '/claude/rules/dwy-python-security' },
+          { name: 'dwy-python-backend', path: '/claude/rules/dwy-python-backend' },
           { name: 'dwy-python-testing', path: '/claude/rules/dwy-python-testing' },
         ],
       },
@@ -258,7 +257,6 @@ export const modules: ModuleConfig[] = [
         title: 'Rules · Vue 前端',
         items: [
           { name: 'dwy-vue-core', path: '/claude/rules/dwy-vue-core' },
-          { name: 'dwy-vue-api', path: '/claude/rules/dwy-vue-api' },
           { name: 'dwy-vue-pinia', path: '/claude/rules/dwy-vue-pinia' },
           { name: 'dwy-vue-testing', path: '/claude/rules/dwy-vue-testing' },
         ],
