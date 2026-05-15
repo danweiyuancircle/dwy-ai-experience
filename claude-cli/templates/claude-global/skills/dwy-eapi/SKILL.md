@@ -1,356 +1,142 @@
 ---
 name: dwy-eapi
-description: "dwyeapi FastAPI 后端基础设施速查。当用户使用 FastAPI 构建后端、配置数据库/Redis/JWT/异常处理、写 API 响应/分页/日志/健康检查/数据脱敏、处理异步耗时任务、接入邮件验证码发送时，**必须**使用此 skill。即使用户没有明确说'dwyeapi'或'eapi'，只要涉及 FastAPI 项目的基础设施搭建、统一响应封装、异常处理、数据库会话管理、Redis 缓存、JWT 认证、后台任务队列、PII 脱敏、日志配置，也应触发。"
+description: "dwyeapi FastAPI 后端基础设施使用指南。涉及以下任何主题，**必须**使用此 skill（即使用户没有明确说 'dwyeapi' / 'eapi'）：FastAPI 项目搭建 / Pydantic Settings 配置 / 异步 SQLAlchemy / Redis 缓存 / JWT 认证 / bcrypt 密码哈希 / 异常体系（AppError / NotFoundError / BusinessError）/ 统一响应信封（ApiResponse / PageData）/ 分页 / 日志（loguru）/ 健康检查 / PII 脱敏 / 时区敏感的时间处理 / 异步任务（ARQ）/ 邮件验证码发送。本 skill 是 @dwydev/eapi 的唯一权威导航来源。"
+eapi_baseline_version: "0.9.0"
 ---
 
-# dwyeapi 后端基础设施速查
+# dwyeapi 后端基础设施使用指南
 
-FastAPI 项目基础设施包，Python 3.11+，全异步。11 个模块。
+Python 3.11+ FastAPI 基础设施包，全异步。单文件模块设计（每个能力一个 .py），便于直接读源码。
 
-> **Tasks 集成指南：** 详见 [references/tasks-integration-guide.md](references/tasks-integration-guide.md)
+本 skill 索引基于 dwyeapi **0.9.0**。消费方版本可能不同 — 见 [版本兼容规则](#版本兼容规则)。
 
-## 安装
+## 模块清单（13 个）
+
+| 模块 | 用途 |
+|------|------|
+| `config` | Pydantic BaseSettings + 运行环境识别 (is_dev / is_prod / get_environment) |
+| `exceptions` | AppError 异常体系 + FastAPI 全局 handler 注册 |
+| `database` | 异步 SQLAlchemy engine/session 工厂 + Base + TimestampMixin |
+| `dependencies` | FastAPI 依赖注入工厂（如 get_db） |
+| `security` | JWT 令牌 + bcrypt 密码哈希（无状态） |
+| `cache` | 异步 Redis 连接管理（懒单例） |
+| `response` | 统一 API 响应信封 `ApiResponse[T]` + `PageData[T]` |
+| `pagination` | 分页参数 PaginationParams + offset/limit 计算 |
+| `dt` | 中国时区敏感的全局时间工具（替代 datetime.now） |
+| `logger` | loguru 全局日志（按天 + 按大小轮转、stdlib 拦截） |
+| `masking` | PII 数据脱敏（手机/邮箱/身份证/银行卡/姓名/地址/IP/车牌） |
+| `health` | 健康检查路由工厂（只探活、不探依赖） |
+| `tasks` | 异步任务系统（基于 ARQ，需 `pip install dwyeapi[tasks]`） |
+| `providers.email` | 邮件验证码发送（可插拔，默认 Resend，可继承注入腾讯 SES / SMTP 等） |
+
+---
+
+## 查 API 标准动作（核心：每次写 dwyeapi 代码前都做）
+
+dwyeapi 的源码 docstring 写得非常详尽（含设计意图、边界行为、Args/Returns/Raises、典型陷阱）。**本文档不再镜像签名表格** —— 因为表格信息密度低于源码 docstring，且会随版本漂移。需要某个 API 的精确签名/语义时，按下面顺序拿：
+
+### 第一步：定位 dwyeapi 真实版本和安装路径
 
 ```bash
-pip install dwyeapi
-# 需要任务处理时
-pip install dwyeapi[tasks]
+# 拿版本
+pip show dwyeapi | grep -i version
+#  或：python -c "import dwyeapi; print(dwyeapi.__version__)"
+
+# 拿包安装目录
+python -c "import dwyeapi; print(dwyeapi.__file__)"
+# 输出形如 /path/to/.venv/lib/python3.12/site-packages/dwyeapi/__init__.py
+# dirname 后的目录就是 dwyeapi 包根，模块都在里面
 ```
 
-```python
-from dwyeapi.config import BaseSettings
-from dwyeapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
-from dwyeapi.security import hash_password, verify_password, create_token, decode_token
-from dwyeapi.exceptions import NotFoundError, BusinessError, register_exception_handlers
-from dwyeapi.response import success, fail, paginated
-from dwyeapi.pagination import PaginationParams, paginate
-from dwyeapi.cache import configure as configure_redis, get_redis, close_redis
-from dwyeapi.dependencies import create_get_db
-from dwyeapi import dt
-from dwyeapi.masking import mask_phone, mask_email, mask_id_card, mask_name
+### 第二步：读模块源码（按存在性回退）
 
-# 任务模块 (需安装 [tasks] extra)
-from dwyeapi.tasks import setup_tasks, task_router, register, TaskContext, TaskStatus, create_worker_settings
+```
+a. 优先：<site-packages>/dwyeapi/{module}.py
+   —— 下游消费方默认场景。每个模块单文件，含模块级 docstring + 所有公开函数/类的 Args/Returns/Raises
+
+b. 次选：<dwy-shared-root>/backend/src/dwyeapi/{module}.py
+   —— 仅当在 dwy-shared monorepo 内或并列 clone 时可用，内容相同
+
+c. 都拿不到 → 退到本文档下方的 [模块清单](#模块清单13-个)（粗略，仅做导航）
 ```
 
-## 查阅源码
+### 第三步：tasks 模块查详细文档
 
-每个模块在 `backend/src/dwyeapi/{module}.py`，单文件设计可直接阅读。
+tasks 模块功能丰富（注册 / 提交 / 查询 / 取消 / 进度），单独维护一份完整集成指南：
+
+```
+references/tasks-integration-guide.md
+```
+
+只在用到 tasks 时读，平时不必加载。
+
+### 第四步：冲突时永远信源码
+
+本 SKILL.md 是导航 + 心智模型，**不是 API 真相**。当文档描述与 site-packages 中的 `.py` 不一致：无条件以源码为准。
 
 ---
 
-## config — Pydantic Settings
+## 版本兼容规则
 
-```python
-from dwyeapi.config import BaseSettings
-```
-
-子类化后使用，从 `.env` 或环境变量读取配置。
-
-```python
-class Settings(BaseSettings):
-    app_name: str = "My API"
-    # 继承的必填字段：database_url, redis_url, secret_key
-```
-
-| 字段 | 类型 | 默认值 | 说明 |
-|------|------|--------|------|
-| database_url | str | **必填** | 异步数据库 URL |
-| redis_url | str | **必填** | Redis URL |
-| secret_key | str | **必填** | JWT 签名密钥 |
-| jwt_algorithm | str | `"HS256"` | JWT 算法 |
-| access_token_expire_minutes | int | `30` | Token 过期分钟 |
-| environment | `"dev" \| "prod"` | `"prod"` | 运行环境(见下) |
-| allowed_origins | list[str] | `[]` | CORS 允许域名 |
-| task_max_jobs | int | `5` | Worker 最大并发任务数 |
-| task_job_timeout | int | `3600` | 单个任务超时秒数 |
-| task_failure_ttl | int | `86400` | 失败任务 Redis 保留秒数 |
-
-### 运行环境识别 (dev / prod)
-
-`environment` 默认 `"prod"`(误配置时保守)。**没有 `debug` 字段** —— 所有调试开关统一判断 `is_dev()`,避免两个维度冲突。业务代码通过三个顶层 API 读当前环境:
-
-```python
-from dwyeapi import is_dev, is_prod, get_environment
-
-# FastAPI docs/redoc/openapi 三个端点仅 dev 开启,prod 必须关闭(防路由元信息泄露)
-app = FastAPI(
-    docs_url="/docs" if is_dev() else None,
-    redoc_url="/redoc" if is_dev() else None,
-    openapi_url="/openapi.json" if is_dev() else None,
-)
-
-# SQL echo、慢路由 profiling 等性能相关调试也走 is_dev()
-engine = create_async_engine_factory(settings.database_url, echo=is_dev())
-```
-
-**Email Provider 注入**: `providers.email` 内置仅 `resend`;业务自定义发送通道(腾讯云 SES、AWS SES、自建 SMTP 等)需继承 `EmailProviderBase` 实现 `_send`,再调 `register_email_provider("name", factory)` 注册,`.env` 设 `EMAIL__PROVIDER=name` 启用。验证码 + Redis + 品牌化模板由基类全部复用。
+- 本 skill `eapi_baseline_version: 0.9.0`，模块清单、踩坑提示都基于这个版本
+- 消费方装的是不同版本（更新或更旧）时，**必须**按"查 API 标准动作"流程读 .py，不要默认本文档准确
+- dwyeapi < 0.9.0 可能没有 dt / tasks / providers 模块：先 `ls <site-packages>/dwyeapi/` 确认存在再用
+- 主版本号变更（0.x → 1.x）时，本文档的索引可能完全失效：先 `ls <site-packages>/dwyeapi/` 重建认知
 
 ---
 
-## database — 异步 SQLAlchemy
+## 重要约束与已知陷阱
 
-```python
-from dwyeapi.database import Base, TimestampMixin, create_async_engine_factory, create_session_factory
-```
+源码读得出来但容易忽略的"踩坑经验"，写后端代码时遵守：
 
-### 模型定义
+### 业务层架构（service / router 分层）
 
-```python
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import String
+- **service 层**抛业务异常（`NotFoundError("用户")` / `BusinessError("余额不足", code="INSUFFICIENT_BALANCE")` 等），不感知 HTTP 概念
+- **router 层**不写 try/except，由 `register_exception_handlers(app)` 统一转成 `ApiResponse` 信封 JSON
+- **禁止**在 service 层抛 `HTTPException` —— 会绕过统一 handler，破坏响应结构一致性
 
-class User(Base, TimestampMixin):
-    __tablename__ = "users"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    name: Mapped[str] = mapped_column(String(50))
-    # TimestampMixin 自动添加 created_at, updated_at
-```
+### 时间处理（避免时区 bug）
 
-### 引擎和会话
+- 业务时间统一中国时区，**禁止 `datetime.now()`**，统一走 `dwyeapi.dt`
+- `dt.now()` 返回 naive datetime（Asia/Shanghai，用于数据库存储）
+- `dt.utc_now()` 返回 aware UTC datetime（用于 JWT exp 等协议字段）
+- 这两个不能混用：数据库列存 naive 中国时间、JWT exp 存 UTC aware
 
-```python
-engine = create_async_engine_factory(settings.database_url, echo=is_dev())
-# 参数: database_url, pool_size=5, max_overflow=10, echo=False
-# SQLite 自动跳过连接池参数
+### 配置
 
-session_factory = create_session_factory(engine)
-# 返回 async_sessionmaker[AsyncSession]，expire_on_commit=False
-```
+- **没有 `debug` 字段**，所有调试开关统一用 `is_dev()`：避免两个维度（debug + environment）冲突
+- `environment` 默认 `"prod"`（误配置时保守）：生产环境必须显式关闭 docs/redoc/openapi 三个端点（`docs_url="/docs" if is_dev() else None`），否则路由元信息会泄露给攻击者
+- `BaseSettings` 必填三个字段：`database_url` / `redis_url` / `secret_key`（继承时不能给默认值）
 
----
+### Redis 连接
 
-## dependencies — FastAPI 依赖注入
+- `cache.configure(redis_url)` 启动时调用一次（lifespan）；`cache.get_redis()` 首次调用懒建立连接
+- `close_redis()` 可重复调用（安全幂等），lifespan 关闭阶段调用
+- 未 configure 直接 `get_redis()` 会抛 `RuntimeError`
 
-```python
-from dwyeapi.dependencies import create_get_db
-```
+### tasks 模块
 
-### create_get_db(session_factory)
+- 需要 `pip install dwyeapi[tasks]` 单独装 extra（避免不用任务的项目背 ARQ 依赖）
+- 任务函数签名固定 `async def task(ctx: TaskContext, params: dict)`，第一个参数 ctx 由框架注入
+- 取消机制是协作式：任务函数内必须主动 `await ctx.is_cancelled()` 检查，否则取消信号无效
+- 完整细节读 `references/tasks-integration-guide.md`
 
-生成 `get_db` FastAPI Depends 函数，自动管理会话生命周期。
+### 邮件 Provider
 
-```python
-get_db = create_get_db(session_factory)
+- 内置仅 `resend`。业务用其他通道（腾讯 SES / SMTP / 自建）：继承 `EmailProviderBase` 实现 `_send` → `register_email_provider("name", factory)` → `.env` 设 `EMAIL__PROVIDER=name`
+- 验证码生成 + Redis 存储 + 品牌化模板 由基类全部复用，子类只管"发出去"
 
-@router.get("/users/{user_id}")
-async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
-    ...
-```
+### 日志
 
----
+- `logger.configure()` 启动时调用一次；`logger.close()` 在 lifespan 结束时调用
+- `intercept_stdlib=True`（默认）会把 stdlib logging（uvicorn / SQLAlchemy 等）也接管到统一 sink
+- 多进程部署时必须 `enqueue=True`（默认）——避免日志文件竞争写
 
-## security — JWT + bcrypt
+### 健康检查
 
-```python
-from dwyeapi.security import hash_password, verify_password, create_token, decode_token
-```
-
-所有函数无状态，密钥通过参数传入。
-
-| 函数 | 签名 | 说明 |
-|------|------|------|
-| hash_password | `(password: str) -> str` | bcrypt 哈希 |
-| verify_password | `(plain: str, hashed: str) -> bool` | 验证密码 |
-| create_token | `(data: dict, secret: str, expires_minutes: int, algorithm="HS256") -> str` | 创建 JWT，自动添加 exp |
-| decode_token | `(token: str, secret: str, algorithm="HS256") -> dict \| None` | 解码 JWT，失败返回 None |
-
-```python
-hashed = hash_password("my-password")
-is_valid = verify_password("my-password", hashed)
-
-token = create_token({"sub": str(user.id)}, settings.secret_key, settings.access_token_expire_minutes)
-payload = decode_token(token, settings.secret_key)  # {"sub": "1", "exp": ...} 或 None
-```
-
----
-
-## exceptions — 异常体系
-
-```python
-from dwyeapi.exceptions import (
-    AppError, NotFoundError, BusinessError, PermissionDeniedError, AuthenticationError,
-    register_exception_handlers,
-)
-```
-
-### 异常层级
-
-| 异常类 | HTTP 状态码 | code | message |
-|--------|-----------|------|---------|
-| AppError(message, code) | — | 自定义 | 自定义 |
-| NotFoundError(resource) | 404 | `NOT_FOUND` | `{resource}不存在` |
-| BusinessError(message, code) | 422 | 自定义 | 自定义 |
-| PermissionDeniedError() | 403 | `PERMISSION_DENIED` | `权限不足` |
-| AuthenticationError() | 401 | `AUTHENTICATION_FAILED` | `认证失败` |
-
-### 注册到 FastAPI
-
-```python
-app = FastAPI()
-register_exception_handlers(app)
-# 之后在 service 层直接 raise NotFoundError("用户") 即可返回 404
-```
-
-响应格式统一为 `{"code": "ERROR_CODE", "message": "描述"}`。
-
-### 使用原则
-
-- **service 层**抛业务异常（NotFoundError, BusinessError 等）
-- **router 层**不写 try/except，由 register_exception_handlers 统一处理
-- **禁止**在 service 层抛 HTTPException
-
----
-
-## response — 统一响应
-
-```python
-from dwyeapi.response import success, fail, paginated
-```
-
-| 函数 | 签名 | 返回结构 |
-|------|------|---------|
-| success | `(data=None, message="success") -> dict` | `{"code": 200, "message": ..., "data": ..., "timestamp": ...}` |
-| fail | `(code=400, message="fail") -> dict` | `{"code": ..., "message": ..., "data": None, "timestamp": ...}` |
-| paginated | `(items, total, page, page_size) -> dict` | success 包装 `{"items": [...], "total": N, "page": N, "page_size": N}` |
-
-```python
-@router.get("/users/{user_id}")
-async def get_user(user_id: int, service=Depends(get_user_service)):
-    user = await service.get_by_id(user_id)
-    return success(data=UserResponse.model_validate(user))
-
-@router.get("/users")
-async def list_users(params: PaginationParams = Depends(), service=Depends(get_user_service)):
-    items, total = await service.list(params)
-    return paginated(items, total, params.page, params.page_size)
-```
-
----
-
-## pagination — 分页工具
-
-```python
-from dwyeapi.pagination import PaginationParams, paginate, OffsetLimit
-```
-
-### PaginationParams
-
-FastAPI Depends 注入的查询参数模型。
-
-| 字段 | 类型 | 默认 | 约束 |
-|------|------|------|------|
-| page | int | 1 | >= 1 |
-| page_size | int | 20 | 1 ~ 100 |
-
-### paginate(page, page_size) -> OffsetLimit
-
-```python
-offset_limit = paginate(params.page, params.page_size)
-# OffsetLimit(offset=0, limit=20) — 可直接用于 SQLAlchemy .offset().limit()
-stmt = select(User).offset(offset_limit.offset).limit(offset_limit.limit)
-```
-
----
-
-## cache — 异步 Redis
-
-```python
-from dwyeapi import cache
-```
-
-| 函数 | 签名 | 说明 |
-|------|------|------|
-| cache.configure | `(redis_url: str) -> None` | 设置 Redis URL（启动时调用一次） |
-| cache.get_redis | `async () -> Redis` | 获取/创建共享连接（未 configure 时抛 RuntimeError） |
-| cache.close_redis | `async () -> None` | 关闭连接（安全幂等） |
-
-```python
-# lifespan 中初始化
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    cache.configure(settings.redis_url)
-    yield
-    await cache.close_redis()
-
-# 业务中使用
-redis = await cache.get_redis()
-await redis.set("key", "value", ex=3600)
-val = await redis.get("key")
-```
-
----
-
-## dt — 全局时间工具
-
-```python
-from dwyeapi import dt
-```
-
-业务时间统一 Asia/Shanghai，**禁止在业务代码中直接使用 `datetime.now()`**，统一通过 `dt` 模块访问。
-
-| 函数 | 签名 | 说明 |
-|------|------|------|
-| dt.now | `() -> datetime` | 当前中国时间（naive，用于数据库存储） |
-| dt.now_str | `(fmt="%Y-%m-%d %H:%M:%S") -> str` | 格式化的当前中国时间字符串 |
-| dt.today | `() -> date` | 当前中国日期 |
-| dt.timestamp | `() -> float` | 当前 Unix 时间戳（秒） |
-| dt.utc_now | `() -> datetime` | 当前 UTC 时间（aware，用于 JWT exp 等协议字段） |
-
-```python
-dt.now()          # datetime(2026, 4, 8, 14, 30, 0) — naive, Asia/Shanghai
-dt.now_str()      # "2026-04-08 14:30:00"
-dt.today()        # date(2026, 4, 8)
-dt.timestamp()    # 1775625000.0
-dt.utc_now()      # datetime(2026, 4, 8, 6, 30, 0, tzinfo=UTC) — aware
-```
-
-常量：`dt.TZ`（Asia/Shanghai）、`dt.UTC`。
-
----
-
-## masking — PII 数据脱敏
-
-```python
-from dwyeapi.masking import (
-    mask_phone,          # 138****5678
-    mask_email,          # z***@gmail.com
-    mask_id_card,        # 420***********1234
-    mask_bank_card,      # 6222********1234
-    mask_name,           # 张*明
-    mask_address,        # 浙江省杭州市西湖区****
-    mask_ip,             # 192.168.1.*
-    mask_license_plate,  # 浙A***8
-    mask_text,           # 通用脱敏（自定义首尾保留位数）
-)
-```
-
-纯函数模块，无外部依赖。所有函数对空字符串、格式不匹配的输入原样返回，不抛异常。
-
-### 在 Response Schema 中使用
-
-```python
-class UserResponse(BaseModel):
-    phone: str
-    email: str
-
-    @field_validator("phone", mode="before")
-    @classmethod
-    def _mask_phone(cls, v: str) -> str:
-        return mask_phone(v) if v else v
-
-    @field_validator("email", mode="before")
-    @classmethod
-    def _mask_email(cls, v: str) -> str:
-        return mask_email(v) if v else v
-```
-
-### mask_text — 通用脱敏
-
-```python
-mask_text("hello", start=1, end=1, mask_char="*")  # h***o
-mask_text("1234567890", start=2, end=3)              # 12*****890
-```
+- `create_health_router()` **只**探活、**不**触达 PostgreSQL / Redis 等依赖
+- 理由：健康端点常对公网开放，内置 dependency check 会被攻击者用来 DoS 放大数据库/缓存
+- 需要 readiness 的业务自行实现并限制内网访问
 
 ---
 
@@ -362,134 +148,79 @@ from dwyeapi.config import BaseSettings
 
 class Settings(BaseSettings):
     app_name: str = "My API"
+    service_name: str = "my-api"
 
-settings = Settings()
+settings = Settings()  # 从 .env / 环境变量读 database_url、redis_url、secret_key
 
 # database.py
-from dwyeapi.database import Base, create_async_engine_factory, create_session_factory
+from dwyeapi.database import create_async_engine_factory, create_session_factory
 from dwyeapi.dependencies import create_get_db
+from dwyeapi import is_dev
 
-engine = create_async_engine_factory(settings.database_url)
+engine = create_async_engine_factory(settings.database_url, echo=is_dev())
 session_factory = create_session_factory(engine)
 get_db = create_get_db(session_factory)
 
 # main.py
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from dwyeapi import cache, logger, is_dev
 from dwyeapi.exceptions import register_exception_handlers
-from dwyeapi import cache
-
-app = FastAPI(lifespan=lifespan)
-register_exception_handlers(app)
-```
-
----
-
-## tasks — 异步任务处理 (需 `[tasks]` extra)
-
-```python
-from dwyeapi.tasks import setup_tasks, task_router, register, TaskContext
-```
-
-基于 ARQ 的全异步耗时任务系统。3 步接入：注册任务 → setup + 挂载路由 → 启动 Worker。
-
-### 快速示例
-
-```python
-# 1. 注册任务
-@register("process_data")
-async def process_data(ctx: TaskContext, params: dict):
-    await ctx.log("开始处理")
-    await ctx.update_progress(50, "处理中...")
-    if await ctx.is_cancelled():
-        return
-    return {"result": "ok"}  # 框架自动设为 SUCCESS
-
-# 2. FastAPI 接入
-await setup_tasks(app, settings, session_factory)
-app.include_router(task_router)
-
-# 3. Worker: arq app.worker.WorkerSettings
-```
-
-### 公共 API
-
-| 导出项 | 用途 |
-|--------|------|
-| `setup_tasks(app, settings, session_factory)` | lifespan 中调用, 初始化 |
-| `task_router` | 开箱即用 APIRouter (提交/查询/列表/取消) |
-| `register(task_type)` | 装饰器, 注册异步任务 |
-| `TaskContext` | 任务函数上下文 (db/log/progress/cancel) |
-| `TaskStatus` | 枚举: PENDING/RUNNING/SUCCESS/FAILED/CANCELED |
-| `create_worker_settings(settings, session_factory)` | 生成 ARQ Worker 配置 |
-
-### API 接口
-
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | `/tasks` | 提交任务 |
-| GET | `/tasks/{task_id}` | 查询状态 |
-| GET | `/tasks` | 列表 (分页 + 筛选) |
-| POST | `/tasks/{task_id}/cancel` | 取消任务 |
-
-> **完整文档：** [tasks-integration-guide.md](references/tasks-integration-guide.md) — 包含 TaskContext API、数据模型、Worker 配置、取消机制等详细说明。
-
----
-
-## 其他模块速查
-
-### logger — 基于 loguru 的全局日志
-
-```python
-from dwyeapi import logger
-
-logger.configure(level="INFO", log_dir="./logs", filename="app")
-log = logger.get_logger("users")
-log.info("用户 %s 登录", user_id)
-```
-
-| 函数 | 说明 |
-|------|------|
-| `logger.configure(...)` | 启动时调用一次；支持按天+按大小轮转、JSON 序列化、拦截 stdlib logging |
-| `logger.get_logger(name?)` | 返回 Logger 门面，支持 `%s` 占位符和 `exc_info=True` |
-| `logger.close()` | 关闭并恢复 stdlib logger（lifespan 结束时调用） |
-
-**详细配置参数**：读 `references/logger.md`
-
-### health — 健康检查路由工厂
-
-```python
 from dwyeapi.health import create_health_router
 
-router = create_health_router(service_name="my-api", version="1.0.0")
-app.include_router(router)
-# GET /health → {"service": "my-api", "version": "1.0.0", "status": "alive"}
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.configure(level="INFO", log_dir="./logs", filename="app")
+    cache.configure(settings.redis_url)
+    yield
+    await cache.close_redis()
+    logger.close()
+
+app = FastAPI(
+    lifespan=lifespan,
+    docs_url="/docs" if is_dev() else None,
+    redoc_url="/redoc" if is_dev() else None,
+    openapi_url="/openapi.json" if is_dev() else None,
+)
+register_exception_handlers(app)
+app.include_router(create_health_router(service_name=settings.service_name, version="1.0.0"))
 ```
-
-只探活、不探依赖（防 DoS 放大）。业务如需 readiness 自行实现并限制内网访问。
-
-### providers.email — 邮件验证码发送（可插拔）
-
-内置仅 `resend`，业务可继承 `EmailProviderBase` 注入自定义通道（腾讯云 SES、AWS SES、SMTP 等）。验证码 + Redis + 品牌化模板由基类复用。
-
-```python
-from dwyeapi.providers.email import EmailSettings, make_email_provider, register_email_provider
-```
-
-| 导出项 | 说明 |
-|--------|------|
-| `EmailSettings` | 配置模型（code_ttl, brand_name, resend） |
-| `make_email_provider(settings)` | 工厂函数，按 `.env EMAIL__PROVIDER` 创建实例 |
-| `register_email_provider(name, factory)` | 注册自定义 provider |
-| `EmailProviderBase` | 抽象基类，继承后实现 `_send` 即可 |
 
 ---
 
-## 查阅源码
+## 响应契约速查（前后端对齐用）
 
-所有模块为单文件设计，直接阅读：
+所有接口返回统一信封：
 
+```json
+{
+  "code": "SUCCESS",
+  "message": "success",
+  "data": { ... },
+  "timestamp": 1775625000
+}
 ```
-backend/src/dwyeapi/{module}.py
-backend/src/dwyeapi/providers/email/
-```
 
-模块清单：config、database、dependencies、security、exceptions、response、pagination、cache、dt、masking、logger、health、tasks、providers/email。
+- 成功：`code = "SUCCESS"`，`data` 是业务载荷（单体或 `PageData[T]`）
+- 失败：`code` 是业务错误码（如 `NOT_FOUND` / `BUSINESS_ERROR` / `VALIDATION_ERROR` 等），HTTP 状态保持语义（404 就是 404）
+- 校验错误 `VALIDATION_ERROR`：`data.errors: [{field, message}]`，field 含 `body.` / `query.` / `path.` 前缀
+
+构造响应：用 `ApiResponse.ok(data)` 或 `ApiResponse.page(items, total, page, page_size)`，不直接实例化 `ApiResponse`。
+
+错误响应**不要业务代码构造** —— 直接 `raise NotFoundError("用户")`，handler 自动转。
+
+---
+
+## 防腐层硬性约束（写代码前必读）
+
+dwyeapi 把基础设施细节封装在自有 API 后面。业务代码**禁止**直接调下面这些底层 API，违反会导致升级困难、行为不一致：
+
+| 禁止 | 改用 |
+|------|------|
+| `datetime.now()` / `datetime.utcnow()` | `dt.now()` / `dt.utc_now()` |
+| `import logging; logging.getLogger()` | `from dwyeapi import logger; logger.get_logger()` |
+| 手写 `from redis.asyncio import Redis` 全局变量 | `cache.configure()` + `cache.get_redis()` |
+| 手写 JWT encode/decode（含 `import jwt`） | `security.create_token()` / `security.decode_token()` |
+| 直接 `raise HTTPException(404, ...)` | `raise NotFoundError("资源名")` |
+| 自己写 `{"code": ..., "data": ...}` dict 当响应 | `ApiResponse.ok(data)` / `ApiResponse.page(...)` |
+| 自己写 `?page=&page_size=` Query 参数 | `params: PaginationParams = Depends()` |
