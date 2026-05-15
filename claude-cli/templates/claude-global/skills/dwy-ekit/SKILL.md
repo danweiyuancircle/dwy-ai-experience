@@ -1,32 +1,96 @@
 ---
 name: dwy-ekit
-description: "【强制速查】只要涉及以下任何主题，必须调用本 skill，无论用户是否说ekit：HTTP 请求 / axios 封装 / token 刷新 / dwyeapi 响应契约对接 / localStorage / Cookie / useStorage / useCookie / 日期格式化 / 时区处理 / dayjs / 表单校验 / zod schema / vee-validate / PII 脱敏 / 剪贴板 / useClipboard / 文件下载 / Blob / 查询字符串 / qs / Vue composables（debounce / throttle / click-outside / event-listener / window-size / media-query / intersection-observer / resize-observer / useFormPersist）。本 skill 是 @dwydev/ekit（v0.7.0）的唯一权威来源，禁止绕过 ekit 直接手写底层 API。"
+description: "@dwydev/ekit 工具库使用指南。涉及以下任何主题，**必须**使用此 skill（即使用户没有说 'ekit'）：HTTP 请求 / axios 封装 / token 刷新 / dwyeapi 响应契约对接 / localStorage / Cookie / useStorage / useCookie / 日期格式化 / 时区处理 / dayjs / 表单校验 / zod schema / vee-validate / PII 脱敏 / 剪贴板 / useClipboard / 文件下载 / Blob / 查询字符串 / qs / Vue composables（debounce / throttle / click-outside / event-listener / window-size / media-query / intersection-observer / resize-observer / useFormPersist）。本 skill 是 @dwydev/ekit 的唯一权威导航来源，禁止绕过 ekit 直接手写底层 API。"
+ekit_baseline_version: "0.8.0"
 ---
 
-# @dwydev/ekit 工具库速查（v0.7.0）
+# @dwydev/ekit 工具库使用指南
 
-Vue 3 项目通用工具库，**薄封装层**：底层用 axios / dayjs / zod / js-cookie / qs / file-saver / @vueuse/core，**对外只暴露 ekit 自有契约**，不泄露底层库类型。
+Vue 3 项目通用工具库。**薄封装层**：底层用 axios / dayjs / zod / js-cookie / qs / file-saver / @vueuse/core，对外**只暴露 ekit 自有契约**，不泄露底层库类型。
 
-包含 10 个模块：`request` / `storage` / `cookie` / `date` / `validators` / `copy` / `qs` / `file` / `hooks` / `masking`。
+10 个模块：`request` / `storage` / `cookie` / `date` / `validators` / `copy` / `qs` / `file` / `hooks` / `masking`。
 
-## 安装
+本 skill 索引基于 ekit **0.8.0**。消费方版本可能不同 — 见 [版本兼容规则](#版本兼容规则)。
 
-```bash
-pnpm add @dwydev/ekit
-# peerDependencies: vue ^3.5.0, axios ^1.0.0, dayjs ^1.11.0, zod ^3.25.0, @vueuse/core ^14.2.1
+---
+
+## 查 API 标准动作（核心：每次写 ekit 代码前都做）
+
+ekit 共 82 个对外导出。**本文档不再镜像函数签名** —— 因为会随版本漂移。需要某个 API 的精确签名时，按下面顺序拿：
+
+### 第一步：定位 ekit 真实版本
+
+读消费方项目 `package.json`，找 `dependencies["@dwydev/ekit"]` 或 `peerDependencies["@dwydev/ekit"]`。这才是写代码的依据。
+
+### 第二步：读 module-manifest.json（一次拿导出索引）
+
+从 ekit 0.8.0 起，npm 包带一份导出清单：
+
+```
+<project-root>/node_modules/@dwydev/ekit/dist/module-manifest.json
 ```
 
-```ts
-import {
-  createRequest, useStorage, useCookie,
-  formatDateTime, isPhone, copyText, stringify, downloadFile,
-  useDebounce, maskPhone,
-} from '@dwydev/ekit'
+结构（精简示例）：
+```json
+{
+  "version": "0.8.0",
+  "exportToModule": {
+    "createRequest": "request",
+    "HttpClient": "request",
+    "useStorage": "storage",
+    "now": "date"
+  },
+  "modules": {
+    "request": {
+      "entry": "request/index.d.ts",
+      "files": ["request/types.d.ts", "request/client.d.ts", "request/plugins.d.ts", "..."],
+      "values": ["createRequest", "tokenPlugin", "..."],
+      "types":  ["HttpClient", "HttpConfig", "PageData", "..."]
+    }
+  }
+}
 ```
+
+用法：
+- 知道 API 名（如 `createRequest`、`HttpClient`） → 查 `exportToModule[name]` 拿到模块名
+- 看 `modules[name].files` 找到要读的 .d.ts 文件
+- 类型定义通常在 `{module}/types.d.ts`，函数实现签名在 `{module}/{client,plugins,helpers,api}.d.ts`
+
+manifest 不存在的回退：消费方装的是 ekit < 0.8.0 → 直接走第三步用约定路径。
+
+### 第三步：读模块 .d.ts（精确签名 + JSDoc）
+
+按存在性回退：
+
+```
+a. 优先：<project-root>/node_modules/@dwydev/ekit/dist/{module}/{file}.d.ts
+   —— 下游消费方默认场景，含完整签名 + JSDoc 注释
+
+b. 次选：<dwy-shared-root>/frontend/ekit/src/{module}/{file}.ts
+   —— 仅当在 dwy-shared monorepo 内或并列 clone 时可用
+
+c. 都拿不到 → 退到本文档下方的 [模块用途索引](#模块用途索引) + 总入口 dist/index.d.ts
+```
+
+### 第四步：冲突时永远信 node_modules
+
+本 SKILL.md 是导航 + 心智模型，**不是 API 真相**。当文档描述与消费方 node_modules 中 `.d.ts` 不一致：无条件以 node_modules 为准。
+
+---
+
+## 版本兼容规则
+
+- 本 skill `ekit_baseline_version: 0.8.0`，模块索引、防腐层约束、踩坑提示都基于这个版本
+- ekit < 0.8.0 没有 `module-manifest.json`：直接走第三步的 .d.ts 约定路径
+- 主版本号变更（0.x → 1.x）时，必须先读 `node_modules/@dwydev/ekit/dist/index.d.ts` 重建认知
+
+---
 
 ## 防腐层硬性约束（写代码前必读）
 
-ekit 对外类型 **不允许** 出现底层库类名。下面这些导入 **会失败** —— 因为 ekit 不再 re-export：
+这是 ekit **设计核心**，与版本无关。即使读了 .d.ts，也要遵守以下原则：
+
+### 对外类型不允许出现底层库类名
 
 ```ts
 // 错误：ekit 不导出底层类型
@@ -35,10 +99,10 @@ import { dayjs } from '@dwydev/ekit'
 
 // 正确：用 ekit 自有契约
 import type { HttpClient, StringifyOptions, CookieOptions } from '@dwydev/ekit'
-import { now, formatTimestamp } from '@dwydev/ekit'  // 不需要 dayjs 实例
+import { now, formatTimestamp } from '@dwydev/ekit'
 ```
 
-业务代码也 **禁止** 直接调底层 API：
+### 业务代码禁止直接调底层 API
 
 | 禁止 | 改用 |
 |------|------|
@@ -48,307 +112,109 @@ import { now, formatTimestamp } from '@dwydev/ekit'  // 不需要 dayjs 实例
 | `document.cookie = ...` | `cookie.set()` 或 `useCookie()` |
 | `document.addEventListener('click', ...)` | `useEventListener()` |
 | 手写 axios 实例 | `createRequest()` |
+| 自写 debounce / throttle / clickOutside | `useDebounce()` / `useThrottle()` / `useClickOutside()` |
 
-## 模块速查
+理由：替换底层实现（如 axios → fetch、dayjs → date-fns）时业务代码不用改，且统一封装能保证 SSR-safe / 跨标签页同步 / 边界处理等开源库已经做好的事。
 
-### request — HTTP 客户端 + 4 内置插件 + dwyeapi 契约
+---
 
-```ts
-import {
-  createRequest, tokenPlugin, headerPlugin, unwrapPlugin, refreshTokenPlugin,
-  SUCCESS_CODE, isApiBusinessError, extractValidationErrors,
-} from '@dwydev/ekit'
-import type {
-  HttpClient, HttpConfig, HttpResponse, HttpError, HttpPlugin,
-  CreateRequestOptions, ApiResponse, PageData,
-} from '@dwydev/ekit'
-```
+## 重要约束与已知陷阱
 
-**createRequest**
+源码读不出来的"踩坑经验"，每次写 ekit 代码都遵守：
 
-```ts
-const http: HttpClient = createRequest({
-  baseURL: '/api',
-  timeout: 30000,
-  headers: { 'X-Client': 'web' },
-  plugins: [tokenPlugin({ getToken: () => localStorage.getItem('token') }), unwrapPlugin()],
-})
+### request（HTTP 客户端）
 
-const res = await http.get<User>('/users/1')        // res: HttpResponse<User>
-const list = await http.get<PageData<User>>('/users')
-list.data.items       // User[]
-list.data.total       // number
-list.data.page        // number
-list.data.page_size   // number
-```
+- **dwyeapi 响应契约**：用 `unwrapPlugin()` 自动解包 `{ code, message, data, timestamp }`，业务失败自动 reject。`HttpResponse<T>.data` 才是纯业务数据
+- **分页**：返回类型用 `PageData<T>`（字段：`items / total / page / page_size`）
+- **token 刷新**：`refreshTokenPlugin` 的 `retry: (cfg) => http.request(cfg)` **必填**，否则刷新成功后无法重放失败请求
+- **业务错误捕获**：用 `isApiBusinessError(err)` 类型守卫 + `err.businessCode` 判断；表单字段错误用 `extractValidationErrors(err)` 剥离 `body./query./path.` 前缀后直接 `form.setErrors()`
 
-**内置插件**
+### date
 
-| 插件 | 参数 | 说明 |
-|------|------|------|
-| `tokenPlugin` | `{ getToken: () => string | null }` | 注入 `Authorization: Bearer <token>` |
-| `headerPlugin` | `{ name, getValue }` | 动态自定义 header |
-| `unwrapPlugin` | 无 | 解包 dwyeapi `{ code, message, data, timestamp }`，业务失败时 reject |
-| `refreshTokenPlugin` | `{ getRefreshToken, refreshFn, onRefreshFail, retry, isLoginUrl? }` | 401 自动刷新并重放；`retry: (cfg) => http.request(cfg)` 必填 |
+- ekit **不暴露** `dayjs` 实例和类型，所有日期运算走函数（`now / formatTimestamp / formatInTimezone / formatDate / formatDateTime / formatTime / formatRelativeTime / formatBy`）
+- 入参 `DateInput = string | number | Date`，返回原生 `string / number / Date`
 
-**响应契约 & 错误捕获**
+### validators
 
-```ts
-// unwrap 后 data 是纯业务数据（单体）或 PageData<T>（分页）
-const res = await http.get<User>('/users/1')   // res.data: User
+- 双层 API：布尔函数（`isPhone / isEmail / ...`）用于简单校验；**zod schemas**（`phoneSchema / emailSchema / ...`）用于 vee-validate 集成（配合 `toTypedSchema()`）
+- `minLengthSchema(n)` / `maxLengthSchema(n)` 是**工厂函数**，调用后才返回 schema
 
-// 捕获业务错误
-try {
-  await http.post('/orders', body)
-} catch (err) {
-  if (!isApiBusinessError(err)) { message.error('网络异常'); return }
-  switch (err.businessCode) {
-    case 'INSUFFICIENT_BALANCE': showRecharge(); break
-    case 'VALIDATION_ERROR': form.setErrors(extractValidationErrors(err)); break
-    default: message.error(err.message)
-  }
-}
-```
+### hooks
 
-`extractValidationErrors` 剥离 `body. / query. / path.` 前缀，返回 `{ field: message }` 扁平对象，与 vee-validate 的 `form.setErrors` 直接兼容。
+- `useFormPersist(key, initialValue, options?)` 表单刷新自动回填，**默认排除 19 项敏感字段**（password / token / code / otp 等）。需要追加：`options.exclude`；需要完全自定义：`options.disableDefaultExclude: true`
+- VueUse 再导出：`useThrottle / useWindowSize / useMediaQuery / useIntersectionObserver / useResizeObserver`（直接用 VueUse 名字，不要找 ekit 自己实现的版本 — 已经废弃）
+- `useDebounce` 返回 `Readonly<Ref<T>>`（不是可写 ref，过去版本是可写的，迁移时注意）
 
-### storage — localStorage
+### masking
 
-```ts
-import { useStorage, storage } from '@dwydev/ekit'
-```
+- 纯函数，无依赖
+- **输入不符合格式时原样返回，不抛异常**（设计意图：不影响显示流程）
 
-| API | 签名 / 说明 |
-|-----|------------|
-| `useStorage(key, defaultValue, storage?, opts?)` | 再导出 @vueuse/core；跨标签页同步、SSR-safe、自动 JSON 序列化 |
-| `storage.get<T>(key, defaultValue?)` | 返回 `T | undefined`；JSON 解析失败按字符串返回 |
-| `storage.set(key, value)` | 自动 `JSON.stringify` |
-| `storage.remove(key)` | 删除 |
-| `storage.clear()` | 清空全部（慎用） |
+### storage / cookie
 
-```ts
-const token = useStorage<string>('token', '')
-const config = useStorage('config', { theme: 'light' }, localStorage, { mergeDefaults: true })
-```
+- `useStorage()` 是 VueUse 再导出，跨标签页同步 + SSR-safe + 自动 JSON 序列化
+- `useCookie(key, default)` 返回 ref：`ref.value = undefined` 自动删除 cookie
+- `storage.set()` / `cookie.set()` 自动 JSON.stringify，`get()` 自动 parse
+
+### file
+
+- `downloadFile(url, options?)` 默认 GET，自动从 Content-Disposition 解析文件名
+- `requester` 选项接受任何符合 `FileRequester` 契约的对象（axios 实例天然满足）
+
+---
+
+## 模块用途索引
+
+按模块导航。**只提供模块名 + 用途 + 关键导出**，精确签名一律按 [查 API 标准动作](#查-api-标准动作核心每次写-ekit-代码前都做) 读 `.d.ts`。
+
+### request — HTTP 客户端 + dwyeapi 契约
+
+| 类别 | 关键导出 |
+|------|---------|
+| 工厂 | `createRequest` |
+| 内置插件 | `tokenPlugin / headerPlugin / unwrapPlugin / refreshTokenPlugin` |
+| 业务常量/守卫 | `SUCCESS_CODE / isApiBusinessError / extractValidationErrors` |
+| 核心类型 | `HttpClient / HttpConfig / HttpResponse<T> / HttpError / HttpPlugin / HttpMethod / HttpResponseType / CreateRequestOptions` |
+| dwyeapi 契约类型 | `ApiResponse<T> / PageData<T> / ValidationFieldError / ValidationErrorData / CommonBusinessCode / BusinessCode / ApiBusinessError` |
+
+`CommonBusinessCode` 各业务码的 HTTP 状态 + 语义 + 典型处理已写进 `request/api.d.ts` 的 JSDoc，需要时读 .d.ts。
+
+### storage — localStorage 封装
+
+`useStorage` (VueUse 再导出) + `storage` 静态对象（`get / set / remove / clear`）。
 
 ### cookie — Cookie 读写
 
-```ts
-import { useCookie, cookie } from '@dwydev/ekit'
-import type { CookieOptions } from '@dwydev/ekit'
-```
+`useCookie` + `cookie` 静态对象（`get / set / remove`）+ `CookieOptions` 类型。
 
-```ts
-interface CookieOptions {
-  expires?: number | Date   // 天数或 Date；不传 = 会话级
-  path?: string             // 默认 '/'
-  domain?: string
-  secure?: boolean
-  sameSite?: 'strict' | 'lax' | 'none'
-}
+### date — 日期/时间/时区
 
-cookie.get<User>('user')
-cookie.set('user', { id: 1 }, { expires: 7, secure: true })
-cookie.remove('user', { path: '/' })
-
-const lang = useCookie('lang', 'zh-CN')
-lang.value = 'en-US'       // 自动写入
-lang.value = undefined     // 自动删除
-```
-
-### date — 日期 / 时间 / 时区
-
-```ts
-import {
-  now, formatTimestamp, formatInTimezone,
-  formatDate, formatDateTime, formatTime, formatRelativeTime, formatBy,
-} from '@dwydev/ekit'
-```
-
-| 函数 | 签名 | 输出示例 |
-|------|------|---------|
-| `now()` | `(): number` | `1745318445000`（UTC 毫秒戳） |
-| `formatTimestamp(ts, fmt?)` | `(number, string?) => string` | `'2026-04-22 18:40:45'`（默认） |
-| `formatInTimezone(tz, ts?, fmt?)` | `(string, number?, string?) => string` | `formatInTimezone('America/New_York', ts)` |
-| `formatDate(input)` | `(string | number | Date) => string` | `'2026-04-22'` |
-| `formatDateTime(input)` | 同上 | `'2026-04-22 18:40:45'` |
-| `formatTime(input)` | 同上 | `'18:40'` |
-| `formatRelativeTime(input)` | 同上 | `'刚刚' / '5 分钟前' / '3 小时前' / '2 天前'`；> 30 天退化为 `YYYY-MM-DD` |
-| `formatBy(input, template)` | 同上 | `formatBy(ts, 'YYYY年MM月DD日')` -> `'2026年04月22日'` |
-
-### qs — 查询字符串
-
-```ts
-import { stringify, parse } from '@dwydev/ekit'
-import type { StringifyOptions, ParseOptions } from '@dwydev/ekit'
-```
-
-```ts
-stringify({ ids: [1, 2], name: 'a' })                          // 'ids=1&ids=2&name=a'
-stringify({ ids: [1, 2] }, { arrayFormat: 'brackets' })        // 'ids[]=1&ids[]=2'
-stringify({ a: 1 }, { addQueryPrefix: true })                  // '?a=1'
-
-parse('?a=1&b=2')                                              // { a: '1', b: '2' }（默认 ignoreQueryPrefix: true）
-parse('a.b=1', { allowDots: true })                            // { a: { b: '1' } }
-```
+`now / formatTimestamp / formatInTimezone / formatRelativeTime / formatDate / formatDateTime / formatTime / formatBy`。
 
 ### validators — 表单校验
 
-```ts
-import {
-  isPhone, isEmail, isIdCard, isUrl, isRequired, minLength, maxLength,
-  phoneSchema, emailSchema, idCardSchema, urlSchema,
-  requiredSchema, minLengthSchema, maxLengthSchema,
-} from '@dwydev/ekit'
-```
-
-**布尔函数**
-
-| 函数 | 规则 |
-|------|------|
-| `isPhone(value)` | 中国手机号 1[3-9] 开头 11 位 |
-| `isEmail(value)` | 基础邮箱格式 |
-| `isIdCard(value)` | 18 位身份证（末位允许 X/x） |
-| `isUrl(value)` | 合法 URL |
-| `isRequired(value)` | 非空（0 / false 视为有效） |
-| `minLength(value, n)` / `maxLength(value, n)` | 长度校验 |
-
-**zod schema（配合 vee-validate）**
-
-```ts
-import { useForm } from 'vee-validate'
-import { toTypedSchema } from '@vee-validate/zod'
-import { phoneSchema, emailSchema } from '@dwydev/ekit'
-
-const schema = toTypedSchema(z.object({ phone: phoneSchema, email: emailSchema }))
-const { defineField, errors } = useForm({ validationSchema: schema })
-```
-
-> `minLengthSchema(n)` / `maxLengthSchema(n)` 是工厂函数，调用后返回 schema。
-
-### masking — PII 脱敏
-
-```ts
-import {
-  maskPhone, maskEmail, maskIdCard, maskBankCard,
-  maskName, maskAddress, maskIp, maskLicensePlate, maskText,
-} from '@dwydev/ekit'
-```
-
-纯函数，无外部依赖。**输入不符合格式时原样返回，不抛异常**。
-
-| 函数 | 示例输出 |
-|------|---------|
-|  |  |
-|  |  |
-|  |  |
-|  |  |
-|  /  |  /  |
-|  |  |
-|  |  |
-|  |  |
-|  |  |
+- 布尔：`isPhone / isEmail / isIdCard / isUrl / isRequired / minLength / maxLength`
+- zod schemas：`phoneSchema / emailSchema / idCardSchema / urlSchema / requiredSchema / minLengthSchema / maxLengthSchema`
 
 ### copy — 剪贴板
 
-```ts
-import { copyText, useClipboard } from '@dwydev/ekit'
-```
+`copyText` 快捷函数 + `useClipboard` composable（VueUse 再导出）。
 
-```ts
-await copyText('hello')
+### qs — 查询字符串
 
-const { text, copy, copied, isSupported } = useClipboard({ source: '', copiedDuring: 1500 })
-copy('hello')
-// copied: ComputedRef<boolean>，1500ms 后自动复位
-// isSupported: ComputedRef<boolean>
-```
+`stringify / parse` + `StringifyOptions / ParseOptions`。
 
-### file — 文件下载 / Blob / 文件大小
+### file — 文件下载
 
-```ts
-import { downloadFile, saveBlob, formatFileSize } from '@dwydev/ekit'
-import type { DownloadOptions, FileRequester } from '@dwydev/ekit'
-```
-
-```ts
-await downloadFile('/api/export.xlsx')                      // GET，自动解析文件名
-await downloadFile('/api/export', {
-  filename: '报表.xlsx', method: 'POST', data: { dateRange },
-})
-
-// 自定义 requester（axios 实例天然满足 FileRequester）
-await downloadFile('/api/export', { requester: myHttpClient })
-
-saveBlob(blob, 'data.json')
-formatFileSize(1234567)        // '1.18 MB'
-formatFileSize(1234567, 0)     // '1 MB'
-```
+`downloadFile / saveBlob / formatFileSize` + `DownloadOptions / FileRequester`。
 
 ### hooks — Vue Composables
 
-```ts
-import {
-  useDebounce, useClickOutside, useEventListener, useThrottle,
-  useWindowSize, useMediaQuery, useIntersectionObserver, useResizeObserver,
-  useFormPersist, DEFAULT_SENSITIVE_FIELDS,
-} from '@dwydev/ekit'
-```
+- ekit 自有：`useFormPersist / DEFAULT_SENSITIVE_FIELDS / UseFormPersistOptions / UseFormPersistReturn / useDebounce / useClickOutside / useEventListener`
+- VueUse 再导出：`useThrottle / useWindowSize / useMediaQuery / useIntersectionObserver / useResizeObserver`
 
-| Composable | 说明 |
-|-----------|------|
-| `useDebounce(value, delay=300)` | 防抖 ref；返回 `Readonly<Ref<T>>` |
-| `useClickOutside(target, handler)` | 点击元素外部触发 |
-| `useEventListener(target, event, handler, options?)` | 自动绑/解绑 |
-| `useThrottle(fn, ms)` | 节流函数 |
-| `useWindowSize()` | `{ width, height }` |
-| `useMediaQuery(query)` | `useMediaQuery('(max-width: 768px)')` |
-| `useIntersectionObserver(target, cb)` | 监听元素出现/消失 |
-| `useResizeObserver(target, cb)` | 监听元素尺寸变化 |
-| `useFormPersist(key, initialValue, options?)` | 表单刷新自动回填；默认排除敏感字段 |
+### masking — PII 脱敏
 
-**useFormPersist**
+`maskPhone / maskEmail / maskIdCard / maskBankCard / maskName / maskAddress / maskIp / maskLicensePlate / maskText`。
 
-```ts
-const { form, reset, clear } = useFormPersist('register-form', {
-  email: '', code: '', remark: '',
-})
-
-// 选项
-interface UseFormPersistOptions<T> {
-  exclude?: (keyof T)[]           // 追加敏感字段
-  storage?: 'session' | 'local'   // 默认 'session'
-  disableDefaultExclude?: boolean // 默认 false（开启内置排除）
-}
-
-// 提交成功后清空残留
-await api.register(form.value)
-reset()
-```
-
-内置 `DEFAULT_SENSITIVE_FIELDS` 包含 password / confirmPassword / oldPassword / newPassword / pwd / code / captcha / verifyCode / verificationCode / smsCode / emailCode / phoneCode / otp / token / accessToken / refreshToken / signSecret / secret / apiKey 共 19 项，不区分大小写。
-
-## 何时读取 references
-
-本 SKILL.md 正文已包含 10 个模块的核心 API、签名和典型用法，满足 90% 编码场景。`references/` 目录保存边缘细节，仅在需要时读取：
-
-| 文件 | 内容 |
-|------|------|
-| `references/request.md` | `HttpPlugin` 完整接口、`HttpError` 字段详情、refreshTokenPlugin 完整参数、`CommonBusinessCode` 枚举、非标准响应兜底行为 |
-| `references/data.md` | `StringifyOptions` / `ParseOptions` 完整字段、`CookieOptions` 完整字段、useStorage 全部选项 |
-| `references/form.md` | validators 底层正则规则、masking 边界处理说明 |
-| `references/ui.md` | `FileRequester` 完整契约、`DownloadOptions` 全部字段、旧版迁移陷阱 |
-
-## v0.6.0 迁移要点
-
-| 旧 | 新 |
-|----|----|
-| `createRequest(): AxiosInstance` | `createRequest(): HttpClient` |
-| `RequestPlugin` | `HttpPlugin` |
-| `import { dayjs } from '@dwydev/ekit'` | 用 `now / formatTimestamp / formatInTimezone / formatDateTime` 等函数 |
-| `CookieAttributes` | `CookieOptions` |
-| `IStringifyOptions / IParseOptions` | `StringifyOptions / ParseOptions` |
-| `DownloadOptions.requestInstance: AxiosInstance` | `DownloadOptions.requester: FileRequester` |
-| 自写 `useDebounce` 返回可写 `Ref` | VueUse `refDebounced` 返回 `Readonly<Ref>` |
-| 自写 `useClipboard` 返回 `{ text, copy, copied, isSupported }`（isSupported 是 boolean） | VueUse 版（isSupported 是 `ComputedRef<boolean>`） |
-| `refreshTokenPlugin` 自动重放 | 必须传 `retry: (cfg) => client.request(cfg)` |
+每个函数的脱敏规则 + `@example` 已写进 `masking/index.d.ts` 的 JSDoc（如 `maskPhone('13812345678') → '138****5678'`），需要时读 .d.ts。
