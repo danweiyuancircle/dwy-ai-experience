@@ -8,11 +8,15 @@ Monorepo 全栈骨架：
 
 ```
 {{projectName}}/
-├── backend/                # FastAPI 后端（uv workspace + 域分包）
-├── frontend/               # Vue 3 前端（pnpm workspace + catalog）
-├── docker-compose.dev.yml  # PostgreSQL + Redis 基础设施
-├── dev.sh                  # 一键启动脚本
-└── .env.example
+├── backend/                  # FastAPI 后端（uv workspace + 域分包）
+│   └── .env.example          # backend 自己的环境变量样例
+├── frontend/                 # Vue 3 前端（pnpm workspace + catalog）
+│   └── .env.example          # Vite VITE_* 变量样例
+├── scripts/                  # 项目脚本
+│   └── dev.sh                # 一键启动 (Docker + backend + frontend)
+├── docs/                     # 设计文档占位
+├── docker-compose.dev.yml    # dev: PostgreSQL + Redis（端口前缀 {{portPrefix}}xxxx）
+└── docker-compose.prod.yml   # prod: backend + db + redis（含资源限制 + 日志轮转）
 ```
 
 详细约束见各子目录的 `CLAUDE.md`。
@@ -31,16 +35,24 @@ Monorepo 全栈骨架：
 ## 启动
 
 ```bash
-# 1. 复制环境变量
-cp .env.example .env
+# 1. 复制环境变量（dev 环境通常不需要改默认值）
+cp backend/.env.example backend/.env
+cp frontend/.env.example frontend/.env
 
 # 2. 安装依赖
 cd backend && uv sync --dev && cd ..
 cd frontend && pnpm install && cd ..
 
 # 3. 一键启动（Docker + backend + frontend）
-./dev.sh
+./scripts/dev.sh
 ```
+
+dev 数据库默认 `postgres / postgres` 密码,docker-compose.dev.yml 内硬编码,
+backend 通过 `DATABASE_URL` 连入(见 `backend/.env.example`)。
+
+生产部署:`docker compose -f docker-compose.prod.yml up -d --build`,
+凭据从 `backend/.env`(env_file)+ 根级 `POSTGRES_PASSWORD` / `REDIS_PASSWORD`
+环境变量传入。
 
 ## 常用命令
 
@@ -55,7 +67,7 @@ uv run ruff check src/ && uv run ruff format src/
 # Frontend
 cd frontend
 pnpm install
-pnpm dev                                    # 单独启 frontend
+pnpm dev                                    # 单独启 frontend (端口 {{portPrefix}}5173)
 pnpm build
 pnpm typecheck
 

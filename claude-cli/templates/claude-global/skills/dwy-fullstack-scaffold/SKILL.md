@@ -37,7 +37,8 @@ description: "调用 dwy create CLI 生成全栈 Vue 3 + FastAPI monorepo 骨架
    **推荐做法**：让用户在终端跑 `dwy create <project_name>` 自己回答交互（每次脚手架问题需要人 review），然后 skill 介入做 post-action。
     ↓
 4. 安装依赖（在 <target_parent_dir>/<project_name> 下）:
-   - cp .env.example .env (如未存在)
+   - cp backend/.env.example backend/.env (如未存在)
+   - cp frontend/.env.example frontend/.env (仅当 include_frontend=true 且未存在)
    - cd backend && uv sync --dev
    - cd frontend && pnpm install (仅当 include_frontend=true)
     ↓
@@ -62,14 +63,17 @@ description: "调用 dwy create CLI 生成全栈 Vue 3 + FastAPI monorepo 骨架
 ```
 <project_name>/
 ├── CLAUDE.md                            # 项目级总入口
-├── dev.sh                               # 一键启动: 杀端口 + Docker + backend + frontend
-├── docker-compose.dev.yml               # PG + Redis（端口前缀 <port_prefix>xxxx）
-├── .env.example
+├── scripts/
+│   └── dev.sh                           # 一键启动: 杀端口 + Docker + backend + frontend
+├── docs/                                # 设计文档占位
+├── docker-compose.dev.yml               # dev: PG + Redis(端口前缀 <port_prefix>xxxx)
+├── docker-compose.prod.yml              # prod: backend + db + redis(资源限制 + 日志轮转)
 ├── .gitignore
 ├── backend/
 │   ├── CLAUDE.md                        # 后端约束（域分包 / Provider / dwyeapi 优先）
+│   ├── .env.example                     # backend 环境变量样例
 │   ├── pyproject.toml                   # uv workspace + 双 index + 版本中心
-│   ├── Dockerfile.dev
+│   ├── Dockerfile.dev / Dockerfile.prod
 │   ├── alembic.ini + alembic/env.py
 │   ├── src/app/                         # 装配层
 │   │   ├── main.py                      # FastAPI lifespan + register 业务包
@@ -91,6 +95,7 @@ description: "调用 dwy create CLI 生成全栈 Vue 3 + FastAPI monorepo 骨架
 │   └── tests/conftest.py
 └── frontend/                            # 仅当 include_frontend=true
     ├── CLAUDE.md                        # 前端约束（eui 优先 / catalog / features 域分包）
+    ├── .env.example                     # Vite VITE_* 变量样例
     ├── package.json
     ├── pnpm-workspace.yaml              # catalog 统一版本
     ├── tsconfig.base.json
@@ -157,8 +162,9 @@ description: "调用 dwy create CLI 生成全栈 Vue 3 + FastAPI monorepo 骨架
 
 🚀 下一步:
   cd /Users/chances/WebstormProjects/<project_name>
-  cp .env.example .env  # 修改 DATABASE_URL / SECRET_KEY 等
-  ./dev.sh
+  cp backend/.env.example backend/.env       # dev 默认值可直接用,prod 改 DATABASE_URL/SECRET_KEY
+  cp frontend/.env.example frontend/.env     # Vite 变量(仅 include_frontend=true 时)
+  ./scripts/dev.sh
 
 🛠 业务开发起点:
   - backend: backend/src/app/main.py 装载 packages/<scope>-<domain>/
