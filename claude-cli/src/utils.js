@@ -34,6 +34,10 @@ export async function renderTemplate(templateDir, destDir, context) {
     const srcPath = path.join(templateDir, entry.name)
     let destName = entry.name
 
+    if (destName.includes('{{')) {
+      destName = Handlebars.compile(destName)(context)
+    }
+
     if (entry.isDirectory()) {
       const destPath = path.join(destDir, destName)
       await fs.ensureDir(destPath)

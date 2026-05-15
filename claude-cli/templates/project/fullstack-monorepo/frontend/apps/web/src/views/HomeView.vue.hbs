@@ -1,0 +1,36 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { http } from '../api/client'
+
+const status = ref<string>('')
+const loading = ref(false)
+
+async function checkBackend() {
+  loading.value = true
+  try {
+    const res = await http.get('/health')
+    status.value = JSON.stringify(res, null, 2)
+  } catch (err) {
+    status.value = `error: ${(err as Error).message}`
+  } finally {
+    loading.value = false
+  }
+}
+</script>
+
+<template>
+  <main class="min-h-screen flex flex-col items-center justify-center gap-6 p-8">
+    <h1 class="text-3xl font-semibold">Welcome to {{projectName}}</h1>
+    <p class="text-sm text-gray-500">{{projectDescription}}</p>
+
+    <button
+      class="px-4 py-2 rounded-md bg-black text-white text-sm disabled:opacity-50"
+      :disabled="loading"
+      @click="checkBackend"
+    >
+      \{{ loading ? 'Checking...' : 'Check backend /api/health' }}
+    </button>
+
+    <pre v-if="status" class="text-xs bg-gray-100 p-3 rounded max-w-xl overflow-auto">\{{ status }}</pre>
+  </main>
+</template>

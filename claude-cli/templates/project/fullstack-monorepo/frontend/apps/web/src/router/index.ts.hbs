@@ -1,0 +1,24 @@
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router'
+import { createFeatureRoutes } from '@{{projectName}}/features-{{initialDomain}}'
+
+const routes: RouteRecordRaw[] = [
+  {
+    path: '/',
+    name: 'home',
+    component: () => import('../views/HomeView.vue'),
+    meta: { title: '{{projectName}}' },
+  },
+  ...createFeatureRoutes(),
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes,
+})
+
+router.afterEach((to) => {
+  const title = (to.meta?.title as string | undefined) || '{{projectName}}'
+  document.title = title
+})
+
+export default router

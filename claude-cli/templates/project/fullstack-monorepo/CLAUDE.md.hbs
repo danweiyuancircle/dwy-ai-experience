@@ -1,0 +1,81 @@
+# {{projectName}}
+
+{{projectDescription}}
+
+## 架构
+
+Monorepo 全栈骨架：
+
+```
+{{projectName}}/
+├── backend/                # FastAPI 后端（uv workspace + 域分包）
+├── frontend/               # Vue 3 前端（pnpm workspace + catalog）
+├── docker-compose.dev.yml  # PostgreSQL + Redis 基础设施
+├── dev.sh                  # 一键启动脚本
+└── .env.example
+```
+
+详细约束见各子目录的 `CLAUDE.md`。
+
+## 端口约定
+
+本项目用 `{{portPrefix}}xxxx` 万位前缀避免与其他项目冲突：
+
+| 服务 | 端口 |
+|------|------|
+| Backend | `127.0.0.1:{{portPrefix}}8001` |
+| Frontend | `127.0.0.1:{{portPrefix}}5173` |
+| PostgreSQL | `127.0.0.1:{{portPrefix}}5432` |
+| Redis | `127.0.0.1:{{portPrefix}}6379` |
+
+## 启动
+
+```bash
+# 1. 复制环境变量
+cp .env.example .env
+
+# 2. 安装依赖
+cd backend && uv sync --dev && cd ..
+cd frontend && pnpm install && cd ..
+
+# 3. 一键启动（Docker + backend + frontend）
+./dev.sh
+```
+
+## 常用命令
+
+```bash
+# Backend
+cd backend
+uv sync --dev                              # 安装依赖
+uv run uvicorn app.main:app --reload       # 单独启 backend
+uv run pytest tests/ -v                    # 测试
+uv run ruff check src/ && uv run ruff format src/
+
+# Frontend
+cd frontend
+pnpm install
+pnpm dev                                    # 单独启 frontend
+pnpm build
+pnpm typecheck
+
+# 数据库迁移
+cd backend
+uv run alembic revision --autogenerate -m "msg"
+uv run alembic upgrade head
+```
+
+## 核心架构模式
+
+1. **单一版本中心**：backend `pyproject.toml` 集中管理外部依赖版本；frontend `pnpm-workspace.yaml` 的 `catalog:` 集中管理 npm 依赖版本。子包只写包名不写版本。
+2. **装配层**：`backend/src/app/main.py` 只做装配，业务逻辑在 `backend/packages/{{scopePrefix}}-<domain>/` 内。
+3. **域分包**：每个业务包按域子目录，域内分 router / service / schemas / models / protocols 五件套。
+4. **Provider 模式**：外部服务（DB / Redis / SMS / OSS / 第三方 API）抽象为 Protocol，`factories.py` 按 settings 选具体实现。
+5. **dwy- vs 业务-前缀**：`packages/dwy-*` 是跨项目可复用 kernel；`packages/{{scopePrefix}}-*` 是项目业务专属。
+6. **dwyeapi 优先**：后端基础设施先用 dwyeapi（配置/异常/分页/缓存），不重复实现。
+
+## 加新业务
+
+**Backend**：复制 `backend/packages/{{scopePrefix}}-{{initialDomain}}/` 整体改名 → 改 `pyproject.toml` 的 `name` → 改 `src/<scope_domain>/__init__.py` 的 `register()` → 在 `src/app/main.py` 装载。
+
+**Frontend**：复制 `frontend/packages/features/{{initialDomain}}/` 改名 → 在 `frontend/apps/web/src/router/index.ts` 注册路由。

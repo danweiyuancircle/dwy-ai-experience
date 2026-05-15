@@ -1,0 +1,65 @@
+"""FastAPI 应用入口 -- 装配层。
+
+职责:加载配置 -> 初始化基础设施(日志/DB/Redis) -> 注册业务包路由。
+业务逻辑一律在 packages/ 下,本文件只做"装配"。
+"""
+
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+from app import __version__
+from app.config import settings
+from app.exceptions import register_exception_handlers
+from {{scopePrefix}}_{{initialDomain}} import register as register_{{initialDomain}}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    """启动时初始化日志/DB/Redis,关闭时反向释放。"""
+    # TODO: 在此初始化日志、数据库连接池、Redis 连接
+    # 示例:
+    #   from dwyeapi import logger as dwy_logger
+    #   from dwyeapi import cache as dwy_cache
+    #   dwy_logger.configure(level=settings.log_level)
+    #   await dwy_cache.configure(settings.redis_url)
+    yield
+    # TODO: 反向释放
+    #   await dwy_cache.close_redis()
+
+
+# prod 环境关闭 Swagger,避免接口结构对外暴露
+_docs_disabled = settings.environment == "prod"
+
+app = FastAPI(
+    title="{{projectName}} API",
+    version=__version__,
+    description="{{projectDescription}}",
+    lifespan=lifespan,
+    docs_url=None if _docs_disabled else "/docs",
+    redoc_url=None if _docs_disabled else "/redoc",
+    openapi_url=None if _docs_disabled else "/openapi.json",
+)
+
+# CORS -- dev 全放开,prod 通过 settings.allowed_origins 收紧
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"] if settings.environment == "dev" else settings.allowed_origins,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
+    allow_headers=["*"],
+)
+
+# 异常处理
+register_exception_handlers(app)
+
+# 业务包装配(Provider/Hook 在此注入)
+register_{{initialDomain}}(app, config=settings.{{initialDomain}})
+
+
+@app.get("/api/health")
+async def health() -> dict:
+    """健康检查 -- 只探活,不探依赖。"""
+    return {"status": "ok", "service": "{{projectName}}", "version": __version__}

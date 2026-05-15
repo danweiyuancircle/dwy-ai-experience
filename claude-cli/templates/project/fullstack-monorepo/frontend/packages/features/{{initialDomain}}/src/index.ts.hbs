@@ -1,0 +1,16 @@
+import type { RouteRecordRaw } from 'vue-router'
+
+/**
+ * 业务域 `{{initialDomain}}` 的路由工厂。
+ * 主 app 通过 `...createFeatureRoutes()` 装载本域路由。
+ */
+export function createFeatureRoutes(): RouteRecordRaw[] {
+  return [
+    {
+      path: '/{{initialDomain}}',
+      name: '{{initialDomain}}-index',
+      component: () => import('./pages/IndexPage.vue'),
+      meta: { title: '{{initialDomain}}' },
+    },
+  ]
+}

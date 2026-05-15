@@ -1,0 +1,42 @@
+"""测试通用 fixture。
+
+测试环境变量必须在 import app 之前设置,否则 Settings 实例化会失败。
+"""
+
+import os
+
+# ── 测试环境变量(必须在导入应用前设置)──
+os.environ.setdefault("ENVIRONMENT", "dev")
+os.environ.setdefault("DATABASE_URL", "sqlite+aiosqlite:///./test.db")
+os.environ.setdefault("SECRET_KEY", "test-secret-only-for-tests")
+os.environ.setdefault("REDIS_URL", "redis://localhost:{{portPrefix}}6379/0")
+
+from collections.abc import AsyncGenerator  # noqa: E402
+
+import pytest_asyncio  # noqa: E402
+from httpx import ASGITransport, AsyncClient  # noqa: E402
+
+
+@pytest_asyncio.fixture(autouse=True)
+async def setup_db() -> AsyncGenerator[None]:
+    """每个测试用例前后创建/销毁表。"""
+    from dwyeapi.database import Base
+
+    from app.main import app  # noqa: F401 -- 触发应用装配
+    from dwy_shared.database import engine  # 若 dwy-shared 没有 engine,则改 import 来源
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest_asyncio.fixture
+async def client() -> AsyncGenerator[AsyncClient]:
+    """异步 HTTP 测试客户端。"""
+    from app.main import app
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac

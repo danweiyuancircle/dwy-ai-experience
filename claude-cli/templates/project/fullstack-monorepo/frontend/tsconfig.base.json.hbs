@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "useDefineForClassFields": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["apps/web/src/*"],
+      "@{{projectName}}/core": ["packages/core/src/index.ts"],
+      "@{{projectName}}/ui": ["packages/ui/src/index.ts"],
+      "@{{projectName}}/features-{{initialDomain}}": ["packages/features/{{initialDomain}}/src/index.ts"]
+    }
+  }
+}

@@ -1,0 +1,27 @@
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import tailwindcss from '@tailwindcss/vite'
+import { fileURLToPath, URL } from 'node:url'
+
+export default defineConfig({
+  plugins: [vue(), tailwindcss()],
+  resolve: {
+    alias: {
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@{{projectName}}/core': fileURLToPath(new URL('../../packages/core/src/index.ts', import.meta.url)),
+      '@{{projectName}}/ui': fileURLToPath(new URL('../../packages/ui/src/index.ts', import.meta.url)),
+      '@{{projectName}}/features-{{initialDomain}}': fileURLToPath(
+        new URL('../../packages/features/{{initialDomain}}/src/index.ts', import.meta.url),
+      ),
+    },
+  },
+  server: {
+    port: {{portPrefix}}5173,
+    proxy: {
+      '/api': {
+        target: '{{apiProxy}}',
+        changeOrigin: true,
+      },
+    },
+  },
+})

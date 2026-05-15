@@ -1,0 +1,35 @@
+# Frontend 架构约束
+
+## 技术栈
+
+- Vue 3 + TypeScript + Vite + Pinia + Vue Router
+- 组件库：`@dwydev/eui`（**禁止**引入 Element Plus、Ant Design Vue、Naive UI 等其他组件库）
+- 工具库：`@dwydev/ekit`（HTTP、storage、cookie、date、validators、copy、qs、file、hooks、masking）
+
+## 仓库布局
+
+pnpm workspace monorepo：
+
+- `apps/web/` — 主 SPA 应用，唯一入口
+- `packages/core/` — 横切核心（HTTP / config / format / 加密等通用工具）
+- `packages/ui/` — 项目级共享 UI 组件（基于 `@dwydev/eui` 二次封装）
+- `packages/features/<domain>/` — 业务域分包，每个 feature 自管路由 + 页面
+
+## 依赖管理
+
+所有第三方包版本统一在 `pnpm-workspace.yaml` 的 `catalog:` 字段管理，子包用 `catalog:` 引用。
+
+## 加新业务域 feature
+
+复制 `packages/features/{{initialDomain}}/` 改名 → 在 `apps/web/src/router/index.ts` 用 `createFeatureRoutes()` 注册。
+
+## 禁止事项
+
+- 禁止重复造轮子：HTTP 用 `@dwydev/ekit` 的 `createRequest`，日期用其 date 模块，剪贴板/防抖等用其 hooks
+- 禁止在 `apps/web/` 中堆积业务页面，新业务必须放到 `packages/features/<domain>/`
+- 禁止跨 feature 直接 import 对方内部模块，必须经由 `packages/core` 或事件总线
+
+## 测试
+
+- 类型检查：`pnpm typecheck`
+- 构建：`pnpm build`

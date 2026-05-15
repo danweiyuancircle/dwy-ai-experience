@@ -1,0 +1,22 @@
+"""{{initialDomain}} 路由 -- 只做参数校验 + service 调用,业务逻辑放 service.py。"""
+
+from fastapi import APIRouter
+
+from .schemas import HealthResponse
+
+router = APIRouter(prefix="/api/{{initialDomain}}", tags=["{{initialDomain}}"])
+
+
+@router.get("/health", response_model=HealthResponse)
+async def health() -> HealthResponse:
+    """业务包健康检查。"""
+    return HealthResponse(status="ok", domain="{{initialDomain}}")
+
+
+# 在此扩展业务 endpoint,调用 service 层完成实际逻辑:
+#
+# from .service import DomainService
+#
+# @router.post("/items")
+# async def create_item(payload: CreateItemRequest) -> ItemResponse:
+#     return await DomainService().create_item(payload)
