@@ -18,7 +18,10 @@ paths:
 ### 环境变量
 
 - **禁止**在 shell 前台 `export FOO=...` 注入环境变量
-- **禁止**在代码中硬编码配置值（数据库地址、密钥、端口等）
+- **禁止**在代码中硬编码以下配置值：
+  - **基础设施**：数据库地址、Redis / MQ 地址、密钥、端口、外部 API 地址
+  - **业务参数**：缓存 TTL、HTTP 超时、重试次数 / 间隔、批处理大小、限流阈值（rate / burst）、分页默认值与上限、文件大小上限、Token 有效期、定时任务周期
+- 判定标准：**任何"运维 / 业务可能想调整、且不希望发版"的值，都必须走配置**。代码中只允许出现：算法常量（PI、HTTP 状态码）、协议规定的固定值、纯类型枚举（如 `Status.ACTIVE = 1`）
 - 环境变量统一通过 `.env` 文件加载，由 Pydantic Settings 读取（见「配置管理」节）
 - `.env` 必须列入 `.gitignore`，提交 `.env.example` 作为模板
 
@@ -148,6 +151,36 @@ class Settings(BaseSettings):
 | 同一服务/SDK 的多个配置 | 拆成独立 `BaseModel` 嵌套 |
 | 只有 1 个字段 | 保持顶层，不必嵌套 |
 | 3 个以上同前缀字段 | 必须嵌套 |
+
+### 什么必须走配置（判定表）
+
+写代码时遇到字面量数字 / 字符串，先对照此表判断是否抽到 Settings：
+
+| 类别 | 示例 | 是否走配置 |
+|------|------|-----------|
+| 基础设施地址 | `postgresql://...` / `redis://...` / `https://api.xxx.com` | ✅ 必须 |
+| 凭证 | SECRET_KEY / API_KEY / DB 密码 / OSS AK·SK | ✅ 必须（致命） |
+| 缓存 TTL | `redis.setex(key, 43200, v)` 中的 `43200` | ✅ 必须 → `settings.cache.user_token_ttl` |
+| HTTP 超时 / 重试 | `httpx.AsyncClient(timeout=30)` 中的 `30` | ✅ 必须 |
+| 限流阈值 | `@rate_limit(100, per=60)` 中的 `100` / `60` | ✅ 必须 |
+| 分页默认 / 上限 | `page_size: int = 20` / `le=100` 的 `100` | ✅ 必须 |
+| 文件大小上限 | `if size > 10 * 1024 * 1024` 的 `10MB` | ✅ 必须 |
+| Token 有效期 | JWT `exp` 的 7 天 / 30 天 | ✅ 必须 |
+| 定时任务周期 | Celery / APScheduler 的 cron / interval | ✅ 必须 |
+| 算法常量 | `PI = 3.14159` / `EARTH_RADIUS = 6371` | ❌ 不走配置 |
+| 协议规定值 | HTTP 状态码 `200` / `404` | ❌ 不走配置 |
+| 纯枚举值 | `class Status: ACTIVE = 1` | ❌ 不走配置 |
+
+```python
+# ❌ 错误：缓存 TTL 硬编码
+await redis.setex(f"user:{uid}", 43200, json.dumps(user))
+
+# ✅ 正确：走 Settings
+class CacheConfig(BaseModel):
+    user_ttl: int = 43200  # 默认 12h，可通过 CACHE__USER_TTL 覆盖
+
+await redis.setex(f"user:{uid}", settings.cache.user_ttl, json.dumps(user))
+```
 
 ## 六、函数与类设计
 
@@ -290,6 +323,6 @@ user = cache.get_user(user_id)
 | 8 | 嵌套不超过 3 层，函数体不超过 50 行 |
 | 9 | 所有模块/类/函数有 docstring（Google 风格） |
 | 10 | 外部输入用 Pydantic 校验，不手动校验 dict |
-| 11 | 配置必须 Pydantic Settings 嵌套分组，不在代码硬编码 |
+| 11 | 配置必须 Pydantic Settings 嵌套分组；缓存 TTL / 超时 / 重试 / 限流 / 分页上限 / 文件上限 / Token 有效期等业务参数禁止硬编码 |
 
 **不执行自检就提交代码 = 违规。**
