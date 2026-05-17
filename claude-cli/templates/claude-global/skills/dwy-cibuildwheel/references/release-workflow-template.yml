@@ -1,0 +1,99 @@
+# Python Cython SDK 跨平台 wheel + PyPI Trusted Publisher 发版 workflow 模板
+#
+# 已内置 dwy-cibuildwheel skill 7 个避坑修复，开箱即用。
+# 复制到项目 .github/workflows/release.yml，只改两处：
+#   1. package-dir: <PACKAGE_DIR>      —— 实际 SDK 子目录（monorepo 必填，单包仓库填 . 或省略）
+#   2. CIBW_BUILD                      —— 按需调整 Python 版本枚举
+#
+# 配套要求（缺一不可）：
+#   1. <PACKAGE_DIR>/pyproject.toml 的 [build-system].requires 含:
+#        "setuptools>=77", "packaging>=24.2", "wheel", "Cython>=3.0.10"
+#   2. PyPI Trusted Publisher 已配（owner/repo/workflow=release.yml/environment=pypi）
+#   3. GitHub Settings → Environments 存在名为 "pypi" 的 environment
+
+name: Release SDK to PyPI
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  version_check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify tag matches pyproject version
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PY_VERSION=$(grep '^version = ' <PACKAGE_DIR>/pyproject.toml | head -1 | cut -d'"' -f2)
+          if [ "$TAG_VERSION" != "$PY_VERSION" ]; then
+            echo "Tag $TAG_VERSION 不匹配 pyproject.toml $PY_VERSION"
+            exit 1
+          fi
+          echo "Version check OK: $TAG_VERSION"
+
+  build_wheels:
+    needs: version_check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-latest,    archs: x86_64 }
+          - { os: ubuntu-24.04-arm, archs: aarch64 }
+          # 坑 8: macos-13 已于 2025-12-04 退休,用 macos-15-intel(真 Intel runner)替代
+          # 如果不需要 x86_64 wheel,删掉下一行,Intel Mac 用户走 Rosetta 跑 arm64 wheel
+          - { os: macos-15-intel,   archs: x86_64 }
+          - { os: macos-14,         archs: arm64 }
+          - { os: windows-latest,   archs: AMD64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build wheels
+        # 坑 2: 不能用 @v3（major alias 不存在），用 minor 移动 tag 或精确版本
+        uses: pypa/cibuildwheel@v3.4
+        with:
+          package-dir: <PACKAGE_DIR>
+          output-dir: wheelhouse
+        env:
+          CIBW_BUILD: "cp311-* cp312-* cp313-* cp314-*"
+          CIBW_ARCHS: ${{ matrix.archs }}
+          # 坑 6: pyarrow/pandas 等只发 manylinux_2_28，不能用老 manylinux2014
+          CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
+          CIBW_MANYLINUX_AARCH64_IMAGE: manylinux_2_28
+          CIBW_MUSLLINUX_X86_64_IMAGE: musllinux_1_2
+          CIBW_MUSLLINUX_AARCH64_IMAGE: musllinux_1_2
+          CIBW_TEST_REQUIRES: pytest pytest-asyncio respx
+          # 坑 3 + 坑 7: 整行加双引号避免 YAML 冒号歧义；强制 binary 防止源码 build 链
+          CIBW_BEFORE_TEST: "pip install --only-binary=:all: pyarrow pandas"
+          # 坑 4 + 坑 5: monorepo 用 {package} 而非 {project}；外单内双跨平台兼容
+          CIBW_TEST_COMMAND: 'pytest {package}/tests -v -k "not requires_server"'
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-${{ matrix.archs }}
+          path: ./wheelhouse/*.whl
+
+  publish:
+    needs: build_wheels
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: List wheels to publish
+        run: ls -la dist/
+
+      # Trusted Publisher OIDC，无需 token
+      # 默认只发 wheel，不发 sdist（Cython 编译模块的 .py 源码不会泄漏）
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/
