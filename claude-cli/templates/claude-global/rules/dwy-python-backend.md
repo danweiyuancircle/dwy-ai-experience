@@ -200,7 +200,7 @@ class UserBase(BaseModel):
     email: EmailStr
 
 class UserCreate(UserBase):
-    password: str = Field(min_length=8, max_length=128)
+    password: str = Field(min_length=8, max_length=72)  # 72 = bcrypt 输入上限
 
 class UserUpdate(BaseModel):
     name: str | None = Field(default=None, max_length=50)
@@ -330,15 +330,55 @@ user = result.scalar_one_or_none()
 |------|------|
 | 存储算法 | **只允许 bcrypt**，必须走 dwyeapi 安全模块，**禁止**手写 bcrypt 调用或使用 MD5 / SHA / 明文 |
 | 接口返回 | **永远不返回**密码字段，Response Schema 中不包含 |
-| 密码强度 | 用户密码最少 8 位，管理员密码最少 12 位 |
+| 密码强度 | **长度 ≥ 8 字符**，且**必须**包含 **大写字母、小写字母、数字、特殊符号** 中的至少 **3 类** |
+| 密码长度上限 | Schema 必须 `max_length=72`（bcrypt 输入硬上限，超过会被静默截断），除非 dwyeapi 已做 SHA-256 预哈希 |
 | 登录错误 | 返回"用户名或密码错误"，**不区分**是用户名不存在还是密码错误 |
+| 强度校验位置 | Pydantic Schema 层用 `field_validator` 校验复杂度，**禁止**只校长度 |
+
+**密码复杂度校验示例**：
+
+```python
+import re
+from pydantic import BaseModel, Field, field_validator
+
+PASSWORD_PATTERNS = [
+    re.compile(r"[A-Z]"),       # 大写
+    re.compile(r"[a-z]"),       # 小写
+    re.compile(r"\d"),          # 数字
+    re.compile(r"[^A-Za-z0-9]"),  # 特殊符号
+]
+
+class UserCreate(BaseModel):
+    password: str = Field(min_length=8, max_length=72)
+
+    @field_validator("password")
+    @classmethod
+    def check_complexity(cls, v: str) -> str:
+        """密码必须包含大写/小写/数字/特殊符号中至少 3 类。"""
+        matched = sum(1 for p in PASSWORD_PATTERNS if p.search(v))
+        if matched < 3:
+            raise ValueError("密码必须包含大写、小写、数字、特殊符号中至少 3 类")
+        return v
+```
+
+> 该 validator 建议下沉到 dwyeapi 提供统一的 `PasswordStr` 类型，避免每个项目重复实现。
 
 ### 7.3 接口认证与授权
 
 - 所有 API **必须** JWT 认证（白名单除外：`/health` / `/auth/login` / `/auth/register`）
 - JWT 创建与解码**必须**走 dwyeapi 安全模块，**禁止**直接调用 PyJWT
 - Token 黑名单存 Redis（登出后失效，TTL = 剩余有效期）
-- Secret Key 必须从环境变量读取，最少 32 位随机字符串，**禁止**硬编码
+- Secret Key 必须从环境变量读取，**禁止**硬编码
+- Secret Key 长度与生成方式（按字节算，不按字符算）：
+
+| JWT 算法 | 最小长度 | 推荐生成命令 |
+|---------|---------|------------|
+| HS256 | **32 字节 / 256 bit** | `openssl rand -hex 32`（输出 64 个十六进制字符 = 32 字节） |
+| HS512 | **64 字节 / 512 bit** | `openssl rand -hex 64`（输出 128 个十六进制字符 = 64 字节） |
+| Python 等价 | — | `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
+
+- **禁止**使用：`uuid.uuid4().hex`（熵不足且非密码学 PRNG 推荐用途）、`random` 模块、手写字符串拼接
+- 轮换策略：每 90 天 / 安全事件后立即轮换；新旧 Key 共存 1 个 Access Token 有效期窗口，避免在线用户被强制登出
 
 | Token 类型 | 有效期 |
 |------------|--------|
