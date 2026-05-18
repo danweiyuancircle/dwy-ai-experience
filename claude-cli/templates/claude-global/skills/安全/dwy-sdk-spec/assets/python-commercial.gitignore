@@ -1,0 +1,62 @@
+# Python 商业版 SDK .gitignore 模板
+# 用法: cp 到项目根，按需追加项目自有忽略项
+
+# 源码编译产物
+*.so
+*.so.c
+*.c
+*.dylib
+*.dll
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Cython 中间文件
+*.pyx.c
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# 类型检查 / lint / 测试缓存
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.tox/
+.nox/
+htmlcov/
+.coverage
+.coverage.*
+
+# 虚拟环境
+.venv/
+venv/
+env/
+ENV/
+
+# 凭证 / 配置（致命，绝不能进仓库）
+.env
+.env.*
+.pypirc
+secrets.json
+credentials.json
+*.pem
+*.key
+*.p12
+id_rsa
+id_ed25519
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

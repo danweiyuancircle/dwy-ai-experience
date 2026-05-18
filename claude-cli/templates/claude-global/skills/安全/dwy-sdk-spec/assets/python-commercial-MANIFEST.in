@@ -1,0 +1,37 @@
+# Python 商业版 SDK MANIFEST.in 模板
+# 作用：控制 sdist / wheel 内含什么文件
+# 用法：cp 到项目根，按需调整 graft 路径
+
+# 收录 src/ 下整棵树
+graft src
+
+# 包含许可证 + README + 类型存根 + py.typed 标记
+include LICENSE LICENCE LICENSE.* README README.* py.typed
+include src/*/py.typed
+include src/*/*.pyi
+include src/*/**/*.pyi
+
+# 业务必要资源（按需取消注释）
+# include src/*/templates/*.html
+# include src/*/data/*.json
+
+# === 关键：全局排除源码与中间产物 ===
+# 排除以 _ 开头的内部 .py（已编译为 .so，不发源码）
+global-exclude _*.py
+
+# 排除 Cython / C 中间文件
+global-exclude *.pyx *.pxd *.c
+
+# 排除字节码与缓存
+global-exclude *.pyc *.pyo __pycache__
+global-exclude .mypy_cache .pytest_cache .ruff_cache .tox
+
+# 排除版本控制 / 系统 / 编辑器文件
+global-exclude .git .gitignore .gitattributes
+global-exclude .DS_Store Thumbs.db
+global-exclude *.swp *.swo *~
+
+# 排除凭证（致命，再保险一道）
+global-exclude .env .env.*
+global-exclude .pypirc secrets.json credentials.json
+global-exclude *.pem *.key *.p12
