@@ -49,11 +49,27 @@ target-version = "py311"
 line-length = 120
 
 [tool.ruff.lint]
-select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "RUF"]
+select = ["E", "W", "F", "I", "N", "UP", "B", "SIM", "RUF", "D"]
+ignore = [
+    "D100",  # 模块顶层 docstring：脚本/迁移不强制
+    "D104",  # __init__.py 不强制 docstring
+    "D107",  # __init__ 方法 docstring 写在类 docstring 里
+    "D203",  # 与 D211 冲突（Google 风格选 D211）
+    "D213",  # 与 D212 冲突（Google 风格选 D212）
+    "D401",  # 中文 docstring 不要求祈使句开头
+    "D415",  # 中文 docstring 不要求英文句号结尾
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "src/dwyeapi/tasks/router.py" = ["B008"]
 "src/dwyeapi/tasks/worker.py" = ["RUF012"]
+# 邮件模板含大段内联 CSS 的 HTML 字面量,行宽无意义,豁免 E501
+"src/dwyeapi/providers/email/base.py" = ["E501"]
+"tests/**/*.py" = ["D100", "D101", "D102", "D103", "D104"]
+"**/test_*.py" = ["D100", "D101", "D102", "D103", "D104"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["dwyeapi"]
