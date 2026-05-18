@@ -1,5 +1,6 @@
 ---
 description: PostgreSQL 安全与配置规范（参数化查询、应用用户最小权限、连接池上限、SSL、敏感字段加密）
+category: 数据库
 ---
 
 # PostgreSQL 安全与配置规范

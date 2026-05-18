@@ -1,5 +1,6 @@
 ---
 description: Alembic 数据库迁移规范
+category: 数据库
 paths:
   - "**/alembic/**"
   - "**/alembic.ini"

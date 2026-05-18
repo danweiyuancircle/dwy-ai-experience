@@ -1,5 +1,6 @@
 ---
 description: Flutter GoRouter 路由规范
+category: Flutter
 paths:
   - "**/app.dart"
   - "**/router/**/*.dart"

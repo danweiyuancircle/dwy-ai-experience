@@ -1,6 +1,7 @@
 ---
 name: dwy-mirror-source
 description: "国内镜像源加速配置检查与修复：扫描 pip/uv/poetry/npm/pnpm/yarn/Docker/Go/Cargo/Maven/Gradle/Homebrew/Flutter 等 13 类工具的用户级和项目级配置，识别使用境外默认源或缺失配置的项，提供阿里云/清华/中科大镜像源切换。触发条件：用户说'检查镜像源'、'配置加速'、'换镜像源'、'mirror 检查'、'安装慢'、'下载慢' 时。"
+category: 运维发布
 ---
 
 # 镜像源加速配置（mirror-source）

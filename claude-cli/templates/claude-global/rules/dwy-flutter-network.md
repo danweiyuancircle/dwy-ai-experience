@@ -1,5 +1,6 @@
 ---
 description: Flutter Dio 网络层 + 拦截器 + 错误处理
+category: Flutter
 paths:
   - "**/core/network/**/*.dart"
   - "**/dio_client.dart"

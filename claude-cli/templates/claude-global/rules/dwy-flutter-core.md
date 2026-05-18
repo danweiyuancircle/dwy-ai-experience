@@ -1,5 +1,6 @@
 ---
 description: Flutter + Dart 基础风格(结构/Riverpod/命名/模型/Dart 语言/Lint)
+category: Flutter
 paths:
   - "**/*.dart"
   - "**/pubspec.yaml"

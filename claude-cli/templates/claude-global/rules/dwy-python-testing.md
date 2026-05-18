@@ -1,5 +1,6 @@
 ---
 description: Python pytest 测试规范（目录组织、fixture、异步、AAA 结构）
+category: Python
 paths:
   - "**/tests/**/*.py"
   - "**/test_*.py"

@@ -1,5 +1,6 @@
 ---
 description: Android (Java + Kotlin + XML) 代码注释与基础风格规范
+category: Android
 paths:
   - "**/*.java"
   - "**/*.kt"

@@ -1,5 +1,6 @@
 ---
 description: Vue 3 + TS + Vite + Tailwind 应用层规范（强制使用 eui/ekit、业务聚合结构、组件 / TS / 路由 / API / 模板 / 样式 / 错误处理 / 注释）
+category: Vue
 paths:
   - "**/*.vue"
   - "**/*.ts"

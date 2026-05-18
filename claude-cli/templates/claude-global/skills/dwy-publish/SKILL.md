@@ -1,6 +1,7 @@
 ---
 name: dwy-publish
 description: "发布版本：测试 → bump → changelog → build → publish → tag。触发条件：用户说'发版'、'发布'、'release'、'bump version' 时。"
+category: 运维发布
 ---
 
 # 发布版本流程

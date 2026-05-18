@@ -1,5 +1,6 @@
 ---
 description: Vue Vitest 测试规范（目录组织、技术栈、AAA 结构、打包隔离）
+category: Vue
 paths:
   - "**/*.test.ts"
   - "**/*.spec.ts"

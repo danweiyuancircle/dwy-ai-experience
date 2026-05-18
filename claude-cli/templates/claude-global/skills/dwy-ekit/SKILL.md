@@ -1,6 +1,7 @@
 ---
 name: dwy-ekit
 description: "@dwydev/ekit 工具库使用指南。涉及以下任何主题，**必须**使用此 skill（即使用户没有说 'ekit'）：HTTP 请求 / axios 封装 / token 刷新 / dwyeapi 响应契约对接 / localStorage / Cookie / useStorage / useCookie / 日期格式化 / 时区处理 / dayjs / 表单校验 / zod schema / vee-validate / PII 脱敏 / 剪贴板 / useClipboard / 文件下载 / Blob / 查询字符串 / qs / Vue composables（debounce / throttle / click-outside / event-listener / window-size / media-query / intersection-observer / resize-observer / useFormPersist）。本 skill 是 @dwydev/ekit 的唯一权威导航来源，禁止绕过 ekit 直接手写底层 API。"
+category: 基础库
 ekit_baseline_version: "0.8.0"
 ---
 
