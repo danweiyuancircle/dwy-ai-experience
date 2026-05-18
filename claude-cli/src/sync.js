@@ -109,17 +109,22 @@ async function scanHooks(sourceDir) {
   const hooksDir = path.join(sourceDir, 'hooks')
   if (!await fs.pathExists(hooksDir)) return []
 
-  const entries = await fs.readdir(hooksDir, { withFileTypes: true })
-  return entries
-    .filter(e => e.name !== '.gitkeep')
-    .map(e => ({
-      name: e.name,
-      description: e.isDirectory() ? '钩子目录' : '钩子脚本',
-      category: '其他',
-      sourcePath: path.join(hooksDir, e.name),
-      type: 'hook',
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name))
+  const hooks = []
+  for (const cat of await fs.readdir(hooksDir, { withFileTypes: true })) {
+    if (!cat.isDirectory()) continue
+    const catDir = path.join(hooksDir, cat.name)
+    for (const entry of await fs.readdir(catDir, { withFileTypes: true })) {
+      if (entry.name === '.gitkeep') continue
+      hooks.push({
+        name: entry.name,
+        description: entry.isDirectory() ? '钩子目录' : '钩子脚本',
+        category: cat.name,
+        sourcePath: path.join(catDir, entry.name),
+        type: 'hook',
+      })
+    }
+  }
+  return hooks.sort((a, b) => a.name.localeCompare(b.name))
 }
 
 async function scanExisting(projectTargetDir, typePlural) {
