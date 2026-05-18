@@ -9,7 +9,7 @@
     "test:eapi": "cd backend && pytest tests/ -v",
     "publish:eui": "pnpm -F @dwydev/eui publish --access public --no-git-checks",
     "publish:ekit": "pnpm -F @dwydev/ekit publish --access public --no-git-checks",
-    "publish:cli": "cd claude-cli && npm publish --access public",
+    "publish:cli": "pnpm -F create-dwy publish --access public --no-git-checks",
     "publish:eapi": "cd backend && uv build && uv publish",
     "changelog": "changelogen"
   },
