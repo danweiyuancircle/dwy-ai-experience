@@ -12,21 +12,16 @@ const CATEGORIES = [
   { key: 'hooks', label: 'Hooks' },
 ]
 
-function extractFrontmatter(content) {
+function extractDescription(content) {
   const match = content.match(/^---\s*\n([\s\S]*?)\n---/)
-  if (!match) return { description: '', category: '其他' }
+  if (!match) return ''
   const lines = match[1].split('\n')
-  const result = { description: '', category: '其他' }
   let i = 0
   while (i < lines.length) {
     const kv = lines[i].match(/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/)
     if (!kv) { i++; continue }
-    const [, key, value] = kv
-    if (key === 'category') {
-      result.category = value.trim().replace(/^["']|["']$/g, '') || '其他'
-      i++
-    } else if (key === 'description') {
-      const trimmed = value.trim()
+    if (kv[1] === 'description') {
+      const trimmed = kv[2].trim()
       if (trimmed === '>' || trimmed === '|') {
         i++
         const parts = []
@@ -34,38 +29,37 @@ function extractFrontmatter(content) {
           parts.push(lines[i].trim())
           i++
         }
-        result.description = parts.filter(Boolean).join(' ')
-      } else {
-        result.description = trimmed.replace(/^["']|["']$/g, '')
-        i++
+        return parts.filter(Boolean).join(' ')
       }
-    } else {
-      i++
+      return trimmed.replace(/^["']|["']$/g, '')
     }
+    i++
   }
-  return result
+  return ''
 }
 
 async function scanSkills(sourceDir) {
   const skillsDir = path.join(sourceDir, 'skills')
   if (!await fs.pathExists(skillsDir)) return []
 
-  const entries = await fs.readdir(skillsDir, { withFileTypes: true })
   const skills = []
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue
-    const skillPath = path.join(skillsDir, entry.name)
-    const skillMd = path.join(skillPath, 'SKILL.md')
-    if (!await fs.pathExists(skillMd)) continue
-    const content = await fs.readFile(skillMd, 'utf-8')
-    const fm = extractFrontmatter(content)
-    skills.push({
-      name: entry.name,
-      description: fm.description || '（无描述）',
-      category: fm.category,
-      sourcePath: skillPath,
-      type: 'skill',
-    })
+  for (const cat of await fs.readdir(skillsDir, { withFileTypes: true })) {
+    if (!cat.isDirectory()) continue
+    const catDir = path.join(skillsDir, cat.name)
+    for (const entry of await fs.readdir(catDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue
+      const skillPath = path.join(catDir, entry.name)
+      const skillMd = path.join(skillPath, 'SKILL.md')
+      if (!await fs.pathExists(skillMd)) continue
+      const content = await fs.readFile(skillMd, 'utf-8')
+      skills.push({
+        name: entry.name,
+        description: extractDescription(content) || '（无描述）',
+        category: cat.name,
+        sourcePath: skillPath,
+        type: 'skill',
+      })
+    }
   }
   return skills.sort((a, b) => a.name.localeCompare(b.name))
 }
@@ -74,20 +68,22 @@ async function scanRules(sourceDir) {
   const rulesDir = path.join(sourceDir, 'rules')
   if (!await fs.pathExists(rulesDir)) return []
 
-  const entries = await fs.readdir(rulesDir, { withFileTypes: true })
   const rules = []
-  for (const entry of entries) {
-    if (!entry.isFile() || !entry.name.endsWith('.md')) continue
-    const rulePath = path.join(rulesDir, entry.name)
-    const content = await fs.readFile(rulePath, 'utf-8')
-    const fm = extractFrontmatter(content)
-    rules.push({
-      name: entry.name,
-      description: fm.description || '（无描述）',
-      category: fm.category,
-      sourcePath: rulePath,
-      type: 'rule',
-    })
+  for (const cat of await fs.readdir(rulesDir, { withFileTypes: true })) {
+    if (!cat.isDirectory()) continue
+    const catDir = path.join(rulesDir, cat.name)
+    for (const entry of await fs.readdir(catDir, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith('.md')) continue
+      const rulePath = path.join(catDir, entry.name)
+      const content = await fs.readFile(rulePath, 'utf-8')
+      rules.push({
+        name: entry.name,
+        description: extractDescription(content) || '（无描述）',
+        category: cat.name,
+        sourcePath: rulePath,
+        type: 'rule',
+      })
+    }
   }
   return rules.sort((a, b) => a.name.localeCompare(b.name))
 }
