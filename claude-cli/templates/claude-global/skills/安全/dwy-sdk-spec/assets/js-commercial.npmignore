@@ -1,0 +1,76 @@
+# JS/TS 商业版 SDK .npmignore 模板（降级方案）
+# 推荐：用 package.json 的 files 白名单（优先级更高），见 files-whitelist-snippet.json
+# 如必须用 .npmignore 走黑名单，cp 到包根
+
+# === 源码与测试 ===
+src/
+tests/
+__tests__/
+*.test.ts
+*.test.tsx
+*.test.js
+*.test.jsx
+*.spec.ts
+*.spec.tsx
+*.spec.js
+*.spec.jsx
+
+# === 编译产物泄露源码 ===
+*.map
+*.tsbuildinfo
+
+# === 配置文件（暴露技术栈） ===
+tsconfig*.json
+vite.config.*
+vitest.config.*
+tsup.config.*
+rollup.config.*
+webpack.config.*
+jest.config.*
+.eslintrc*
+eslint.config.*
+.prettierrc*
+prettier.config.*
+commitlint.config.*
+
+# === 凭证 / 环境（致命） ===
+.env
+.env.*
+.npmrc
+.yarnrc
+.pnpmrc
+secrets.json
+credentials.json
+*.pem
+*.key
+*.p12
+id_rsa
+id_ed25519
+
+# === 版本控制 / CI / Git hook ===
+.git/
+.gitignore
+.gitattributes
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+.husky/
+
+# === 锁文件（npm 默认忽略 package-lock，但其他可能漏） ===
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# === IDE / 系统 ===
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# === 构建临时 ===
+coverage/
+.nyc_output/
+node_modules/
