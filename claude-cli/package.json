@@ -1,6 +1,6 @@
 {
   "name": "create-dwy",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "项目脚手架与 Claude Code 配置同步工具",
   "type": "module",
   "bin": {
