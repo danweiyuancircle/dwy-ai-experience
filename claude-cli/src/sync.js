@@ -234,10 +234,12 @@ async function copyHooks(items, targetDir, dryRun) {
   return items.length
 }
 
-async function removeUnselected(typePlural, existingNames, selectedNames, targetDir, dryRun) {
+async function removeUnselected(typePlural, existingNames, selectedNames, templateNames, targetDir, dryRun) {
   let count = 0
   for (const name of existingNames) {
     if (selectedNames.has(name)) continue
+    // 项目独有(模板未提供过)的条目永不删除,保留用户自定义
+    if (!templateNames.has(name)) continue
     const target = path.join(targetDir, typePlural, name)
     if (!dryRun) await fs.remove(target)
     logAction(dryRun, `${typePlural}/${name}`, 'red', '×')
@@ -425,12 +427,17 @@ export async function syncClaude({ target, reselect = false, dryRun = false } = 
   syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, dryRun)
   syncedCount += await copyHooks(selected.hooks, projectTargetDir, dryRun)
 
-  // 删除已存在但本次未勾选的（仅 reselect 模式：缓存模式默认 selected ⊇ existing 不会触发）
+  // 删除已存在但本次未勾选的(仅 reselect 模式:缓存模式默认 selected ⊇ existing 不会触发)
+  // 删除范围限定在模板提供过的条目内,项目自定义条目(scans 里没有的)始终保留
   if (reselect) {
-    removedCount += await removeUnselected('skills', existing.skills, new Set(selected.skills.map(s => s.name)), projectTargetDir, dryRun)
-    removedCount += await removeUnselected('rules', existing.rules, new Set(selected.rules.map(r => r.name)), projectTargetDir, dryRun)
-    removedCount += await removeUnselected('commands', existing.commands, new Set(selected.commands.map(c => c.name)), projectTargetDir, dryRun)
-    removedCount += await removeUnselected('hooks', existing.hooks, selectedHookNames, projectTargetDir, dryRun)
+    const skillTemplateNames = new Set(scans.skills.map(s => s.name))
+    const ruleTemplateNames = new Set(scans.rules.map(r => r.name))
+    const commandTemplateNames = new Set(scans.commands.map(c => c.name))
+    const hookTemplateNames = new Set(scans.hooks.map(h => h.name))
+    removedCount += await removeUnselected('skills', existing.skills, new Set(selected.skills.map(s => s.name)), skillTemplateNames, projectTargetDir, dryRun)
+    removedCount += await removeUnselected('rules', existing.rules, new Set(selected.rules.map(r => r.name)), ruleTemplateNames, projectTargetDir, dryRun)
+    removedCount += await removeUnselected('commands', existing.commands, new Set(selected.commands.map(c => c.name)), commandTemplateNames, projectTargetDir, dryRun)
+    removedCount += await removeUnselected('hooks', existing.hooks, selectedHookNames, hookTemplateNames, projectTargetDir, dryRun)
   }
 
   console.log(chalk.blue(`\n${dryRun ? 'Dry-run complete.' : 'Done!'} ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
