@@ -40,8 +40,8 @@ PY=$(command -v python || command -v python3)
 TMPDIR=$(mktemp -d -t dwy-sdk-spec-py-XXXX)
 trap 'rm -rf "$TMPDIR"' EXIT
 
-echo "[1/3] Building wheel to $TMPDIR ..."
-(cd "$PKG_ROOT" && "$PY" -m build --outdir "$TMPDIR") >&2
+echo "[1/3] Building wheel to $TMPDIR (--wheel: skip sdist 中转,商业 Cython 项目 MANIFEST 通常排除 _*.py 源码,默认 sdist→wheel 会失败) ..."
+(cd "$PKG_ROOT" && "$PY" -m build --wheel --outdir "$TMPDIR") >&2
 
 WHEEL=$(find "$TMPDIR" -name '*.whl' -type f | head -1)
 if [[ -z "$WHEEL" ]]; then

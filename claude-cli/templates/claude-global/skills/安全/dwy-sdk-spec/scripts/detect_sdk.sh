@@ -38,8 +38,8 @@ find_python_sdks() {
            -not -path "*/build/*" \
            -not -path "*/.git/*" 2>/dev/null)
 
-  # 去重
-  printf '%s\n' "${results[@]}" | awk 'NF && !seen[$0]++'
+  # 去重(空数组下 ${arr[@]} 在 set -u 会 unbound,用 ${arr[@]+...} 安全展开)
+  printf '%s\n' "${results[@]+"${results[@]}"}" | awk 'NF && !seen[$0]++'
 }
 
 # 找 JS SDK：package.json 含 main / exports / module 字段
@@ -62,7 +62,7 @@ find_js_sdks() {
            -not -path "*/build/*" \
            -not -path "*/.git/*" 2>/dev/null)
 
-  printf '%s\n' "${results[@]}" | awk 'NF && !seen[$0]++'
+  printf '%s\n' "${results[@]+"${results[@]}"}" | awk 'NF && !seen[$0]++'
 }
 
 python_list=$(find_python_sdks | jq -R . | jq -s .)
