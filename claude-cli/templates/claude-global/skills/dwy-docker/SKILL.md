@@ -1,6 +1,7 @@
 ---
 name: dwy-docker
 description: "Docker 工程规范检查与镜像版本管理。触发场景：用户编辑/新建/粘贴 Dockerfile / docker-compose / k8s manifest / .github workflow / .gitlab-ci / .dockerignore / dev.sh 时；用户口头提到 docker / 容器 / compose / 镜像版本 / k8s 镜像时；用户说'扫描 latest' / '检查 docker' / '固定镜像版本' / 'docker 规范'。运作方式：问题驱动 — AI 检查合规性，合规则静默放行，违规才用 AskUserQuestion 让用户决策修复，禁止 AI 自行拍板修改。覆盖镜像版本（禁 latest / 浮动 tag、N-1 minor）、Dockerfile 工程（多阶段、non-root、.dockerignore）、compose 工程（dev/prod 分离、healthcheck、restart 策略）、一键启动 dev.sh。"
+category: 运维发布
 ---
 
 # Docker 工程规范

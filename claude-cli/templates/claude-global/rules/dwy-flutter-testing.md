@@ -1,5 +1,6 @@
 ---
 description: Flutter / Dart 测试规范(mocktail + ProviderContainer + Widget 测试)
+category: Flutter
 paths:
   - "**/test/**/*.dart"
   - "**/*_test.dart"

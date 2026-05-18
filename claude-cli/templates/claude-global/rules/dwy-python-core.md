@@ -1,5 +1,6 @@
 ---
 description: Python 通用代码规范
+category: Python
 paths:
   - "**/*.py"
   - "**/pyproject.toml"

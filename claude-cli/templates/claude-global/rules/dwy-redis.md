@@ -1,5 +1,6 @@
 ---
 description: Redis 安全与使用规范（必须用 dwyeapi 客户端、密码、绑定、危险命令禁用、key TTL 与前缀、敏感数据禁存）
+category: 数据库
 ---
 
 # Redis 安全与使用规范

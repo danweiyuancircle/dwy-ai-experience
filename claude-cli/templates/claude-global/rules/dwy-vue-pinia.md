@@ -1,5 +1,6 @@
 ---
 description: Pinia Setup Store 状态管理规范（强制 Setup Store、storeToRefs、按业务聚合）
+category: Vue
 paths:
   - "**/store.ts"
   - "**/stores/**/*.ts"

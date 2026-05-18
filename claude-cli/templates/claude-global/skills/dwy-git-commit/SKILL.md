@@ -1,6 +1,7 @@
 ---
 name: dwy-git-commit
 description: "Git commit 强制规范（敏感数据扫描 + message 格式 + 禁 AI 署名）。触发场景：用户说'提交' / 'commit' / 'git commit' / 'git add'；AI 准备执行 `git add` / `git commit` 之前；用户让你帮忙写 commit message；review 已有 commit message。强制：先扫描暂存物是否含 .env / 密钥 / API Key / 连接串等敏感数据；再检查 CLAUDE.md 的 Git Commit Scope 段；subject 用中文动宾短语 ≤72 字符；message 任何位置禁止 Claude / GPT / Copilot / AI / LLM 字样及 Co-Authored-By trailer。"
+category: 开发流程
 ---
 
 # Git Commit 强制规范

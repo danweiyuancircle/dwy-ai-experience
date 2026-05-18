@@ -1,5 +1,6 @@
 ---
 description: Python 后端（FastAPI + SQLAlchemy）应用层开发规范 — 路由 / Schema / 依赖注入 / ORM / 安全编码 / 注入防护 / 限流 / 审计 / 违规检测清单
+category: Python
 paths:
   - "**/*.py"
 ---

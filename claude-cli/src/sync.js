@@ -3,6 +3,7 @@ import path from 'path'
 import os from 'os'
 import inquirer from 'inquirer'
 import { ensureRepoCache, chalk } from './utils.js'
+import { groupedCheckbox } from './prompts/grouped-checkbox.js'
 
 const CATEGORIES = [
   { key: 'skills', label: 'Skills' },
@@ -11,12 +12,38 @@ const CATEGORIES = [
   { key: 'hooks', label: 'Hooks' },
 ]
 
-function extractDescription(content) {
+function extractFrontmatter(content) {
   const match = content.match(/^---\s*\n([\s\S]*?)\n---/)
-  if (!match) return ''
-  const frontmatter = match[1]
-  const descMatch = frontmatter.match(/description:\s*(.+)/)
-  return descMatch ? descMatch[1].trim().replace(/^["']|["']$/g, '') : ''
+  if (!match) return { description: '', category: '其他' }
+  const lines = match[1].split('\n')
+  const result = { description: '', category: '其他' }
+  let i = 0
+  while (i < lines.length) {
+    const kv = lines[i].match(/^([A-Za-z_][A-Za-z0-9_]*)\s*:\s*(.*)$/)
+    if (!kv) { i++; continue }
+    const [, key, value] = kv
+    if (key === 'category') {
+      result.category = value.trim().replace(/^["']|["']$/g, '') || '其他'
+      i++
+    } else if (key === 'description') {
+      const trimmed = value.trim()
+      if (trimmed === '>' || trimmed === '|') {
+        i++
+        const parts = []
+        while (i < lines.length && (lines[i].startsWith('  ') || lines[i].trim() === '')) {
+          parts.push(lines[i].trim())
+          i++
+        }
+        result.description = parts.filter(Boolean).join(' ')
+      } else {
+        result.description = trimmed.replace(/^["']|["']$/g, '')
+        i++
+      }
+    } else {
+      i++
+    }
+  }
+  return result
 }
 
 async function scanSkills(sourceDir) {
@@ -31,9 +58,11 @@ async function scanSkills(sourceDir) {
     const skillMd = path.join(skillPath, 'SKILL.md')
     if (!await fs.pathExists(skillMd)) continue
     const content = await fs.readFile(skillMd, 'utf-8')
+    const fm = extractFrontmatter(content)
     skills.push({
       name: entry.name,
-      description: extractDescription(content) || '（无描述）',
+      description: fm.description || '（无描述）',
+      category: fm.category,
       sourcePath: skillPath,
       type: 'skill',
     })
@@ -51,9 +80,11 @@ async function scanRules(sourceDir) {
     if (!entry.isFile() || !entry.name.endsWith('.md')) continue
     const rulePath = path.join(rulesDir, entry.name)
     const content = await fs.readFile(rulePath, 'utf-8')
+    const fm = extractFrontmatter(content)
     rules.push({
       name: entry.name,
-      description: extractDescription(content) || '（无描述）',
+      description: fm.description || '（无描述）',
+      category: fm.category,
       sourcePath: rulePath,
       type: 'rule',
     })
@@ -71,6 +102,7 @@ async function scanCommands(sourceDir) {
     .map(e => ({
       name: e.name,
       description: e.isDirectory() ? '命令目录' : '命令文件',
+      category: '其他',
       sourcePath: path.join(commandsDir, e.name),
       type: 'command',
     }))
@@ -87,6 +119,7 @@ async function scanHooks(sourceDir) {
     .map(e => ({
       name: e.name,
       description: e.isDirectory() ? '钩子目录' : '钩子脚本',
+      category: '其他',
       sourcePath: path.join(hooksDir, e.name),
       type: 'hook',
     }))
@@ -102,19 +135,12 @@ async function scanExisting(projectTargetDir, typePlural) {
 
 async function promptSelection(items, label, defaultNames) {
   if (items.length === 0) return []
-  const { selected } = await inquirer.prompt([{
-    type: 'checkbox',
-    name: 'selected',
-    message: `选择 ${label}（空格勾选，回车确认）：`,
-    choices: items.map(item => ({
-      name: `${chalk.cyan(item.name)} ${chalk.gray('- ' + item.description.slice(0, 60))}${item.description.length > 60 ? '...' : ''}`,
-      value: item,
-      short: item.name,
-      checked: defaultNames.has(item.name),
-    })),
+  return groupedCheckbox({
+    message: `选择 ${label}`,
+    items,
+    defaultSelected: defaultNames,
     pageSize: 15,
-  }])
-  return selected
+  })
 }
 
 /**

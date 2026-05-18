@@ -1,6 +1,7 @@
 ---
 name: dwy-fullstack-scaffold
 description: "调用 dwy create CLI 生成全栈 Vue 3 + FastAPI monorepo 骨架，并完成 post-create 安装 + health check 编排。触发条件：用户说'创建新项目'、'搭骨架'、'新建全栈项目'、'fullstack monorepo'、'全栈脚手架'、'scaffold'、'开新项目'时。"
+category: 脚手架
 ---
 
 # dwy-fullstack-scaffold

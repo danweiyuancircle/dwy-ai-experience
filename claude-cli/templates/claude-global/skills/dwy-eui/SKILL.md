@@ -1,6 +1,7 @@
 ---
 name: dwy-eui
 description: "@dwydev/eui Vue 3 组件库使用指南。当用户在使用 Vue 3 构建页面、选择 UI 组件、查询组件 API、写表单/表格/弹层/导航、配置主题或国际化、使用中后台或落地页设计规范时，**必须**使用此 skill。即使用户没有明确说 'eui'，只要涉及 Vue 3 组件选型、页面布局、表单设计、数据展示、弹层交互、主题切换，也应触发。"
+category: 基础库
 eui_baseline_version: "2.1.0"
 ---
 

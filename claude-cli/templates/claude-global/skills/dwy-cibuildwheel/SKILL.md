@@ -1,6 +1,7 @@
 ---
 name: dwy-cibuildwheel
 description: "Python Cython SDK 用 GitHub Actions + cibuildwheel 跨平台 build wheel 并通过 PyPI Trusted Publisher (OIDC) 发布到 PyPI 的避坑指南。涵盖 PEP 639 license / cibuildwheel 版本 tag / YAML 冒号转义 / {package} 占位符 / 跨平台 shell 引号 / manylinux 镜像 / 测试阶段 binary 强制 / GitHub runner image 退役（macos-13 已死）等 8 类高频坑。触发条件：编辑或新建 .github/workflows/*.yml 含 cibuildwheel、pyproject.toml 含 Cython、用户说'发 PyPI'/'build wheel'/'cibuildwheel'/'跨平台打包'/'wheel build 失败'/'macos runner 一直 queued'/'发版到 PyPI' 时。"
+category: 运维发布
 ---
 
 # dwy-cibuildwheel — Python Cython SDK 跨平台 PyPI 发布避坑

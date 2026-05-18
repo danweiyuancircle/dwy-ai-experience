@@ -1,6 +1,7 @@
 ---
 name: dwy-eapi
 description: "dwyeapi FastAPI 后端基础设施使用指南。涉及以下任何主题，**必须**使用此 skill（即使用户没有明确说 'dwyeapi' / 'eapi'）：FastAPI 项目搭建 / Pydantic Settings 配置 / 异步 SQLAlchemy / Redis 缓存 / JWT 认证 / bcrypt 密码哈希 / 异常体系（AppError / NotFoundError / BusinessError）/ 统一响应信封（ApiResponse / PageData）/ 分页 / 日志（loguru）/ 健康检查 / PII 脱敏 / 时区敏感的时间处理 / 异步任务（ARQ）/ 邮件验证码发送。本 skill 是 @dwydev/eapi 的唯一权威导航来源。"
+category: 基础库
 eapi_baseline_version: "0.9.0"
 ---
 
