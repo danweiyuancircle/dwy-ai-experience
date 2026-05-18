@@ -64,8 +64,40 @@ select = [
     "B",    # flake8-bugbear
     "SIM",  # flake8-simplify
     "RUF",  # ruff-specific
+    "D",    # pydocstyle (docstring 规范，强制 Google 风格)
 ]
+ignore = [
+    "D100",  # 模块顶层 docstring：脚本/迁移等不强制（按需在文件头补）
+    "D104",  # __init__.py 不强制 docstring
+    "D107",  # __init__ 方法 docstring 写在类 docstring 里（与本规范一致）
+    "D203",  # 与 D211 冲突，二选一（Google 风格选 D211：类 docstring 前不加空行）
+    "D213",  # 与 D212 冲突，二选一（Google 风格选 D212：多行 docstring 首行紧跟 """）
+    "D401",  # 中文 docstring 不要求祈使句开头
+    "D415",  # 中文 docstring 不要求以 . ! ? 结尾（用中文句号 。）
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# 测试文件不强制 docstring（测试方法名已自描述）
+"tests/**/*.py" = ["D100", "D101", "D102", "D103", "D104"]
+"**/test_*.py" = ["D100", "D101", "D102", "D103", "D104"]
+# 迁移脚本不强制 docstring
+"**/migrations/**/*.py" = ["D"]
+# CLI 入口脚本不强制模块 docstring
+"**/__main__.py" = ["D100"]
 ```
+
+启用后 ruff 会强制检查：
+
+- 公开模块/类/函数/方法必须有 docstring（D101 / D102 / D103）
+- 私有方法以单下划线开头时不强制（pydocstyle 默认）
+- Google 风格 section 格式（`Args:` / `Returns:` / `Raises:`）
+- docstring 首行必须紧跟 `"""`（D212）
+- 类 docstring 前不留空行（D211）
+
+⚠️ **D 规则只校验「有没有 docstring + 格式」，不校验「Args 是否包含类型/示例/边界」**。后者无法静态检查，靠 code review + 本规范第九节强制要求落实。
 
 ### 命名规范
 
@@ -265,17 +297,18 @@ class UserRepository:
         """初始化 UserRepository。
 
         Args:
-            db: 数据库连接对象。
+            db (Database): 数据库连接对象。示例：``Database("postgresql+asyncpg://user:pass@localhost:5432/app")``。
         """
         self.db = db
 
-    def get_by_id(self, user_id: int) -> User:
+    def get_by_id(self, user_id: int, *, page_size: int = 20) -> User:
         """根据 ID 查询用户。
 
         Args:
-            user_id: 用户唯一标识。
+            user_id (int): 用户唯一标识。取值范围 ``[1, 2^31-1]``。示例：``1001``。
+            page_size (int): 关联数据分页大小。取值范围 ``[1, 100]``，默认 ``20``。示例：``50``。
         Returns:
-            匹配的用户对象。
+            User: 匹配的用户对象。
         Raises:
             UserNotFound: 用户不存在时抛出。
         """
@@ -285,7 +318,13 @@ class UserRepository:
         return user
 
     def _build_cache_key(self, user_id: int) -> str:
-        """根据用户 ID 构建缓存键。"""
+        """根据用户 ID 构建缓存键。
+
+        Args:
+            user_id (int): 用户唯一标识。取值范围 ``[1, 2^31-1]``。示例：``1001``。
+        Returns:
+            str: 缓存键，形如 ``user:1001``。
+        """
         return f"user:{user_id}"
 ```
 
@@ -298,6 +337,64 @@ class UserRepository:
 | `__init__` 方法 | 必须有，说明初始化参数 |
 | 魔术方法（`__str__` 等） | 必须有，说明行为 |
 | 私有方法 | 必须有，至少单行说明 |
+
+### Args 参数注释规范（强制）
+
+每个参数的 `Args` 注释**必须包含四要素**：参数名、类型、描述、示例；**有取值边界的必须显式标注边界**。
+
+格式模板：
+
+```
+参数名 (类型): 描述。[取值范围 `[min, max]` / 长度 `[min, max]` / 枚举 `{a, b, c}`，默认 `xxx`。]示例：`具体值`。
+```
+
+| 要素 | 写法 | 示例 |
+|---|---|---|
+| 类型 | 紧跟参数名，括号包裹，与函数签名一致 | `user_id (int)` |
+| 描述 | 一句话说明语义，不重复参数名 | `用户唯一标识` |
+| 取值边界 | 数值用区间，字符串用长度，离散值用枚举 | `取值范围 [1, 100]` / `长度 [1, 64]` / `枚举 {"asc", "desc"}` |
+| 默认值 | 与签名一致，显式写出 | `默认 20` |
+| 示例 | 反引号包裹，给出真实可用值 | `示例：1001` |
+
+**强制要求**：
+
+- 凡是函数签名有 `int` / `float` / 字符串长度限制 / 时间窗口 / 分页 / 文件大小 / 比例阈值等**数值或长度型参数**，Args 注释**必须**写取值边界
+- 凡是离散取值（状态枚举、排序方向、模式开关）**必须**列出可选值
+- 凡是有副作用风险的参数（如 `force=True`、`delete=True`）**必须**在描述中提示风险
+
+正反例：
+
+```python
+# ❌ 缺类型、缺示例、缺边界
+def search(keyword, limit=20):
+    """搜索用户。
+
+    Args:
+        keyword: 搜索关键词。
+        limit: 返回数量。
+    """
+
+# ❌ 有类型但没边界、没示例
+def search(keyword: str, limit: int = 20) -> list[User]:
+    """搜索用户。
+
+    Args:
+        keyword (str): 搜索关键词。
+        limit (int): 返回数量。
+    """
+
+# ✅ 四要素齐全，边界明确
+def search(keyword: str, limit: int = 20, order: str = "desc") -> list[User]:
+    """搜索用户。
+
+    Args:
+        keyword (str): 搜索关键词。长度范围 ``[1, 64]``。示例：``"alice"``。
+        limit (int): 返回数量。取值范围 ``[1, 100]``，默认 ``20``。示例：``50``。
+        order (str): 排序方向。枚举 ``{"asc", "desc"}``，默认 ``"desc"``。示例：``"asc"``。
+    Returns:
+        list[User]: 匹配的用户列表，按创建时间排序。
+    """
+```
 
 ### 行内注释
 
@@ -322,7 +419,8 @@ user = cache.get_user(user_id)
 | 7 | 无可变默认参数 `def f(items=[])` |
 | 8 | 嵌套不超过 3 层，函数体不超过 50 行 |
 | 9 | 所有模块/类/函数有 docstring（Google 风格） |
-| 10 | 外部输入用 Pydantic 校验，不手动校验 dict |
-| 11 | 配置必须 Pydantic Settings 嵌套分组；缓存 TTL / 超时 / 重试 / 限流 / 分页上限 / 文件上限 / Token 有效期等业务参数禁止硬编码 |
+| 10 | 所有函数的 `Args` 注释包含「类型 + 描述 + 示例」三要素；数值/长度/枚举型参数必须显式标注取值边界 |
+| 11 | 外部输入用 Pydantic 校验，不手动校验 dict |
+| 12 | 配置必须 Pydantic Settings 嵌套分组；缓存 TTL / 超时 / 重试 / 限流 / 分页上限 / 文件上限 / Token 有效期等业务参数禁止硬编码 |
 
 **不执行自检就提交代码 = 违规。**
