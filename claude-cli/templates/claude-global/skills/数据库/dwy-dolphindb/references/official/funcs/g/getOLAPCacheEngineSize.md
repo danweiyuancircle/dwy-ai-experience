@@ -1,0 +1,46 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/g/getOLAPCacheEngineSize.html
+fetched_at: 2026-05-19T09:25:12Z
+category: funcs
+title: getOLAPCacheEngineSize
+sha1: 92e5ec0a0ea0acf7afaa4f59b584b62cb1500d5a
+---
+
+# getOLAPCacheEngineSize
+
+## 语法
+
+`getOLAPCacheEngineSize()`
+
+别名：`getCacheEngineMemSize`
+
+## 详情
+
+查看当前节点下 OLAP 引擎的 Cache Engine 的内存情况，单位为字节。
+
+## 参数
+
+无
+
+## 返回值
+
+返回一个 ANY VECTOR：
+
+第1个元素表示 Cache Engine 正在使用的内存量；
+
+第2个元素表示 Cache Engine 保存的列文件占用的内存；
+
+第3个元素表示指向列文件的指针所占用的内存；
+
+第4个元素表示 Cache Engine 允许使用的内存上限。
+
+## 例子
+
+```dolphindb
+setOLAPCacheEngineSize(0.4)
+getOLAPCacheEngineSize()
+// output
+(0,0,0,429496729)
+```
+
+相关函数： [setOLAPCacheEngineSize](../s/setOLAPCacheEngineSize.html)

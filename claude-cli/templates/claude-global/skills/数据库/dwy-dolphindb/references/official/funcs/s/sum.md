@@ -1,0 +1,54 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/s/sum.html
+fetched_at: 2026-05-19T09:41:00Z
+category: funcs
+title: sum
+sha1: 89283289a2f5f4e83dbf04d86e67928e0b1748aa
+---
+
+# sum
+
+## 语法
+
+`sum(X)`
+
+## 详情
+
+- 若 *X* 为向量，返回 *X* 中所有元素之和。
+- 若 *X* 为矩阵，计算每列元素之和，返回一个向量。
+- 若 *X* 为表，计算每列元素之和，返回一个表。
+
+与所有其它聚合函数一致，计算时忽略 NULL 值。
+
+如果 *X* 中的所有元素为 NULL，`sum` 返回的结果为 NULL。
+
+## 参数
+
+**X** 可以是标量、向量、矩阵或表。
+
+## 返回值
+
+返回标量、向量或表。
+
+## 例子
+
+```dolphindb
+sum(1 2 3 NULL 4);
+// output
+10
+
+m=matrix(1 2 3, 4 5 6);
+m;
+```
+
+| #0 | #1 |
+| --- | --- |
+| 1 | 4 |
+| 2 | 5 |
+| 3 | 6 |
+
+```dolphindb
+sum(m);
+// output
+[6,15]
+```

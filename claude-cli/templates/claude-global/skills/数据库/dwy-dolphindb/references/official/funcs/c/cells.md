@@ -1,0 +1,54 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/c/cells.html
+fetched_at: 2026-05-19T09:14:54Z
+category: funcs
+title: cells
+sha1: 474bfbc8e1ccc95e1e60c6a13da681f223749ad0
+---
+
+# cells
+
+## 语法
+
+`cells(obj, row, col)`
+
+## 详情
+
+返回一个由矩阵中 *row* 和 *col* 定位的元素组成的向量。
+
+## 参数
+
+**obj** 矩阵。
+
+**row** 整型向量，表示行坐标。
+
+**col** 与 *row* 等长的整型向量，表示列坐标。
+
+## 返回值
+
+一个向量，与 *obj* 中对应位置元素的数据类型保持一致。
+
+## 例子
+
+```dolphindb
+m=(1..15).reshape(3:5)
+m;
+```
+
+| col1 | col2 | col3 | col4 | col5 |
+| --- | --- | --- | --- | --- |
+| 1 | 4 | 7 | 10 | 13 |
+| 2 | 5 | 8 | 11 | 14 |
+| 3 | 6 | 9 | 12 | 15 |
+
+```dolphindb
+// 取矩阵中下标为 [0,1] 和 [0,2] 两个元素
+cells(m, 0 0, 1 2)
+// output
+[4,7]
+// 取矩阵对角线上的元素
+index = 0..2
+cells(m, index, index)
+// output
+[1, 5, 9]
+```

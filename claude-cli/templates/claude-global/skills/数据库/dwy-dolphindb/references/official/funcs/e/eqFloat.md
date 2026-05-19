@@ -1,0 +1,44 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/e/eqFloat.html
+fetched_at: 2026-05-19T09:21:01Z
+category: funcs
+title: eqFloat
+sha1: 706862cbeee38186387e2eed64497712e5573d7d
+---
+
+# eqFloat
+
+## 语法
+
+`eqFloat(X, Y, [precision=9])`
+
+## 详情
+
+以给定（小数点后位数）精度，逐个元素比较 *X*==*Y*。
+
+## 参数
+
+**X** 和 **Y** 可以是数值类型标量、向量或矩阵。如果 *X* 与 *Y*
+其中一个是向量或矩阵，另一个必须是标量或具有相同长度或维度的向量或矩阵。
+
+**precision** 是一个非负整数，表示对 FLOAT 或 DOUBLE 类型，比较精度为小数点后几位。
+
+## 返回值
+
+返回布尔类型，数据形式取决于 *X*/*Y*。
+
+## 例子
+
+```dolphindb
+eqFloat(0.1234567891, 0.123456789);
+// output
+true
+
+eqFloat(0.123456788, 0.123456789);
+// output
+false
+
+eqFloat(0.123456788 0.123456789 0.1234567891, 0.123456789);
+// output
+[false,true,true]
+```

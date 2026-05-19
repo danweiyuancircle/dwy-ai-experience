@@ -1,0 +1,62 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/t/timestamp.html
+fetched_at: 2026-05-19T09:41:41Z
+category: funcs
+title: timestamp
+sha1: dccda17f6c410f8a2361e4db7426c71b1d377f25
+---
+
+# timestamp
+
+## 语法
+
+`timestamp(X)`
+
+## 详情
+
+返回由日期和精确到毫秒的时间组成的时间戳。返回的数据类型是 TIMESTAMP，一个时间值。如果参数 *X*
+不是日期和时间，则返回值是 1970.01.01 00:00:00.000 + *X* 毫秒的时间戳。
+
+## 参数
+
+**X** 是一个时间标量或向量。
+
+注：
+
+自 2.00.12 版本起，支持转换 MONTH 类型的数据。
+
+## 返回值
+
+TIMESTAMP 类型标量或向量。
+
+## 例子
+
+```dolphindb
+timestamp(1)
+```
+
+返回：1970.01.01 00:00:00.001
+
+```dolphindb
+timestamp(2016.10.12);
+```
+
+返回：2016.10.12 00:00:00.000
+
+```dolphindb
+timestamp(2016.10.12)+1;
+```
+
+返回：2016.10.12 00:00:00.001
+
+```dolphindb
+timestamp(now());
+```
+
+返回：2024.02.22 15:57:33.291
+
+```dolphindb
+timestamp(2012.01M)
+```
+
+返回：2012.01.01T00:00:00.000

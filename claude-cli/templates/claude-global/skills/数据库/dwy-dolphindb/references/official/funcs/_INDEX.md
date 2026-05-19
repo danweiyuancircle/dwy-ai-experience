@@ -1,0 +1,1796 @@
+# 函数参考索引（official/funcs/）
+
+> 自动生成，请勿手改。重新生成：`uv run scripts/build_index.py`
+> 路径相对本目录（official/funcs/）
+
+## _root（6 个）
+
+- `funcs_by_topics.md` — **函数分类** — DolphinDB 的函数按照功能可以分为以下类别：
+- `funcs_intro.md` — **函数参考** — 对于一个参数的函数，我们使用 X 作为参数。对于两个参数的函数，我们使用 X 和 Y 分别作为第一个和第二个参数。如果没有说明，X 或 Y
+- `getStreamGraph.md` — **getStreamGraph** — 首发版本：3.00.3
+- `getStreamGraphInfo.md` — **getStreamGraphInfo** — 首发版本：3.00.3
+- `getStreamGraphMeta.md` — **getStreamGraphMeta** — 首发版本：3.00.3
+- `purgeStreamGraphRecords.md` — **purgeStreamGraphRecords** — 首发版本：3.00.3
+
+## a（60 个）
+
+- `a/abs.md` — **abs** — abs(X)
+- `a/acf.md` — **acf** — acf(X, maxLag)
+- `a/acos.md` — **acos** — acos(X)
+- `a/acosh.md` — **acosh** — acosh(X)
+- `a/adaBoostClassifier.md` — **adaBoostClassifier** — adaBoostClassifier(ds, yColName, xColNames, numClasses,
+- `a/adaBoostRegressor.md` — **adaBoostRegressor** — adaBoostRegressor(ds, yColName, xColNames,
+- `a/add.md` — **add** — add(X, Y)
+- `a/addAccessControl.md` — **addAccessControl** — addAccessControl(table)
+- `a/addcacherulesforcomputegroup.md` — **addCacheRulesForComputeGroup** — 首发版本：3.00.5
+- `a/addColumn.md` — **addColumn** — addColumn(table, colNames, colTypes)
+- `a/addEventListener.md` — **addEventListener** — addEventListener(handler, [eventType], [condition], [times="all"], [at],
+- `a/addFunctionView.md` — **addFunctionView** — addFunctionView(udf|moduleName)
+- `a/addgpfunction.md` — **addGpFunction** — addGpFunction(engine, func)
+- `a/addGroupMember.md` — **addGroupMember** — addGroupMember(userIds, groupIds)
+- `a/addipblacklist.md` — **addIPBlackList** — 首发版本：3.00.3
+- `a/addipwhitelist.md` — **addIPWhiteList** — 首发版本：3.00.3
+- `a/addMarketHoliday.md` — **addMarketHoliday** — addMarketHoliday(marketName, holiday, [dateType = 'holidayDate'])
+- `a/addMCPPrompt.md` — **addMCPPrompt** — 首发版本：3.00.4
+- `a/addMCPTool.md` — **addMCPTool** — 首发版本：3.00.4
+- `a/addMetrics.md` — **addMetrics** — addMetrics(engine, newMetrics, newMetricsSchema,
+- `a/addNode.md` — **addNode** — addNode(host, port, alias, [saveConfig=true],
+- `a/addRangePartitions.md` — **addRangePartitions** — addRangePartitions(dbHandle, newRanges, [level=0],
+- `a/addreactivemetrics.md` — **addReactiveMetrics** — addReactiveMetrics(name, metricNames, metrics)
+- `a/addSparseReactiveMetrics.md` — **addSparseReactiveMetrics** — addSparseReactiveMetrics(name, metrics)
+- `a/addstatelessmetrics.md` — **addStatelessMetrics** — addStatelessMetrics(name)
+- `a/addValuePartitions.md` — **addValuePartitions** — addValuePartitions(dbHandle, newValues, [level=0],
+- `a/addVolumes.md` — **addVolumes** — addVolumes(volumes)
+- `a/adfuller.md` — **adfuller** — adfuller(X, [maxLag], [regression="c"], [autoLag="aic"], [store=false],
+- `a/align.md` — **align** — align(left, right, [how='outer'], [byRow], [view=true])
+- `a/all.md` — **all** — all(X)
+- `a/and.md` — **and** — and(X, Y) 或 X && Y
+- `a/anova.md` — **anova** — anova(X)
+- `a/any.md` — **any** — any(X)
+- `a/append!.md` — **append!** — append!(obj, newData)
+- `a/appendEvent.md` — **appendEvent** — appendEvent(engine, events)
+- `a/appendeventwithresponse.md` — **appendEventWithResponse** — 首发版本：3.00.5
+- `a/appendForJoin.md` — **appendForJoin** — appendForJoin(engine, isLeftTable, data)
+- `a/appendMktData.md` — **appendMktData** — appendMktData(engine, data, [eventTime])
+- `a/appendMsg.md` — **appendMsg** — appendMsg(engine, msgBody, msgId)
+- `a/appendOrcaStreamTable.md` — **appendOrcaStreamTable** — 首发版本：3.00.3
+- `a/appendTupel_.md` — **appendTuple!** — appendTuple!(X, Y, [wholistic=false])
+- `a/arima.md` — **arima** — 首发版本：3.00.3
+- `a/array.md` — **array** — array(dataType|template, [initialSize], [capacity], [defaultValue])
+- `a/arrayVector.md` — **arrayVector** — arrayVector(index, value)
+- `a/asFreq.md` — **asFreq** — asFreq(X, rule, [closed], [label],
+- `a/asfreq1.md` — **asfreq** — 是 asFreq 的别名。
+- `a/asin.md` — **asin** — asin(X)
+- `a/asinh.md` — **asinh** — asinh(X)
+- `a/asIs.md` — **asis** — asis(obj)
+- `a/asof.md` — **asof** — asof(X, Y)
+- `a/at.md` — **at** — at(X, [index])
+- `a/atan.md` — **atan** — atan(X)
+- `a/atanh.md` — **atanh** — atanh(X)
+- `a/atImax.md` — **atImax** — atImax(location, value)
+- `a/atImin.md` — **atImin** — atImin(location, value)
+- `a/attributenames.md` — **attributeNames** — attributeNames(obj)
+- `a/attributeTypes.md` — **attributeTypes** — 首发版本：3.00.4.2，3.00.3.2
+- `a/attributevalues.md` — **attributeValues** — attributeValues(obj)
+- `a/autocorr.md` — **autocorr** — autocorr(X, lag)
+- `a/avg.md` — **avg** — avg(X)
+
+## b（44 个）
+
+- `b/backup.md` — **backup** — backup(backupDir, dbPath|sqlObj, [force=false], [parallel=false],
+- `b/backupDB.md` — **backupDB** — backupDB(backupDir, dbPath, [keyPath])
+- `b/backupsettings.md` — **backupSettings** — backupSettings(fileName, [userPermission=true],
+- `b/backupTable.md` — **backupTable** — backupTable(backupDir, dbPath, tableName, [keyPath])
+- `b/bar.md` — **bar** — bar(X, interval, [closed='left'])
+- `b/base64Decode.md` — **base64Decode** — base64Decode(X)
+- `b/base64Encode.md` — **base64Encode** — base64Encode(X)
+- `b/beta.md` — **beta** — beta(Y, X)
+- `b/between.md` — **between** — between(X, Y)
+- `b/bfill.md` — **bfill** — bfill(obj, [limit])
+- `b/bfill_.md` — **bfill!** — bfill!(obj, [limit])
+- `b/bigarray.md` — **bigarray** — bigarray(dataType|template, [initialSize], [capacity],
+- `b/binaryExpr.md` — **binaryExpr** — binaryExpr(X, Y, optr)
+- `b/binsrch.md` — **binsrch** — binsrch(X, Y)
+- `b/bitAnd.md` — **bitAnd** — bitAnd(X, Y) 或 X & Y
+- `b/bitNot.md` — **bitNot** — bitNot(X)
+- `b/bitOr.md` — **bitOr** — bitOr(X, Y) 或 X | Y
+- `b/bitXor.md` — **bitXor** — bitXor(X, Y) 或 X ^ Y
+- `b/blob.md` — **blob** — blob(X)
+- `b/bondaccrint.md` — **bondAccrInt** — bondAccrInt(start, maturity, issuePrice, coupon, frequency,
+- `b/bondCalculator.md` — **bondCalculator** — 首发版本：3.00.3
+- `b/bondCashflow.md` — **bondCashflow** — bondCashflow(start, maturity, coupon, frequency, dayCountConvention,
+- `b/bondconvexity.md` — **bondConvexity** — bondConvexity(start, maturity, issuePrice, coupon,
+- `b/bondDirtyPrice.md` — **bondDirtyPrice** — bondDirtyPrice(start, maturity, issuePrice, coupon,
+- `b/bondDuration.md` — **bondDuration** — bondDuration(start, maturity, issuePrice, coupon,
+- `b/bondFuturesPricer.md` — **bondFuturesPricer** — 首发版本：3.00.4
+- `b/bondinstrumentcalculator.md` — **bondInstrumentCalculator** — 首发版本：3.00.4.1
+- `b/bondPricer.md` — **bondPricer** — 首发版本：3.00.4
+- `b/bondyield.md` — **bondYield** — bondYield(start, maturity, issuePrice, coupon, frequency, dayCountConvention,
+- `b/bondYieldCurveBuilder.md` — **bondYieldCurveBuilder** — 首发版本：3.00.4
+- `b/bool.md` — **bool** — bool(X)
+- `b/boxcox.md` — **boxcox** — 首发版本：3.00.3
+- `b/brentq.md` — **brentq** — brentq(f, a, b, [xtol], [rtol], [maxIter],
+- `b/brute.md` — **brute** — brute(func, ranges, [ns=20], [finish=fmin])
+- `b/bucket.md` — **bucket** — bucket(vector, dataRange, bucketNum, [includeOutbound=false])
+- `b/bucketCount.md` — **bucketCount** — bucketCount(vector, dataRange, bucketNum,
+- `b/businessDay.md` — **businessDay** — businessDay(X, [offset], [n=1])
+- `b/businessMonthBegin.md` — **businessMonthBegin** — businessMonthBegin(X, [offset], [n=1])
+- `b/businessMonthEnd.md` — **businessMonthEnd** — businessMonthEnd(X, [offset], [n=1])
+- `b/businessQuarterBegin.md` — **businessQuarterBegin** — businessQuarterBegin(X, [startingMonth=1], [offset],
+- `b/businessQuarterEnd.md` — **businessQuarterEnd** — businessQuarterEnd(X, [endingMonth=12], [offset],
+- `b/businessYearBegin.md` — **businessYearBegin** — businessYearBegin(X, [startingMonth=1], [offset],
+- `b/businessYearEnd.md` — **businessYearEnd** — businessYearEnd(X, [endingMonth=12], [offset],
+- `b/bvls.md` — **bvls** — 首发版本：3.00.3
+
+## c（189 个）
+
+- `c/cacheDS_.md` — **cacheDS!** — cacheDS!(ds)
+- `c/cacheDSNow.md` — **cacheDSNow** — cacheDSNow(ds)
+- `c/cachedTable.md` — **cachedTable** — cachedTable(updateFunc, retentionSeconds)
+- `c/callMCPTool.md` — **callMCPTool** — 首发版本：3.00.4
+- `c/cancelConsoleJob.md` — **cancelConsoleJob** — cancelConsoleJob(rootJobId)
+- `c/cancelJob.md` — **cancelJob** — cancelJob(jobId)
+- `c/cancelpkeycompactiontask.md` — **cancelPKEYCompactionTask** — cancelPKEYCompactionTask(chunkId)
+- `c/cancelRebalanceTask.md` — **cancelRebalanceTask** — cancelRebalanceTask(taskId)
+- `c/cancelRecoveryTask.md` — **cancelRecoveryTask** — cancelRecoveryTask(taskId)
+- `c/cast.md` — **cast** — cast(X, Y) 或 X $ Y
+- `c/cbrt.md` — **cbrt** — cbrt(X)
+- `c/cdfBeta.md` — **cdfBeta** — cdfBeta(alpha, beta, X)
+- `c/cdfBinomial.md` — **cdfBinomial** — cdfBinomial(trials, p, X)
+- `c/cdfChiSquare.md` — **cdfChiSquare** — cdfChiSquare(df, X)
+- `c/cdfExp.md` — **cdfExp** — cdfExp(mean, X)
+- `c/cdfF.md` — **cdfF** — cdfF(numeratorDF, denominatorDF, X)
+- `c/cdfGamma.md` — **cdfGamma** — cdfGamma(shape, scale, X)
+- `c/cdfKolmogorov.md` — **cdfKolmogorov** — cdfKolmogorov(X)
+- `c/cdfLogistic.md` — **cdfLogistic** — cdfLogistic(mean, s, X)
+- `c/cdfNormal.md` — **cdfNormal** — cdfNormal(mean, stdev, X)
+- `c/cdfPoisson.md` — **cdfPoisson** — cdfPoisson(mean, X)
+- `c/cdfStudent.md` — **cdfStudent** — cdfStudent(df, X)
+- `c/cdfUniform.md` — **cdfUniform** — cdfUniform(lower, upper, X)
+- `c/cdfWeibull.md` — **cdfWeibull** — cdfWeibull(alpha, beta, X)
+- `c/cdfZipf.md` — **cdfZipf** — cdfZipf(num, exponent, X)
+- `c/ceil.md` — **ceil** — ceil(X)
+- `c/cell.md` — **cell** — cell(obj, row, col)
+- `c/cells.md` — **cells** — cells(obj, row, col)
+- `c/changelogStreamTable.md` — **changelogStreamTable** — 首发版本：3.00.5
+- `c/changePwd.md` — **changePwd** — changePwd(oldPwd, newPwd)
+- `c/char.md` — **char** — char(X)
+- `c/charAt.md` — **charAt** — charAt(X, Y)
+- `c/checkBackup.md` — **checkBackup** — checkBackup(backupDir, dbPath, [tableName],
+- `c/checkpointHaMvcc.md` — **checkpointHaMvcc** — 首发版本：3.00.5
+- `c/chiSquareTest.md` — **chiSquareTest** — chiSquareTest(X, [Y])
+- `c/cholesky.md` — **cholesky** — cholesky(obj, [lower=true])
+- `c/cj.md` — **cj** — cj(X, Y)
+- `c/cleanOutdateLogFiles.md` — **cleanOutdateLogFiles** — cleanOutdateLogFiles([retentionTime=30])
+- `c/clear_.md` — **clear!** — clear!(X)
+- `c/clearAllCache.md` — **clearAllCache** — clearAllCache()
+- `c/clearalliotdblatestkeycache.md` — **clearAllIOTDBLatestKeyCache** — clearAllIOTDBLatestKeyCache()
+- `c/clearalliotdbstatictablecache.md` — **clearAllIOTDBStaticTableCache** — clearAllIOTDBStaticTableCache()
+- `c/clearalltsdbsymbolbasecache.md` — **clearAllTSDBSymbolBaseCache** — clearAllTSDBSymbolBaseCache()
+- `c/clearCachedDatabase.md` — **clearCachedDatabase** — clearCachedDatabase(dbUrl, [tableName])
+- `c/clearCachedModules.md` — **clearCachedModules** — clearCachedModules()
+- `c/clearcomputenodecache.md` — **clearComputeNodeCache** — clearComputeNodeCache(database, [table], [partition])
+- `c/clearcomputenodediskcache.md` — **clearComputeNodeDiskCache** — clearComputeNodeDiskCache(database, [table], [partition])
+- `c/clearDSCache_.md` — **clearDSCache!** — clearDSCache!(ds)
+- `c/clearDSCacheNow.md` — **clearDSCacheNow** — clearDSCacheNow(ds)
+- `c/clearTablePersistence.md` — **clearTablePersistence** — clearTablePersistence(table)
+- `c/clip.md` — **clip** — clip(X,Y,Z)
+- `c/clip_.md` — **clip!** — clip!(X, Y, Z)
+- `c/close.md` — **close** — close(X)
+- `c/closeSessions.md` — **closeSessions** — closeSessions(sessionId)
+- `c/cmfutamericanoptionpricer.md` — **cmFutAmericanOptionPricer** — 首发版本：3.00.5
+- `c/cmfuteuropeanoptionpricer.md` — **cmFutEuropeanOptionPricer** — 首发版本：3.00.5
+- `c/cmFutVolatilitySurfaceBuilder.md` — **cmFutVolatilitySurfaceBuilder** — 首发版本：3.00.5
+- `c/coevent.md` — **coevent** — coevent(event, eventTime, window, [orderSensitive=false])
+- `c/coint.md` — **coint** — coint(Y0, Y1, [trend="c"], [method="aeg"],
+- `c/col.md` — **col** — col(obj, index) 或 column(obj,
+- `c/cols.md` — **cols** — cols(X)
+- `c/columnNames.md` — **columnNames** — columnNames(X)
+- `c/complex.md` — **complex** — complex(X, Y)
+- `c/compose.md` — **compose** — 首发版本：3.00.3
+- `c/compress.md` — **compress** — compress(X, [method='lz4'])
+- `c/concat.md` — **concat** — concat(X, Y)
+- `c/concatDateTime.md` — **concatDateTime** — concatDateTime(date, time)
+- `c/concatMatrix.md` — **concatMatrix** — concatMatrix(X, [horizontal=true])
+- `c/conditionalFilter.md` — **conditionalFilter** — conditionalFilter(X, condition, filterMap)
+- `c/conditionalIterate.md` — **conditionalIterate** — conditionalIterate(cond, trueValue,
+- `c/constantdesc.md` — **constantDesc** — constantDesc(obj)
+- `c/contextCount.md` — **contextCount** — contextCount(X, Y)
+- `c/contextSum.md` — **contextSum** — contextSum(X, Y)
+- `c/contextSum2.md` — **contextSum2** — contextSum2(X, Y)
+- `c/convertEncode.md` — **convertEncode** — convertEncode(str, srcEncode, destEncode)
+- `c/convertExcelFormula.md` — **convertExcelFormula** — convertExcelFormula(formula, colStart, colEnd, rowStart,
+- `c/convertTZ.md` — **convertTZ** — convertTZ(obj, srcTZ, destTZ)
+- `c/copy.md` — **copy** — copy(obj)
+- `c/copyReplicas.md` — **copyReplicas** — copyReplicas(srcNode, destNode, chunkId)
+- `c/corr.md` — **corr** — corr(X,Y)
+- `c/corrMatrix.md` — **corrMatrix** — corrMatrix(X)
+- `c/cos.md` — **cos** — cos(X)
+- `c/cosh.md` — **cosh** — cosh(X)
+- `c/cosine.md` — **cosine** — 首发版本：3.00.5，3.00.4.3
+- `c/count.md` — **count** — count(X)
+- `c/countNanInf.md` — **countNanInf** — countNanInf(X, [includeNull=false])
+- `c/covar.md` — **covar** — covar(X,Y)
+- `c/covarMatrix.md` — **covarMatrix** — covarMatrix(X)
+- `c/covarp.md` — **covarp** — 首发版本：3.00.5
+- `c/crc32.md` — **crc32** — crc32(str, [cksum=0])
+- `c/createAnomalyDetectionEngine.md` — **createAnomalyDetectionEngine** — createAnomalyDetectionEngine(name, metrics, dummyTable,
+- `c/createAsofJoinEngine.md` — **createAsofJoinEngine** — createAsofJoinEngine(name, leftTable, rightTable,
+- `c/createCatalog.md` — **createCatalog** — createCatalog(catalog)
+- `c/createCEPEngine.md` — **createCEPEngine** — createCEPEngine(name, monitors, dummyTable, eventSchema,
+- `c/createCrossSectionalAggregator.md` — **createCrossSectionalAggregator** — 是 createCrossSectionalEngine 的别名。
+- `c/createCrossSectionalEngine.md` — **createCrossSectionalEngine** — createCrossSectionalEngine(name, [metrics], dummyTable,
+- `c/createcryptoorderbookengine.md` — **createCryptoOrderBookEngine** — createCryptoOrderBookEngine(name, dummyTable, inputColMap,
+- `c/createDailyTimeSeriesEngine.md` — **createDailyTimeSeriesEngine** — createDailyTimeSeriesEngine(name, windowSize, step,
+- `c/createDataViewEngine.md` — **createDataViewEngine** — createDataViewEngine(name, outputTable, keyColumns, timeColumn,
+- `c/createdeviceengine.md` — **createDeviceEngine** — createDeviceEngine(name, metrics, dummyTable, outputTable, [keyColumn],
+- `c/createdimensiontable.md` — **createDimensionTable** — createDimensionTable(dbHandle, table, tableName, [compressMethods],
+- `c/createDistributedInMemoryTable.md` — **createDistributedInMemoryTable** — createDistributedInMemoryTable(tableName, colNames,
+- `c/createDualOwnershipReactiveStateEngine.md` — **createDualOwnershipReactiveStateEngine** — createDualOwnershipReactiveStateEngine(name, metrics1,
+- `c/createEqualJoinEngine.md` — **createEqualJoinEngine** — 是 createEquiJoinEngine
+- `c/createEquiJoinEngine.md` — **createEquiJoinEngine** — createEquiJoinEngine(name, leftTable, rightTable,
+- `c/creategplearnengine.md` — **createGPLearnEngine** — createGPLearnEngine(trainData, targetData,[groupCol=''],
+- `c/createGroup.md` — **createGroup** — createGroup(groupId, [userIds])
+- `c/createIMOLTPTable.md` — **createIMOLTPTable** — createIMOLTPTable(dbHandle, table, tableName, primaryKey, [secondaryKey],
+- `c/createIPCInMemoryTable.md` — **createIPCInMemoryTable** — createIPCInMemoryTable(size, tableName, columnNames,
+- `c/createLeftSemiJoinEngine.md` — **createLeftSemiJoinEngine** — createLeftSemiJoinEngine(name, leftTable, rightTable,
+- `c/createLookupJoinEngine.md` — **createLookupJoinEngine** — createLookupJoinEngine(name, leftTable, rightTable,
+- `c/createMktDataEngine.md` — **createMktDataEngine** — 首发版本：3.00.5
+- `c/createnarrowreactivestateengine.md` — **createNarrowReactiveStateEngine** — createNarrowReactiveStateEngine(name, metrics, metricNames, dummyTable,
+- `c/createNearestJoinEngine.md` — **createNearestJoinEngine** — 首发版本：3.00.4，3.00.3.1
+- `c/createOrcaHaKeyedStreamTable.md` — **createOrcaHaKeyedStreamTable** — 首发版本：3.00.4
+- `c/createOrcaHaStreamTable.md` — **createOrcaHaStreamTable** — 首发版本：3.00.4
+- `c/createOrcaKeyedStreamTable.md` — **createOrcaKeyedStreamTable** — 首发版本：3.00.4
+- `c/createOrcaLatestKeyedStreamTable.md` — **createOrcaLatestKeyedStreamTable** — 首发版本：3.00.4
+- `c/createOrcaStreamTable.md` — **createOrcaStreamTable** — 首发版本：3.00.4
+- `c/createorderbooksnapshotengine.md` — **createOrderBookSnapshotEngine** — createOrderBookSnapshotEngine(name, exchange,
+- `c/createPartitionedTable.md` — **createPartitionedTable** — createPartitionedTable(dbHandle, table, tableName,
+- `c/createpricingengine.md` — **createPricingEngine** — 首发版本：3.00.5
+- `c/createReactiveStateEngine.md` — **createReactiveStateEngine** — dolphindb
+- `c/createReactiveStatelessEngine.md` — **createReactiveStatelessEngine** — createReactiveStatelessEngine(name, metrics, outputTable, [snapshotDir],
+- `c/createRuleEngine.md` — **createRuleEngine** — createRuleEngine(name, ruleSets, dummyTable, outputColumns, outputTable,
+- `c/createSchema.md` — **createSchema** — createSchema(catalog, dbUrl, schema)
+- `c/createSessionWindowEngine.md` — **createSessionWindowEngine** — createSessionWindowEngine(name, sessionGap, metrics,
+- `c/createsnapshotjoinengine.md` — **createSnapshotJoinEngine** — createSnapshotJoinEngine(name, leftTable, rightTable, outputTable, metrics,
+- `c/createSparseReactiveStateEngine.md` — **createSparseReactiveStateEngine** — 首发版本：3.00.5
+- `c/createsseorderreconstructionengine.md` — **createOrderReconstituteEngine** — 首发版本：3.00.4
+- `c/createstreambroadcastengine.md` — **createStreamBroadcastEngine** — createStreamBroadcastEngine(name, dummyTable, outputTables)
+- `c/createStreamDispatchEngine.md` — **createStreamDispatchEngine** — createStreamDispatchEngine(name, dummyTable, keyColumn,
+- `c/createStreamGraph.md` — **createStreamGraph** — 首发版本：3.00.3
+- `c/createTable.md` — **createTable** — 是 createDimensionTable 的别名。
+- `c/createthresholdengine.md` — **createThresholdEngine** — 首发版本：3.00.3
+- `c/createtimebucketengine.md` — **createTimeBucketEngine** — createTimeBucketEngine(name,timeCutPoints,metrics,dummyTable,outputTable,timeCol…
+- `c/createTimeSeriesAggregator.md` — **createTimeSeriesAggregator** — 是 createTimeSeriesEngine 的别名。
+- `c/createTimeSeriesEngine.md` — **createTimeSeriesEngine** — createTimeSeriesEngine(name, windowSize, step, metrics,
+- `c/createUser.md` — **createUser** — createUser(userId, password, [groupIds], [isAdmin=false],
+- `c/createWindowJoinEngine.md` — **createWindowJoinEngine** — createWindowJoinEngine(name, leftTable, rightTable,
+- `c/crossStat.md` — **crossStat** — crossStat(X, Y)
+- `c/cubichermitesplinefit.md` — **cubicHermiteSplineFit** — 首发版本：3.00.3
+- `c/cubicspline.md` — **cubicSpline** — cubicSpline(x, y, bc_type="not-a-knot")
+- `c/cubicsplinepredic.md` — **cubicSplinePredict** — cubicSplinePredict(model, x)
+- `c/cumavg.md` — **cumavg** — cumavg(X)
+- `c/cumavgTopN.md` — **cumavgTopN** — cumavgTopN(X, S, top, [ascending=true],
+- `c/cumbeta.md` — **cumbeta** — cumbeta(Y, X)
+- `c/cumbetaTopN.md` — **cumbetaTopN** — cumbetaTopN(Y, X, S, top, [ascending=true],
+- `c/cumcorr.md` — **cumcorr** — cumcorr(X,Y)
+- `c/cumcorrTopN.md` — **cumcorrTopN** — cumcorrTopN(X, Y, S, top, [ascending=true],
+- `c/cumcount.md` — **cumcount** — cumcount(X)
+- `c/cumcovar.md` — **cumcovar** — cumcovar(X,Y)
+- `c/cumcovarp.md` — **cumcovarp** — 首发版本：3.00.5
+- `c/cumcovarpTopN.md` — **cumcovarpTopN** — 首发版本：3.00.5
+- `c/cumcovarTopN.md` — **cumcovarTopN** — cumcovarTopN(X, Y, S, top, [ascending=true],
+- `c/cumdenseRank.md` — **cumdenseRank** — cumdenseRank(X, [ascending=true],
+- `c/cumfirstNot.md` — **cumfirstNot** — cumfirstNot(X, [k])
+- `c/cumkurtosisTopN.md` — **cumkurtosisTopN** — cumkurtosisTopN(X, S, top, [biased=true],
+- `c/cumlastNot.md` — **cumlastNot** — cumlastNot(X, [k])
+- `c/cummax.md` — **cummax** — cummax(X)
+- `c/cummdd.md` — **cummdd** — cummdd(X, [ratio=true])
+- `c/cummed.md` — **cummed** — cummed(X)
+- `c/cummin.md` — **cummin** — cummin(X)
+- `c/cumnunique.md` — **cumnunique** — cumnunique(X, [ignoreNull=false])
+- `c/cumpercentile.md` — **cumpercentile** — cumpercentile(X, percent,
+- `c/cumPositiveStreak.md` — **cumPositiveStreak** — cumPositiveStreak(X)
+- `c/cumprod.md` — **cumprod** — cumprod(X)
+- `c/cumrank.md` — **cumrank** — cumrank(X, [ascending=true], [ignoreNA=true],
+- `c/cumskewTopN.md` — **cumskewTopN** — cumskewTopN(X, S, top, [biased=true], [ascending=true],
+- `c/cumstd.md` — **cumstd** — cumstd(X)
+- `c/cumstdp.md` — **cumstdp** — cumstdp(X)
+- `c/cumstdpTopN.md` — **cumstdpTopN** — cumstdpTopN(X, S, top, [ascending=true],
+- `c/cumstdTopN.md` — **cumstdTopN** — cumstdTopN(X, S, top, [ascending=true],
+- `c/cumsum.md` — **cumsum** — cumsum(X)
+- `c/cumsum2.md` — **cumsum2** — cumsum2(X)
+- `c/cumsum3.md` — **cumsum3** — cumsum3(X)
+- `c/cumsum4.md` — **cumsum4** — cumsum4(X)
+- `c/cumsumTopN.md` — **cumsumTopN** — cumsumTopN(X, S, top, [ascending=true],
+- `c/cumvar.md` — **cumvar** — cumvar(X)
+- `c/cumvarp.md` — **cumvarp** — cumvarp(X)
+- `c/cumvarpTopN.md` — **cumvarpTopN** — cumvarpTopN(X, S, top, [ascending=true],
+- `c/cumvarTopN.md` — **cumvarTopN** — cumvarTopN(X, S, top, [ascending=true],
+- `c/cumwavg.md` — **cumwavg** — cumwavg(X, Y)
+- `c/cumwsum.md` — **cumwsum** — cumwsum(X, Y)
+- `c/cumwsumTopN.md` — **cumwsumTopN** — cumwsumTopN(X, Y, S, top, [ascending=true],
+- `c/curvePredict.md` — **curvePredict** — 首发版本：3.00.4
+- `c/cut.md` — **cut** — cut(X, size|cutPositions)
+- `c/cutPoints.md` — **cutPoints** — cutPoints(X, binNum, [freq])
+- `c/cvar.md` — **condValueAtRisk** — condValueAtRisk(returns, method,
+
+## d（125 个）
+
+- `d/dailyAlignedBar.md` — **dailyAlignedBar** — dailyAlignedBar(X, timeOffset, n, [timeEnd],
+- `d/database.md` — **database** — database(directory, [partitionType], [partitionScheme], [locations],
+- `d/date.md` — **date** — date(X)
+- `d/datehour.md` — **datehour** — datehour(X)
+- `d/datetime.md` — **datetime** — datetime(X)
+- `d/datetimeParse.md` — **datetimeParse** — 是 temporalParse 的别名。
+- `d/dayOfMonth.md` — **dayOfMonth** — dayOfMonth(X)
+- `d/dayOfWeek.md` — **dayOfWeek** — dayOfWeek(X)
+- `d/dayOfYear.md` — **dayOfYear** — dayOfYear(X)
+- `d/daysInMonth.md` — **daysInMonth** — daysInMonth(X)
+- `d/decimal128.md` — **decimal128** — decimal128(X, scale)
+- `d/decimal32.md` — **decimal32** — decimal32(X, scale)
+- `d/decimal64.md` — **decimal64** — decimal64(X, scale)
+- `d/decimalFormat.md` — **decimalFormat** — decimalFormat(X, format)
+- `d/decimalMultiply.md` — **decimalMultiply** — decimalMultiply(X, Y, scale)
+- `d/declareStreamingSQLTable.md` — **declareStreamingSQLTable** — 首发版本：3.00.4
+- `d/decodeShortGenomeSeq.md` — **decodeShortGenomeSeq** — decodeShortGenomeSeq(X)
+- `d/decompress.md` — **decompress** — decompress(X)
+- `d/deepCopy.md` — **deepCopy** — 首发版本：3.00.3
+- `d/defined.md` — **defined** — defined(names, [type=VAR])
+- `d/defs.md` — **defs** — defs([X])
+- `d/deg2rad.md` — **deg2rad** — deg2rad(X)
+- `d/deletechunkmetaonmasterbyid.md` — **deleteChunkMetaOnMasterById** — deleteChunkMetaOnMasterById(chunkPath, chunkId)
+- `d/deleteDataViewItems.md` — **deleteDataViewItems** — deleteDataViewItems(engine, keys)
+- `d/deleteGroup.md` — **deleteGroup** — deleteGroup(groupName)
+- `d/deleteGroupMember.md` — **deleteGroupMember** — deleteGroupMember(userIds, groupIds)
+- `d/deleteMarketHoliday.md` — **deleteMarketHoliday** — 首发版本：3.00.3
+- `d/deleteReplicas.md` — **deleteReplicas** — deleteReplicas(chunkId, nodeAlias)
+- `d/deleteRule.md` — **deleteRule** — deleteRule(engineName, key)
+- `d/deleteScheduledJob.md` — **deleteScheduledJob** — deleteScheduledJob(jobId)
+- `d/deleteSparseReactiveMetric.md` — **deleteSparseReactiveMetric** — deleteSparseReactiveMetric(name, outputMetricKey)
+- `d/deleteUser.md` — **deleteUser** — deleteUser(userId)
+- `d/deltas.md` — **deltas** — deltas(X,[n])
+- `d/dema.md` — **dema** — dema(X, window)
+- `d/demean.md` — **demean** — demean(X)
+- `d/denseRank.md` — **denseRank** — denseRank(X, [ascending=true],[ignoreNA=true], [percent=false])
+- `d/deny.md` — **deny** — deny(userId|groupId, accessType, [objs])
+- `d/derivative.md` — **derivative** — derivative(func, X, [dx =1.0], [n=1], [order=3])
+- `d/destroyMonitor.md` — **destroyMonitor** — destroyMonitor()
+- `d/det.md` — **det** — det(X)
+- `d/diag.md` — **diag** — diag(X)
+- `d/dict.md` — **dict** — dict(keyObj, valueObj, [ordered=false])
+- `d/dictUpdate_.md` — **dictUpdate!** — dictUpdate!(dictionary, function, keys, parameters,
+- `d/difference.md` — **difference** — difference(X)
+- `d/differentialevolution.md` — **differentialEvolution** — differentialEvolution(func, bounds, [X0], [maxIter=1000], [popSize=15],
+- `d/digitize.md` — **digitize** — digitize(x, bins, [right=false])
+- `d/disableActivePartition.md` — **disableActivePartition** — disableActivePartition(dbHandle)
+- `d/disabledynamicscriptoptimization.md` — **disableDynamicScriptOptimization** — disableDynamicScriptOptimization()
+- `d/disableQueryMonitor.md` — **disableQueryMonitor** — disableQueryMonitor()
+- `d/disableresourcetracking.md` — **disableResourceTracking** — disableResourceTracking()
+- `d/disableTablePersistence.md` — **disableTablePersistence** — disableTablePersistence(table)
+- `d/disableTSDBAsyncSorting.md` — **disableTSDBAsyncSorting** — disableTSDBAsyncSorting()
+- `d/distance.md` — **distance** — distance(X, Y)
+- `d/distinct.md` — **distinct** — distinct(X)
+- `d/div.md` — **div** — div(X, Y) 或 X/Y
+- `d/dividedDifference.md` — **dividedDifference** — dividedDifference(X, Y, resampleRule, [closed='left'], [origin='start_day'],
+- `d/dot.md` — **dot** — dot(X, Y) 或 XY
+- `d/double.md` — **double** — double(X)
+- `d/drop.md` — **drop** — drop(obj, count)
+- `d/dropAggregator.md` — **dropAggregator** — 是 dropStreamEngine 的别名。
+- `d/dropCatalog.md` — **dropCatalog** — dropCatalog(catalog)
+- `d/dropColumns_.md` — **dropColumns!** — dropColumns!(table, colNames)
+- `d/dropDatabase.md` — **dropDatabase** — dropDatabase(dbDir)
+- `d/dropDataViewEngine.md` — **dropDataViewEngine** — 首发版本：3.00.4
+- `d/dropDistributedInMemoryTable.md` — **dropDistributedInMemoryTable** — dropDistributedInMemoryTable(tableName)
+- `d/dropFunctionView.md` — **dropFunctionView** — dropFunctionView(name,
+- `d/dropHaMvccTable.md` — **dropHaMvccTable** — 首发版本：3.00.5
+- `d/dropIPCInMemoryTable.md` — **dropIPCInMemoryTable** — dropIPCInMemoryTable(tableName)
+- `d/dropMCPPrompt.md` — **dropMCPPrompt** — 首发版本：3.00.4
+- `d/dropMCPTool.md` — **dropMCPTool** — 首发版本：3.00.4
+- `d/dropna.md` — **dropna** — dropna(X, [byRow=true], [thresh])
+- `d/dropOrcaStreamTable.md` — **dropOrcaStreamTable** — 首发版本：3.00.4
+- `d/dropPartition.md` — **dropPartition** — dropPartition(dbHandle, partitionPaths, [tableName],
+- `d/dropSchema.md` — **dropSchema** — dropSchema(catalog, schema)
+- `d/dropStreamEngine.md` — **dropStreamEngine** — dropStreamEngine(name)
+- `d/dropStreamGraph.md` — **dropStreamGraph** — 首发版本：3.00.3
+- `d/dropStreamTable.md` — **dropStreamTable** — dropStreamTable(tableName,[force=false])
+- `d/dropTable.md` — **dropTable** — dropTable(dbHandle, tableName)
+- `d/DStream_anomalyDetectionEngine.md` — **DStream::anomalyDetectionEngine** — 首发版本：3.00.3
+- `d/DStream_asofJoinEngine.md` — **DStream::asofJoinEngine** — 首发版本：3.00.3
+- `d/DStream_buffer.md` — **Dstream::buffer** — 首发版本：3.00.3
+- `d/DStream_changelogSink.md` — **DStream::changelogSink** — 首发版本：3.00.5
+- `d/DStream_crossSectionalEngine.md` — **DStream::crossSectionalEngine** — 首发版本：3.00.3
+- `d/DStream_cryptoOrderBookEngine.md` — **DStream::cryptoOrderBookEngine** — 首发版本：3.00.3
+- `d/DStream_dailyTimeSeriesEngine.md` — **DStream::dailyTimeSeriesEngine** — 首发版本：3.00.3
+- `d/DStream_dualOwnershipReactiveStateEngine.md` — **DStream::dualOwnershipReactiveStateEngine** — 首发版本：3.00.3
+- `d/DStream_equalJoinEngine.md` — **DStream::equalJoinEngine** — 首发版本：3.00.3
+- `d/DStream_fork.md` — **DStream::fork** — 首发版本：3.00.3
+- `d/DStream_getOutputSchema.md` — **DStream::getOutputSchema** — 首发版本：3.00.3
+- `d/DStream_haBuffer.md` — **Dstream::haBuffer** — 首发版本：3.00.3
+- `d/DStream_haKeyedBuffer.md` — **Dstream::haKeyedBuffer** — 首发版本：3.00.3
+- `d/DStream_haKeyedSink.md` — **DStream::haKeyedSink** — 首发版本：3.00.3
+- `d/DStream_haSink.md` — **DStream::haSink** — 首发版本：3.00.3
+- `d/DStream_keyedBuffer.md` — **Dstream::keyedBuffer** — 首发版本：3.00.3
+- `d/DStream_keyedSink.md` — **DStream::keyedSink** — 首发版本：3.00.3
+- `d/DStream_latestKeyedBuffer.md` — **Dstream::latestKeyedBuffer** — 首发版本：3.00.3
+- `d/DStream_latestKeyedSink.md` — **DStream::latestKeyedSink** — 首发版本：3.00.3
+- `d/DStream_leftSemiJoinEngine.md` — **DStream::leftSemiJoinEngine** — 首发版本：3.00.3
+- `d/DStream_lookupJoinEngine.md` — **DStream::lookupJoinEngine** — 首发版本：3.00.3
+- `d/DStream_map.md` — **DStream::map** — 首发版本：3.00.3
+- `d/DStream_narrowReactiveStateEngine.md` — **DStream::narrowReactiveStateEngine** — 首发版本：3.00.3
+- `d/DStream_nearestJoinEngine.md` — **DStream::nearestJoinEngine** — 首发版本：3.00.4，3.00.3.1
+- `d/DStream_orderBookSnapshotEngine.md` — **DStream::orderBookSnapshotEngine** — 首发版本：3.00.3
+- `d/DStream_parallelize.md` — **DStream::parallelize** — 首发版本：3.00.3
+- `d/DStream_reactiveStateEngine.md` — **DStream::reactiveStateEngine** — 首发版本：3.00.3
+- `d/DStream_reactiveStatelessEngine.md` — **DStream::reactiveStatelessEngine** — 首发版本：3.00.3
+- `d/DStream_ruleEngine.md` — **DStream::ruleEngine** — 首发版本：3.00.3
+- `d/DStream_sessionWindowEngine.md` — **DStream::sessionWindowEngine** — 首发版本：3.00.3
+- `d/DStream_setEngineName.md` — **DStream::setEngineName** — 首发版本：3.00.3
+- `d/dstream_shareddict.md` — **DStream::sharedDict** — DStream::sharedDict(name, keyObj, valueObj, [ordered=false])
+- `d/dstream_sharedkeyedtable.md` — **DStream::sharedKeyedTable** — DStream::sharedKeyedTable(name, keyColumns, X, [X1], [X2],
+- `d/dstream_sharedtable.md` — **DStream::sharedTable** — DStream::sharedTable(name, X, [X1], [X2], .....)
+- `d/DStream_sink.md` — **DStream::sink** — 首发版本：3.00.3
+- `d/DStream_snapshotJoinEngine.md` — **DStream::snapshotJoinEngine** — 首发版本：3.00.3
+- `d/DStream_SparseReactiveStateEngine.md` — **DStream::sparseReactiveStateEngine** — 首发版本：3.00.5
+- `d/DStream_sync.md` — **DStream::sync** — 首发版本：3.00.3
+- `d/DStream_timeBucketEngine.md` — **DStream::timeBucketEngine** — 首发版本：3.00.3
+- `d/DStream_timerEngine.md` — **DStream::timerEngine** — DStream::timerEngine(interval, func, args...)
+- `d/DStream_timeSeriesEngine.md` — **DStream::timeSeriesEngine** — 首发版本：3.00.3
+- `d/DStream_udfEngine.md` — **DStream::udfEngine** — 首发版本：3.00.4
+- `d/DStream_windowJoinEngine.md` — **DStream::windowJoinEngine** — 首发版本：3.00.3
+- `d/dumpheapsample.md` — **dumpHeapSample** — dumpHeapSample(filename)
+- `d/duration.md` — **duration** — duration(X)
+- `d/dynamicGroupCumcount.md` — **dynamicGroupCumcount** — dynamicGroupCumcount(membership, prevMembership, groupCount)
+- `d/dynamicGroupCumsum.md` — **dynamicGroupCumsum** — dynamicGroupCumsum(cumValue, prevCumValue, membership, prevMembership,
+
+## e（55 个）
+
+- `e/eig.md` — **eig** — eig(A)
+- `e/elasticNet.md` — **elasticNet** — elasticNet(ds, yColName, xColNames, [alpha=1.0], [l1Ratio=0.5],
+- `e/elasticNetBasic.md` — **elasticNetBasic** — elasticNetBasic(Y, X, [mode=0], [alpha=1.0], [l1Ratio=0.5],
+- `e/elasticNetCV.md` — **elasticNetCV** — elasticNetCV(ds, yColName, xColNames, [alpha=[0.01,0.1,1.0]], [l1Ratio=0.5],
+- `e/ema.md` — **ema** — ema(X, window, warmup=false)
+- `e/emitEvent.md` — **emitEvent** — emitEvent(event, [eventTimeField], [outputName])
+- `e/enableActivePartition.md` — **enableActivePartition** — enableActivePartition(db, activeDate,
+- `e/enabledynamicscriptoptimization.md` — **enableDynamicScriptOptimization** — enableDynamicScriptOptimization()
+- `e/enableQueryMonitor.md` — **enableQueryMonitor** — enableQueryMonitor()
+- `e/enableresourcetracking.md` — **enableResourceTracking** — enableResourceTracking()
+- `e/enabletablecachepurge.md` — **enableTableCachePurge** — enableTableCachePurge(table,
+- `e/enableTablePersistence.md` — **enableTablePersistence** — enableTablePersistence(table, [asynWrite=true], [compress=true], [cacheSize],
+- `e/enabletableshareandcachepurge.md` — **enableTableShareAndCachePurge** — enableTableShareAndCachePurge(table, tableName,
+- `e/enableTableShareAndPersistence.md` — **enableTableShareAndPersistence** — enableTableShareAndPersistence(table, tableName, [asynWrite=true],
+- `e/enabletdekey.md` — **enableTDEKey** — 首发版本：3.00.3
+- `e/enabletransfercompressiontocomputenode.md` — **enableTransferCompressionToComputeNode** — 首发版本：3.00.5
+- `e/enableTSDBAsyncSorting.md` — **enableTSDBAsyncSorting** — enableTSDBAsyncSorting()
+- `e/encodeShortGenomeSeq.md` — **encodeShortGenomeSeq** — encodeShortGenomeSeq(X)
+- `e/encryptmodule.md` — **encryptModule** — 首发版本：3.00.5，3.00.4.3
+- `e/endsWith.md` — **endsWith** — endsWith(X, str)
+- `e/enlist.md` — **enlist** — enlist(X)
+- `e/eq.md` — **eq** — eq(X, Y) 或 X==Y
+- `e/eqamericanoptionpricer.md` — **eqAmericanOptionPricer** — 首发版本：3.00.5
+- `e/eqDividendCurveBuilder.md` — **eqDividendCurveBuilder** — 首发版本：3.00.5
+- `e/eqeuropeanoptionpricer.md` — **eqEuropeanOptionPricer** — 首发版本：3.00.5
+- `e/eqFloat.md` — **eqFloat** — eqFloat(X, Y, [precision=9])
+- `e/eqObj.md` — **eqObj** — eqObj(obj1, obj2, [precision])
+- `e/eqpercent.md` — **eqPercent** — eqPercent(X, Y,[toleranceLevel=0.0001])
+- `e/eqproxyvolatilitysurfacebuilder.md` — **eqProxyVolatilitySurfaceBuilder** — 首发版本：3.00.5
+- `e/eqvolatilitysurfacebuilder.md` — **eqVolatilitySurfaceBuilder** — 首发版本：3.00.5
+- `e/erase_.md` — **erase!** — erase!(obj, key|filter)
+- `e/esd.md` — **esd** — esd(data, [hybrid], [maxAnomalies], [alpha])
+- `e/euclidean.md` — **euclidean** — euclidean(X, Y)
+- `e/eval.md` — **eval** — eval(expr)
+- `e/evalTimer.md` — **evalTimer** — evalTimer(funcs, [count=1])
+- `e/ewmCorr.md` — **ewmCorr** — ewmCorr(X, [com], [span], [halfLife], [alpha], [minPeriods=0],
+- `e/ewmCov.md` — **ewmCov** — ewmCov(X, [com], [span], [halfLife], [alpha], [minPeriods=0], [adjust=true],
+- `e/ewmMean.md` — **ewmMean** — ewmMean(X, [com], [span], [halfLife], [alpha], [minPeriods=0], [adjust=true],
+- `e/ewmStd.md` — **ewmStd** — ewmStd(X, [com], [span], [halfLife], [alpha], [minPeriods=0], [adjust=true],
+- `e/ewmVar.md` — **ewmVar** — ewmVar(X, [com], [span], [halfLife], [alpha], [minPeriods=0], [adjust=true],
+- `e/exists.md` — **exists** — exists(path)
+- `e/existsCatalog.md` — **existsCatalog** — existsCatalog(catalog)
+- `e/existsDatabase.md` — **existsDatabase** — existsDatabase(dbUrl)
+- `e/existsPartition.md` — **existsPartition** — existsPartition(partitionUrl, [tableName])
+- `e/existsStreamTable.md` — **existsStreamTable** — existsStreamTable(tableName)
+- `e/existsSubscriptionTopic.md` — **existsSubscriptionTopic** — existsSubscriptionTopic([server], tableName, [actionName])
+- `e/existsTable.md` — **existsTable** — existsTable(dbUrl, tableName)
+- `e/exp.md` — **exp** — exp(X)
+- `e/exp2.md` — **exp2** — exp2(X)
+- `e/expm1.md` — **expm1** — expm1(X)
+- `e/expr.md` — **expr** — expr(args...)
+- `e/extractInstrument.md` — **extractInstrument** — 首发版本：3.00.4
+- `e/extractMktData.md` — **extractMktData** — 首发版本：3.00.4
+- `e/extractTextSchema.md` — **extractTextSchema** — extractTextSchema(filename, [delimiter], [skipRows=0])
+- `e/eye.md` — **eye** — eye(n)
+
+## f（38 个）
+
+- `f/ffill.md` — **ffill** — ffill(obj, [limit])
+- `f/ffill_.md` — **ffill!** — ffill!(obj,[limit])
+- `f/fflush.md` — **fflush** — fflush(obj)
+- `f/file.md` — **file** — file(name, [mode="r"], [isLittleEndian])
+- `f/files.md` — **files** — files(directory, [pattern])
+- `f/fill_.md` — **fill!** — fill!(obj, index, value)
+- `f/find.md` — **find** — find(X, Y)
+- `f/first.md` — **first** — first(X)
+- `f/firstHit.md` — **firstHit** — firstHit(func, X, target)
+- `f/firstNot.md` — **firstNot** — firstNot(X, [k])
+- `f/fixedLengthArrayVector.md` — **fixedLengthArrayVector** — fixedLengthArrayVector(args…)
+- `f/flatten.md` — **flatten** — flatten(X)
+- `f/flip.md` — **flip** — 是 transpose 的别名。
+- `f/float.md` — **float** — float([X])
+- `f/floor.md` — **floor** — floor(X)
+- `f/flushcomputenodememcache.md` — **flushComputeNodeMemCache** — flushComputeNodeMemCache()
+- `f/flushOLAPCache.md` — **flushOLAPCache** — flushOLAPCache()
+- `f/flushpkeycache.md` — **flushPKEYCache** — flushPKEYCache()
+- `f/flushTSDBCache.md` — **flushTSDBCache** — flushTSDBCache()
+- `f/fmin.md` — **fmin** — fmin(func, X0, [xtol=0.0001],
+- `f/fminbfgs.md` — **fminBFGS** — fminBFGS(func, X0, [fprime], [gtol=1e-5], [norm],
+- `f/fminlbfgsb.md` — **fminLBFGSB** — fminLBFGSB(func, X0, [fprime], [bounds], [m=10],
+- `f/fminncg.md` — **fminNCG** — fminNCG(func, X0, fprime, fhess, [xtol=1e-5], [maxIter],
+- `f/fminslsqp.md` — **fminSLSQP** — fminSLSQP(func, X0, [fprime], [constraints], [bounds],
+- `f/forceTriggerOrderBookSnapshot.md` — **forceTriggerOrderBookSnapshot** — 首发版本：3.00.3.1
+- `f/form.md` — **form** — form(X)
+- `f/format.md` — **format** — format(X, format)
+- `f/fromJson.md` — **fromJson** — fromJson(X)
+- `f/fromStdJson.md` — **fromStdJson** — fromStdJson(X)
+- `f/fromUTF8.md` — **fromUTF8** — fromUTF8(str, encode)
+- `f/fTest.md` — **fTest** — fTest(X, Y, [ratio=1.0], [confLevel=0.95])
+- `f/funcByName.md` — **funcByName** — funcByName(name)
+- `f/fxEuropeanOptionPricer.md` — **fxEuropeanOptionPricer** — 首发版本：3.00.4
+- `f/fxForwardPricer.md` — **fxForwardPricer** — 首发版本：3.00.4
+- `f/fxSwapPricer.md` — **fxSwapPricer** — 首发版本：3.00.4
+- `f/fxVolatilitySurfaceBuilder.md` — **fxVolatilitySurfaceBuilder** — 首发版本：3.00.4
+- `f/fy5253.md` — **fy5253** — fy5253(X, [weekday=0], [startingMonth=1], [nearest=true],
+- `f/fy5253Quarter.md` — **fy5253Quarter** — fy5253Quarter(X, [weekday=0], [startingMonth=1],
+
+## g（248 个）
+
+- `g/garch.md` — **garch** — garch(ds, endogColName, order, [maxIter=50])
+- `g/gaussiankde.md` — **gaussianKde** — gaussianKde(X,[weights],[bwMethod="scott"])
+- `g/gaussiankdepredict.md` — **gaussianKdePredict** — gaussianKdePredict(model,X)
+- `g/gaussianNB.md` — **gaussianNB** — gaussianNB(Y, X, [varSmoothing=1e-9])
+- `g/ge.md` — **ge** — ge(X, Y) 或 X>=Y
+- `g/gema.md` — **gema** — gema(X, window, alpha)
+- `g/generateMachineFingerprint.md` — **generateMachineFingerprint** — generateMachineFingerprint(outputPath)
+- `g/generateuserticket.md` — **generateUserTicket** — 首发版本：3.00.3
+- `g/genericStateIterate.md` — **genericStateIterate** — genericStateIterate(X, initial, window, func)
+- `g/genericTStateIterate.md` — **genericTStateIterate** — genericTStateIterate(T, X, initial, window, func, [leftClosed =
+- `g/genoutputcolumnsforobsnapshotengine.md` — **genOutputColumnsForOBSnapshotEngine** — genOutputColumnsForOBSnapshotEngine([basic=true], [time=true], [depth],
+- `g/genShortGenomeSeq.md` — **genShortGenomeSeq** — genShortGenomeSeq(X, window)
+- `g/geowithin.md` — **geoWithin** — geoWithin(X, polygonVertices,
+- `g/getaclauditlog.md` — **getAclAuditLog** — getAclAuditLog([userId],[startTime],[endTime],[opType])
+- `g/getActiveMaster.md` — **getActiveMaster** — getActiveMaster()
+- `g/getAggregator.md` — **getAggregator** — 是 getStreamEngine 的别名。
+- `g/getAggregatorStat.md` — **getAggregatorStat** — 是 getStreamEngineStat
+- `g/getAllCatalogs.md` — **getAllCatalogs** — getAllCatalogs()
+- `g/getAllClusters.md` — **getAllClusters** — 首发版本：3.00.3
+- `g/getAllDBGranularity.md` — **getAllDBGranularity** — getAllDBGranularity()
+- `g/getAllDBs.md` — **getAllDBs** — getAllDBs()
+- `g/getauditlog.md` — **getAuditLog** — getAuditLog([userId], [startTime], [endTime], [opType])
+- `g/getAuthenticatedUsers.md` — **getAuthenticatedUsers** — getAuthenticatedUsers()
+- `g/getauthenticateduserticket.md` — **getAuthenticatedUserTicket** — 首发版本：3.00.3
+- `g/getBackupList.md` — **getBackupList** — getBackupList(backupDir, dbPath, tableName)
+- `g/getBackupMeta.md` — **getBackupMeta** — getBackupMeta(backupDir, dbPath, partition,
+- `g/getBackupStatus.md` — **getBackupStatus** — getBackupStatus([userName])
+- `g/getCachedSymbolBaseMemSize.md` — **getCachedSymbolBaseMemSize** — getCachedSymbolBaseMemSize()
+- `g/getCacheEngineMemSize.md` — **getCacheEngineMemSize** — getCacheEngineMemSize()
+- `g/getCacheEngineStat.md` — **getCacheEngineStat** — getCacheEngineStat()
+- `g/getcacherulesforcomputegroup.md` — **getCacheRulesForComputeGroup** — 首发版本：3.00.5
+- `g/getCatalogsByCluster.md` — **getCatalogsByCluster** — 首发版本：3.00.3
+- `g/getCEPEngineMonitor.md` — **getCEPEngineMonitor** — getCEPEngineMonitor(engine, subEngineName, [monitorName])
+- `g/getCEPEngineStat%20.md` — **getCEPEngineStat** — getCEPEngineStat(engine)
+- `g/getCEPEngineSubMonitor.md` — **getCEPEngineSubMonitor** — getCEPEngineSubMonitor(engine, subEngineName, monitorName)
+- `g/getChunkPath.md` — **getChunkPath** — getChunkPath(ds)
+- `g/getChunksMeta.md` — **getChunksMeta** — getChunksMeta([chunkPath], [top = 1024])
+- `g/getClusterChunksStatus.md` — **getClusterChunksStatus** — getClusterChunksStatus()
+- `g/getClusterDFSDatabases.md` — **getClusterDFSDatabases** — getClusterDFSDatabases([includeSysDb=true])
+- `g/getClusterDFSTables.md` — **getClusterDFSTables** — getClusterDFSTables([includeSysTable=true])
+- `g/getClusterPerf.md` — **getClusterPerf** — getClusterPerf([includeMaster=false])
+- `g/getClusterStatus.md` — **getClusterStatus** — 首发版本：3.00.3
+- `g/getclustertdekeys.md` — **getClusterTDEKeys** — 首发版本：3.00.3
+- `g/getClusterVolumeUsage.md` — **getClusterVolumeUsage** — 首发版本：3.00.4
+- `g/getCompletedQueries.md` — **getCompletedQueries** — getCompletedQueries([top])
+- `g/getcomputegroupchunksstatus.md` — **getComputeGroupChunksStatus** — getComputeGroupChunksStatus([computeGroup])
+- `g/getComputeNodeCacheDetails.md` — **getComputeNodeCacheDetails** — 首发版本：3.00.3
+- `g/getcomputenodecachestat.md` — **getComputeNodeCacheStat** — getComputeNodeCacheStat()
+- `g/getcomputenodecachewarmupjobstatus.md` — **getComputeNodeCacheWarmupJobStatus** — 首发版本：3.00.3
+- `g/getcomputenodecachingdelay.md` — **getComputeNodeCachingDelay** — getComputeNodeCachingDelay()
+- `g/getConfig.md` — **getConfig** — getConfig([key])
+- `g/getConfigure.md` — **getConfigure** — 是 getConfig 的别名。
+- `g/getConnections.md` — **getConnections** — getConnections()
+- `g/getConsoleJobs.md` — **getConsoleJobs** — getConsoleJobs()
+- `g/getControllerAlias.md` — **getControllerAlias** — getControllerAlias()
+- `g/getControllerElectionTick.md` — **getControllerElectionTick** — getControllerElectionTick()
+- `g/getCurrentCatalog.md` — **getCurrentCatalog** — getCurrentCatalog()
+- `g/getCurrentSessionAndUser.md` — **getCurrentSessionAndUser** — getCurrentSessionAndUser()
+- `g/getcurrenttdekeyversion.md` — **getCurrentTDEKeyVersion** — 首发版本：3.00.3
+- `g/getDatabaseClusterReplicationStatus.md` — **getDatabaseClusterReplicationStatus** — getDatabaseClusterReplicationStatus()
+- `g/getDatabasesByCluster.md` — **getDatabasesByCluster** — 首发版本：3.00.3
+- `g/getDatanodeRestartInterval.md` — **getDatanodeRestartInterval** — getDatanodeRestartInterval()
+- `g/getDataViewEngine.md` — **getDataViewEngine** — getDataViewEngine([CEPEngine], dataViewEngineName)
+- `g/getDBAccess.md` — **getDBAccess** — getDBAccess(dbUrl)
+- `g/getdfsdatabasebyowner.md` — **getDFSDatabasesByOwner** — getDFSDatabasesByOwner(user)
+- `g/getDFSDatabases.md` — **getDFSDatabases** — getDFSDatabases()
+- `g/getDfsRebalanceConcurrency.md` — **getDfsRebalanceConcurrency** — getDfsRebalanceConcurrency()
+- `g/getDfsRecoveryConcurrency.md` — **getDfsRecoveryConcurrency** — getDfsRecoveryConcurrency()
+- `g/getDFSTablesByDatabase.md` — **getDFSTablesByDatabase** — getDFSTablesByDatabase(directory)
+- `g/getDiskIOStat.md` — **getDiskIOStat** — getDiskIOStat()
+- `g/getdynamicconfig.md` — **getDynamicConfig** — getDynamicConfig()
+- `g/getenablenullsafejoin.md` — **getEnableNullSafeJoin** — 首发版本：3.00.3
+- `g/getEnv.md` — **getEnv** — getEnv(name, [default])
+- `g/getEventListener.md` — **getEventListener** — getEventListener([listenerName])
+- `g/getExecDir.md` — **getExecDir** — 首发版本：3.00.4，3.00.3.1
+- `g/getFunctionViews.md` — **getFunctionViews** — getFunctionViews()
+- `g/getGroupAccess.md` — **getGroupAccess** — getGroupAccess(groupIds)
+- `g/getGroupAccessByCluster.md` — **getGroupAccessByCluster** — 首发版本：3.00.3
+- `g/getGroupList.md` — **getGroupList** — getGroupList()
+- `g/getGroupListOfAllClusters.md` — **getGroupListOfAllClusters** — 首发版本：3.00.3
+- `g/getGroupsByUserId.md` — **getGroupsByUserId** — getGroupsByUserId(userId)
+- `g/getHaMvccLeader.md` — **getHaMvccLeader** — 首发版本：3.00.5
+- `g/getHaMvccRaftGroups.md` — **getHaMvccRaftGroups** — 首发版本：3.00.5
+- `g/getHaMvccTableInfo.md` — **getHaMvccTableInfo** — 首发版本：3.00.5
+- `g/getHomeDir.md` — **getHomeDir** — getHomeDir()
+- `g/getinstrumentcalendar.md` — **getInstrumentCalendar** — 首发版本：3.00.4.1
+- `g/getInstrumentCoupon.md` — **getInstrumentCoupon** — 首发版本：3.00.4.1
+- `g/getinstrumentcreditrating.md` — **getInstrumentCreditRating** — 首发版本：3.00.4.1
+- `g/getinstrumentcurrency.md` — **getInstrumentCurrency** — 首发版本：3.00.4.1
+- `g/getinstrumentcurrencypair.md` — **getInstrumentCurrencyPair** — 首发版本：3.00.4.1
+- `g/getInstrumentDayCountConvention.md` — **getInstrumentDayCountConvention** — 首发版本：3.00.4.1
+- `g/getinstrumentdelivery.md` — **getInstrumentDelivery** — 首发版本：3.00.4.1
+- `g/getinstrumentdirection.md` — **getInstrumentDirection** — 首发版本：3.00.4.1
+- `g/getinstrumentexpiry.md` — **getInstrumentExpiry** — 首发版本：3.00.4.1
+- `g/getinstrumentfardelivery.md` — **getInstrumentFarDelivery** — 首发版本：3.00.4.1
+- `g/getinstrumentfarexpiry.md` — **getInstrumentFarExpiry** — 首发版本：3.00.4.1
+- `g/getInstrumentFarStrike.md` — **getInstrumentFarStrike** — 首发版本：3.00.4.1
+- `g/getInstrumentField.md` — **getInstrumentField** — 首发版本：3.00.4.1
+- `g/getinstrumentfixeddaycountconvention.md` — **getInstrumentFixedDayCountConvention** — 首发版本：3.00.4.1
+- `g/getinstrumentfixedrate.md` — **getInstrumentFixedRate** — 首发版本：3.00.4.1
+- `g/getinstrumentfloatingdaycountconvention.md` — **getInstrumentFloatingDayCountConvention** — 首发版本：3.00.4.1
+- `g/getinstrumentfrequency.md` — **getInstrumentFrequency** — 首发版本：3.00.4.1
+- `g/getinstrumentiborindex.md` — **getInstrumentIborIndex** — 首发版本：3.00.4.1
+- `g/getinstrumentinstrumentid.md` — **getInstrumentInstrumentId** — 首发版本：3.00.4.1
+- `g/getinstrumentissueprice.md` — **getInstrumentIssuePrice** — 首发版本：3.00.4.1
+- `g/getInstrumentKeys.md` — **getInstrumentKeys** — 首发版本：3.00.4.1
+- `g/getinstrumentmaturity.md` — **getInstrumentMaturity** — 首发版本：3.00.4.1
+- `g/getinstrumentneardelivery.md` — **getInstrumentNearDelivery** — 首发版本：3.00.4.1
+- `g/getinstrumentnearexpiry.md` — **getInstrumentNearExpiry** — 首发版本：3.00.4.1
+- `g/getinstrumentnearstrike.md` — **getInstrumentNearStrike** — 首发版本：3.00.4.1
+- `g/getinstrumentnominal.md` — **getInstrumentNominal** — 首发版本：3.00.4.1
+- `g/getinstrumentnominalcouponrate.md` — **getInstrumentNominalCouponRate** — 首发版本：3.00.4.1
+- `g/getinstrumentnotionalamount.md` — **getInstrumentNotionalAmount** — 首发版本：3.00.4.3
+- `g/getinstrumentnotionalcurrency.md` — **getInstrumentNotionalCurrency** — 首发版本：3.00.4.3
+- `g/getinstrumentpayofftype.md` — **getInstrumentPayoffType** — 首发版本：3.00.4.1
+- `g/getinstrumentpayreceive.md` — **getInstrumentPayReceive** — 首发版本：3.00.4.1
+- `g/getinstrumentrate.md` — **getInstrumentRate** — 首发版本：3.00.4.1
+- `g/getinstrumentsettlement.md` — **getInstrumentSettlement** — 首发版本：3.00.4.1
+- `g/getinstrumentspread.md` — **getInstrumentSpread** — 首发版本：3.00.4.1
+- `g/getinstrumentstart.md` — **getInstrumentStart** — 首发版本：3.00.4.1
+- `g/getinstrumentstrike.md` — **getInstrumentStrike** — 首发版本：3.00.4.1
+- `g/getinstrumentsubtype.md` — **getInstrumentSubType** — 首发版本：3.00.4.1
+- `g/getinstrumentunderlying.md` — **getInstrumentUnderlying** — 首发版本：3.00.4.1
+- `g/getipblacklist.md` — **getIPBlackList** — 首发版本：3.00.3
+- `g/getIPConnectionLimit.md` — **getIPConnectionLimit** — 首发版本：3.00.4
+- `g/getipwhitelist.md` — **getIPWhiteList** — 首发版本：3.00.3
+- `g/getJobMessage.md` — **getJobMessage** — getJobMessage(jobId)
+- `g/getJobReturn.md` — **getJobReturn** — getJobReturn(jobId, [blocking=false])
+- `g/getJobStat.md` — **getJobStat** — getJobStat()
+- `g/getJobStatus.md` — **getJobStatus** — getJobStatus(jobId)
+- `g/getLeftStream.md` — **getLeftStream** — getLeftStream(joinEngine)
+- `g/getLevelFileIndexCacheStats.md` — **getLevelFileIndexCacheStatus** — getLevelFileIndexCacheStatus()
+- `g/getLicenseExpiration.md` — **getLicenseExpiration** — getLicenseExpiration()
+- `g/getloadedmodules.md` — **getLoadedModules** — 首发版本：3.00.5，3.00.4.3
+- `g/getloadedplugins.md` — **getLoadedPlugins** — getLoadedPlugins()
+- `g/getLocalIOTDBStaticTable.md` — **getLocalIOTDBStaticTable** — 首发版本：3.00.3
+- `g/getMarketCalendar.md` — **getMarketCalendar** — getMarketCalendar(marketName, [startDate], [endDate])
+- `g/getMasterReplicationStatus.md` — **getMasterReplicationStatus** — getMasterReplicationStatus([limit=-1])
+- `g/getMCPPrompt.md` — **getMCPPrompt** — 首发版本：3.00.4
+- `g/getmemlimitofalltempresults.md` — **getMemLimitOfAllTempResults** — getMemLimitOfAllTempResults()
+- `g/getMemLimitOfQueryResult.md` — **getMemLimitOfQueryResult** — getMemLimitOfQueryResult()
+- `g/getMemLimitOfTaskGroupResult.md` — **getMemLimitOfTaskGroupResult** — getMemLimitOfTaskGroupResult()
+- `g/getMemoryStat.md` — **getMemoryStat** — getMemoryStat()
+- `g/getMktData.md` — **getMktData** — getMktData(dataSet, type, date, name)
+- `g/getNodeAlias.md` — **getNodeAlias** — getNodeAlias()
+- `g/getNodeHost.md` — **getNodeHost** — getNodeHost()
+- `g/getNodePort.md` — **getNodePort** — getNodePort()
+- `g/getNodeType.md` — **getNodeType** — getNodeType()
+- `g/getOauthClientSecret.md` — **getOauthClientSecret** — 首发版本：3.00.5，3.00.4.1，3.00.3.2
+- `g/getOLAPCachedSymbolBaseMemSize.md` — **getOLAPCachedSymbolBaseMemSize** — getOLAPCachedSymbolBaseMemSize()
+- `g/getOLAPCacheEngineSize.md` — **getOLAPCacheEngineSize** — getOLAPCacheEngineSize()
+- `g/getOLAPCacheEngineStat.md` — **getOLAPCacheEngineStat** — getOLAPCacheEngineStat()
+- `g/getOrcaCheckpointConfig.md` — **getOrcaCheckpointConfig** — 首发版本：3.00.3
+- `g/getOrcaCheckpointJobInfo.md` — **getOrcaCheckpointJobInfo** — 首发版本：3.00.3
+- `g/getOrcaCheckpointSubjobInfo.md` — **getOrcaCheckpointSubjobInfo** — 首发版本：3.00.3
+- `g/getOrcaDataLineage.md` — **getOrcaDataLineage** — 首发版本：3.00.4
+- `g/getOrcaStateMachineEventTaskStatus.md` — **getOrcaStateMachineEventTaskStatus** — 首发版本：3.00.3
+- `g/getOrcaStreamEngineMeta.md` — **getOrcaStreamEngineMeta** — 首发版本：3.00.3
+- `g/getOrcaStreamTableMeta.md` — **getOrcaStreamTableMeta** — 首发版本：3.00.3
+- `g/getOrcaStreamTaskSubscriptionMeta.md` — **getOrcaStreamTaskSubscriptionMeta** — 首发版本：3.00.3
+- `g/getOS.md` — **getOS** — getOS()
+- `g/getOSBit.md` — **getOSBit** — getOSBit()
+- `g/getPerf.md` — **getPerf** — getPerf()
+- `g/getPersistenceMeta.md` — **getPersistenceMeta** — getPersistenceMeta(table)
+- `g/getpkeycompactiontaskstatus.md` — **getPKEYCompactionTaskStatus** — getPKEYCompactionTaskStatus([count])
+- `g/getpkeymetadata.md` — **getPKEYMetaData** — getPKEYMetaData()
+- `g/getprefetchcomputenodedata.md` — **getPrefetchComputeNodeData** — getPrefetchComputeNodeData()
+- `g/getQueryStatus.md` — **getQueryStatus** — getQueryStatus()
+- `g/getRaftElectionTick.md` — **getRaftElectionTick** — getRaftElectionTick(groupId)
+- `g/getRaftLearnersStatus.md` — **getRaftLearnersStatus** — getRaftLearnersStatus(groupId)
+- `g/getRawScriptLog.md` — **getRawScriptLog** — 首发版本：3.00.4，3.00.3.1
+- `g/getreactivemetrics.md` — **getReactiveMetrics** — getReactiveMetrics(name)
+- `g/getRecentJobs.md` — **getRecentJobs** — getRecentJobs([n])
+- `g/getRecentSlaveReplicationInfo.md` — **getRecentSlaveReplicationInfo** — getRecentSlaveReplicationInfo()
+- `g/getRecoveryTaskStatus.md` — **getRecoveryTaskStatus** — getRecoveryTaskStatus()
+- `g/getRecoveryWorkerNum.md` — **getRecoveryWorkerNum** — getRecoveryWorkerNum()
+- `g/getRedoLogGCStat.md` — **getRedoLogGCStat** — getRedoLogGCStat()
+- `g/getRightStream.md` — **getRightStream** — getRightStream(joinEngine)
+- `g/getrules.md` — **getRules** — getRules([engineName])
+- `g/getRunningQueries.md` — **getRunningQueries** — getRunningQueries()
+- `g/getScheduledJobs.md` — **getScheduledJobs** — getScheduledJobs([jobIdPattern])
+- `g/getSchemaByCatalog.md` — **getSchemaByCatalog** — getSchemaByCatalog(catalog)
+- `g/getSchemasByCluster.md` — **getSchemasByCluster** — 首发版本：3.00.3
+- `g/getsessionexpiredtime.md` — **getSessionExpiredTime** — 首发版本：3.00.3
+- `g/getSessionMemoryStat.md` — **getSessionMemoryStat** — getSessionMemoryStat()
+- `g/getslavereplicationexecutionstatus.md` — **getSlaveReplicationExecutionStatus** — getSlaveReplicationExecutionStatus()
+- `g/getslavereplicationqueuestatus.md` — **getSlaveReplicationQueueStatus** — getSlaveReplicationQueueStatus()
+- `g/getSlaveReplicationStatus.md` — **getSlaveReplicationStatus** — getSlaveReplicationStatus([limit=-1])
+- `g/getSnapshotMsgId.md` — **getSnapshotMsgId** — getSnapshotMsgId(engine)
+- `g/getSparseReactiveMetrics.md` — **getSparseReactiveMetrics** — getSparseReactiveMetrics(name)
+- `g/getstatelessmetrics.md` — **getStatelessMetrics** — getStatelessMetrics(name)
+- `g/getStreamEngine.md` — **getStreamEngine** — getStreamEngine(name)
+- `g/getstreamenginelist.md` — **getStreamEngineList** — getStreamEngineList()
+- `g/getStreamEngineStat.md` — **getStreamEngineStat** — getStreamEngineStat()
+- `g/getStreamingLeader.md` — **getStreamingLeader** — getStreamingLeader(groupId)
+- `g/getStreamingRaftGroups.md` — **getStreamingRaftGroups** — getStreamingRaftGroups()
+- `g/getStreamingSQLStatus.md` — **getStreamingSQLStatus** — 首发版本：3.00.4
+- `g/getstreamingsqlsubscriptioninfo.md` — **getStreamingSQLSubscriptionInfo** — 首发版本：3.00.5
+- `g/getStreamingStat.md` — **getStreamingStat** — getStreamingStat([stat])
+- `g/getstreamtablecacheoffset.md` — **getStreamTableCacheOffset** — getStreamTableCacheOffset(streamTable)
+- `g/getStreamTableChangelog.md` — **getStreamTableChangelog** — 首发版本：3.00.5
+- `g/getStreamTableFilterColumn.md` — **getStreamTableFilterColumn** — getStreamTableFilterColumn(streamTable)
+- `g/getstreamtables.md` — **getStreamTables** — getStreamTables([option=0])
+- `g/getSubscriptionTopic.md` — **getSubscriptionTopic** — getSubscriptionTopic(tableName, [actionName])
+- `g/getSupportBundle.md` — **getSupportBundle** — getSupportBundle([dir])
+- `g/getSystemCpuUsage.md` — **getSystemCpuUsage** — getSystemCpuUsage()
+- `g/getSystemLoadAvg.md` — **getSystemLoadAvg** — getSystemLoadAvg()
+- `g/gettableaccess.md` — **getTableAccess** — getTableAccess(dbUrl, table)
+- `g/getTableAccessByCluster.md` — **getTableAccessByCluster** — 首发版本：3.00.3
+- `g/getTables.md` — **getTables** — getTables(dbHandle)
+- `g/getTablesByCluster.md` — **getTablesByCluster** — 首发版本：3.00.3
+- `g/getTableSchemaByCluster.md` — **getTableSchemaByCluster** — 首发版本：3.00.3
+- `g/getTablesOfAllClusters.md` — **getTablesOfAllClusters** — 首发版本：3.00.3
+- `g/getTablet.md` — **getTablet** — getTablet(table, partition)
+- `g/getTabletsMeta.md` — **getTabletsMeta** — getTabletsMeta([chunkPath], [tableName], [diskUsage=false],
+- `g/getTopicProcessedOffset.md` — **getTopicProcessedOffset** — getTopicProcessedOffset(topic)
+- `g/gettradingcalendartype.md` — **getTradingCalendarType** — getTradingCalendarType(marketName)
+- `g/getTransactionStatus.md` — **getTransactionStatus** — getTransactionStatus()
+- `g/getTSDBCachedSymbolBaseMemSize.md` — **getTSDBCachedSymbolBaseMemSize** — getTSDBCachedSymbolBaseMemSize()
+- `g/getTSDBCacheEngineSize.md` — **getTSDBCacheEngineSize** — getTSDBCacheEngineSize()
+- `g/getTSDBCompactionTaskStatus.md` — **getTSDBCompactionTaskStatus** — getTSDBCompactionTaskStatus([count])
+- `g/gettsdbdatastat.md` — **getTSDBDataStat** — getTSDBDataStat([dbName=""],[tableName=""],[chunkId])
+- `g/getTSDBMetaData.md` — **getTSDBMetaData** — getTSDBMetaData()
+- `g/getTSDBSortKeyEntry.md` — **getTSDBSortKeyEntry** — getTSDBSortKeyEntry(chunkId, [tableName])
+- `g/gettsdbtableindexcachestatus.md` — **getTSDBTableIndexCacheStatus** — getTSDBTableIndexCacheStatus()
+- `g/getUdfEngineVariable.md` — **getUdfEngineVariable** — 首发版本：3.00.4
+- `g/getUnresolvedTxn.md` — **getUnresolvedTxn** — getUnresolvedTxn()
+- `g/getUserAccess.md` — **getUserAccess** — getUserAccess([userIds], [finalAccess=false])
+- `g/getUserAccessByCluster.md` — **getUserAccessByCluster** — 首发版本：3.00.3
+- `g/getUserHardwareUsage.md` — **getUserHardwareUsage** — getUserHardwareUsage([from=0], [to])
+- `g/getUserList.md` — **getUserList** — getUserList()
+- `g/getUserListOfAllClusters.md` — **getUserListOfAllClusters** — 首发版本：3.00.3
+- `g/getUserLockedStatus.md` — **getUserLockedStatus** — 首发版本：3.00.3
+- `g/getUserPasswordStatus.md` — **getUserPasswordStatus** — 首发版本：3.00.3
+- `g/getUsersByGroupId.md` — **getUsersByGroupId** — getUsersByGroupId(groupId)
+- `g/getUserTableAccessRecords.md` — **getUserTableAccessRecords** — getUserTableAccessRecords([from=0], [to])
+- `g/getWorkDir.md` — **getWorkDir** — 首发版本：3.00.4，3.00.3.1
+- `g/glm.md` — **glm** — glm(ds, yColName, xColNames, [family], [link], [tolerance=1e-6],
+- `g/gmd5.md` — **gmd5** — 首发版本：3.00.3
+- `g/gmm.md` — **gmm** — gmm(X, k, [maxIter=300], [tolerance=1e-4], [randomSeed], [mean],
+- `g/gmtime.md` — **gmtime** — gmtime(X)
+- `g/gpfit.md` — **gpFit** — gpFit(engine, [programNum=1], [programCorr=false])
+- `g/gppredict.md` — **gpPredict** — gpPredict(engine, input, [programNum = 1], [groupCol],
+- `g/gram.md` — **gram** — gram(ds, [colNames], [subMean], [normalize])
+- `g/gramSchmidt.md` — **gramSchmidt** — gramSchmidt(X, [normalize = false])
+- `g/grant.md` — **grant** — grant(userId|groupId, accessType, [objs])
+- `g/groups.md` — **groups** — groups(X, [mode='dict'])
+- `g/gt.md` — **gt** — gt(X, Y) 或 X>Y
+
+## h（13 个）
+
+- `h/haMvccTable.md` — **haMvccTable** — 首发版本：3.00.5
+- `h/hashBucket.md` — **hashBucket** — hashBucket(X, buckets)
+- `h/hasNull.md` — **hasNull** — hasNull(X)
+- `h/haStreamTable.md` — **haStreamTable** — haStreamTable(raftGroup, table, tableName, cacheSize, [keyColumn],
+- `h/head.md` — **head** — head(X, [n=1])
+- `h/hex.md` — **hex** — hex(X, [reverse=false])
+- `h/highDouble.md` — **highDouble** — highDouble(X)
+- `h/highlong.md` — **highLong** — highLong(X)
+- `h/histogram.md` — **histogram** — 首发版本：3.00.5，3.00.4.1，3.00.3.2
+- `h/histogram2d.md` — **histogram2d** — histogram2d(X, Y, [bins=10], [range], [density=false],
+- `h/hmac.md` — **hmac** — hmac(key, message, [digest='sha256'])
+- `h/hour.md` — **hour** — hour(X)
+- `h/hourOfDay.md` — **hourOfDay** — hourOfDay(X)
+
+## ho_funcs（37 个）
+
+- `ho_funcs/accumulate.md` — **accumulate** — accumulate(func, X, [init],
+- `ho_funcs/aggrTopN.md` — **aggrTopN** — aggrTopN(func, funcArgs, sortingCol, top, [ascending=true])
+- `ho_funcs/all.md` — **all** — all(func, args...)
+- `ho_funcs/any.md` — **any** — any(func, args...)
+- `ho_funcs/byColumn.md` — **byColumn** — byColumn(func, X, [Y])
+- `ho_funcs/byRow.md` — **byRow** — byRow(func, X, [Y])
+- `ho_funcs/call.md` — **call** — call(func, args...)
+- `ho_funcs/composition.md` — **复合函数** — 复合函数是由两个函数组合在一起的函数，相当于 f(g(x))。其中 x
+- `ho_funcs/contextby.md` — **contextby** — contextby(func, funcArgs, groupingCol, [sortingCol],
+- `ho_funcs/cross.md` — **cross** — cross(func, X, [Y])
+- `ho_funcs/each.md` — **each** — each(func, args...)
+- `ho_funcs/eachLeft.md` — **eachLeft** — eachLeft(func, X, Y, [assembleRule|consistent=false])
+- `ho_funcs/eachPost.md` — **eachPost** — eachPost(func, X, [post],
+- `ho_funcs/eachPre.md` — **eachPre** — eachPre(func, X, [pre], [assembleRule|consistent=false])
+- `ho_funcs/eachRight.md` — **eachRight** — eachRight(func, X, Y,
+- `ho_funcs/groupby.md` — **groupby** — groupby(func, funcArgs, groupingCol)
+- `ho_funcs/ho_funcs.md` — **高阶函数** — DolphinDB内置的高阶函数，可以扩展或增强函数或者运算符的功能。高阶函数以一个函数与数据对象作为输入内容，类似于一个函数和数据之间的管道。通常，输入数据首…
+- `ho_funcs/loop.md` — **loop** — loop(func, args...)
+- `ho_funcs/moving.md` — **moving** — moving(func, funcArgs, window, [minPeriods])
+- `ho_funcs/movingvalid.md` — **movingValid** — 首发版本：3.00.5
+- `ho_funcs/nothrowcall.md` — **nothrowCall** — 首发版本：3.00.5
+- `ho_funcs/nullCompare.md` — **nullCompare** — nullCompare(func, X, Y)
+- `ho_funcs/pcall.md` — **pcall** — pcall(func, args...)
+- `ho_funcs/pcross.md` — **pcross** — pcross(func, X, [Y])
+- `ho_funcs/peach.md` — **peach** — peach(func, args...)
+- `ho_funcs/pivot.md` — **pivot** — pivot(func, funcArgs, rowAlignCol, colAlignCol)
+- `ho_funcs/ploop.md` — **ploop** — ploop(func, args...)
+- `ho_funcs/reduce.md` — **reduce** — reduce(func, X, [init], [assembleRule|consistent=false])
+- `ho_funcs/rolling.md` — **rolling** — rolling(func, funcArgs, window, [step=1])
+- `ho_funcs/rowgroupby.md` — **rowGroupby** — rowGroupby(func, funcArgs, groupingCol, [mode='tuple'],
+- `ho_funcs/segmentby.md` — **segmentby** — segmentby(func, funcArgs, segment)
+- `ho_funcs/talib.md` — **talib** — talib(func, args...)
+- `ho_funcs/tmoving.md` — **tmoving** — tmoving(func, T, funcArgs, window, [excludedPeriod])
+- `ho_funcs/twindow.md` — **twindow** — twindow(func, funcArgs, T, range, [prevailing=false],
+- `ho_funcs/unifiedCall.md` — **unifiedCall** — unifiedCall(func, args)
+- `ho_funcs/window.md` — **window** — window(func, funcArgs, range)
+- `ho_funcs/withNullFill.md` — **withNullFill** — withNullFill(func, x, y, fillValue)
+
+## i（87 个）
+
+- `i/ifirstHit.md` — **ifirstHit** — ifirstHit(func, X, target)
+- `i/ifirstNot.md` — **ifirstNot** — ifirstNot(X)
+- `i/ifNull.md` — **ifNull** — ifNull(X, Y)
+- `i/ifValid.md` — **ifValid** — ifValid(X,Y)
+- `i/iif.md` — **iif** — iif(cond, trueResult, falseResult)
+- `i/ilastNot.md` — **ilastNot** — ilastNot(X)
+- `i/ilike.md` — **ilike** — ilike(X, pattern)
+- `i/imax.md` — **imax** — imax(X)
+- `i/imaxlast.md` — **imaxLast** — imaxLast(X)
+- `i/imin.md` — **imin** — imin(X)
+- `i/iminlast.md` — **iminLast** — iminLast(X)
+- `i/imr.md` — **imr** — imr(ds, initValue, mapFunc, [reduceFunc], [finalFunc], terminateFunc,
+- `i/imtForceGCRedolog.md` — **imtForceGCRedolog** — imtForceGCRedolog(tid)
+- `i/imtUpdateChunkVersionOnDataNode.md` — **imtUpdateChunkVersionOnDataNode** — imtUpdateChunkVersionOnDataNode(chunkId, version)
+- `i/in.md` — **in** — in(X, Y)
+- `i/indexedSeries.md` — **indexedSeries** — indexedSeries(index, value)
+- `i/indexedTable.md` — **indexedTable** — indexedTable(keyColumns, X, [X1], [X2], .....)
+- `i/initcap.md` — **initcap** — initcap(X)
+- `i/initimoltpcheckpointencryption.md` — **initIMOLTPCheckpointEncryption** — 首发版本：3.00.3
+- `i/installmodule.md` — **installModule** — 首发版本：3.00.5，3.00.4.3
+- `i/installPlugin.md` — **installPlugin** — installPlugin(pluginName, [pluginVersion],
+- `i/instrumentPricer.md` — **instrumentPricer** — 首发版本：3.00.4
+- `i/int.md` — **int** — int(X)
+- `i/int128.md` — **int128** — int128(X)
+- `i/integral.md` — **integral** — integral(func, start, end, [start2], [end2])
+- `i/interpolate.md` — **interpolate** — interpolate(X, [method='linear'], [limit], [inplace=false],
+- `i/intersection.md` — **intersection** — intersection(X, Y) 或 X&Y
+- `i/invBeta.md` — **invBeta** — invBeta(alpha, beta, X)
+- `i/invBinomial.md` — **invBinomial** — invBinomial(trials, p, X)
+- `i/invChiSquare.md` — **invChiSquare** — invChiSquare(df, X)
+- `i/inverse.md` — **inverse** — inverse(X)
+- `i/invExp.md` — **invExp** — invExp(mean, X)
+- `i/invF.md` — **invF** — invF(numeratorDF, denominatorDF, X)
+- `i/invGamma.md` — **invGamma** — invGamma(shape, scale, X)
+- `i/invLogistic.md` — **invLogistic** — invLogistic(mean, s, X)
+- `i/invNormal.md` — **invNormal** — invNormal(mean, stdev, X)
+- `i/invPoisson.md` — **invPoisson** — invPoisson(mean, X)
+- `i/invStudent.md` — **invStudent** — invStudent(df, X)
+- `i/invUniform.md` — **invUniform** — invUniform(lower, upper, X)
+- `i/invWeibull.md` — **invWeibull** — invWeibull(alpha, beta, X)
+- `i/ipaddr.md` — **ipaddr** — ipaddr(X)
+- `i/irCrossCurrencyCurveBuilder.md` — **irCrossCurrencyCurveBuilder** — 首发版本：3.00.4
+- `i/irDepositPricer.md` — **irDepositPricer** — 首发版本：3.00.4
+- `i/irFixedFloatingSwapPricer.md` — **irFixedFloatingSwapPricer** — 首发版本：3.00.4
+- `i/irSingleCurrencyCurveBuilder.md` — **irSingleCurrencyCurveBuilder** — 首发版本：3.00.4
+- `i/isAlNum.md` — **isAlNum** — isAlNum(X)
+- `i/isAlpha.md` — **isAlpha** — isAlpha(X)
+- `i/isCheckpointingHaMvcc.md` — **isCheckpointingHaMvcc** — 首发版本：3.00.5
+- `i/isChunkNodeInit.md` — **isChunkNodeInit** — 是 isDataNodeInitialized
+- `i/isclientauth.md` — **isClientAuth** — isClientAuth()
+- `i/isColumnarTuple.md` — **isColumnarTuple** — isColumnarTuple(X)
+- `i/isControllerInitialized.md` — **isControllerInitialized** — isControllerInitialized()
+- `i/isDataNodeInitialized.md` — **isDataNodeInitialized** — isDataNodeInitialized()
+- `i/isDigit.md` — **isDigit** — isDigit(X)
+- `i/isDuplicated.md` — **isDuplicated** — isDuplicated(X, [keep=FIRST])
+- `i/isIndexedMatrix.md` — **isIndexedMatrix** — isIndexedMatrix(X)
+- `i/isIndexedSeries.md` — **isIndexedSeries** — isIndexedSeries(X)
+- `i/isLeapYear.md` — **isLeapYear** — isLeapYear(X)
+- `i/isLoggedIn.md` — **isLoggedIn** — isLoggedIn(userId)
+- `i/isLower.md` — **isLower** — isLower(X)
+- `i/isMonotonic.md` — **isMonotonic** — 是 isMonotonicIncreasing 的别名。
+- `i/isMonotonicDecreasing.md` — **isMonotonicDecreasing** — isMonotonicDecreasing(X)
+- `i/isMonotonicIncreasing.md` — **isMonotonicIncreasing** — isMonotonicIncreasing(X)
+- `i/isMonthEnd.md` — **isMonthEnd** — isMonthEnd(X)
+- `i/isMonthStart.md` — **isMonthStart** — isMonthStart(X)
+- `i/isNanInf.md` — **isNanInf** — isNanInf(X, [includeNull=false])
+- `i/isNothing.md` — **isNothing** — isNothing(X)
+- `i/isNull.md` — **isNull** — isNull(X)
+- `i/isNumeric.md` — **isNumeric** — isNumeric(X)
+- `i/isOrderedDict.md` — **isOrderedDict** — isOrderedDict(X)
+- `i/isort.md` — **isort** — isort(X, [ascending=true])
+- `i/isort_.md` — **isort!** — isort!(X, [ascending=true], indices)
+- `i/isortTop.md` — **isortTop** — isortTop(X, top, [ascending=true])
+- `i/isPeak.md` — **isPeak** — isPeak(X, [strict=true])
+- `i/isQuarterEnd.md` — **isQuarterEnd** — isQuarterEnd(X)
+- `i/isQuarterStart.md` — **isQuarterStart** — isQuarterStart(X)
+- `i/isSorted.md` — **isSorted** — isSorted(X, [ascending=true])
+- `i/isSpace.md` — **isSpace** — isSpace(X)
+- `i/isTitle.md` — **isTitle** — isTitle(X)
+- `i/istransfercompressiontocomputenodeenabled.md` — **isTransferCompressionToComputeNodeEnabled** — isTransferCompressionToComputeNodeEnabled()
+- `i/isUpper.md` — **isUpper** — isUpper(X)
+- `i/isValid.md` — **isValid** — isValid(X)
+- `i/isValley.md` — **isValley** — isValley(X, [strict=true])
+- `i/isVoid.md` — **isVoid** — isVoid(X)
+- `i/isYearEnd.md` — **isYearEnd** — isYearEnd(X)
+- `i/isYearStart.md` — **isYearStart** — isYearStart(X)
+- `i/iterate.md` — **iterate** — iterate(init, coeffs, input)
+
+## j（3 个）
+
+- `j/join!.md` — **join!** — join!(X, Y)
+- `j/join.md` — **join** — join(X,Y) 或 X<-Y
+- `j/jsonextract.md` — **jsonExtract** — jsonExtract(json, location, type)
+
+## k（12 个）
+
+- `k/kama.md` — **kama** — kama(X, window)
+- `k/kendall.md` — **kendall** — kendall(X, Y)
+- `k/kernelRidge.md` — **kernelRidge** — 首发版本：3.00.3
+- `k/keyedStreamTable.md` — **keyedStreamTable** — keyedStreamTable(keyColumn, X, [X1], [X2], .....)
+- `k/keyedTable.md` — **keyedTable** — keyedTable(keyColumns, X, [X1], [X2], .....)
+- `k/keys.md` — **keys** — keys(X)
+- `k/kmeans.md` — **kmeans** — kmeans(X, k, [maxIter=300], [randomSeed], [init='random'])
+- `k/knn.md` — **knn** — knn(Y, X, type, nNeighbor, [power=2])
+- `k/kroghinterpolate.md` — **kroghInterpolate** — kroghInterpolate(X, Y, newX, [der=0])
+- `k/kroghinterpolatefit.md` — **kroghInterpolateFit** — kroghInterpolateFit(X, Y, [der=0])
+- `k/ksTest.md` — **ksTest** — ksTest(X, Y)
+- `k/kurtosis.md` — **kurtosis** — kurtosis(X, [biased=true])
+
+## l（65 个）
+
+- `l/lasso.md` — **lasso** — lasso(ds, yColName, xColNames, [alpha=1.0], [intercept=true],
+- `l/lassoBasic.md` — **lassoBasic** — lassoBasic(Y, X, [mode=0], [alpha=1.0], [intercept=true], [normalize=false],
+- `l/lassoCV.md` — **lassoCV** — lassoCV(ds, yColName, xColNames, [alphas=[0.01,0.1,1.0]], [intercept=true],
+- `l/last.md` — **last** — last(X)
+- `l/lastNot.md` — **lastNot** — lastNot(X, [k])
+- `l/lastWeekOfMonth.md` — **lastWeekOfMonth** — lastWeekOfMonth(X, [weekday=0], [offset],
+- `l/latestIndexedTable.md` — **latestIndexedTable** — latestIndexedTable(keyColumns, timeColumn, [X1], [X2], .....)
+- `l/latestkeyedstreamtable.md` — **latestKeyedStreamTable** — latestKeyedStreamTable(keyColumns, timeColumn, [X1], [X2],
+- `l/latestKeyedTable.md` — **latestKeyedTable** — latestKeyedTable(keyColumns, timeColumn, [X1], [X2], .....)
+- `l/le.md` — **le** — le(X, Y) 或 X<=Y
+- `l/left.md` — **left** — left(X,n)
+- `l/lfill.md` — **lfill** — lfill(obj)
+- `l/lfill_.md` — **lfill!** — lfill!(obj)
+- `l/license.md` — **license** — license([fileName], [pubKeyFile], [read=false])
+- `l/like.md` — **like** — like(X, pattern)
+- `l/linearinterpolatefit.md` — **linearInterpolateFit** — linearInterpolateFit(X, Y, [fillValue], [sorted=false])
+- `l/linearTimeTrend.md` — **linearTimeTrend** — linearTimeTrend(X, window)
+- `l/linprog.md` — **linprog** — linprog(f, [A], [b], [Aeq], [beq], [lb], [ub], [method='simplex'])
+- `l/listAllMarkets.md` — **listAllMarkets** — 首发版本：3.00.3
+- `l/listMCPPrompts.md` — **listMCPPrompts** — 首发版本：3.00.4
+- `l/listMCPTools.md` — **listMCPTools** — 首发版本：3.00.4
+- `l/listPluginsByCluster.md` — **listPluginsByCluster** — 首发版本：3.00.3
+- `l/listremotemodules.md` — **listRemoteModules** — 首发版本：3.00.5，3.00.4.3
+- `l/listRemotePlugins.md` — **listRemotePlugins** — listRemotePlugins([pluginName],
+- `l/listStreamingSQLTables.md` — **listStreamingSQLTables** — 首发版本：3.00.4
+- `l/listTables.md` — **listTables** — listTables(dbUrl)
+- `l/loadBackup.md` — **loadBackup** — loadBackup(backupDir, dbPath, partition, tableName)
+- `l/loadDistributedInMemoryTable.md` — **loadDistributedInMemoryTable** — loadDistributedInMemoryTable(tableName)
+- `l/loadHaMvccTable.md` — **loadHaMvccTable** — 首发版本：3.00.5
+- `l/loadIPCInMemoryTable.md` — **loadIPCInMemoryTable** — loadIPCInMemoryTable(tableName)
+- `l/loadModel.md` — **loadModel** — loadModel(file)
+- `l/loadModule.md` — **loadModule** — loadModule(name, [moduleDir])
+- `l/loadmodulefromscript.md` — **loadModuleFromScript** — loadModuleFromScript(moduleNamespace, moduleScript,
+- `l/loadMvccTable.md` — **loadMvccTable** — loadMvccTable(path, tableName)
+- `l/loadNpy.md` — **loadNpy** — loadNpy(fileName)
+- `l/loadNpz.md` — **loadNpz** — loadNpz(fileName)
+- `l/loadPlugin.md` — **loadPlugin** — loadPlugin(filepath)
+- `l/loadRecord.md` — **loadRecord** — loadRecord(filename, schema, [skipBytes=0], [count])
+- `l/loadTable.md` — **loadTable** — loadTable(database, tableName, [partitions], [memoryMode=false])
+- `l/loadTableBySQL.md` — **loadTableBySQL** — loadTableBySQL(sql)
+- `l/loadText.md` — **loadText** — loadText(filename, [delimiter], [schema], [skipRows=0], [arrayDelimiter], [conta…
+- `l/loadTextEx.md` — **loadTextEx** — loadTextEx(dbHandle, tableName, partitionColumns,
+- `l/loadVocab.md` — **loadVocab** — 首发版本：3.00.4，3.00.3.1
+- `l/loc.md` — **loc** — loc(obj, rowFilter, [colFilter], [view=false])
+- `l/localtime.md` — **localtime** — localtime(X)
+- `l/lockUser.md` — **lockUser** — 首发版本：3.00.3
+- `l/loess.md` — **loess** — loess(X, Y, resampleRule, [closed='left'], [origin='start_day'],
+- `l/log.md` — **log** — log(X, [Y])
+- `l/log10.md` — **log10** — log10(X)
+- `l/log1p.md` — **log1p** — log1p(X)
+- `l/log2.md` — **log2** — log2(X)
+- `l/login.md` — **login** — login(userId, password)
+- `l/logisticRegression.md` — **logisticRegression** — logisticRegression(ds, yColName, xColNames, [intercept=true], [initTheta],
+- `l/logout.md` — **logout** — logout([userId], [sessionOnly=true])
+- `l/long.md` — **long** — long(X)
+- `l/lowDouble.md` — **lowDouble** — lowDouble(X)
+- `l/lower.md` — **lower** — lower(X)
+- `l/lowerbound.md` — **lowerBound** — lowerBound(X,Y)
+- `l/lowlong.md` — **lowLong** — lowLong(X)
+- `l/lowRange.md` — **lowRange** — lowRange(X)
+- `l/lpad.md` — **lpad** — lpad(str, length, [pattern])
+- `l/lshift.md` — **lshift** — lshift(X, a) 或 X<<a
+- `l/lt.md` — **lt** — lt(X, Y) 或 X<Y
+- `l/ltrim.md` — **ltrim** — ltrim(X)
+- `l/lu.md` — **lu** — lu(obj, [permute=false])
+
+## m（118 个）
+
+- `m/ma.md` — **ma** — ma(X, window, maType)
+- `m/mad.md` — **mad** — mad(X, [useMedian=false])
+- `m/mahalanobis.md` — **mahalanobis** — 首发版本：3.00.5，3.00.4.3
+- `m/makeCall.md` — **makeCall** — makeCall(F, args...)
+- `m/makeKey.md` — **makeKey** — makeKey(args...)
+- `m/makeSortedKey.md` — **makeSortedKey** — makeSortedKey(args...)
+- `m/makeUnifiedCall.md` — **makeUnifiedCall** — makeUnifiedCall(func, args)
+- `m/mannWhitneyUTest.md` — **mannWhitneyUTest** — mannWhitneyUTest(X, Y, [correct=true])
+- `m/manova.md` — **manova** — manova(X, group)
+- `m/mask.md` — **mask** — mask(X, Y)
+- `m/matchall.md` — **matchAll** — matchAll(textCol, terms, [scoreColName])
+- `m/matchany.md` — **matchAny** — matchAny(textCol, terms, [scoreColName])
+- `m/matchedrowcount.md` — **matchedRowCount** — 首发版本：3.00.5
+- `m/matchFuzzy.md` — **matchFuzzy** — 首发版本：3.00.4
+- `m/matchphrase.md` — **matchPhrase** — matchPhrase(textCol, phrase, [scoreColName])
+- `m/matchphraseinfix.md` — **matchPhraseInfix** — matchPhraseInfix(textCol, suffix, phrase, prefix,
+- `m/matchphraseprefix.md` — **matchPhrasePrefix** — matchPhrasePrefix(textCol, phrase, prefix, [scoreColName])
+- `m/matchphrasesuffix.md` — **matchPhraseSuffix** — matchPhraseSuffix(textCol, suffix, phrase, [scoreColName])
+- `m/matchprefix.md` — **matchPrefix** — matchPrefix(textCol, prefix, [scoreColName])
+- `m/matchprefixsuffix.md` — **matchPrefixSuffix** — matchPrefixSuffix(textCol, prefix, suffix, [scoreColName])
+- `m/matchspan.md` — **matchSpan** — matchSpan(textCol, span, slop, [scoreColName])
+- `m/matchsuffix.md` — **matchSuffix** — matchSuffix(textCol, suffix, [scoreColName])
+- `m/matchunorderedspan.md` — **matchUnorderedSpan** — matchUnorderedSpan(textCol, span, slop, [scoreColName])
+- `m/matrix.md` — **matrix** — matrix(X1, [X2], ...)
+- `m/matrixRank.md` — **matrixRank** — matrixRank(A, [tol])
+- `m/mavg.md` — **mavg** — mavg(X, window|weights, [minPeriods])
+- `m/mavgTopN.md` — **mavgTopN** — mavgTopN(X, S, window, top, [ascending=true],
+- `m/max.md` — **max** — max(X, [Y])
+- `m/maxdrawdown.md` — **maxDrawdown** — maxDrawdown(X, [ratio=true])
+- `m/maxignorenull.md` — **maxIgnoreNull** — dolphindb
+- `m/maxPositiveStreak.md` — **maxPositiveStreak** — maxPositiveStreak(X)
+- `m/mbeta.md` — **mbeta** — mbeta(Y, X, window, [minPeriods])
+- `m/mbetaTopN.md` — **mbetaTopN** — mbetaTopN(X, Y, S, window, top, [ascending=true],
+- `m/mcorr.md` — **mcorr** — mcorr(X, Y, window, [minPeriods])
+- `m/mcorrTopN.md` — **mcorrTopN** — mcorrTopN(X, Y, S, window, top, [ascending=true],
+- `m/mcount.md` — **mcount** — mcount(X, window, [minPeriods=1])
+- `m/mcovar.md` — **mcovar** — mcovar(X, Y, window, [minPeriods])
+- `m/mcovarp.md` — **mcovarp** — 首发版本：3.00.5
+- `m/mcovarpTopN.md` — **mcovarpTopN** — 首发版本：3.00.5
+- `m/mcovarTopN.md` — **mcovarTopN** — mcovarTopN(X, Y, S, window, top, [ascending=true],
+- `m/md5.md` — **md5** — md5(X)
+- `m/mdd.md` — **mdd** — 是 maxDrawdown 的别名。
+- `m/mean.md` — **mean** — mean(X)
+- `m/med.md` — **med** — med(X)
+- `m/mem.md` — **mem** — mem([freeUnusedBlocks=false])
+- `m/member.md` — **member** — member(X, Y) 或 X.Y
+- `m/membermodify.md` — **memberModify!** — memberModify!(obj, function, indices, parameters)
+- `m/memSize.md` — **memSize** — memSize(obj)
+- `m/merge.md` — **merge** — merge(left, right, [how='inner'])
+- `m/mfirst.md` — **mfirst** — mfirst(X, window, [minPeriods])
+- `m/mfirstnot.md` — **mfirstNot** — mfirstNot(X, window, [k=NULL], [minPeriods=1])
+- `m/microsecond.md` — **microsecond** — microsecond(X)
+- `m/mifirstNot.md` — **mifirstNot** — mifirstNot(X, window, [minPeriods])
+- `m/migrate.md` — **migrate** — migrate(backupDir, [backupDBPath], [backupTableName],
+- `m/milastNot.md` — **milastNot** — milastNot(X, window, [minPeriods])
+- `m/millisecond.md` — **millisecond** — millisecond(X)
+- `m/mimax.md` — **mimax** — mimax(X, window, [minPeriods])
+- `m/mimaxlast.md` — **mimaxLast** — mimaxLast(X, window, [minPeriods])
+- `m/mimin.md` — **mimin** — mimin(X, window, [minPeriods])
+- `m/miminlast.md` — **miminLast** — miminLast(X, window, [minPeriods])
+- `m/min.md` — **min** — min(X, [Y])
+- `m/minignorenull.md` — **minIgnoreNull** — minIgnoreNull(X, Y)
+- `m/minkowski.md` — **minkowski** — 首发版本：3.00.5，3.00.4.3
+- `m/minute.md` — **minute** — minute(X)
+- `m/minuteOfHour.md` — **minuteOfHour** — minuteOfHour(X)
+- `m/mkdir.md` — **mkdir** — mkdir(directory)
+- `m/mkurtosis.md` — **mkurtosis** — mkurtosis(X, window, [biased=true], [minPeriods])
+- `m/mkurtosisTopN.md` — **mkurtosisTopN** — mkurtosisTopN(X, S, window, top, [biased=true], [ascending=true],
+- `m/mlast.md` — **mlast** — mlast(X, window, [minPeriods])
+- `m/mlastnot.md` — **mlastNot** — mlastNot(X, window, [k=NULL], [minPeriods=1])
+- `m/mlowrange.md` — **mLowRange** — mLowRange(X, window, [minPeriods])
+- `m/mmad.md` — **mmad** — mmad(X, window, [useMedian=false], [minPeriods])
+- `m/mmax.md` — **mmax** — mmax(X, window, [minPeriods])
+- `m/mmaxPositiveStreak.md` — **mmaxPositiveStreak** — mmaxPositiveStreak(X, window)
+- `m/mmed.md` — **mmed** — mmed(X, window, [minPeriods])
+- `m/mmin.md` — **mmin** — mmin(X, window, [minPeriods])
+- `m/mmse.md` — **mmse** — mmse(Y, X, window, [minPeriods])
+- `m/mod.md` — **mod** — mod(X, Y)
+- `m/mode.md` — **mode** — mode(X)
+- `m/month.md` — **month** — month(X)
+- `m/monthBegin.md` — **monthBegin** — monthBegin(X, [offset], [n=1])
+- `m/monthEnd.md` — **monthEnd** — monthEnd(X, [offset], [n=1])
+- `m/monthOfYear.md` — **monthOfYear** — monthOfYear(X)
+- `m/move.md` — **move** — move(X, steps)
+- `m/moveChunksAcrossVolume.md` — **moveChunksAcrossVolume** — 注：
+- `m/moveHotDataToColdVolume.md` — **moveHotDataToColdVolume** — moveHotDataToColdVolume([checkRange=240])
+- `m/moveReplicas.md` — **moveReplicas** — moveReplicas(srcNode, destNode, chunkId,
+- `m/movingTopNIndex.md` — **movingTopNIndex** — movingTopNIndex(X, window, top, [ascending=true], [fixed=false],
+- `m/movingWindowData.md` — **movingWindowData** — movingWindowData(X, window, [fixed=false])
+- `m/movingWindowIndex.md` — **movingWindowIndex** — movingWindowIndex(X, window, [fixed=false])
+- `m/mpercentile.md` — **mpercentile** — mpercentile(X, percent, window, [interpolation='linear'],
+- `m/mpercentiletopn.md` — **mpercentileTopN** — mpercentileTopN(X, S, percent, window, top, [interpolation], [ascending],
+- `m/mprod.md` — **mprod** — mprod(X, window, [minPeriods])
+- `m/mr.md` — **mr** — mr(ds, mapFunc, [reduceFunc], [finalFunc], [parallel=true])
+- `m/mrank.md` — **mrank** — mrank(X, ascending, window, [ignoreNA=true], [tiesMethod='min'],
+- `m/mskew.md` — **mskew** — mskew(X, window, [biased=true], [minPeriods])
+- `m/mskewTopN.md` — **mskewTopN** — mskewTopN(X, S, window, top, [biased=true], [ascending=true],
+- `m/mslr.md` — **mslr** — mslr(Y, X, window, [minPeriods])
+- `m/mstd.md` — **mstd** — mstd(X, window, [minPeriods])
+- `m/mstdp.md` — **mstdp** — mstdp(X, window, [minPeriods])
+- `m/mstdpTopN.md` — **mstdpTopN** — mstdpTopN(X, S, window, top, [ascending=true],
+- `m/mstdTopN.md` — **mstdTopN** — mstdTopN(X, S, window, top, [ascending=true],
+- `m/msum.md` — **msum** — msum(X, window, [minPeriods])
+- `m/msum2.md` — **msum2** — msum2(X, window, [minPeriods])
+- `m/msumTopN.md` — **msumTopN** — msumTopN(X, S, window, top, [ascending=true],
+- `m/mtoprange.md` — **mTopRange** — mTopRange(X, window, [minPeriods])
+- `m/mul.md` — **mul** — mul(X, Y) 或 XY
+- `m/multinomialNB.md` — **multinomialNB** — multinomialNB(Y, X, [varSmoothing=1.0])
+- `m/multiTableRepartitionDS.md` — **multiTableRepartitionDS** — multiTableRepartitionDS(query, [column], [partitionType], [partitionScheme],
+- `m/mutualInfo.md` — **mutualInfo** — mutualInfo(X, Y)
+- `m/mvar.md` — **mvar** — mvar(X, window, [minPeriods])
+- `m/mvarp.md` — **mvarp** — mvarp(X, window, [minPeriods])
+- `m/mvarpTopN.md` — **mvarpTopN** — mvarpTopN(X, S, window, top, [ascending=true],
+- `m/mvarTopN.md` — **mvarTopN** — mvarTopN(X, S, window, top, [ascending=true],
+- `m/mvccTable.md` — **mvccTable** — mvccTable(X, [X1], [X2], .....)
+- `m/mwavg.md` — **mwavg** — mwavg(X, Y, window, [minPeriods])
+- `m/mwsum.md` — **mwsum** — mwsum(X, Y, window, [minPeriods])
+- `m/mwsumTopN.md` — **mwsumTopN** — mwsumTopN(X, Y, S, window, top, [ascending=true],
+
+## n（23 个）
+
+- `n/nanInfFill.md` — **nanInfFill** — nanInfFill(X,Y)
+- `n/nanosecond.md` — **nanosecond** — nanosecond(X)
+- `n/nanotime.md` — **nanotime** — nanotime(X)
+- `n/nanotimestamp.md` — **nanotimestamp** — nanotimestamp(X)
+- `n/ne.md` — **ne** — ne(X, Y) 或 X!=Y
+- `n/neg.md` — **neg** — neg(X) 或 neg X
+- `n/neville.md` — **neville** — neville(X, Y, resampleRule, [closed='left'], [origin='start_day'],
+- `n/next.md` — **next** — next(X)
+- `n/nextState.md` — **nextState** — nextState(X)
+- `n/norm.md` — **norm** — norm(mean, std, count)
+- `n/normal.md` — **normal** — 是 norm 的别名。
+- `n/not.md` — **not** — not(X) 或 !(X)
+- `n/notbetween.md` — **notBetween** — 首发版本：3.00.3
+- `n/notin.md` — **notIn** — 首发版本：3.00.3
+- `n/notlike.md` — **notLike** — 首发版本：3.00.3
+- `n/now.md` — **now** — now([nanoSecond=false])
+- `n/ns.md` — **ns** — ns(maturity, yield, [method='nm'], [maxIter], [bounds], [initialGuess],
+- `n/nss.md` — **nss** — nss(maturity, yield, [method='nm'], [maxIter], [bounds], [initialGuess],
+- `n/nsspredict.md` — **nssPredict** — nssPredict(model, T)
+- `n/nullFill.md` — **nullFill** — nullFill(X, Y)
+- `n/nullFill_.md` — **nullFill!** — nullFill!(X, Y)
+- `n/nullIf.md` — **nullIf** — nullIf(X, Y)
+- `n/nunique.md` — **nunique** — nunique(X, [ignoreNull=false])
+
+## o（12 个）
+
+- `o/oauthlogin.md` — **oauthLogin** — oauthLogin(oauthType, params)
+- `o/objByName.md` — **objByName** — objByName(name, [sharedVar])
+- `o/objectChecksum.md` — **objectChecksum** — objectChecksum(vector, [prev])
+- `o/objectComponent.md` — **objectComponent** — objectComponent(obj)
+- `o/objectType.md` — **objectType** — objectType(obj)
+- `o/objs.md` — **objs** — objs([shared=false])
+- `o/ols.md` — **ols** — ols(Y, X, [intercept=true], [mode=0], [method="default"], [usePinv=true])
+- `o/olsEx.md` — **olsEx** — olsEx(ds, Y, X, [intercept=true], [mode=0])
+- `o/oneHot.md` — **oneHot** — oneHot(obj, encodingColumns)
+- `o/optionVolPredict.md` — **optionVolPredict** — 首发版本：3.00.4
+- `o/or.md` — **or** — or(X, Y) 或 X||Y
+- `o/osqp.md` — **osqp** — osqp(q, [P], [A], [lb], [ub])
+
+## p（45 个）
+
+- `p/pack.md` — **pack** — pack(format, args...)
+- `p/pair.md` — **pair** — pair(a, b) 或 a:b
+- `p/panel.md` — **panel** — panel(row, col, metrics, [rowLabel], [colLabel], [parallel=false])
+- `p/parseExpr.md` — **parseExpr** — parseExpr(X, [varDict], [modules], [overloadedOperators])
+- `p/parseInstrument.md` — **parseInstrument** — 首发版本：3.00.4
+- `p/parseInt.md` — **parseInt** — 是 parseInteger 的别名。
+- `p/parseInteger.md` — **parseInteger** — parseInteger(X, type, [radix=10])
+- `p/parsejsontable.md` — **parseJsonTable** — parseJsonTable(json, [schema],
+- `p/parseMktData.md` — **parseMktData** — 首发版本：3.00.4
+- `p/partial.md` — **partial** — partial(func, args...)
+- `p/pca.md` — **pca** — pca(ds, [colNames], [k], [normalize], [maxIter], [svdSolver],
+- `p/pchipInterpolateFit.md` — **pchipInterpolateFit** — 首发版本：3.00.3
+- `p/pdfChiSquare.md` — **pdfChiSquare** — pdfChiSquare(df, X)
+- `p/pdfF.md` — **pdfF** — pdfF(numeratorDF, denominatorDF, X)
+- `p/pdfNormal.md` — **pdfNormal** — pdfNormal(mean, stdev, X)
+- `p/peekAppend.md` — **peekAppend** — 首发版本：3.00.5
+- `p/percentChange.md` — **percentChange** — percentChange(X,[n])
+- `p/percentile.md` — **percentile** — percentile(X, percent, [interpolation='linear'])
+- `p/percentileRank.md` — **percentileRank** — percentileRank(X, score, [method='excel'])
+- `p/piecewiselinfit.md` — **piecewiseLinFit** — piecewiseLinFit(X, Y, numSegments, [XC], [YC], [bounds],
+- `p/pinverse.md` — **pinverse** — pinverse(X)
+- `p/pipeline.md` — **pipeline** — pipeline(initTasks, followers,
+- `p/ploadText.md` — **ploadText** — ploadText(filename, [delimiter], [schema], [skipRows=0], [arrayDelimiter], [cont…
+- `p/plot.md` — **plot** — plot(data, [labels], [title], [chartType=LINE],
+- `p/plotHist.md` — **plotHist** — plotHist(data, [binNum], [range], [title])
+- `p/pnodeRun.md` — **pnodeRun** — pnodeRun(function, [nodes],
+- `p/point.md` — **point** — point(X, Y)
+- `p/poly1d.md` — **poly1d** — 是 polyPredict的别名。
+- `p/polyfit.md` — **polyFit** — polyFit(X, Y, n, mode)
+- `p/polynomial.md` — **polynomial** — polynomial(X, coeffs)
+- `p/polyPredict.md` — **polyPredict** — polyPredict(model, X)
+- `p/pop_.md` — **pop!** — pop!(X)
+- `p/portfolioPricer.md` — **portfolioPricer** — 首发版本：3.00.4
+- `p/pow.md` — **pow** — pow(X, Y)
+- `p/power.md` — **power** — power(X, Y)
+- `p/predict.md` — **predict** — predict(model, X)
+- `p/prev.md` — **prev** — prev(X)
+- `p/prevState.md` — **prevState** — prevState(X)
+- `p/print.md` — **print** — print(X)
+- `p/prod.md` — **prod** — prod(X)
+- `p/publishMCPPrompts.md` — **publishMCPPrompts** — 首发版本：3.00.4
+- `p/publishMCPTools.md` — **publishMCPTools** — 首发版本：3.00.4
+- `p/purgeCacheEngine.md` — **purgeCacheEngine** — 是 flushOLAPCache 的别名。
+- `p/push_.md` — **push!** — 是 append! 的别名。
+- `p/pwlfpredict.md` — **pwlfPredict** — pwlfPredict(model, X, [beta], [breaks])
+
+## q（9 个）
+
+- `q/qclp.md` — **qclp** — qclp(r, V, k, [A], [b], [Aeq], [beq], [x0], [c], [eps], [alpha])
+- `q/qcut.md` — **qcut** — 首发版本：3.00.5
+- `q/qr.md` — **qr** — qr(obj, [mode='full'], [pivoting=false])
+- `q/quadprog.md` — **quadprog** — quadprog(H, f, [A], [b], [Aeq], [beq])
+- `q/quantile.md` — **quantile** — quantile(X, q, [interpolation='linear'])
+- `q/quantileSeries.md` — **quantileSeries** — quantileSeries(X, q, [interpolation='linear'])
+- `q/quarterBegin.md` — **quarterBegin** — quarterBegin(X, [startingMonth=1], [offset],
+- `q/quarterEnd.md` — **quarterEnd** — quarterEnd(X, [endingMonth=12], [offset],
+- `q/quarterOfYear.md` — **quarterOfYear** — quarterOfYear(X)
+
+## r（153 个）
+
+- `r/rad2deg.md` — **rad2deg** — rad2deg(X)
+- `r/rand.md` — **rand** — rand(X, [count])
+- `r/randBeta.md` — **randBeta** — randBeta(alpha, beta, count)
+- `r/randBinomial.md` — **randBinomial** — randBinomial(trials, p, count)
+- `r/randChiSquare.md` — **randChiSquare** — randChiSquare(df, count)
+- `r/randDiscrete.md` — **randDiscrete** — randDiscrete(v, p, count)
+- `r/randExp.md` — **randExp** — randExp(mean, count)
+- `r/randF.md` — **randF** — randF(numeratorDF, denominatorDF, count)
+- `r/randGamma.md` — **randGamma** — randGamma(shape, scale, count)
+- `r/randLogistic.md` — **randLogistic** — randLogistic(mean, s, count)
+- `r/randMultivariateNormal.md` — **randMultivariateNormal** — randMultivariateNormal(mean, covar, count, [sampleAsRow=true])
+- `r/randNormal.md` — **randNormal** — randNormal(mean, stdev, count)
+- `r/randomForestClassifier.md` — **randomForestClassifier** — randomForestClassifier(ds, yColName, xColNames,
+- `r/randomForestRegressor.md` — **randomForestRegressor** — randomForestRegressor(ds, yColName, xColNames,
+- `r/randPoisson.md` — **randPoisson** — randPoisson(mean, count)
+- `r/randStudent.md` — **randStudent** — randStudent(df, count)
+- `r/randUniform.md` — **randUniform** — randUniform(lower, upper, count)
+- `r/randWeibull.md` — **randWeibull** — randWeibull(alpha, beta, count)
+- `r/rank.md` — **rank** — rank(X, [ascending=true],
+- `r/ratio.md` — **ratio** — ratio(X, Y)
+- `r/ratios.md` — **ratios** — ratios(X)
+- `r/rdp.md` — **rdp** — rdp(pointList, epsilon)
+- `r/read_.md` — **read!** — read!(handle, holder, [offset=0], [length=1])
+- `r/readBytes.md` — **readBytes** — readBytes(fileHandle, sizeInByte)
+- `r/readLine.md` — **readLine** — readLine(handle)
+- `r/readLines.md` — **readLines** — readLines(handle, [length=1024])
+- `r/readLines_.md` — **readLines!** — readLines!(handle, holder, [offset=0], [length=1])
+- `r/readObject.md` — **readObject** — readObject(handle)
+- `r/readRecord_.md` — **readRecord!** — readRecord!(handle, holder, [offset=0], [length])
+- `r/rebalanceChunksAmongDataNodes.md` — **rebalanceChunksAmongDataNodes** — rebalanceChunksAmongDataNodes([exec = false], [updatedBeforeDays =
+- `r/rebalanceChunksWithinDataNode.md` — **rebalanceChunksWithinDataNode** — rebalanceChunksWithinDataNode(nodeAlias, [exec=false], [updatedBeforeDays =
+- `r/reciprocal.md` — **reciprocal** — reciprocal(X)
+- `r/recursiveSplitText.md` — **recursiveSplitText** — 首发版本：3.00.4，3.00.3.1
+- `r/refCount.md` — **refCount** — refCount(varname)
+- `r/regexCount.md` — **regexCount** — regexCount(str, pattern, [offset=0])
+- `r/regexFind.md` — **regexFind** — regexFind(str, pattern, [offset])
+- `r/regexfindstr.md` — **regexFindStr** — regexFindStr(str, pattern, [onlyFirst=true],
+- `r/regexReplace.md` — **regexReplace** — regexReplace(str, pattern, replacement,
+- `r/registerStreamingSQL.md` — **registerStreamingSQL** — 首发版本：3.00.4
+- `r/regroup.md` — **regroup** — regroup(X, label, func, [byRow=true])
+- `r/remoteRun.md` — **remoteRun** — remoteRun(conn, script, args)
+- `r/remoteruncompatible.md` — **remoteRunCompatible** — remoteRunCompatible(conn, script, args)
+- `r/remoteRunWithCompression.md` — **remoteRunWithCompression** — remoteRunWithCompression(conn, script, args)
+- `r/remove.md` — **remove!** — 首发版本：3.00.5
+- `r/removecacherulesforcomputegroup.md` — **removeCacheRulesForComputeGroup** — 首发版本：3.00.5
+- `r/removeHead_.md` — **removeHead!** — removeHead!(obj, n)
+- `r/removeipblacklist.md` — **removeIPBlackList** — 首发版本：3.00.3
+- `r/removeipwhitelist.md` — **removeIPWhiteList** — 首发版本：3.00.3
+- `r/removenode.md` — **removeNode** — removeNode(alias, [force=false])
+- `r/removeTail_.md` — **removeTail!** — removeTail!(obj, n)
+- `r/removeTopicOffset.md` — **removeTopicOffset** — removeTopicOffset(topic)
+- `r/rename_.md` — **rename!** — rename!(X, Y, [Z])
+- `r/renameCatalog.md` — **renameCatalog** — renameCatalog(oldCatalog, newCatalog)
+- `r/renameCatalogName.md` — **renameCatalogName** — 首发版本：3.00.4
+- `r/renameSchema.md` — **renameSchema** — renameSchema(catalog, oldSchema, newSchema)
+- `r/renameTable.md` — **renameTable** — renameTable(dbHandle, tableName, newTableName)
+- `r/reorderColumns_.md` — **reorderColumns!** — reorderColumns!(table, reorderedColNames)
+- `r/repartitionDS.md` — **repartitionDS** — repartitionDS(query, [column], [partitionType], [partitionScheme],
+- `r/repeat.md` — **repeat** — repeat(X, n)
+- `r/replace.md` — **replace** — replace(X, oldValue, newValue)
+- `r/replace_.md` — **replace!** — 是 replace 的别名。
+- `r/replaceColumn_.md` — **replaceColumn!** — replaceColumn!(table, colName, newCol)
+- `r/replay.md` — **replay** — replay(inputTables, outputTables, [dateColumn], [timeColumn], [replayRate],
+- `r/replayDS.md` — **replayDS** — replayDS(sqlObj, [dateColumn], [timeColumn],
+- `r/repmat.md` — **repmat** — repmat(X, rowRep, colRep)
+- `r/resample.md` — **resample** — resample(X, rule, func, [closed], [label],
+- `r/resetDBDirMeta.md` — **resetDBDirMeta** — resetDBDirMeta(dbDir)
+- `r/resetDfsRebalanceConcurrency.md` — **resetDfsRebalanceConcurrency** — resetDfsRebalanceConcurrency(newConcurrecyNum)
+- `r/resetDfsRecoveryConcurrency.md` — **resetDfsRecoveryConcurrency** — resetDfsRecoveryConcurrency(newConcurrecyNum)
+- `r/resetPwd.md` — **resetPwd** — resetPwd(userId, newPwd)
+- `r/resetRecoveryWorkerNum.md` — **resetRecoveryWorkerNum** — resetRecoveryWorkerNum(newWorkerNum)
+- `r/reshape.md` — **reshape** — reshape(obj, [dim])
+- `r/residual.md` — **residual** — residual(Y,X,params,[intercept=true])
+- `r/restore.md` — **restore** — restore(backupDir, dbPath, tableName, partition, [force=false],
+- `r/restoreDB.md` — **restoreDB** — restoreDB(backupDir, dbPath, [newDBPath], [keyPath])
+- `r/restoreDislocatedTablet.md` — **restoreDislocatedTablet** — restoreDislocatedTablet()
+- `r/restoresettings.md` — **restoreSettings** — restoreSettings(fileName, [overwrite=false])
+- `r/restoreTable.md` — **restoreTable** — restoreTable(backupDir, dbPath, tableName, [newDBPath], [newTableName],
+- `r/resubmitStreamGraph.md` — **resubmitStreamGraph** — 首发版本：3.00.3
+- `r/resumeRecovery.md` — **resumeRecovery** — resumeRecovery()
+- `r/resumeTimerEngine.md` — **resumeTimerEngine** — resumeTimerEngine(engine)
+- `r/reverse.md` — **reverse** — reverse(X)
+- `r/revoke.md` — **revoke** — revoke(userId|groupId, accessType, [objs])
+- `r/revokeStreamingSQL.md` — **revokeStreamingSQL** — 首发版本：3.00.4
+- `r/revokeStreamingSQLTable.md` — **revokeStreamingSQLTable** — 首发版本：3.00.4
+- `r/ridge.md` — **ridge** — ridge(ds, yColName, xColNames, [alpha=1.0], [intercept=true],
+- `r/ridgeBasic.md` — **ridgeBasic** — ridgeBasic(Y, X, [mode=0], [alpha=1.0], [intercept=true], [normalize=false],
+- `r/ridgeCV.md` — **ridgeCV** — ridgeCV(ds, yColName, xColNames, [alphas=[0.01,0.1,1.0]], [intercept=true],
+- `r/right.md` — **right** — right(X, n)
+- `r/rm.md` — **rm** — rm(filename)
+- `r/rmdir.md` — **rmdir** — rmdir(directory,
+- `r/rms.md` — **rms** — 首发版本：3.00.3
+- `r/rollingPanel.md` — **rollingPanel** — rollingPanel(X, window, [groupingCol])
+- `r/rotatetdekey.md` — **rotateTDEKey** — 首发版本：3.00.3
+- `r/round.md` — **round** — round(X, [precision])
+- `r/routeEvent.md` — **routeEvent** — routeEvent(event)
+- `r/row.md` — **row** — row(obj,index)
+- `r/rowAlign.md` — **rowAlign** — rowAlign(left, right,
+- `r/rowAnd.md` — **rowAnd** — rowAnd(args...)
+- `r/rowAt.md` — **rowAt** — rowAt(X, [Y])
+- `r/rowAvg.md` — **rowAvg** — rowAvg(args...)
+- `r/rowBeta.md` — **rowBeta** — rowBeta(Y, X)
+- `r/rowCorr.md` — **rowCorr** — rowCorr(X, Y)
+- `r/rowCount.md` — **rowCount** — rowCount(args...)
+- `r/rowCovar.md` — **rowCovar** — rowCovar(X, Y)
+- `r/rowCovarp.md` — **rowCovarp** — 首发版本：3.00.5
+- `r/rowCummax.md` — **rowCummax** — rowCummax(X)
+- `r/rowCummin.md` — **rowCummin** — rowCummin(X)
+- `r/rowCumprod.md` — **rowCumprod** — rowCumprod(X)
+- `r/rowCumsum.md` — **rowCumsum** — rowCumsum(X)
+- `r/rowCumwsum.md` — **rowCumwsum** — rowCumwsum(X, Y)
+- `r/rowDenseRank.md` — **rowDenseRank** — rowDenseRank(X, [ascending=true], [ignoreNA=true], [percent=false])
+- `r/rowDot.md` — **rowDot** — rowDot(X, Y)
+- `r/rowEuclidean.md` — **rowEuclidean** — rowEuclidean(X, Y)
+- `r/rowfilterandsort.md` — **rowFilterAndSort** — 首发版本：3.00.5
+- `r/rowgmd5.md` — **rowGmd5** — 首发版本：3.00.3
+- `r/rowImax.md` — **rowImax** — rowImax(args...)
+- `r/rowimaxlast.md` — **rowImaxLast** — rowImaxLast(args…)
+- `r/rowImin.md` — **rowImin** — rowImin(args...)
+- `r/rowiminlast.md` — **rowIminLast** — rowIminLast(args…)
+- `r/rowKurtosis.md` — **rowKurtosis** — rowKurtosis(X, [biased=true])
+- `r/rowMax.md` — **rowMax** — rowMax(args...)
+- `r/rowmergeandsort.md` — **rowMergeAndSort** — 首发版本：3.00.5
+- `r/rowMin.md` — **rowMin** — rowMin(args...)
+- `r/rowMove.md` — **rowMove** — rowMove(X, steps)
+- `r/rowNames.md` — **rowNames** — rowNames(X)
+- `r/rowNext.md` — **rowNext** — rowNext(X)
+- `r/rowNo.md` — **rowNo** — rowNo(X)
+- `r/rowOr.md` — **rowOr** — rowOr(args...)
+- `r/rowPrev.md` — **rowPrev** — rowPrev(X)
+- `r/rowProd.md` — **rowProd** — rowProd(args...)
+- `r/rowRank.md` — **rowRank** — rowRank(X, [ascending=true], [groupNum], [ignoreNA=true],
+- `r/rows.md` — **rows** — rows(X)
+- `r/rowSize.md` — **rowSize** — rowSize(args...)
+- `r/rowSkew.md` — **rowSkew** — rowSkew(X, [biased=true])
+- `r/rowStd.md` — **rowStd** — rowStd(args...)
+- `r/rowStdp.md` — **rowStdp** — rowStdp(args...)
+- `r/rowSum.md` — **rowSum** — rowSum(args...)
+- `r/rowSum2.md` — **rowSum2** — rowSum2(args...)
+- `r/rowTanimoto.md` — **rowTanimoto** — rowTanimoto(X, Y)
+- `r/rowVar.md` — **rowVar** — rowVar(args...)
+- `r/rowVarp.md` — **rowVarp** — rowVarp(args...)
+- `r/rowWavg.md` — **rowWavg** — rowWavg(X, Y)
+- `r/rowWsum.md` — **rowWsum** — rowWsum(X, Y)
+- `r/rowXor.md` — **rowXor** — rowXor(args...)
+- `r/rpad.md` — **rpad** — rpad(str, length, [pattern])
+- `r/rpc.md` — **rpc** — rpc(nodeAlias, func, args, ...)
+- `r/rshift.md` — **rshift** — rshift(X, a) 或 X>>a
+- `r/rtrim.md` — **rtrim** — rtrim(X)
+- `r/run.md` — **run** — run(scriptFile, [newSession=false],
+- `r/runexternalquery.md` — **runExternalQuery** — 首发版本：3.00.5
+- `r/runScript.md` — **runScript** — runScript(script)
+- `r/runsql.md` — **runSQL** — 首发版本：3.00.3
+
+## s（180 个）
+
+- `s/saveAsNpy.md` — **saveAsNpy** — saveAsNpy(obj, fileName)
+- `s/saveDatabase.md` — **saveDatabase** — saveDatabase(dbHandle)
+- `s/saveDualPartition.md` — **saveDualPartition** — saveDualPartition(dbHandle1, dbHandle2, table, tableName, partitionColumn1,
+- `s/saveModel.md` — **saveModel** — saveModel(model, location)
+- `s/saveModule.md` — **saveModule** — saveModule(name, [moduleDir],
+- `s/savePartition.md` — **savePartition** — savePartition(dbHandle, table, tableName,
+- `s/saveTable.md` — **saveTable** — saveTable(dbHandle, table, [tableName], [append=false],
+- `s/saveText.md` — **saveText** — saveText(obj, filename, [delimiter=','], [append=false],
+- `s/saveTextFile.md` — **saveTextFile** — saveTextFile(content, filename, [append=false],
+- `s/scheduleJob.md` — **scheduleJob** — scheduleJob(jobId, jobDesc, jobFunc, scheduleTime, startDate, endDate,
+- `s/schema.md` — **schema** — schema(table|dbHandle)
+- `s/schur.md` — **schur** — schur(obj, [sort])
+- `s/scramClientFinal.md` — **scramClientFinal** — 首发版本：3.00.3
+- `s/scramClientFirst.md` — **scramClientFirst** — 首发版本：3.00.3
+- `s/scs.md` — **scs** — scs(f, [P], [A], [b], [Aeq], [beq], [lb], [ub], [x0], [c], [eps],
+- `s/searchK.md` — **searchK** — searchK(X, k)
+- `s/seasonalEsd.md` — **seasonalEsd** — seasonalEsd(data, period, [hybrid], [maxAnomalies], [alpha])
+- `s/second.md` — **second** — second(X)
+- `s/secondOfMinute.md` — **secondOfMinute** — secondOfMinute(X)
+- `s/seek.md` — **seek** — seek(handle, offset, [mode])
+- `s/segment.md` — **segment** — segment(X, [segmentOffset=true])
+- `s/sem.md` — **sem** — sem(X)
+- `s/semiannualBegin.md` — **semiannualBegin** — 首发版本：3.00.4，3.00.3.1
+- `s/semiannualEnd.md` — **semiannualEnd** — 首发版本：3.00.4，3.00.3.1
+- `s/semiMonthBegin.md` — **semiMonthBegin** — semiMonthBegin(X, [dayOfMonth=15], [offset], [n=1])
+- `s/semiMonthEnd.md` — **semiMonthEnd** — semiMonthEnd(X, [dayOfMonth=15], [offset],
+- `s/sendEvent.md` — **sendEvent** — sendEvent(event)
+- `s/seq.md` — **seq** — seq(start, end) 或 start..end
+- `s/sessionWindow.md` — **sessionWindow** — sessionWindow(X, sessionGap)
+- `s/set.md` — **set** — set(X)
+- `s/setAtomicLevel.md` — **setAtomicLevel** — setAtomicLevel(dbHandle, atomic)
+- `s/setChunkLastUpdateTime.md` — **setChunkLastUpdateTime** — 首发版本：3.00.3
+- `s/setColumnarTuple_.md` — **setColumnarTuple!** — setColumnarTuple!(X, [on=true])
+- `s/setColumnComment.md` — **setColumnComment** — setColumnComment(table, columnComments)
+- `s/setcomputenodecachingdelay.md` — **setComputeNodeCachingDelay** — setComputeNodeCachingDelay(delay)
+- `s/setdatabaseclusterreplicationexecutionset.md` — **setDatabaseClusterReplicationExecutionSet** — setDatabaseClusterReplicationExecutionSet(dbHandle,
+- `s/setDatabaseForClusterReplication.md` — **setDatabaseForClusterReplication** — setDatabaseForClusterReplication(dbHandle, option)
+- `s/setDatanodeRestartInterval.md` — **setDatanodeRestartInterval** — setDatanodeRestartInterval(interval)
+- `s/setDefaultCatalog.md` — **setDefaultCatalog** — setDefaultCatalog(catalog)
+- `s/setdynamicconfig.md` — **setDynamicConfig** — setDynamicConfig(configName, configValue)
+- `s/setgpfitnessfunc.md` — **setGpFitnessFunc** — setGpFitnessFunc(engine, func, [funcArgs])
+- `s/setHaMvccColumnDefaultValue.md` — **setHaMvccColumnDefaultValue** — setHaMvccColumnDefaultValue(table, colName,
+- `s/setHaMvccColumnNullability.md` — **setHaMvccColumnNullability** — setHaMvccColumnNullability(table, colName,
+- `s/setIndexedMatrix_.md` — **setIndexedMatrix!** — setIndexedMatrix!(X, [on=true])
+- `s/setIndexedSeries_.md` — **setIndexedSeries!** — setIndexedSeries!(X, [on=true])
+- `s/setIPConnectionLimit.md` — **setIPConnectionLimit** — setIPConnectionLimit(IP, limit)
+- `s/setLogLevel.md` — **setLogLevel** — setLogLevel(logLevel)
+- `s/setMaxBlockSizeForReservedMemory.md` — **setMaxBlockSizeForReservedMemory** — setMaxBlockSizeForReservedMemory(blockSizeKB)
+- `s/setMaxConnections.md` — **setMaxConnections** — setMaxConnections(newValue)
+- `s/setMaxJobParallelism.md` — **setMaxJobParallelism** — setMaxJobParallelism(userId, maxParallelism)
+- `s/setMaxJobPriority.md` — **setMaxJobPriority** — setMaxJobPriority(userId, maxPriority)
+- `s/setMaxMemSize.md` — **setMaxMemSize** — setMaxMemSize(memSizeGB, [emergencyMemSizeGB])
+- `s/setMaxTransactionSize.md` — **setMaxTransactionSize** — setMaxTransactionSize(engine, maxSizeGB)
+- `s/setmemlimitofalltempresults.md` — **setMemLimitOfAllTempResults** — setMemLimitOfAllTempResults()
+- `s/setMemLimitOfQueryResult.md` — **setMemLimitOfQueryResult** — setMemLimitOfQueryResult(memLimit)
+- `s/setMemLimitOfTaskGroupResult.md` — **setMemLimitOfTaskGroupResult** — setMemLimitOfTaskGroupResult(memLimit)
+- `s/setMemLimitOfTempResult.md` — **setMemLimitOfTempResult** — setMemLimitOfTempResult(X)
+- `s/setOLAPCacheEngineSize.md` — **setOLAPCacheEngineSize** — setOLAPCacheEngineSize(memSize)
+- `s/setOrcaCheckpointConfig.md` — **setOrcaCheckpointConfig** — 首发版本：3.00.3
+- `s/setprefetchcomputenodedata.md` — **setPrefetchComputeNodeData** — setPrefetchComputeNodeData(flag)
+- `s/setRaftElectionTick.md` — **setRaftElectionTick** — setRaftElectionTick(groupId, tickCount)
+- `s/setRandomSeed.md` — **setRandomSeed** — setRandomSeed(seed)
+- `s/setReservedMemSize.md` — **setReservedMemSize** — setReservedMemSize(memSizeGB)
+- `s/setRetentionPolicy.md` — **setRetentionPolicy** — setRetentionPolicy(dbHandle, retentionHours,
+- `s/setsessionexpiredtime.md` — **setSessionExpiredTime** — 首发版本：3.00.3
+- `s/setStreamTableFilterColumn.md` — **setStreamTableFilterColumn** — setStreamTableFilterColumn(streamTable, columnName)
+- `s/setstreamtabletimestamp.md` — **setStreamTableTimestamp** — setStreamTableTimestamp(streamTable, columnName)
+- `s/setSystem.md` — **setSystem** — setSystem(paramName, paramValue)
+- `s/settablecomment.md` — **setTableComment** — setTableComment(table, comment)
+- `s/setTableSensitiveColumn.md` — **setTableSensitiveColumn** — 首发版本：3.00.3
+- `s/setTimeoutTick.md` — **setTimeoutTick** — setTimeoutTick(tick)
+- `s/setTSDBCacheEngineSize.md` — **setTSDBCacheEngineSize** — setTSDBCacheEngineSize(memSize)
+- `s/seuclidean.md` — **seuclidean** — 首发版本：3.00.5，3.00.4.3
+- `s/shape.md` — **shape** — shape(X)
+- `s/shapiroTest.md` — **shapiroTest** — shapiroTest(X)
+- `s/share.md` — **share** — share(table, sharedName, [database], [dbName],
+- `s/shell.md` — **shell** — shell(cmd)
+- `s/short.md` — **short** — short(X)
+- `s/shuffle.md` — **shuffle** — shuffle(X)
+- `s/shuffle_.md` — **shuffle!** — shuffle!(X)
+- `s/signbit.md` — **signbit** — signbit(X)
+- `s/signum.md` — **signum** — signum(X)
+- `s/sin.md` — **sin** — sin(X)
+- `s/sinh.md` — **sinh** — sinh(X)
+- `s/sinppet.md` — **snippet** — snippet(X)
+- `s/size.md` — **size** — size(X)
+- `s/skew.md` — **skew** — skew(X, [biased=true])
+- `s/skipClusterReplicationTask.md` — **skipClusterReplicationTask** — skipClusterReplicationTask(taskIds)
+- `s/sleep.md` — **sleep** — sleep(X)
+- `s/slice.md` — **slice** — slice(obj, index)
+- `s/sliceByKey.md` — **sliceByKey** — sliceByKey(table, rowKeys, [colNames], [preserveOrder=false])
+- `s/sma.md` — **sma** — sma(X, window)
+- `s/socp.md` — **socp** — socp(f, [G], [h], [l], [q], [A], [b])
+- `s/solve.md` — **solve** — solve(X, Y)
+- `s/sort.md` — **sort** — sort(X, [ascending=true])
+- `s/sort_.md` — **sort!** — sort!(X, [ascending=true])
+- `s/sortBy_.md` — **sortBy!** — sortBy!(table, sortColumns, [sortDirections])
+- `s/spawnMonitor.md` — **spawnMonitor** — spawnMonitor(name, handler, arguments...)
+- `s/spearmanr.md` — **spearmanr** — spearmanr(X, Y)
+- `s/splev.md` — **splev** — splev(x, tck)
+- `s/spline.md` — **spline** — spline(X, Y, resampleRule, [closed='left'], [origin='start_day'],
+- `s/split.md` — **split** — split(str, [delimiter])
+- `s/splrep.md` — **splrep** — splrep(x, y, t)
+- `s/sql.md` — **sql** — sql(select, from, [where], [groupBy], [groupFlag=1],
+- `s/sqlCol.md` — **sqlCol** — sqlCol(colName, [func], [alias], [qualifier])
+- `s/sqlColAlias.md` — **sqlColAlias** — sqlColAlias(colDefs, [colNames])
+- `s/sqlDelete.md` — **sqlDelete** — sqlDelete(table, [where], [from])
+- `s/sqlDS.md` — **sqlDS** — sqlDS(sqlObj, [forcePartition=false])
+- `s/sqlTuple.md` — **sqlTuple** — sqlTuple(colNames)
+- `s/sqlUpdate.md` — **sqlUpdate** — sqlUpdate(table, updates, [from], [where], [contextBy], [csort], [ascSort],
+- `s/sqrt.md` — **sqrt** — sqrt(X)
+- `s/square.md` — **square** — square(X)
+- `s/startClusterReplication.md` — **startClusterReplication** — startClusterReplication()
+- `s/startDataNode.md` — **startDataNode** — startDataNode(X)
+- `s/startheapsample.md` — **startHeapSample** — startHeapSample(sampleParameter)
+- `s/startStreamGraph.md` — **startStreamGraph** — 首发版本：3.00.4
+- `s/startsWith.md` — **startsWith** — startsWith(X, str)
+- `s/stat.md` — **stat** — stat(X)
+- `s/stateIterate.md` — **stateIterate** — stateIterate(X, initial, initialWindow, iterateFunc,
+- `s/stateMavg.md` — **stateMavg** — stateMavg(X, window)
+- `s/std.md` — **std** — std(X)
+- `s/stdp.md` — **stdp** — stdp(X)
+- `s/stl.md` — **stl** — stl(data, period, sWindow, [sDegree], [sJump], [tWindow], [tDegree],
+- `s/stopClusterReplication.md` — **stopClusterReplication** — stopClusterReplication()
+- `s/stopDataNode.md` — **stopDataNode** — stopDataNode(X)
+- `s/stopheapsample.md` — **stopHeapSample** — stopHeapSample()
+- `s/stopStreamGraph.md` — **stopStreamGraph** — 首发版本：3.00.4
+- `s/stopSubEngine.md` — **stopSubEngine** — stopSubEngine()
+- `s/stopTimerEngine.md` — **stopTimerEngine** — stopTimerEngine(engine)
+- `s/streamEngineParser.md` — **streamEngineParser** — streamEngineParser(name, metrics, dummyTable, outputTable, keyColumn,
+- `s/streamEventSerializer.md` — **streamEventSerializer** — streamEventSerializer(name, eventSchema, outputTable, [eventTimeField],
+- `s/streamFilter.md` — **streamFilter** — streamFilter(name, dummyTable, filter, [msgSchema],
+- `s/StreamGraph_changelogSource.md` — **StreamGraph::changelogSource** — 首发版本：3.00.5
+- `s/StreamGraph_deleteRule.md` — **StreamGraph::deleteRule** — 首发版本：3.00.4
+- `s/StreamGraph_dropGraph.md` — **StreamGraph::dropGraph** — 首发版本：3.00.4
+- `s/StreamGraph_haKeyedSource.md` — **StreamGraph::haKeyedSource** — 首发版本：3.00.3
+- `s/StreamGraph_haSource.md` — **StreamGraph::haSource** — 首发版本：3.00.3
+- `s/StreamGraph_keyedSource.md` — **StreamGraph::keyedSource** — 首发版本：3.00.3
+- `s/StreamGraph_latestKeyedSource.md` — **StreamGraph::latestKeyedSource** — 首发版本：3.00.3
+- `s/StreamGraph_name.md` — **StreamGraph::name** — 首发版本：3.00.3
+- `s/StreamGraph_setConfigMap.md` — **StreamGraph::setConfigMap** — 首发版本：3.00.3
+- `s/StreamGraph_setLocalConfigOnce.md` — **StreamGraph::setLocalConfigOnce** — 首发版本：3.00.3.1
+- `s/StreamGraph_source.md` — **StreamGraph::source** — 首发版本：3.00.3
+- `s/StreamGraph_sourceByName.md` — **StreamGraph::sourceByName** — 首发版本：3.00.3
+- `s/StreamGraph_str.md` — **StreamGraph::str** — 首发版本：3.00.3
+- `s/StreamGraph_submit.md` — **StreamGraph::submit** — 首发版本：3.00.3
+- `s/StreamGraph_toGraphviz.md` — **StreamGraph::toGraphviz** — 首发版本：3.00.3
+- `s/StreamGraph_updateRule.md` — **StreamGraph::updateRule** — 首发版本：3.00.4
+- `s/streamTable.md` — **streamTable** — streamTable(X, [X1], [X2], .....)
+- `s/stretch.md` — **stretch** — stretch(X, n)
+- `s/string.md` — **string** — string(X)
+- `s/stringFormat.md` — **stringFormat** — stringFormat(format, [args...])
+- `s/strip.md` — **strip** — strip(X)
+- `s/strlen.md` — **strlen** — strlen(X)
+- `s/strlenu.md` — **strlenu** — strlenu(X)
+- `s/strpos.md` — **strpos** — strpos(X, str)
+- `s/strReplace.md` — **strReplace** — strReplace(str, pattern, replacement)
+- `s/sub.md` — **sub** — sub(X, Y) 或 X-Y
+- `s/subarray.md` — **subarray** — subarray(X, range)
+- `s/submitJob.md` — **submitJob** — submitJob(jobId, jobDesc, jobDef, args...)
+- `s/submitJobEx.md` — **submitJobEx** — submitJobEx(jobId, jobDesc, priority, parallelism, jobDef,
+- `s/submitJobEx2.md` — **submitJobEx2** — submitJobEx2(jobId, jobDesc, priority, parallelism, onComplete, jobDef,
+- `s/subscribeStreamingSQL.md` — **subscribeStreamingSQL** — 首发版本：3.00.4
+- `s/subscribeTable.md` — **subscribeTable** — subscribeTable([server],tableName,[actionName],[offset=-1],handler,[msgAsTable=f…
+- `s/substr.md` — **substr** — substr(X, offset, [length])
+- `s/substru.md` — **substru** — substru(X, offset, [length])
+- `s/subtuple.md` — **subtuple** — subtuple(X, range)
+- `s/sum.md` — **sum** — sum(X)
+- `s/sum2.md` — **sum2** — sum2(X)
+- `s/sum3.md` — **sum3** — sum3(X)
+- `s/sum4.md` — **sum4** — sum4(X)
+- `s/sumbars.md` — **sumbars** — sumbars(X, Y)
+- `s/summary.md` — **summary** — summary(X,[interpolation],[characteristic],[percentile],[precision],[partitionSa…
+- `s/suspendRecovery.md` — **suspendRecovery** — suspendRecovery()
+- `s/svd.md` — **svd** — svd(obj, [fullMatrices=true], [computeUV=true])
+- `s/symbol.md` — **symbol** — symbol(X)
+- `s/symbolCode.md` — **symbolCode** — symbolCode(X)
+- `s/symmetricDifference.md` — **symmetricDifference** — symmetricDifference(X, Y) 或
+- `s/syncDict.md` — **syncDict** — syncDict(keyObj, valueObj, [sharedName], [ordered=false])
+- `s/syntax.md` — **syntax** — syntax(X)
+
+## t（94 个）
+
+- `t/t3.md` — **t3** — t3(X, window, [vfactor=1.0])
+- `t/table.md` — **table** — table(X, [X1], [X2], .....) 或 table(capacity:size, colNames,
+- `t/tableInsert.md` — **tableInsert** — tableInsert(table, args...)
+- `t/tableUpsert.md` — **tableUpsert** — tableUpsert(obj, newData, [ignoreNull=false], [keyColNames],
+- `t/tail.md` — **tail** — tail(obj, [n=1])
+- `t/take.md` — **take** — take(X, n)
+- `t/talibNull.md` — **talibNull** — talibNull(args...)
+- `t/tan.md` — **tan** — tan(X)
+- `t/tanh.md` — **tanh** — tanh(X)
+- `t/tanimoto.md` — **tanimoto** — tanimoto(X, Y)
+- `t/tema.md` — **tema** — tema(X, window)
+- `t/temporalAdd.md` — **temporalAdd** — temporalAdd(obj, duration, [unit])
+- `t/temporalDeltas.md` — **temporalDeltas** — 别名：datetimeDeltas
+- `t/temporalDiff.md` — **temporalDiff** — 别名：datetimeDiff
+- `t/temporalFormat.md` — **temporalFormat** — temporalFormat(X, format)
+- `t/temporalParse.md` — **temporalParse** — temporalParse(X, format)
+- `t/temporalSeq.md` — **temporalSeq** — temporalSeq(start, end, rule, [closed], [label],
+- `t/tensor.md` — **tensor** — tensor(X)
+- `t/terminate.md` — **terminate** — terminate()
+- `t/test.md` — **test** — test(scriptFile, [outputFile], [testMemLeaking=false])
+- `t/textChunkDS.md` — **textChunkDS** — textChunkDS(filename, chunkSize, [delimiter], [schema], [skipRows=0], [arrayDeli…
+- `t/til.md` — **til** — til(n)
+- `t/time.md` — **time** — time(X)
+- `t/timestamp.md` — **timestamp** — timestamp(X)
+- `t/tmavg.md` — **tmavg** — tmavg(T, X, window)
+- `t/tmavgTopN.md` — **tmavgTopN** — tmavgTopN(T, X, S, window, top, [ascending=true],
+- `t/tmbeta.md` — **tmbeta** — tmbeta(T, Y, X, window)
+- `t/tmbetaTopN.md` — **tmbetaTopN** — tmbetaTopN(T, X, Y, S, window, top, [ascending=true],
+- `t/tmcorr.md` — **tmcorr** — tmcorr(T, X, Y, window)
+- `t/tmcorrTopN.md` — **tmcorrTopN** — tmcorrTopN(T, X, Y, S, window, top, [ascending=true],
+- `t/tmcount.md` — **tmcount** — tmcount(T, X, window)
+- `t/tmcovar.md` — **tmcovar** — tmcovar(T, X, Y, window)
+- `t/tmcovarp.md` — **tmcovarp** — 首发版本：3.00.5
+- `t/tmcovarpTopN.md` — **tmcovarpTopN** — 首发版本：3.00.5
+- `t/tmcovarTopN.md` — **tmcovarTopN** — tmcovarTopN(T, X, Y, S, window, top, [ascending=true],
+- `t/tmfirst.md` — **tmfirst** — tmfirst(T, X, window)
+- `t/tmkurtosis.md` — **tmkurtosis** — tmkurtosis(T, X, window, [biased=true])
+- `t/tmkurtosisTopN.md` — **tmkurtosisTopN** — tmkurtosisTopN(T, X, S, window, top, [biased=true], [ascending=true],
+- `t/tmlast.md` — **tmlast** — tmlast(T, X, window)
+- `t/tmlowrange.md` — **tmLowRange** — tmLowRange(T, X, window)
+- `t/tmmax.md` — **tmmax** — tmmax(T, X, window)
+- `t/tmmed.md` — **tmmed** — tmmed(T, X, window)
+- `t/tmmin.md` — **tmmin** — tmmin(T, X, window)
+- `t/tmove.md` — **tmove** — tmove(T, X, window)
+- `t/tmovingWindowData.md` — **tmovingWindowData** — tmovingWindowData(T, X, window, [leftClosed =
+- `t/tmpercentile.md` — **tmpercentile** — tmpercentile(T, X, percent, window, [interpolation='linear'])
+- `t/tmprod.md` — **tmprod** — tmprod(T, X, window)
+- `t/tmrank.md` — **tmrank** — tmrank(T, X, ascending, window, [ignoreNA=true], [tiesMethod='min'],
+- `t/tmskew.md` — **tmskew** — tmskew(T, X, window, [biased=true])
+- `t/tmskewTopN.md` — **tmskewTopN** — tmskewTopN(T, X, S, window, top, [biased=true], [ascending=true],
+- `t/tmstd.md` — **tmstd** — tmstd(T, X, window)
+- `t/tmstdp.md` — **tmstdp** — tmstdp(T, X, window)
+- `t/tmstdpTopN.md` — **tmstdpTopN** — tmstdpTopN(T, X, S, window, top, [ascending=true],
+- `t/tmstdTopN.md` — **tmstdTopN** — tmstdTopN(T, X, S, window, top, [ascending=true],
+- `t/tmsum.md` — **tmsum** — tmsum(T, X, window)
+- `t/tmsum2.md` — **tmsum2** — tmsum2(T, X, window)
+- `t/tmsumTopN.md` — **tmsumTopN** — tmsumTopN(T, X, S, window, top, [ascending=true],
+- `t/tmtoprange.md` — **tmTopRange** — tmTopRange(T, X, window)
+- `t/tmvar.md` — **tmvar** — tmvar(T, X, window)
+- `t/tmvarp.md` — **tmvarp** — tmvarp(T, X, window)
+- `t/tmvarpTopN.md` — **tmvarpTopN** — tmvarpTopN(T, X, S, window, top, [ascending=true],
+- `t/tmvarTopN.md` — **tmvarTopN** — tmvarTopN(T, X, S, window, top, [ascending=true],
+- `t/tmwavg.md` — **tmwavg** — tmwavg(T, X, Y, window)
+- `t/tmwsum.md` — **tmwsum** — tmwsum(T, X, Y, window)
+- `t/tmwsumTopN.md` — **tmwsumTopN** — tmwsumTopN(T, X, Y, S, window, top, [ascending=true],
+- `t/toArray.md` — **toArray** — toArray(X)
+- `t/toCharArray.md` — **toCharArray** — toCharArray(X)
+- `t/tocolumnartuple.md` — **toColumnarTuple** — 首发版本：3.00.5
+- `t/today.md` — **today** — today()
+- `t/toJson.md` — **toJson** — toJson(X)
+- `t/tokenize.md` — **tokenize** — tokenize(text, parser, [full=false], [lowercase=true],
+- `t/tokenizeBert.md` — **tokenizeBert** — 首发版本：3.00.4，3.00.3.1
+- `t/topRange.md` — **topRange** — topRange(X)
+- `t/toStdJson.md` — **toStdJson** — toStdJson(obj)
+- `t/totuple.md` — **toTuple** — 首发版本：3.00.5
+- `t/toUTF8.md` — **toUTF8** — toUTF8(str, encode)
+- `t/transDS_.md` — **transDS!** — transDS!(ds, transFunc)
+- `t/transFreq.md` — **transFreq** — transFreq(X, rule, [closed], [label],
+- `t/transpose.md` — **transpose** — transpose(X)
+- `t/treasuryconversionfactor.md` — **treasuryConversionFactor** — treasuryConversionFactor(contractCoupon, deliverableCoupon,
+- `t/triggercheckpointforimoltp.md` — **triggerCheckpointForIMOLTP** — triggerCheckpointForIMOLTP([force=false], [sync=false])
+- `t/triggerNodeReport.md` — **triggerNodeReport** — triggerNodeReport(nodeAlias, [chunkId])
+- `t/triggerPKEYCompaction.md` — **triggerPKEYCompaction** — triggerPKEYCompaction(chunkId, [async=true])
+- `t/triggerTSDBCompaction.md` — **triggerTSDBCompaction** — triggerTSDBCompaction(chunkId, [level=0])
+- `t/tril.md` — **tril** — tril(X, [k=0])
+- `t/trim.md` — **trim** — trim(X)
+- `t/trima.md` — **trima** — trima(X, window)
+- `t/triu.md` — **triu** — triu(X, [k=0])
+- `t/trueRange.md` — **trueRange** — trueRange(high, low, close)
+- `t/truncate.md` — **truncate** — truncate(dbUrl, tableName)
+- `t/tTest.md` — **tTest** — tTest(X, [Y], [mu=0.0], [confLevel=0.95], [equalVar=false])
+- `t/tupleSum.md` — **tupleSum** — tupleSum(X)
+- `t/type.md` — **type** — type(X)
+- `t/typestr.md` — **typestr** — typestr(X)
+
+## themes（14 个）
+
+- `themes/cepFunctions.md` — **CEP 相关函数** — 复杂事件处理引擎用于从大规模实时数据流中提取信息、识别模式并进行实时分析和决策。本文提供 CEP
+- `themes/cepFunctions_2.md` — **CEP 相关函数** — 复杂事件处理引擎用于从大规模实时数据流中提取信息、识别模式并进行实时分析和决策。本文提供 CEP
+- `themes/cumFunctions.md` — **累计窗口系列（cum 系列）** — 累积窗口，即窗口的起始边界固定，结束边界逐步向右移动的窗口。针对累计窗口计算场景，DolphinDB 提供了 cum 系列函数。
+- `themes/cumTopN.md` — **cumTopN 系列** — DolphinDB 提供了 cumTopN 系列函数，在累积窗口内，将数据根据某个指标排序后，只取排序靠前的 top 个元素进行计算。
+- `themes/mFunctions.md` — **滑动窗口系列（m 系列）** — 对窗口内聚合计算，DolphinDB引入了 m 系列函数。m
+- `themes/orcaFunctions.md` — **Orca 系列** — Orca 实时计算平台构建于 DolphinDB 流数据框架之上，提供了更高层次的抽象。通过声明式
+- `themes/rowFunctions.md` — **行计算系列（row 系列）** — DolphinDB 中，绝大部分计算函数是基于向量、矩阵或表的一列进行的。若需要逐行计算，普通函数无法满足要求。为此，DolphinDB 设计了row
+- `themes/streaming_sql.md` — **流式 SQL** — 流式 SQL 支持基于共享内存表进行实时 SQL 查询和持续结果更新。用户可以声明表为流式 SQL 输入表，注册流式 SQL
+- `themes/streamingEngine.md` — **流计算引擎** — 在流数据处理中，要求持续高效地进行实时计算。为此，DolphinDB
+- `themes/TAlib.md` — **TA-lib 系列** — TA-lib（Technical Analysis
+- `themes/themes.md` — **系列函数** — 系列函数为同类函数提供了一个主题页面，总体介绍同类函数的函数结构以及计算方法，便于用户更好地理解和使用。
+- `themes/tmFunctions.md` — **时序滑动窗口系列（tm 系列）** — 在涉及到时序数据的窗口计算场景，往往需要窗口根据时间列滑动进行指标的计算，为此 DolphinDB 引入了 tm 系列函数。tm 系列函数的窗口计算和 m 系列…
+- `themes/tmTopN.md` — **tmTopN 系列** — DolphinDB 提供了 tmTopN 系列函数，在根据时间滑动的窗口内，将数据根据某个指标排序后，只取排序靠前的 top 个元素进行计算。
+- `themes/TopN.md` — **mTopN 系列** — 数据依照某个指标进行排序，并取排序后前 top 个元素进行计算。
+
+## u（26 个）
+
+- `u/undef.md` — **undef** — undef(obj, [objType=VAR])
+- `u/ungroup.md` — **ungroup** — ungroup(X)
+- `u/unifiedExpr.md` — **unifiedExpr** — unifiedExpr(objs, optrs)
+- `u/union.md` — **union** — union(X, Y) 或 X|Y
+- `u/unionAll.md` — **unionAll** — unionAll(tableA, tableB, [byColName=false])
+- `u/unloadVocab.md` — **unloadVocab** — 首发版本：3.00.4，3.00.3.1
+- `u/unlockUser.md` — **unlockUser** — 首发版本：3.00.3
+- `u/unpack.md` — **unpack** — unpack(format, buf)
+- `u/unpivot.md` — **unpivot** — unpivot(obj, keyColNames, valueColNames, [func])
+- `u/unsubscribeStreamingSQL.md` — **unsubscribeStreamingSQL** — 首发版本：3.00.4
+- `u/unsubscribeTable.md` — **unsubscribeTable** — unsubscribeTable([server], tableName, [actionName], [removeOffset=true],
+- `u/update_.md` — **update!** — update!(table, colNames, newValues, [filter])
+- `u/update_stream_graph_user_tickets.md` — **updateStreamGraphUserTickets** — updateStreamGraphUserTickets()
+- `u/updateDataViewItems.md` — **updateDataViewItems** — updateDataViewItems(engine, keys, valueNames, newValues)
+- `u/updateLicense.md` — **updateLicense** — updateLicense()
+- `u/updateMarketHoliday.md` — **updateMarketHoliday** — updateMarketHoliday(marketName, holiday)
+- `u/updateMCPPrompt.md` — **updateMCPPrompt** — 首发版本：3.00.4
+- `u/updateMCPTool.md` — **updateMCPTool** — 首发版本：3.00.4
+- `u/updateOrderBookEngineParams.md` — **updateOrderBookEngineParams** — updateOrderBookEngineParams(engine, [prevClose], [maxPrice], [minPrice],
+- `u/updatepkeydeletebitmap.md` — **updatePKEYDeleteBitmap** — updatePKEYDeleteBitmap(chunkId)
+- `u/updateRule.md` — **updateRule** — updateRule(engineName, key, rules, [add=false])
+- `u/upper.md` — **upper** — upper(X)
+- `u/upsert_.md` — **upsert!** — upsert!(obj, newData, [ignoreNull=false], [keyColNames],
+- `u/useOrcaStreamEngine.md` — **useOrcaStreamEngine** — 首发版本：3.00.3
+- `u/useOrcaStreamTable.md` — **useOrcaStreamTable** — 首发版本：3.00.3
+- `u/uuid.md` — **uuid** — uuid(X)
+
+## v（11 个）
+
+- `v/valueChanged.md` — **valueChanged** — valueChanged(X, [mode="prev"])
+- `v/values.md` — **values** — values(X)
+- `v/vanillaoption.md` — **vanillaOption** — vanillaOption(settlement, maturity, evalDate, spot, strike, riskFree,
+- `v/var.md` — **var** — var(X)
+- `v/var_0.md` — **valueAtRisk** — valueAtRisk(returns, method,
+- `v/varma.md` — **varma** — varma(ds,endogColNames,order,[exog],[trend='c'],[errorCovType='unstructured'],[m…
+- `v/varp.md` — **varp** — varp(X)
+- `v/vectorar.md` — **vectorAR** — vectorAR(ds, endogColNames, [exog], [trend='c'], [maxLag],
+- `v/vectornorm.md` — **vectorNorm** — vectorNorm(x, [ord], [axis], [keepDims])
+- `v/version.md` — **version** — version()
+- `v/volumeBar.md` — **volumeBar** — volumeBar(X, interval, [label='seq'])
+
+## w（29 个）
+
+- `w/warmupcomputenodecache.md` — **warmupComputeNodeCache** — 首发版本：3.00.3
+- `w/warmupOrcaStreamEngine.md` — **warmupOrcaStreamEngine** — 首发版本：3.00.3
+- `w/warmupStreamEngine.md` — **warmupStreamEngine** — warmupStreamEngine(engine, msgs)
+- `w/wavg.md` — **wavg** — wavg(X, Y)
+- `w/wc.md` — **wc** — wc(X)
+- `w/wcovar.md` — **wcovar** — wcovar(X, Y, W)
+- `w/weekBegin.md` — **weekBegin** — weekBegin(X, [weekday=0], [offset], [n=1])
+- `w/weekday.md` — **weekday** — weekday(X, [startFromSunday=true])
+- `w/weekEnd.md` — **weekEnd** — weekEnd(X, [weekday=6], [offset], [n=1])
+- `w/weekOfMonth.md` — **weekOfMonth** — weekOfMonth(X, [week=0], [weekday=0], [offset],
+- `w/weekOfYear.md` — **weekOfYear** — weekOfYear(X)
+- `w/wilder.md` — **wilder** — wilder(X, window)
+- `w/winsorize.md` — **winsorize** — winsorize(X, limit, [inclusive=true], [nanPolicy='upper'])
+- `w/winsorize_.md` — **winsorize!** — winsorize!(X, limit, [inclusive=true], [nanPolicy='omit'])
+- `w/withdrawMCPPrompts.md` — **withdrawMCPPrompts** — 首发版本：3.00.4
+- `w/withdrawMCPTools.md` — **withdrawMCPTools** — 首发版本：3.00.4
+- `w/wls.md` — **wls** — wls(Y, X, W, [intercept=true], [mode=0])
+- `w/wma.md` — **wma** — wma(X, window)
+- `w/write.md` — **write** — write(handle, object, [offset=0], [length])
+- `w/writeBytes.md` — **writeBytes** — writeBytes(handle, bytes)
+- `w/writeLine.md` — **writeLine** — writeLine(handle, string,
+- `w/writeLines.md` — **writeLines** — writeLines(handle, object, [offset=0], [length],
+- `w/writeLog.md` — **writeLog** — writeLog(X1, [X2, X3....Xn])
+- `w/writeloglevel.md` — **writeLogLevel** — writeLogLevel(level,X1,[X2, X3,...,Xn])
+- `w/writeObject.md` — **writeObject** — writeObject(handle, object)
+- `w/writeRecord.md` — **writeRecord** — writeRecord(handle, object, [offset=0], [length])
+- `w/wslr.md` — **wslr** — wslr(Y, X, W, [mse=false])
+- `w/wsum.md` — **wsum** — wsum(X, Y)
+- `w/wsum2.md` — **wsum2** — wsum2(X, Y)
+
+## x（2 个）
+
+- `x/xdb.md` — **xdb** — xdb(siteAlias, [userId], [password],
+- `x/xor.md` — **xor** — xor(X, Y)
+
+## y（4 个）
+
+- `y/year.md` — **year** — year(X)
+- `y/yearBegin.md` — **yearBegin** — yearBegin(X, [startingMonth=1], [offset],
+- `y/yearEnd.md` — **yearEnd** — yearEnd(X, [endingMonth=12], [offset], [n=1])
+- `y/yearFrac.md` — **yearFrac** — 首发版本：3.00.5
+
+## z（3 个）
+
+- `z/zigzag.md` — **zigzag** — zigzag(HL, [change=10], [percent=true], [retrace=false],
+- `z/zscore.md` — **zscore** — zscore(X)
+- `z/zTest.md` — **zTest** — zTest(X, [Y], [mu=0.0], [sigmaX=1.0], [sigmaY=1.0],

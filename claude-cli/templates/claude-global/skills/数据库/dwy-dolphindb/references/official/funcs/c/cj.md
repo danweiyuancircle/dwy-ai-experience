@@ -1,0 +1,57 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/c/cj.html
+fetched_at: 2026-05-19T09:15:05Z
+category: funcs
+title: cj
+sha1: 6941e78488a722c9355b7f44925912d7344b4d98
+---
+
+# cj
+
+## 语法
+
+`cj(X, Y)`
+
+## 详情
+
+这个函数对两个表执行交叉连接，产生它们的笛卡儿积。如果 *X* 有 n 行，*Y* 有 m 行，那么 cj(X,Y) 有 n\*m 行。
+
+## 参数
+
+**X** 和 **Y** 是表。
+
+## 返回值
+
+一个表。
+
+## 例子
+
+```dolphindb
+a=table(1..3 as x,`IBM`C`AAPL as y)
+b=table(172.3 25 106.5 as z)
+c=cj(a,b);
+c;
+```
+
+| x | y | z |
+| --- | --- | --- |
+| 1 | IBM | 172.3 |
+| 1 | IBM | 25 |
+| 1 | IBM | 106.5 |
+| 2 | C | 172.3 |
+| 2 | C | 25 |
+| 2 | C | 106.5 |
+| 3 | AAPL | 172.3 |
+| 3 | AAPL | 25 |
+| 3 | AAPL | 106.5 |
+
+```dolphindb
+// 与此相对，join(<-) 只是将两个表的列合并
+a join b;
+```
+
+| x | y | z |
+| --- | --- | --- |
+| 1 | IBM | 172.3 |
+| 2 | C | 25 |
+| 3 | AAPL | 106.5 |

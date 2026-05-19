@@ -1,0 +1,43 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/g/getRaftLearnersStatus.html
+fetched_at: 2026-05-19T09:25:35Z
+category: funcs
+title: getRaftLearnersStatus
+sha1: 4eefe71f5d368fc043cc60b57b67bc43ad4c8f33
+---
+
+# getRaftLearnersStatus
+
+## 语法
+
+`getRaftLearnersStatus(groupId)`
+
+## 详情
+
+查询指定 Raft 组中所有 Learner 节点的状态。
+
+## 参数
+
+**groupId** 是一个大于 1 的整数，表示 Raft 组的 ID。
+
+## 返回值
+
+一个表，包含以下列：
+
+- nodeName：节点名字。
+- nodeId：节点的 ID。
+- matchIndex：Leader 已确认复制到该 Learner 的最高日志索引。
+- nextIndex：Leader 下一次要发送给该 Learner 的日志条目索引。
+- replicationLag：​日志复制延迟条数，值越小表示延迟越低。
+- lastActiveTime：Leader 与 Learner 之间最近一次成功通信的时间。
+- snapshotProgress：快照传输进度，0表示当前没有进行快照传输。
+
+## 例子
+
+```dolphindb
+getRaftLearnersStatus(3)
+```
+
+| nodeName | nodeId | matchIndex | nextIndex | replicationLag | lastActiveTime | snapshotProgress |
+| --- | --- | --- | --- | --- | --- | --- |
+| datanode8922@cluster2 | 256 | 10,004 | 10,005 | 0 | 2025.08.18 14:00:15.349 | 0 |

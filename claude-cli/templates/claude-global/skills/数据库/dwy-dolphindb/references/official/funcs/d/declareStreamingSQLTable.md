@@ -1,0 +1,39 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/d/declareStreamingSQLTable.html
+fetched_at: 2026-05-19T09:18:25Z
+category: funcs
+title: declareStreamingSQLTable
+sha1: 4809487e551ff5db44896680c5bed0285f90ac64
+---
+
+# declareStreamingSQLTable
+
+首发版本：3.00.4
+
+## 语法
+
+`declareStreamingSQLTable(table)`
+
+## 详情
+
+将指定表声明为流式 SQL 的输入表。仅被声明的表才能通过 `registerStreamingSQL` 注册流式 SQL
+查询。该声明操作不会影响该表在普通 SQL 查询或其他功能中的使用。
+
+## 参数
+
+**table** 表对象，目前仅支持共享内存表，包括通过 `share` 共享的普通内存表、键值内存表、索引内存表。
+
+## 返回值
+
+无
+
+## 例子
+
+```dolphindb
+t=table(1..10 as id,rand(100,10) as val)
+share t as st
+declareStreamingSQLTable(st)
+registerStreamingSQL("select avg(val) from st")
+```
+
+**相关函数：**[listStreamingSQLTables](../l/listStreamingSQLTables.html), [registerStreamingSQL](../r/registerStreamingSQL.html), [revokeStreamingSQLTable](../r/revokeStreamingSQLTable.html)

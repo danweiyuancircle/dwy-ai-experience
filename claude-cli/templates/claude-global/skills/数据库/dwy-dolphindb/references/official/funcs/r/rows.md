@@ -1,0 +1,64 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/r/rows.html
+fetched_at: 2026-05-19T09:37:25Z
+category: funcs
+title: rows
+sha1: 55e1fc19a831b0fcd97e548cbba803f8a2a27ff7
+---
+
+# rows
+
+## 语法
+
+`rows(X)`
+
+## 详情
+
+返回 *X* 中的行数。参见相关函数： [cols](../c/cols.html)。
+
+## 参数
+
+**X** 可以是任意数据形式的对象。
+
+## 返回值
+
+一个 INT 标量。
+
+## 例子
+
+```dolphindb
+y=1 2 3;
+rows(y);
+// output
+3
+// 一个向量可以被视为一个 n* 1 的矩阵
+
+x=1..6$2:3;
+X
+```
+
+| #0 | #1 | #2 |
+| --- | --- | --- |
+| 1 | 3 | 5 |
+| 2 | 4 | 6 |
+
+```dolphindb
+rows X
+// output
+2
+
+a=table(1..3 as x,`IBM`C`AAPL as y);
+a
+```
+
+| x | y |
+| --- | --- |
+| 1 | IBM |
+| 2 | C |
+| 3 | AAPL |
+
+```dolphindb
+rows a;
+// output
+3
+```

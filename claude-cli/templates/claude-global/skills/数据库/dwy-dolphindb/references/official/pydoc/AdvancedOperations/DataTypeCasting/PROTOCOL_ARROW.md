@@ -1,0 +1,87 @@
+---
+source_url: https://docs.dolphindb.cn/zh/pydoc/AdvancedOperations/DataTypeCasting/PROTOCOL_ARROW.html
+fetched_at: 2026-05-19T09:52:38Z
+category: pydoc
+title: PROTOCOL_ARROW
+sha1: 0a8a7f697b7e7ecc3cd4c4fb12991c7089741bf9
+---
+
+# PROTOCOL\_ARROW
+
+[Apache Arrow 协议](https://arrow.apache.org/)是一种用于对大型数据集进行序列化和反序列化的协议，可以跨平台、跨语言地进行高效数据传输。DolphinDB 提供的 Arrow 插件在 Apache Arrow 协议的基础上进行类型适配，实现 DolphinDB 和 API 之间通过 Apache Arrow 协议进行数据传输。用户在安装 Arrow 插件后方可使用 Apache Arrow 协议进行传输。
+
+**注意**：若用户未安装 [Arrow 插件](https://docs.dolphindb.cn/zh/plugins/Arrow/arrow.html)，即便已指定启用 PROTOCOL\_ARROW 协议，API 将默认使用 PROTOCOL\_DDB 协议进行传输，并返回 DataFrame。
+
+## PROTOCOL\_ARROW 数据形式支持表
+
+对于 API 而言，PROTOCOL\_ARROW 协议目前仅支持 Table 型数据的反序列化，且不支持开启压缩模式。
+
+| 附加参数 | 数据形式 | 序列化 | 反序列化 |
+| --- | --- | --- | --- |
+| 无 | Table | 不支持 | 支持 |
+
+## 启用 PROTOCOL\_ARROW
+
+如果使用 PROTOCOL\_ARROW 协议，须安装 [Arrow 插件](https://docs.dolphindb.cn/zh/plugins/Arrow/arrow.html) 和 9.0.0 以上版本的 [pyarrow](https://pypi.org/project/pyarrow/)。
+
+在以下示例中，session 和 DBConnectionPool 通过设置参数 *protocol* 指定启用 PROTOCOL\_ARROW 协议。
+
+```dolphindb
+import dolphindb as ddb
+import dolphindb.settings as keys
+
+s = ddb.session(protocol=keys.PROTOCOL_ARROW)
+s.connect("localhost", 8848, "admin", "123456")
+
+pool = ddb.DBConnectionPool("localhost", 8848, "admin", "123456", 10, protocol=keys.PROTOCOL_ARROW)
+```
+
+## 反序列化 DolphinDB -> Python
+
+### Table
+
+使用 PROTOCOL\_ARROW 协议时，DolphinDB 中的 Table 对应 Python 中的 pyarrow.Table。详细类型转换的对照信息如下表所示：
+
+| DolphinDB类型 | Arrow类型 |
+| --- | --- |
+| BOOL | boolean |
+| CHAR | int8 |
+| SHORT | int16 |
+| INT | int32 |
+| LONG | int64 |
+| DATE | date32 |
+| MONTH | date32 |
+| TIME | time32(ms) |
+| MINUTE | time32(s) |
+| SECOND | time32(s) |
+| DATETIME | timestamp(s) |
+| TIMESTAMP | timestamp(ms) |
+| NANOTIME | time64(ns) |
+| NANOTIMESTAMP | timestamp(ns) |
+| DATEHOUR | timestamp(s) |
+| FLOAT | float32 |
+| DOUBLE | float64 |
+| SYMBOL | dictionary(int32, utf8) |
+| STRING | utf8 |
+| IPADDR | utf8 |
+| UUID | fixed\_size\_binary(16) |
+| INT128 | fixed\_size\_binary(16) |
+| BLOB | large\_binary |
+| DECIMAL32(X) | decimal128(38, X) |
+| DECIMAL64(X) | decimal128(38, X) |
+
+**注1：** PROTOCOL\_ARROW 协议同时支持以上除了 DECIMAL32/DECIMAL64 外的 Array Vector 类型。
+
+**注2：** 使用 PROTOCOL\_ARROW 协议获取 pyarrow.Table 数据后，如果需要将数据转换为 pandas.DataFrame，由于 DolphinDB NANOTIME 数据类型对应 Arrow 的 time64(ns) 类型，因此要求进行转换的小数数值必须为 0.001 的倍数，否则会提示 `Value xxxxxxx has non-zero nanoseconds`。
+
+**注3：** Arrow 插件自 2.00.11 版本起，下载 UUID / INT128 后的字节顺序从反转修正为和上传时的顺序保持一致。
+
+代码示例：
+
+```dolphindb
+>>> s.run("table(1..3 as a)")
+pyarrow.Table
+a: int32
+----
+a: [[1,2,3]]
+```

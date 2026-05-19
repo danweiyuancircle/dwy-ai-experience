@@ -1,0 +1,41 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/c/cdfNormal.html
+fetched_at: 2026-05-19T09:14:45Z
+category: funcs
+title: cdfNormal
+sha1: 2aac4de0afd699f10b0c73e8a13146bba79aaf0d
+---
+
+# cdfNormal
+
+## 语法
+
+`cdfNormal(mean, stdev, X)`
+
+## 详情
+
+返回均值为 *mean*，标准差为 *stdev* 的正态分布的累计密度函数的值。
+
+## 参数
+
+**mean** 是正态分布的均值。
+
+**stdev** 是正态分布的标准差。
+
+**X** 是数值型标量或向量。
+
+## 返回值
+
+DOUBLE 类型标量或向量。
+
+## 例子
+
+```dolphindb
+cdfNormal(0,1,-2.33);
+// output
+0.009903
+
+cdfNormal(10, 20, -30);
+// output
+0.02275
+```

@@ -1,0 +1,40 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/a/asof.html
+fetched_at: 2026-05-19T09:13:19Z
+category: funcs
+title: asof
+sha1: 8cfd6098ba967b821ddb966c89500210b25d351e
+---
+
+# asof
+
+## 语法
+
+`asof(X, Y)`
+
+## 详情
+
+对于每个 *Y* 中的元素 y，`asof` 返回 *X* 中不大于 y
+的元素的最大序号（从 0 开始编号）。如果没有找到，则返回-1。
+
+## 参数
+
+**X** 必须是一个递增的向量、索引序列、索引矩阵；
+
+**Y** 可以是标量、向量、数组向量、元组、矩阵、字典、表。
+
+## 返回值
+
+数据类型为 INT，数据形式与 *Y* 相同。
+
+## 例子
+
+```dolphindb
+asof(1..100, 60 200 -10)
+// output
+[59,99,-1]
+
+0 0 0 1 1 1 1 2 2 3 asof 1
+// output
+6
+```
