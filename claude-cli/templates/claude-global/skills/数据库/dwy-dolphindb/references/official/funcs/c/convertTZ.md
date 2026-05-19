@@ -1,0 +1,35 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/c/convertTZ.html
+fetched_at: 2026-05-19T09:15:52Z
+category: funcs
+title: convertTZ
+sha1: 6afddd779b240f9f26718dfc44a6aa7b0eedfb4a
+---
+
+# convertTZ
+
+## 语法
+
+`convertTZ(obj, srcTZ, destTZ)`
+
+## 详情
+
+把 *srcTZ* 时区的时间 *obj* 转换成 *destTZ* 时区的时间。
+
+## 参数
+
+**obj** 可以是 DATETIME, TIMESTAMP, NANOTIMESTAMP 类型的时间标量或向量。
+
+**srcTZ** 和 **destTZ** 都是字符串，表示时区。
+
+## 返回值
+
+返回一个与输入 *obj* 相同数据类型和形式的对象。
+
+## 例子
+
+```dolphindb
+convertTZ(2016.04.25T08:25:45,"US/Eastern","Asia/Shanghai");
+// output
+2016.04.25T20:25:45
+```

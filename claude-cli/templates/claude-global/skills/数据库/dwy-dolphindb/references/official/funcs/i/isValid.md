@@ -1,0 +1,38 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/i/isValid.html
+fetched_at: 2026-05-19T09:28:58Z
+category: funcs
+title: isValid
+sha1: 95c59ce157da43085b24fbf9d3bd9b48ad85f2fb
+---
+
+# isValid
+
+## 语法
+
+`isValid(X)`
+
+## 详情
+
+检查每个元素是否为有效数（非 NULL 值）。如果是，返回 true；否则返回 false。
+
+## 参数
+
+**X** 可以是标量、数据对、向量或矩阵。
+
+## 返回值
+
+布尔标量、数据对、向量或矩阵。
+
+## 例子
+
+```dolphindb
+isValid(00i);
+// output: false
+
+isValid(1 NULL NULL 6 NULL 7);
+// output: [true,false,false,true,false,true]
+
+isValid(1/0);
+// output: false
+```

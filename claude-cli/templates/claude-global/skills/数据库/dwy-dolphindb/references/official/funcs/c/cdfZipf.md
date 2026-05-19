@@ -1,0 +1,37 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/c/cdfZipf.html
+fetched_at: 2026-05-19T09:14:50Z
+category: funcs
+title: cdfZipf
+sha1: 684bc6976bb0cf451ccd2535b690f7f5a8fb1c89
+---
+
+# cdfZipf
+
+## 语法
+
+`cdfZipf(num, exponent, X)`
+
+## 详情
+
+返回 Zipf 分布的累计密度函数的值。
+
+## 参数
+
+**num** 是正整数。
+
+**exponent** 是非负数。
+
+**X** 是数值型向量。
+
+## 返回值
+
+DOUBLE 类型标量或向量。
+
+## 例子
+
+```dolphindb
+cdfZipf(10, 0.5, [1, 3, 5, 7, 9]);
+// output
+[0.199164, 0.454981, 0.643631, 0.800216, 0.937019]
+```

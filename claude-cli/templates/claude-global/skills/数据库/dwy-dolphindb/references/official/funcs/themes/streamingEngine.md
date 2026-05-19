@@ -1,0 +1,15 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/themes/streamingEngine.html
+fetched_at: 2026-05-19T09:05:06Z
+category: funcs
+title: 流计算引擎
+sha1: a81f18141943f76ec2eebcab163e024b1b846768
+---
+
+# 流计算引擎
+
+在流数据处理中，要求持续高效地进行实时计算。为此，DolphinDB
+研发了适合流计算场景的多种引擎，采用增量计算，提高实时计算的性能。流计算引擎的计算结果可以输出到共享内存表、流数据表、消息中间件、数据库、API
+等终端，以做进一步的处理。计算复杂表达式时，亦可将多个流数据引擎通过级联的方式合并成一个复杂的数据流拓扑。
+
+本节将介绍 DolphinDB 单数据源的流计算引擎。

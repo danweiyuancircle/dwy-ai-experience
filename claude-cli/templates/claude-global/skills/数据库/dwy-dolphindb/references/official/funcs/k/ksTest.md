@@ -1,0 +1,46 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/k/ksTest.html
+fetched_at: 2026-05-19T09:29:20Z
+category: funcs
+title: ksTest
+sha1: fc5bcd38f24e57c542beac36d0050651b19329cc
+---
+
+# ksTest
+
+## 语法
+
+`ksTest(X, Y)`
+
+## 详情
+
+对 *X* 和 *Y* 进行 Kolmogorov-Smirnov 检验，检验它们是否符合同一个分布。
+
+## 参数
+
+**X** 是一个数值向量。
+
+**Y** 是一个数值向量。
+
+## 返回值
+
+返回一个字典，包含以下 key：
+
+- ksValue：Kolmogorov-Smirnov 统计量
+- pValue：p 值
+- D：D 统计量
+- method：字符串 "Two-sample Kolmogorov-Smirnov test"
+
+## 例子
+
+```dolphindb
+x = norm(0.0, 1.0, 50)
+y = norm(0.0, 1.0, 20)
+ksTest(x, y);
+
+// output
+ksValue->0.739301
+pValue->0.645199
+D->0.19
+method->Two-sample Kolmogorov-Smirnov test
+```

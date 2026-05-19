@@ -1,0 +1,52 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/p/polyPredict.html
+fetched_at: 2026-05-19T09:34:17Z
+category: funcs
+title: polyPredict
+sha1: 618f9b73cd3d8abe8f88069166e3b4d6a995556c
+---
+
+# polyPredict
+
+## 语法
+
+`polyPredict(model, X)`
+
+别名：`poly1d`
+
+## 详情
+
+利用给定的多项式系数 *z* 和自变量 *x*，计算因变量的值。
+
+## 参数
+
+**model** 数值型向量，表示多项式系数，以升幂排列，不能包含空值。
+
+**x** 数值型标量或向量，表示自变量数据点，不能包含空值。
+
+## 返回值
+
+一个和 *x* 等长的数值型向量。
+
+## 例子
+
+## 例子
+
+一个 3 次多项式 `2x^3 + 3x^2 + 4x +
+5`，它的系数按升幂排序的向量是[5,4,3,2]：
+
+```dolphindb
+model = [5,4,3,2]
+x = [2.0,5.0,3.0,3.0,4.0,5.0]
+y = poly1d(model,x)
+y
+//output: [41,350,98,98,197,350]
+```
+
+使用上述代码中的 model 和 y，通过 `polyFit` 函数可以计算出 3
+次多项式的系数（按升幂排序）。
+
+```dolphindb
+polyFit(x,y,3)
+//output:[5,4,3,2]
+```

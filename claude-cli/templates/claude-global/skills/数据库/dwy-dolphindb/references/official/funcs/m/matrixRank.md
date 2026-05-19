@@ -1,0 +1,36 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/m/matrixRank.html
+fetched_at: 2026-05-19T09:31:09Z
+category: funcs
+title: matrixRank
+sha1: 21bfae36c8c38d212157013bffb17fc915aea446
+---
+
+# matrixRank
+
+## 语法
+
+`matrixRank(A, [tol])`
+
+## 详情
+
+计算矩阵的秩。
+
+## 参数
+
+**A** 数值型矩阵，一维矩阵也可以用向量表示。
+
+**tol**数值型标量，小于 tol 的奇异值将被视为零，因此矩阵的秩为该矩阵大于 tol 的奇异值的个数。默认值为双精度浮点数的最小精度 DBL\_EPSILON
+= 2.22044604925e-16。
+
+## 返回值
+
+整型标量，表示矩阵的秩。
+
+## 例子
+
+```dolphindb
+m1 = matrix(1..4,1..4*2,3..6)
+matrixRank(m1) 
+// output：2
+```

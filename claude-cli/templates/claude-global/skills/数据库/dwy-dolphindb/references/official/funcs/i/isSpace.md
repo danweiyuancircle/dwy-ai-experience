@@ -1,0 +1,42 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/i/isSpace.html
+fetched_at: 2026-05-19T09:28:54Z
+category: funcs
+title: isSpace
+sha1: 7bedd165b0425b135637bc1863f22e41f3f34a6b
+---
+
+# isSpace
+
+## 语法
+
+`isSpace(X)`
+
+## 详情
+
+判断 *X* 是否为空格类字符串。如果 *X*
+中的字符都是空格、跳格符(\t)、回车符(\r)或换行符(\n)，该函数返回 true，反之，返回 false。对于空字符串（STRING 类型的 NULL
+值），该函数返回 false。
+
+## 参数
+
+**X** 是字符或字符串类型的标量、向量或表。
+
+## 返回值
+
+- 当 *X* 是标量时，返回布尔标量。
+- 当 *X* 是向量时，返回布尔向量。
+- 当 *X* 是表时，返回一个表。
+
+## 例子
+
+```dolphindb
+isSpace("hello world");
+// output: false
+
+isSpace(" \t ");
+// output: true
+
+isSpace(string());
+// output: false
+```

@@ -1,0 +1,62 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/e/expr.html
+fetched_at: 2026-05-19T09:21:29Z
+category: funcs
+title: expr
+sha1: b0d0c06cad059f6b2c7e62579d4e73727347bc2f
+---
+
+# expr
+
+## 语法
+
+`expr(args...)`
+
+## 详情
+
+函数 `expr` 从对象、运算符或其他元代码生成元代码。
+
+## 参数
+
+**args** 可以是对象、运算符或元代码。元代码是由"<"和">"包围的对象和/或表达式。参数的最小数量为2。
+
+## 返回值
+
+CODE 类型元代码。
+
+## 例子
+
+```dolphindb
+expr(6,<,8);
+// output
+< 6 < 8 >
+
+expr(sum, 1 2 3);
+// output
+< sum [1,2,3] >
+
+a=6;
+expr(a,+,1);
+// output
+< 6 + 1 >
+
+expr(<a>,+,1);
+// output
+< a + 1 >
+
+expr(<a>,+,<b>);
+// output
+< a + b >
+
+expr(a+7,*,8);
+// output
+< 13 * 8 >
+
+expr(<a+7>,*,8);
+// output
+< (a + 7) * 8 >
+
+expr(not, < a >);
+// output
+< ! a >
+```

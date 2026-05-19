@@ -1,0 +1,54 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/a/avg.html
+fetched_at: 2026-05-19T09:13:31Z
+category: funcs
+title: avg
+sha1: 5d68f8880807c23c1c6952121a9819e0f51d1890
+---
+
+# avg
+
+## 语法
+
+`avg(X)`
+
+## 详情
+
+- 若 *X* 为向量，计算 *X* 的平均值。
+- 若 *X* 为矩阵，计算每列的平均值。
+- 若 *X* 为表，计算每列的平均值。
+
+该函数与 [mean](../m/mean.html) 函数完全相同。
+
+与所有其它聚合函数一致，计算时忽略 NULL 值。
+
+## 参数
+
+**X** 可以是标量、数据对、向量、矩阵或表。
+
+## 返回值
+
+根据输入形式返回不同的结果：若输入为向量，返回 DOUBLE 类型标量；若输入为矩阵，返回 DOUBLE 类型向量（对每列聚合）；若输入为表，返回表。
+
+## 例子
+
+```dolphindb
+avg(1 2 3 NULL)
+// output
+2
+
+m=matrix(1 2 3, 4 5 6)
+m
+```
+
+| 0 | 1 |
+| --- | --- |
+| 1 | 4 |
+| 2 | 5 |
+| 3 | 6 |
+
+```dolphindb
+avg(m)
+// output
+[2,5]
+```

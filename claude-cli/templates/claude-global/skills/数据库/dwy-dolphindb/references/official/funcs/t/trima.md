@@ -1,0 +1,53 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/t/trima.html
+fetched_at: 2026-05-19T09:42:54Z
+category: funcs
+title: trima
+sha1: afe7b8b64b0d977514eb6b849b60fa9471579772
+---
+
+# trima
+
+## 语法
+
+`trima(X, window)`
+
+TA-lib 系列函数参数说明和窗口计算规则请参考：[TAlib](../themes/TAlib.html)
+
+## 详情
+
+在给定长度（以元素个数衡量）的滑动窗口内，计算 *X* 的三角移动平均（Triangular Moving
+Average）。
+
+其计算公式为：![](../../images/trima.png)
+
+其中 *w1 = (window + 1)/2* 向上取整；*w2 = (window + 1)/2*
+向下取整。
+
+## 返回值
+
+DOUBLE 类型向量/矩阵/表，数据形式同 *X*。
+
+## 例子
+
+```dolphindb
+x=12.1 12.2 12.6 12.8 11.9 11.6 11.2
+trima(x,3);
+// output
+[,,12.274999999999998,18.625,18.662500000000001,15.225000000000001,11.59375]
+
+x=matrix(12.1 12.2 12.6 12.8 11.9 11.6 11.2, 14 15 18 19 21 12 10)
+trima(x,3);
+```
+
+| col1 | col2 |
+| --- | --- |
+|  |  |
+|  |  |
+| 12.2749 | 15.5000 |
+| 12.5499 | 17.5000 |
+| 12.5249 | 19.2500 |
+| 12.0499 | 18.2500 |
+| 11.5750 | 13.7500 |
+
+相关函数：[sma](../s/sma.html), [wma](../w/wma.html), [trima](trima.html)

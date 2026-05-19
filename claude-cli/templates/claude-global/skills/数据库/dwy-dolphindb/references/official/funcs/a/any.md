@@ -1,0 +1,52 @@
+---
+source_url: https://docs.dolphindb.cn/zh/funcs/a/any.html
+fetched_at: 2026-05-19T09:13:00Z
+category: funcs
+title: any
+sha1: 0d474a3683a2a8137acbc1222c6fa55f2acec202
+---
+
+# any
+
+## 语法
+
+`any(X)`
+
+## 详情
+
+如果 *X* 中有至少一个元素为 true 或非0，则返回 1；否则返回 0。NULL 值不参与计算。
+
+## 参数
+
+**X** 可以是标量、数据对、向量或矩阵。
+
+## 返回值
+
+一个布尔值。
+
+## 例子
+
+```dolphindb
+any(1 0 2)
+// output
+1
+any(0 0 0)
+// output
+0
+any(0 0 NULL)
+// output
+0
+
+any(true false)
+// output
+1
+any(false false)
+// output
+0
+
+any(0..9$2:5)
+// output
+1
+```
+
+相关函数：[all](all.html)
