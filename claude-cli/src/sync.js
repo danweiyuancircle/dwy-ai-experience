@@ -12,6 +12,21 @@ const CATEGORIES = [
   { key: 'hooks', label: 'Hooks' },
 ]
 
+const COPY_EXCLUDE_PATTERNS = [
+  /(?:^|\/)\.venv(?:\/|$)/,
+  /(?:^|\/)__pycache__(?:\/|$)/,
+  /(?:^|\/)\.pytest_cache(?:\/|$)/,
+  /(?:^|\/)\.ruff_cache(?:\/|$)/,
+  /(?:^|\/)\.mypy_cache(?:\/|$)/,
+  /(?:^|\/)node_modules(?:\/|$)/,
+  /(?:^|\/)\.DS_Store$/,
+  /\.pyc$/,
+]
+
+function copyFilter(src) {
+  return !COPY_EXCLUDE_PATTERNS.some(re => re.test(src))
+}
+
 function extractDescription(content) {
   const match = content.match(/^---\s*\n([\s\S]*?)\n---/)
   if (!match) return ''
@@ -212,7 +227,7 @@ async function copyItems(items, targetDir, dryRun) {
     const dest = path.join(targetDir, item.type + 's', item.name)
     if (!dryRun) {
       await fs.ensureDir(path.dirname(dest))
-      await fs.copy(item.sourcePath, dest, { overwrite: true })
+      await fs.copy(item.sourcePath, dest, { overwrite: true, filter: copyFilter })
     }
     logAction(dryRun, `${item.type}s/${item.name}`)
   }
@@ -226,7 +241,7 @@ async function copyHooks(items, targetDir, dryRun) {
   for (const hook of items) {
     const dest = path.join(hooksTargetDir, hook.name)
     if (!dryRun) {
-      await fs.copy(hook.sourcePath, dest, { overwrite: true })
+      await fs.copy(hook.sourcePath, dest, { overwrite: true, filter: copyFilter })
       await fs.chmod(dest, 0o755)
     }
     logAction(dryRun, `hooks/${hook.name}`)

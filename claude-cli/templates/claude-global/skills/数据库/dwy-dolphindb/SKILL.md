@@ -1,15 +1,6 @@
 ---
 name: dwy-dolphindb
-description: >
-  DolphinDB 3.0 社区版（2核8G / 1控2节点）开发与审查 skill：写 DolphinDB Script (.dos)、
-  用 Python SDK (dolphindb 3.0.4)、设计 DFS 分区表（TSDB/OLAP 引擎选型）、导入 tick/snapshot/
-  kline 金融数据、优化慢查询、排查 OOM / 卡死作业、Docker 部署。也用于代码审查：检查分区
-  裁剪（链式比较 `a <= col <= b`、函数包裹分区列）、批量写入 ≤500K 行、SYMBOL ≤255 字节、
-  STRING/BLOB 静默截断、输入校验防脚本注入、连接池配置、`pool.run` async/sync 用法。
-  关键字触发：dolphindb, DDB, loadTable, loadTextEx, createPartitionedTable, append!,
-  dropPartition, DBConnectionPool, tableAppender, PartitionedTableAppender,
-  MultithreadedTableWriter, addRangePartitions, newValuePartitionPolicy, TSDB, OLAP,
-  getClusterPerf, getConsoleJobs, level2 行情, tick 数据, 时序数据库, 8848 端口, .dos 脚本.
+description: "DolphinDB 3.0 社区版（2核8G / 1控2节点）开发与审查 skill：写 DolphinDB Script (.dos)、用 Python SDK (dolphindb 3.0.4)、设计 DFS 分区表（TSDB/OLAP 引擎选型）、导入 tick/snapshot/kline 金融数据、优化慢查询、排查 OOM / 卡死作业、Docker 部署。也用于代码审查：检查分区裁剪（链式比较 `a <= col <= b`、函数包裹分区列）、批量写入 ≤500K 行、SYMBOL ≤255 字节、STRING/BLOB 静默截断、输入校验防脚本注入、连接池配置、`pool.run` async/sync 用法。关键字触发：dolphindb, DDB, loadTable, loadTextEx, createPartitionedTable, append!, dropPartition, DBConnectionPool, tableAppender, PartitionedTableAppender, MultithreadedTableWriter, addRangePartitions, newValuePartitionPolicy, TSDB, OLAP, getClusterPerf, getConsoleJobs, level2 行情, tick 数据, 时序数据库, 8848 端口, .dos 脚本."
 ---
 
 # DolphinDB 3.0 社区版使用指南
