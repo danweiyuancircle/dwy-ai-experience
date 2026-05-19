@@ -1,9 +1,11 @@
 ---
 name: dwy-dolphindb
-description: "DolphinDB 3.0 社区版（2核8G / 1控2节点）开发与审查 skill：写 DolphinDB Script (.dos)、用 Python SDK (dolphindb 3.0.4)、设计 DFS 分区表（TSDB/OLAP 引擎选型）、导入 tick/snapshot/kline 金融数据、优化慢查询、排查 OOM / 卡死作业、Docker 部署。也用于代码审查：检查分区裁剪（链式比较 `a <= col <= b`、函数包裹分区列）、批量写入 ≤500K 行、SYMBOL ≤255 字节、STRING/BLOB 静默截断、输入校验防脚本注入、连接池配置、`pool.run` async/sync 用法。关键字触发：dolphindb, DDB, loadTable, loadTextEx, createPartitionedTable, append!, dropPartition, DBConnectionPool, tableAppender, PartitionedTableAppender, MultithreadedTableWriter, addRangePartitions, newValuePartitionPolicy, TSDB, OLAP, getClusterPerf, getConsoleJobs, level2 行情, tick 数据, 时序数据库, 8848 端口, .dos 脚本."
+description: "DolphinDB 3.0 社区版（2核8G / 1控2节点）开发与审查 skill：写 DolphinDB Script (.dos)、用 Python SDK (dolphindb 3.0.4)、设计 DFS 分区表（TSDB/OLAP/PKEY/IMOLTP/VECTORDB 引擎选型）、导入 tick/snapshot/kline 金融数据、优化慢查询、排查 OOM / 卡死作业、Docker 部署、查询日期/字符串/聚合等内置函数、流计算、回测、集群运维。可基于项目级 .claude/dolphindb/schemas/ 真实 DDL 做查询性能评估。也用于代码审查：检查分区裁剪、链式比较、批量写入上限、SYMBOL 字节限制、STRING/BLOB 静默截断、输入校验防脚本注入、连接池配置、pool.run async/sync 用法。关键字触发：dolphindb, DDB, .dos, loadTable, loadTextEx, createPartitionedTable, append!, dropPartition, DBConnectionPool, tableAppender, PartitionedTableAppender, MultithreadedTableWriter, TSDB, OLAP, PKEY, IMOLTP, VECTORDB, getClusterPerf, getConsoleJobs, level2, tick 数据, 时序数据库, 8848 端口, 交易日历, 函数参考, K线合成, 流引擎, 回测引擎."
+source_url_base: https://docs.dolphindb.cn/zh
+fetched_at: 2026-05-19
 ---
 
-# DolphinDB 3.0 社区版使用指南
+# DolphinDB 3.0 Skill
 
 ## 当前环境
 
@@ -15,22 +17,67 @@ description: "DolphinDB 3.0 社区版（2核8G / 1控2节点）开发与审查 s
 | 端口 | Web/控制 `http://localhost:8848`，集群另含 `192.168.0.107:8848` / `172.17.0.1:8848` 等 |
 | Worker | 4 线程，连接上限 512（当前 15） |
 | Python SDK | `dolphindb==3.0.4` |
-| 场景 | 个人/小团队 + 教学，**单查询内存上限按 2GB 控制**（详见 [[performance-tuning]]）|
+| 场景 | 个人/小团队 + 教学，**单查询内存上限按 2GB 控制** |
 
-## 何时进入哪份 reference
+## 文档分层（按访问顺序）
 
-| 你正在做 | 看这里 |
+1. **`references/digest/`** —— 🎯 **第一站**，12 份金融/高频主题核心摘要（每份 100-180 行）。90% 问题在这里命中
+2. **`references/review-rules/`** —— skill 自带审查规则（致命违规、反模式、基线、变更检查清单），代码审查时必读
+3. **`references/INDEX.md`** —— 文档主索引（自动生成，digest + review-rules + 官方文档全目录）
+4. **`references/official/`** —— 官方中文文档全量（`docs.dolphindb.cn/zh/`），**下钻用**
+5. **`references/official/funcs/_INDEX.md`** —— 1705 个函数按字母分组的二级索引
+
+**路由顺序**：digest → review-rules → official。先看 digest，命中就够；不够再下钻 official 对应章节。
+
+## 何时进入哪份 reference（路由表）
+
+### 优先看 digest（100-180 行精华，覆盖 90% 问题）
+
+| 问题类型 | digest 文件 | 下钻 official |
+|---|---|---|
+| 引擎选型（TSDB/OLAP/PKEY/IMOLTP/VECTORDB） | `digest/engines.md` | `official/db_distr_comp/db/` |
+| 分区策略 / sortColumns / 分区剪枝 | `digest/partitioning.md` | `official/db_distr_comp/db/` |
+| DDB SQL 写法 / select/where/group/context/pivot/join | `digest/sql-essentials.md` | `official/progr/sql/` |
+| 时间日期函数 / 交易日历 / 时间类型选型 | `digest/functions-temporal.md` | `official/funcs/d/`, `t/`, `m/` |
+| 聚合 / 窗口 / 滑动 / 累计函数 | `digest/functions-aggregate-window.md` | `official/funcs/m/`, `r/`, `c/contextby.md` |
+| 字符串函数 / SYMBOL / 编码 | `digest/functions-string.md` | `official/funcs/s/`, `r/regex*` |
+| Python SDK 连接/写入/订阅/异步 | `digest/python-sdk.md` | `official/pydoc/` |
+| 数据导入 / loadTextEx / 批量写 | `digest/data-ingest.md` | `official/db_distr_comp/db_oper/` |
+| 流引擎 / CEP / 实时计算 | `digest/stream-engine.md` | `official/stream/` |
+| 性能调优 / OOM / 慢查询定位 | `digest/perf-tuning.md` + `review-rules/perf-baselines.md` | `official/sys_man/` |
+| 部署 / HA / 备份恢复 / 监控 | `digest/deploy-ops.md` | `official/deploy/`, `official/sys_man/` |
+| 金融场景（K 线 / 因子 / TopN / 回测） | `digest/finance-patterns.md` | `official/tutorials/`, `official/backtest/` |
+
+### digest 未覆盖时直查 official
+
+| 问题类型 | 路径 |
 |---|---|
-| 第一次连 DDB / `import dolphindb` 报错 / 8848 进不去 | [[setup-and-connection]] |
-| 设计 DFS 分区表 / 选 TSDB 还是 OLAP / 给 level2 建表 | [[create-database-table]] |
-| `loadText` 慢 / 想多线程导入 / Python 写 DataFrame 进 DDB | [[data-import]] |
-| 写 SELECT/INSERT/UPDATE/DELETE / `delete` 删一整个分区 | [[crud-operations]] |
-| 合成 K 线 / 算 SOIR 订单失衡 / 截面排名 / 用 `mr` 分布式跑批 | [[sql-batch-compute]] |
-| Python SDK 用法 / `session.run` 高级参数 / 流订阅 / 异步写 / 类型映射 | [[python-api]] |
-| 查询慢 / OOM / 节点卡住 / 内存涨不下来 / 不知道哪个作业在跑 | [[performance-tuning]] |
-| 时间类型踩坑 / DECIMAL 精度 / SYMBOL 长度 / backtick 单行 / 反模式 | [[pitfalls-and-best-practices]] |
-| Docker 部署 / Alpine 镜像坑 / healthcheck / 资源限制 | [[docker-deployment]] |
-| 官方文档链接 / 版本基线 / GitHub 仓库 | [[sources]] |
+| 查特定函数（已知函数名） | `official/funcs/_INDEX.md` → `official/funcs/{letter}/{name}.md` |
+| 按主题找函数（官方分类） | `official/funcs/funcs_by_topics.md` |
+| 其他语言 API（C++/Java/Go/JS/C#/R） | `official/api/` |
+| 错误码 / 报错排查 | `official/error_codes/` |
+| 插件（DataX / Kafka / Grafana 等） | `official/plugins/` |
+| 编程语言（DDB 脚本语法） | `official/progr/` |
+| 版本说明 / Release Notes | `official/rn/`, `official/pydoc/release_notes/` |
+
+### 代码审查 / 性能评估
+
+| 问题类型 | 路径 |
+|---|---|
+| 代码审查 / 查反模式 / 找致命违规 | `review-rules/lethal-violations.md` + `review-rules/anti-patterns.md` |
+| 写前自检清单 | `review-rules/change-checklist.md` |
+| 评估查询性能 + 真实 schema | `review-rules/perf-baselines.md` + `digest/perf-tuning.md` + 项目级 schema（见下） |
+| 真实环境 SQL/DDL 接入 | `references/project-schema-protocol.md` |
+
+## 评估查询性能时（项目级 schema 协议）
+
+用户问"这个 SQL 为何慢"、"评估这个建表"、"分析查询内存" 等问题时：
+
+1. **先 `ls {项目根}/.claude/dolphindb/schemas/`**，看是否有相关表的 DDL
+2. **有** → 读出来基于真实分区策略 / sortColumns / 数据类型给评估
+3. **无** → 主动提示用户按 [[project-schema-protocol]] 协议把 DDL 粘到对应路径
+
+不要在没有 DDL 的情况下凭空猜测分区策略给建议。
 
 ## 30 秒速查
 
@@ -56,80 +103,63 @@ s.run("cancelJob(`xxxx)")                       // 异步作业
 s.run("cancelConsoleJob(`xxxx)")                // 同步作业
 ```
 
-## 核心原则（社区版 2核8G 必须遵守）
+## 核心原则（社区版 2 核 8G 死守）
 
-1. **单查询不超 2GB**：8GB 内存 → 系统/缓存 2GB + worker 缓冲 2GB + 单查询预算 ≤ 2GB。先 `count()` 估行数 × 列宽，超了就走分区分批或 `mr`。
-2. **任何 WHERE 必带分区列**：否则全表扫，2 节点直接 OOM。用 `select [HINT_EXPLAIN] ...` 验证是否触发分区剪枝。
-3. **TSDB 排序列别选高基数**：`sortColumns` 不要用主键/唯一列（索引膨胀）；金融场景用 `[SecurityID, TradeTime]`。
-4. **写入用 PartitionedTableAppender + DBConnectionPool**：单连接 + `tableInsert` 慢，4 worker → pool size 3。
-5. **删数据按分区删**：`dropPartition()` 秒级，`delete from` 全表扫慢且占内存。
+1. **单查询不超 2GB**：详见 [[review-rules/perf-baselines]]
+2. **任何 WHERE 必带分区列**且不被函数包裹 / 不写链式比较
+3. **TSDB sortColumns 不要选唯一/高基数列**（索引膨胀）
+4. **写入用 PartitionedTableAppender + DBConnectionPool**（pool size 3）
+5. **删数据按分区 `dropPartition`**，不用 `delete from`
 
-## 反模式（看到立即停手）
+完整规则 → [[review-rules/lethal-violations]] + [[review-rules/anti-patterns]]
 
-| 反模式 | 后果 | 改成 |
-|---|---|---|
-| `select * from t where 2024.01.01 <= TradeDate <= 2024.01.05` | 链式条件不触发剪枝 → 全表扫 | `where TradeDate between 2024.01.01 and 2024.01.05` |
-| `delete from t where TradeDate=2024.01.01` | 重写整个分区，慢+占内存 | `dropPartition(database(dbName), 2024.01.01, tableName='t')` |
-| 在客户端 `s.run("select * from huge_table")` | 一次拉全部，OOM | `s.run("...", fetchSize=8192)` 分段读 |
-| DECIMAL 列用 FLOAT/DOUBLE | 精度丢失（金融场景禁用） | `DECIMAL32(3)` / `DECIMAL64(6)` |
-| `DATETIME` 存 2038 后的时间 | 32 位 int 溢出 → 显示 1970 | 全用 `TIMESTAMP`（毫秒精度 64 位） |
-| 建表时 `sortColumns` 用 UUID/序列号 | 索引膨胀，TSDB 查询变慢 | 用 `[业务键, 时间列]` 组合 |
+## 审查模式
 
-**完整反模式清单**（类型陷阱 / SQL 陷阱 / 库表设计 / 写入 / 运维）见 [[pitfalls-and-best-practices]]。
-
-## 审查模式（代码 review / CR 用）
-
-任务是**审查**他人代码时，按以下格式输出：
+代码 review / CR 任务按此格式输出：
 
 ```
-⚠️ [reference名] 具体问题
+⚠️ [reference 名] 具体问题
    违规代码：<摘录>
    修复建议：<可直接替换的代码>
    原因：<对应 reference 里的依据，一句话>
 
-✅ [reference名] 符合要求 — <简要说明>
+✅ [reference 名] 符合要求 — <简要说明>
 ```
 
-### 10 条致命违规（零容忍）
+审查依据按优先级：
+1. `review-rules/lethal-violations.md` —— 10 条零容忍违规
+2. `review-rules/anti-patterns.md` —— 类型/SQL/库表/写入/运维反模式
+3. `review-rules/change-checklist.md` —— 17 项变更前自检
+4. `official/` —— 官方文档的具体规则
 
-| # | 违规 | 后果 |
-|---|---|---|
-| 1 | 分区列被函数包裹（`date(col)` / `year(col)` / `temporalAdd(col,...)`） | 全表扫 → OOM |
-| 2 | 链式比较 `a <= col <= b` | 不触发剪枝 → 全表扫 |
-| 3 | 单次 `append` > 500K 行 | TSDB 报 `exceeds max limit` |
-| 4 | 未校验外部输入拼到脚本 | 脚本注入 |
-| 5 | 连接池里 upload + run（变量跨连接不可见） | 变量找不到 |
-| 6 | `select *`（30+ 列全传） | 浪费带宽和内存 |
-| 7 | 分页用 `LIMIT x OFFSET y` | DDB 不支持 OFFSET 关键字 |
-| 8 | `asyncio.to_thread(pool.run, script)` | SDK v3 `pool.run` 已是原生 async |
-| 9 | SYMBOL 列写入未校验 ≤255 字节 | 整批写入失败 |
-| 10 | 单分区 < 100MB 且总分区数 > 65536 | 触达 `maxPartitionNumPerQuery` 上限 |
+## skill 维护命令
 
-完整审查清单 ↓
+文档来自爬取，需要周期刷新。所有命令在 skill 目录下跑：
 
-## 变更检查清单（写 / 改 DDB 代码前过一遍）
+```bash
+cd ~/.claude/skills/数据库/dwy-dolphindb     # 或源仓库对应路径
 
-- [ ] WHERE 是否命中分区列？分区列是否被函数包裹（`year()` / `date()` / `temporalAdd()`）？
-- [ ] 范围条件用了 `between ... and ...` 或两个独立条件？没有链式比较 `a <= col <= b`？
-- [ ] 单次 `append` ≤ 500K 行？循环里有 `del + gc.collect()`？
-- [ ] 大文件用 pyarrow `read_table + slice`，不是 `pd.read_feather` 全量加载？
-- [ ] 拼接 DDB 脚本时，外部输入有正则白名单校验？（防注入）
-- [ ] `pool.run()` 用 `await`（原生 async），`Session.run()` 用 `asyncio.to_thread()`？
-- [ ] 连接池大小 ≤ CPU 核数 × 2（社区版 4 worker → pool 3）？
-- [ ] `select` 只取需要的列？没有 `select *`？
-- [ ] 多次聚合查询能否合并为一次？
-- [ ] 多因子横向查询用了 `pivot by`，不是 Python 端 merge？
-- [ ] backtick 列名定义在单行内？
-- [ ] 分页用 `limit offset, count`（**不是** `LIMIT x OFFSET y`）？
-- [ ] 新建库表：单分区估算大小落在引擎区间？总分区数远低于 65536？二级高基数列走 `HASH` 不是 `VALUE`？
-- [ ] 写入 SYMBOL 列前校验 ≤ 255 字节？STRING/BLOB 有长度断言防静默截断？
-- [ ] 删数据用 `dropPartition`，不是 `delete from`？
-- [ ] pandas → DDB：`uint` 是否 `.astype('int64')`？NaN→int 是否 `.fillna(0)`？
-- [ ] Session / Pool 有 `try/finally close()`？
+# 检查文档新鲜度（默认 90 天阈值）
+uv run scripts/check_freshness.py
+uv run scripts/check_freshness.py --days 30
 
-## 必读官方资料
+# 增量更新（sha1 未变则跳过）
+uv run scripts/refresh_docs.py --all                  # 全量增量
+uv run scripts/refresh_docs.py --section funcs        # 仅 funcs 章节
+uv run scripts/refresh_docs.py --section pydoc        # 仅 Python SDK
 
-完整源 URL 见 [[sources]]。常用 3 个：
-- 金融入门：https://docs.dolphindb.cn/zh/tutorials/new_users_finance.html
+# 强制重爬（忽略 manifest）
+uv run scripts/refresh_docs.py --rebuild --all
+
+# 重新生成索引（爬完自动生成，但手改 frontmatter 后需重跑）
+uv run scripts/build_index.py
+```
+
+## 官方文档基础链接
+
+完整索引见 [[INDEX]]。常用入口：
+- 主站：https://docs.dolphindb.cn/zh/about/ddb_intro.html
+- 函数参考：https://docs.dolphindb.cn/zh/funcs/funcs_intro.html
+- Python SDK：https://docs.dolphindb.cn/zh/pydoc/py.html
+- 金融入门教程：https://docs.dolphindb.cn/zh/tutorials/new_users_finance.html
 - 使用须知：https://docs.dolphindb.cn/zh/tutorials/usage_guidelines.html
-- Python SDK：https://docs.dolphindb.cn/zh/pydoc/ （3.0.4）
