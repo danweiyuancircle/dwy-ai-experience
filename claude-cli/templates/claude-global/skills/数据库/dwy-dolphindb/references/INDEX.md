@@ -1,0 +1,2874 @@
+# DolphinDB Skill — 文档主索引
+
+> 自动生成，请勿手改。重新生成：`uv run scripts/build_index.py`
+
+## 优先：核心点摘要（digest/，LLM 第一站）
+
+- `digest/data-ingest.md` — **data-ingest** — DolphinDB 数据导入选型与高性能落库指南。覆盖 CSV / Parquet / Python DataFrame / MySQL / Kafka / H…
+- `digest/deploy-ops.md` — **部署与运维** — - 选型阶段：决定单节点 / 单机集群 / 多机集群 / 多机 HA 集群
+- `digest/engines.md` — **engines** — 用户问"该用 TSDB 还是 OLAP"、"PKEY 能不能改主键"、"VECTORDB 性能如何"、"行情数据用什么引擎"、"主键 CDC 同步进 Dolph…
+- `digest/finance-patterns.md` — **finance-patterns** — 来源：tutorials/new_users_finance.md、backtest/backtest_intro.md、funcs/b/bar.md、func…
+- `digest/functions-aggregate-window.md` — **functions-aggregate-window** — > 摘要文件，覆盖三大计算范式 + 滑动/累计/高阶组合 + 4 个典型案例 + 常见陷阱。完整列表见 references/official/funcs/fu…
+- `digest/functions-string.md` — **functions-string** — 用户问"DolphinDB 字符串怎么截取/拼接/替换"、"SYMBOL 和 STRING 选哪个"、"股票代码加交易所后缀"、"中文字符串长度"、"正则匹配"…
+- `digest/functions-temporal.md` — **functions-temporal** — 用户问"DolphinDB 有哪些日期/时间函数"、"DATETIME 和 TIMESTAMP 区别"、"如何取上一个交易日"、"如何按 5 分钟做 K 线分桶…
+- `digest/partitioning.md` — **partitioning** — - "VALUE / HASH / RANGE / LIST / COMPO 该选哪个"
+- `digest/perf-tuning.md` — **perf-tuning** — - 节点慢/卡，需要定位是 CPU、内存、磁盘还是网络瓶颈
+- `digest/python-sdk.md` — **python-sdk** — Python 应用接入 DolphinDB：建连、连接池、批量写入、流订阅、异步提交、Python ↔ DDB 类型映射、大结果分段拉取。优先看本摘要选型与陷阱…
+- `digest/sql-essentials.md` — **sql-essentials** — 写 SELECT/JOIN/GROUP BY/分页/排序等基础查询时进来；确认 DolphinDB SQL 与 MySQL/PostgreSQL 写法差异时；写…
+- `digest/stream-engine.md` — **stream-engine** — 定位：DolphinDB 自研的高性能流处理引擎（C++），与时序数据库无缝融合，覆盖实时 ETL、低延时复杂计算、多源关联、流批一体。内置 10+ 流计算引擎…
+
+## 审查规则（skill 自带，非官方文档）
+
+- `review-rules/lethal-violations.md` — 10 条致命违规清单
+- `review-rules/anti-patterns.md` — 反模式与最佳实践（类型/SQL/库表/写入/运维）
+- `review-rules/perf-baselines.md` — 2 核 8G 性能基线 + 配置调优
+- `review-rules/change-checklist.md` — 17 项变更前自检 + 5 分钟慢查询排查
+- `project-schema-protocol.md` — 真实环境 DDL/SQL 接入协议
+
+## 官方文档（official/，按章节，下钻用）
+
+### about — 关于 DolphinDB（1 篇）
+
+- `official/about/ddb_intro.md` — **关于 DolphinDB** — 欢迎阅读 DolphinDB 技术文档！
+
+### getstarted — 快速上手（1 篇）
+
+- `official/getstarted/chap1_getstarted.md` — **快速上手** — 本节以简短的例子展示如何在使用 DolphinDB 的初期完成快速部署、建立数据库、建立数据表、写入数据、导入数据、查询数据等基本操作。DolphinDB
+
+### deploy — 部署（2 篇）
+
+- `official/deploy/deploy_intro.md` — **部署** — DolphinDB 系统包括：服务器程序（dolphindb.exe）、Web 集群管理工具、图形界面客户端 DolphinDB GUI、DolphinDB V…
+- `official/deploy/license_fingerprint_collection.md` — **如何采集服务器指纹生成 DolphinDB License** — 注：
+
+### progr — 编程语言（含 SQL）（192 篇）
+
+- `official/progr/anonym_func.md` — **匿名函数** — 匿名函数是一个没有名字的函数。可以在以下场景使用 ：
+- `official/progr/application.md` — **应用场景** — OOP 在特定场景中提供了独特的优势，特别是以下几个场景：
+- `official/progr/attributes.md` — **成员变量** — 成员变量是类中定义的变量。它们属于类的实例,每个实例都有自己的一套成员变量。成员变量可以在类的方法中访问和修改。
+- `official/progr/class_objects.md` — **类和对象** — 类定义了对象的属性（成员变量），构造方法和行为（成员方法）。在深入介绍类的定义和使用之前，让我们先了解 DolphinDB 对类的一些约定：
+- `official/progr/closure.md` — **闭包** — 闭包是一个函数对象，它能保存该函数对象的作用域中的值，不论这个函数对象的作用域是否已经失效。
+- `official/progr/constructor.md` — **构造函数** — 在面向对象编程（OOP）中，构造函数是一种特殊类型的成员函数，在创建类的新对象时被自动调用。构造函数的作用是初始化类的成员变量，确保对象在创建时处于有效状态。例…
+- `official/progr/data_forms.md` — **数据形式** — DolphinDB 支持以下数据形式：
+- `official/progr/data_mani/create_strings.md` — **创建字符串** — 可以通过以下方法来创建字符串：
+- `official/progr/data_mani/detect_null.md` — **空值检查** — 我们可以使用 isNull 函数或 hasNull 函数来检查是否包含空值。isNull
+- `official/progr/data_mani/dm_intro.md` — **数据操作** — 在以下内容中，我们讲介绍 DolphinDB 中的字符串对象，时间序列对象和 NULL 值操作。
+- `official/progr/data_mani/format_temp_obj.md` — **日期和时间的调整及格式** — temporalParse
+- `official/progr/data_mani/func_null.md` — **函数和空值** — 在二元函数或二元运算符中，如果涉及空值操作，结果也将是空值。
+- `official/progr/data_mani/init_null.md` — **空值初始化** — 本节介绍 VOID 类型和特定数值类型的空值如何进行初始化。
+- `official/progr/data_mani/null_in_tb.md` — **表中的空值** — dolphindb
+- `official/progr/data_mani/null_in_vst.md` — **向量/集合/元组中的空值** — 含有空值的向量：
+- `official/progr/data_mani/null_oper.md` — **空值操作** — 空值处理在数据分析中很常见。为达到最优性能，DolphinDB
+- `official/progr/data_mani/null_scalar.md` — **空值标量** — dolphindb
+- `official/progr/data_mani/process_null.md` — **空值运算** — 通常来说，如果函数或运算符的其中一个参数是空值，结果也会是空值。
+- `official/progr/data_mani/replace_null.md` — **空值填充** — DolphinDB 提供了 4 种填充空值的方法：
+- `official/progr/data_mani/search_in_string.md` — **搜索字符串** — 在DolphinDB中，有三种搜索字符串的方式：
+- `official/progr/data_mani/sort_null.md` — **空值排序** — 一个特定类型的空值被定义为相应数据类型的最小值，因此按升序排序时空值总排在最前面。
+- `official/progr/data_mani/string_obj.md` — **字符串对象** — DolphinDB中的字符串使用UTF-8编码方式。DolphinDB也提供了与正则表达式相关的字符串函数：
+- `official/progr/data_mani/string_oper.md` — **字符串操作** — (1) strReplace 函数和 regexReplace 函数都能够替换字符串中的一部分。两者的区别在于，regexReplace
+- `official/progr/data_mani/temp_obj_mani.md` — **时序对象的操作** — 获取时间变量的部分信息的用法如下：
+- `official/progr/data_mani/temp_type_conv.md` — **时序类型和转换** — DolphinDB 支持以下九种时序数据类型：
+- `official/progr/data_mani/temporal_obj.md` — **时间序列对象**
+- `official/progr/data_mani/tzone_conv.md` — **时区和时区转换** — DolphinDB中的时间序列对象不包括时区信息，它是由用户来决定时序对象的时区。
+- `official/progr/data_types.md` — **数据类型** — 说明：
+- `official/progr/data_types_forms/BigArray.md` — **大数组 (bigarray)** — 大数组专为大数据分析而设计。常规数组使用连续内存。如果没有足够的连续内存，则会出现内存不足的错误。一个大数组由许多小块内存组成，而不是一大块内存。因此，大数组有…
+- `official/progr/data_types_forms/Dictionary.md` — **字典** — 字典是一种容器类型，包含唯一的键值对列表。其中：
+- `official/progr/data_types_forms/Matrix.md` — **矩阵** — DolphinDB 支持普通矩阵、索引矩阵和索引序列（特殊矩阵）。
+- `official/progr/data_types_forms/Pair.md` — **数据对** — 数据对是只有两个值的特殊的向量。一个数据对包含了两个标量值。这两个标量值必须满足以下任一条件：
+- `official/progr/data_types_forms/Scalar.md` — **标量** — 标量是只有一个值的变量或常数。与之对比，所有其他数据形式可以容纳多个对象。
+- `official/progr/data_types_forms/Set.md` — **集合** — 集合中的元素没有重复值。它支持除函数或句柄之外的所有数据类型。
+- `official/progr/data_types_forms/Table.md` — **表** — 表是数据库的重要组成部分，用于表达数据以及这些数据之间的联系。表由许多列组成，每一列都必须指定列名和数据类型，并且存储了对应类型的数据。可以对表中的数据进行增加…
+- `official/progr/data_types_forms/TupleANYVector.md` — **元组 (tuple)** — 向量按存储的数据类型可以分为元组和强类型向量。强类型向量要求所有元素是具有相同的数据类型的标量，因此强类型向量具有明确的数据类型。而元组的存储对象可以是标量或向…
+- `official/progr/data_types_forms/arrayVector.md` — **数组向量（array vector）** — DolphinDB 中的数组向量 (array vector)
+- `official/progr/data_types_forms/columnarTuple.md` — **列式元组（columnar tuple）** — 列式元组是一种特殊的元组类型，列式元组的元素可以是标量也可以是向量，且其值的类型必须保持一致。列式元组的取数规则和数组向量一致。
+- `official/progr/data_types_forms/data_type_conv.md` — **数据类型转换** — 数据类型转换可以通过数据类型转换函数或函数 cast($) 来实现。
+- `official/progr/data_types_forms/subarray.md` — **子数组（subarray）** — 当使用某个向量的一部分元素进行计算时，例如若使用 close[10:].avg() 的语句，系统会从向量
+- `official/progr/data_types_forms/vector.md` — **向量** — 向量是一个以给定顺序保存多个对象的容器。向量中元素的索引从0开始。向量中的元素可以被修改。向量中的数据可以是不同的类型，
+- `official/progr/data_types_forms_intro.md` — **数据类型与形式** — DolphinDB 根据变量的数据类型来分配内存和决定存储在内存中的内容。在这一章，我们将介绍不同的数据类型和数据形式。
+- `official/progr/file_io/file_oper.md` — **文件操作** — 文件操作包括：
+- `official/progr/file_io/process_bin.md` — **二进制文件处理** — DolphinDB 提供了一系列用于处理二进制文件的函数，包括原始字节读写以及高层次对象读写。
+- `official/progr/file_io/process_txt.md` — **文本文件处理** — 对于基本的文本文件读写操作，我们提供了五个函数：
+- `official/progr/file_io/tb_io.md` — **表输入输出** — - 可以使用 saveTable 函数将一个表对象以二进制形式保存到一个文件中；
+- `official/progr/func_progr.md` — **函数化编程** — 函数可以使编程语言更简洁、更易于表达。本章将介绍用户自定义函数和匿名函数，以及lambda表达式，部分应用，闭包和高阶函数等，并详细解释说明了十多种高阶函数。
+- `official/progr/inheritance.md` — **继承和多态** — 在 DolphinDB 脚本中，虽然只支持单继承模式，即一个类仅能从一个父类继承，但得益于其动态语言的特性和鸭子类型（duck
+- `official/progr/lambda.md` — **Lambda 表达式** — Lambda 表达式是只有一个语句的函数。
+- `official/progr/lang_intro.md` — **DolphinDB 脚本语言** — DolphinDB 脚本编程涉及的核心概念包括：数据类型与形式、对象、运算符、编程语句、数据操作、函数化编程、文件操作和 SQL 语句。
+- `official/progr/macrovariations.md` — **SQL 元编程** — SQL 元编程是指在代码执行时动态生成 SQL 语句的方法。这种方法方便用户通过程序脚本来生成 SQL 代码，达到动态生成和执行的目的。DolphinDB 提供…
+- `official/progr/member_function.md` — **成员方法** — 成员方法，也称为成员函数，是定义在类内部的函数，用于操作类的对象数据。成员方法可以访问类的成员变量，并提供了对对象进行操作的接口。
+- `official/progr/metaProgr_func.md` — **函数元编程** — 函数元编程是指通过参数传递等手段动态获取函数定义和参数的方法。该方法通常应用于一些复杂的数据分析场景。
+- `official/progr/named_func.md` — **命名函数** — 一个函数含有一组语句，调用该函数时，将执行该组语句。通常函数返回一个或多个值。在 DolphinDB 中，系统内置函数不允许被改变定义。
+- `official/progr/objs/col_ref.md` — **列引用** — 列对象属于表并保存了数据。当需要引用表中某列时，可以使用<table>.<column>。请注意，<table>.<column>是一个只读的对象，不能被修改。
+- `official/progr/objs/const.md` — **常量** — 只有两种数据形式可以直接用常量来表示：标量和向量。其他数据类型，数据对、矩阵、集合、字典和表，必须通过函数调用的形式返回。函数定义和句柄属于常量。
+- `official/progr/objs/dyn_tuple.md` — **动态元组** — 动态元组是包含变量的元组。
+- `official/progr/objs/expr.md` — **表达式** — 表达式由对象和运算符组成。表达式中的对象可以是常量、变量、函数、表达式等。
+- `official/progr/objs/func_call.md` — **函数** — 函数是完成特定任务的独立代码模块，包括内置函数和用户定义的函数。
+- `official/progr/objs/meta_progr.md` — **元编程** — 元编程（Metaprogramming）是一种高级的编程范式，其核心思想是将代码视为可处理的数据。使用元编程设计的程序具有读取、生成、分析或转换其他程序的功能，…
+- `official/progr/objs/named_obj.md` — **命名对象** — dolphindb
+- `official/progr/objs/objects.md` — **对象** — 对象是表达式的两个基本构成元素之一（另一个基本构建元素是运算符，我们将会在下一章进行讨论）。DolphinDB支持的对象类型包括：常量、变量、函数调用、表达式、…
+- `official/progr/objs/sql_query.md` — **SQL 查询** — 本章中提到的所有类型的对象都可以作为SQL语句中的一部分。
+- `official/progr/objs/undef_var.md` — **取消变量** — 有时，我们需要取消一个变量或一个函数的定义，以便它可以在其他地方使用，或者节省内存。
+- `official/progr/objs/var.md` — **变量** — 变量可以存储任何类型的数据。
+- `official/progr/oop.md` — **面向对象编程** — DolphinDB 在 DolphinScript
+- `official/progr/operators/add.md` — **add(+)** — X + Y
+- `official/progr/operators/and.md` — **and(&&)** — X && Y
+- `official/progr/operators/at.md` — **at([])** — X[index]
+- `official/progr/operators/cast.md` — **cast($)** — X $ Y
+- `official/progr/operators/chainingComparison.md` — **链式比较** — 允许在单个表达式中串联多个比较运算符（<, <=, >, >=, ==, !=, <>）。例如，X < Y <=
+- `official/progr/operators/div.md` — **div(/)** — X/Y
+- `official/progr/operators/dot.md` — **dot(**)** — X  Y
+- `official/progr/operators/eachAt.md` — **eachAt(@)** — - X@index
+- `official/progr/operators/eq.md` — **eq(==)** — X==Y
+- `official/progr/operators/ge.md` — **ge(>=)** — X>=Y
+- `official/progr/operators/gt.md` — **gt(>)** — X>Y
+- `official/progr/operators/intersectionsetbitAnd.md` — **intersection(set)/bitAnd(&)** — X & Y
+- `official/progr/operators/join.md` — **join(<-)** — X<-Y
+- `official/progr/operators/le.md` — **le(<=)** — X<=Y
+- `official/progr/operators/lshift.md` — **lshift(<<)** — X<<a
+- `official/progr/operators/lt.md` — **lt(<)** — X<Y
+- `official/progr/operators/member.md` — **member(.)** — X.Y
+- `official/progr/operators/mod.md` — **mod(%)** — X % Y
+- `official/progr/operators/mul.md` — **mul(*)** — X  Y
+- `official/progr/operators/ne.md` — **ne(!= or <>)** — X != Y 或 X<>Y
+- `official/progr/operators/neg.md` — **neg(-)** — X
+- `official/progr/operators/not.md` — **not(!)** — !(X)
+- `official/progr/operators/oper_list.md` — **定义与用法** — 本小节介绍 DolphinDB 编程语言中的运算符的定义和用法。
+- `official/progr/operators/operators.md` — **运算符** — 运算符是表达式的两个基本构建元素之一（另一个基本元素是上一章讨论的对象）。作用于单个对象的运算符称为一元运算符；作用于两个对象的运算符被称为二元运算符；作用于三…
+- `official/progr/operators/or.md` — **or(||)** — X || Y
+- `official/progr/operators/pair.md` — **pair(:)** — a:b
+- `official/progr/operators/precedence.md` — **运算优先级** — DolphinDB
+- `official/progr/operators/ratio.md` — **ratio()** — X \ Y
+- `official/progr/operators/rshift.md` — **rshift(>>)** — X>>a
+- `official/progr/operators/seq.md` — **seq(..)** — a..b
+- `official/progr/operators/sub.md` — **sub(-)** — X - Y
+- `official/progr/operators/symmetricDifferencesetbitXor.md` — **symmetricDifference(set)/bitXor(^)** — - 集合运算：X ^ Y或X symmetricDifference
+- `official/progr/operators/ternary_operator.md` — **三元运算符(?:)** — condition ? trueClause :
+- `official/progr/operators/unionsetbitOr.md` — **union(set)/bitOr(|)** — - 集合运算： X | Y 或 X union Y 或
+- `official/progr/partial_app.md` — **部分应用** — 部分应用是指固定一个函数的部分参数，产生一个参数较少的函数。
+- `official/progr/progr_intro.md` — **编程语言** — 本章节包含以下内容：
+- `official/progr/rfc.md` — **远程函数调用** — 有两种方式可以执行远程调用：
+- `official/progr/sql/Select.md` — **select** — 使用select语句访问表中数据。select语句总是返回一个表。
+- `official/progr/sql/alter.md` — **alter** — dolphindb
+- `official/progr/sql/analyticFunction.md` — **分析函数** — 分析函数（窗口函数）在特定窗口（行集）上应用聚合函数和排名函数，与聚合函数不同的是，聚合函数为一个分组返回一个结果，而分析函数为分组内的每行返回一个结果。OVE…
+- `official/progr/sql/any.md` — **any/all** — any 和 all 关键字用于 where 或 having 子句。
+- `official/progr/sql/asofjoin.md` — **asof join** — dolphindb
+- `official/progr/sql/between.md` — **between** — between...and 用于匹配指定范围内的所有值，包括起始值和终止值，其功能等同于 between 函数。
+- `official/progr/sql/case.md` — **case** — case 是一个控制流语句，用于 SQL 的条件判断语句，其作用与 if-else 语句相似。
+- `official/progr/sql/cgroupby.md` — **cgroup by** — 使用cgroup by（cumulative group)子句可进行累计分组计算，第二组的记录包含第一个组的记录，第三个组的记录包含前两组的记录，以此类推。
+- `official/progr/sql/coalesce.md` — **coalesce** — coalesce(X1, X2, args...)
+- `official/progr/sql/contextBy.md` — **context by** — context by 是 DolphinDB 的独有功能，是对标准 SQL 语句的拓展。使用 context by 子句可以简化对时间序列数据的操作。
+- `official/progr/sql/create.md` — **create** — create 语句用于创建数据库或者数据表。其语法如下：
+- `official/progr/sql/createExternalTable.md` — **createExternalTable** — 随着企业数据源的多样化，用户需要在统一平台中便捷访问和查询多种数据库及文件系统中的数据。为此，我们推出了外部表功能，使外部数据像本地表一样使用，支持常用查询、部…
+- `official/progr/sql/crossjoin.md` — **cross join** — dolphindb
+- `official/progr/sql/delete.md` — **delete** — delete 语句用于删除表中的记录。
+- `official/progr/sql/distinct.md` — **distinct** — 添加在 select / exec 语句后，用于去除重复值并返回唯一值（distinct value）。支持在分布式查询中使用。
+- `official/progr/sql/drop.md` — **drop** — drop 语句用于删除数据库或者数据表。建库建表语句请参考 create。
+- `official/progr/sql/equijoin.md` — **equi join** — - 等值连接
+- `official/progr/sql/exe_order.md` — **执行顺序** — 在 DolphinDB 中，SQL 语句各部分的执行顺序大致与其它系统中 SQL 一致。特别需要注意的是当使用
+- `official/progr/sql/exec.md` — **exec** — select子句总是生成一张表，即使只选择一列亦是如此。若需要生成一个标量或者一个向量，可使用exec子句。
+- `official/progr/sql/exists.md` — **exists** — 和 where 子句搭配使用，通过子查询过滤外查询。
+- `official/progr/sql/fulljoin.md` — **full join/full outer join** — dolphindb
+- `official/progr/sql/getTraces.md` — **getTraces** — getTraces()
+- `official/progr/sql/groupby.md` — **group by** — 关键字会自动加入到结果集中，用户可以不在select语句中指定该列。生成的表的顺序为：group by中select未指定的字段排列在前，select指定的字段…
+- `official/progr/sql/having.md` — **having** — having子句总是跟在group by或者context by后，用来将结果进行过滤，只返回满足指定条件组结果。
+- `official/progr/sql/hint.md` — **HINT 关键字** — HINT 关键字是一种特殊的 SQL 指令，旨在提供一种直接指导数据库优化器执行策略的机制。在特定场景下，使用不同的 HINT 关键字，能够有效优化 SQL 查…
+- `official/progr/sql/hint_explain.md` — **[HINT_EXPLAIN]** — 通过在 select / exec 关键字后添加 [HINT_EXPLAIN] 来显示 SQL 语句的执行过程，便于 SQL 查询中实时监测查询的速度和执行的顺…
+- `official/progr/sql/in.md` — **in** — in 谓词用在 where 子句中，可以指定一个或多个值。通过 in 可以简写多个 or 条件。
+- `official/progr/sql/innerjoin.md` — **inner join** — 等值连接，又称内连接。
+- `official/progr/sql/insertInto.md` — **insert into** — 用于向表插入数据。
+- `official/progr/sql/interval.md` — **interval** — interval(X, duration, fill, [step], [explicitOffset=false], [closed],
+- `official/progr/sql/isnull.md` — **is null** — - is null 谓词用于检测空值，其功能等价于 isNull 函数。
+- `official/progr/sql/join.md` — **join** — dolphindb
+- `official/progr/sql/leftjoin.md` — **left join/left outer join** — dolphindb
+- `official/progr/sql/like.md` — **like/LIKE** — like/LIKE 用于测试列中的值是否与指定模式匹配。其功能与 like 函数相同。
+- `official/progr/sql/limit.md` — **limit** — limit 子句可使用整型标量或代表整型标量的变量，以限制返回记录的数量，亦可与context by子句一同使用，以限制结果中每组记录的数量。
+- `official/progr/sql/map.md` — **map** — 使用 map 关键字，SQL 语句会在每个分区内分别执行，然后输出每个分区的执行结果。
+- `official/progr/sql/notbetween.md` — **notBetween/NOTBETWEEN** — notBetween...and 是与 between…and 相反的操作，用于匹配指定范围（包括起始值和终止值）之外的所有值，其功能等同于
+- `official/progr/sql/notin.md` — **notIn/NOTIN** — notIn 是与 in 相反的操作，用于确定指定的值是否与子查询或列表中的值不匹配，其功能等同于 notIn 函数、not in
+- `official/progr/sql/notlike.md` — **notLike/NOTLIKE** — NOTLIKE 是与 LIKE 相反的操作，用于确定特定字符串是否与指定模式不匹配。其功能与 notLike 函数、NOT LIKE 相同。notLike 支持…
+- `official/progr/sql/orderby.md` — **order by** — 根据order by指定的列，对结果排序。
+- `official/progr/sql/partition.md` — **partition** — partition(partitionCol, keys)
+- `official/progr/sql/pivotBy.md` — **pivot by** — pivot by 是 DolphinDB 的独有功能，是对标准 SQL
+- `official/progr/sql/predicates.md` — **谓词** — 自2.00.9 版本起，DolphinDB支持 SQL 的以下谓词：
+- `official/progr/sql/prefixjoin.md` — **prefix join** — dolphindb
+- `official/progr/sql/rightjoin.md` — **right join/right outer join** — dolphindb
+- `official/progr/sql/roll.md` — **roll** — 首发版本：3.00.4
+- `official/progr/sql/sample.md` — **sample** — sample(partitionCol, size)
+- `official/progr/sql/setTraceMode.md` — **setTraceMode** — setTraceMode(mode)
+- `official/progr/sql/sql_ddl.md` — **DDL** — 介绍 DolphinDB 中的数据定义（DDL）语言
+- `official/progr/sql/sql_dml.md` — **DML** — 介绍 DolphinDB 中的数据描述（DML）语言
+- `official/progr/sql/sql_dql.md` — **DQL** — 介绍 DolphinDB 中的数据查询（DQL）语言
+- `official/progr/sql/sql_intro.md` — **SQL 语句** — DolphinDB 中 SQL 语句的基本语法和用法
+- `official/progr/sql/sql_trace.md` — **SQL Trace** — SQL Trace 是 DolphinDB 提供的一套函数工具，它能够通过跟踪 SQL 脚本的执行过程，分析复杂 SQL
+- `official/progr/sql/tb_joiner_intro.md` — **表连接** — 表连接是将数据库中多个表的数据关联起来的操作。通过表连接条件的指定，可以在查询中获取来自不同表的相关信息，从而实现更复杂的检索。本节介绍 DolphinDB
+- `official/progr/sql/top.md` — **top** — top 子句返回指定数量的记录，从表的第一个记录开始，可以在 top 子句中使用一个标量值或一个范围。范围下标从 0 开始而不是 1，并且不包含结束下标值。
+- `official/progr/sql/union.md` — **union/union all** — 用于合并两个或多个 select / exec 查询的结果集。union 会将重复的记录删去，union all 保留所有记录。支持在分布式查询中使用。
+- `official/progr/sql/update.md` — **update** — update 语句用于更新数据表中的记录。
+- `official/progr/sql/viewTraceInfo.md` — **viewTraceInfo** — viewTraceInfo(traceId, [isTreeView=true])
+- `official/progr/sql/where.md` — **where** — where 子句用于在查询语句中指定选择条件。
+- `official/progr/sql/windowjoin.md` — **window join** — dolphindb
+- `official/progr/sql/with.md` — **with** — with 语句又称为子查询重构语句，其将子查询的结果保存在一个临时表变量中。
+- `official/progr/statements/Include.md` — **Include** — #include "file path"
+- `official/progr/statements/annotate.md` — **注解** — 注解主要在单元测试中使用，在当前会话中生成数据对，用于打印输出一个测试用例的细节。
+- `official/progr/statements/assert.md` — **assert** — assert <expr>
+- `official/progr/statements/assignments/assign_by_ref.md` — **引用赋值** — DolphinDB使用 "&" 来表示引用赋值。和值赋值不同，引用赋值是直接引用原值的内存地址，并不拷贝原值。
+- `official/progr/statements/assignments/assign_by_value.md` — **按值赋值** — 我们使用"="来表示值赋值，它拷贝一份对象的值并赋予新的变量。
+- `official/progr/statements/assignments/assign_intro.md` — **赋值** — 赋值语句是最基本的语句。赋值语句即可将对象绑定到指定的变量中，也可部分或者全部地修改变量的值。
+- `official/progr/statements/assignments/assign_multi.md` — **多变量赋值** — 多个值可一次性赋予多个变量。
+- `official/progr/statements/assignments/undef.md` — **取消变量** — 通过取消变量或函数定义来释放内存。详情请参考 undef.
+- `official/progr/statements/blockStatement.md` — **程序块** — DolphinDB 使用花括号{}来指明一个语句块。
+- `official/progr/statements/break.md` — **break** — break 语句用于跳出一层循环。
+- `official/progr/statements/comment.md` — **注释** — 双斜杠//用于单行注释，系统忽略双斜杠后面该行的所有内容。
+- `official/progr/statements/continue.md` — **continue** — continue语句用于提前结束本次循环。
+- `official/progr/statements/doWhile.md` — **do-while** — dolphindb
+- `official/progr/statements/for.md` — **for** — for语句用于循环遍历向量、矩阵或表中的元素。
+- `official/progr/statements/go.md` — **go** — go
+- `official/progr/statements/ifElse.md` — **if-else** — dolphindb
+- `official/progr/statements/mapr.md` — **mapr** — 在分布式环境中，使用 mapr 语句可以定义 用户自定义聚合函数（UDAF）<udaf> 的 map reduce
+- `official/progr/statements/module.md` — **module** — 在DolphinDB中，模块是指只包含函数定义的脚本文件。当需要调用一个特定的函数时，可以通过调用含有该函数的模块来实现。通过module语句声明一个模块，该语…
+- `official/progr/statements/return.md` — **return** — return [expression]
+- `official/progr/statements/share.md` — **share** — share <table> as <shared name>
+- `official/progr/statements/statements_intro.md` — **编程语句** — 编程语句指定了对象操作的顺序和方式。语句由分号或换行符分隔。同一行上的多条声明语句通过分号进行分隔。在命令行环境中，在语句结尾处添加分号将会立即执行该语句。
+- `official/progr/statements/throw.md` — **throw** — throw用于抛出一个用户定义的异常
+- `official/progr/statements/timer.md` — **timer** — timer 语句用于计算一条命令的执行时间。
+- `official/progr/statements/transaction.md` — **transaction** — dolphindb
+- `official/progr/statements/tryCatch.md` — **try-catch** — dolphindb
+- `official/progr/statements/use.md` — **use** — 要使用一个模块，在模块名前加上"use"关键字。
+- `official/progr/tensor.md` — **张量** — 在深度学习和机器学习领域，张量（tensor）是一个核心概念，主要用于表示多维数据。为了与深度学习框架（如 PyTorch）更好地集成，DolphinDB 引入…
+- `official/progr/utility.md` — **工具函数** — 支持通过以下函数生成类中定义的方法调用元代码：
+
+### db_distr_comp — 数据库 / 分布式存储 / 引擎（65 篇）
+
+- `official/db_distr_comp/cfg/cluster.md` — **集群模式** — 从部署机器区分，集群分为单机集群和多机集群；从是否启用高可用区分，集群分为普通集群和高可用集群。
+- `official/db_distr_comp/cfg/db_intro.md` — **数据库** — DolphinDB 是一款高性能分布式时序数据库，采用分布式架构作为基础，在此基础上实现了多模态存储、支持 ACID
+- `official/db_distr_comp/cfg/function_configuration.md` — **功能配置** — 在 redo log
+- `official/db_distr_comp/cfg/init.md` — **初始化** — 下载 server 安装包并解压，可以发现一系列相关的文件夹。其中配置文件、许可证文件、日志文件和其他相关的依赖文件所在的目录为 DolphinDB 的主目录。
+- `official/db_distr_comp/cfg/para_cfg.md` — **参数配置** — DolphinDB 提供了一系列配置参数，方便用户根据实际情况进行合理的配置，以充分利用机器的硬件资源。
+- `official/db_distr_comp/cfg/standalone.md` — **单节点模式** — 执行安装包 server 目录的可执行文件，可以快速启动单节点模式。单节点模式可以帮助用户试用并快速上手 DolphinDB。
+- `official/db_distr_comp/clients.md` — **操作手册** — 本节介绍用于数据库管理的 DolphinDB 客户端的用法和示例。
+- `official/db_distr_comp/db/catalog.md` — **数据目录** — 数据库目录（database
+- `official/db_distr_comp/db/db_architecture.md` — **分布式架构** — 分布式数据库构建在分布式架构的基础上，因此分布式架构是分布式数据库实现的核心设计。DolphinDB 自主研发了基于 shared-nothing
+- `official/db_distr_comp/db/db_partitioning.md` — **数据分区** — 对数据库进行分区可以显著降低系统响应延迟，提高数据吞吐量。具体来说，分区有以下主要好处。
+- `official/db_distr_comp/db/ha.md` — **高可用** — DolphinDB
+- `official/db_distr_comp/db/imoltp.md` — **内存在线事务处理引擎** — 在金融行业的交易系统等一些数据库应用场景中，主要工作负载来源于对关系表的高频率、高并发的更新和查询操作。这类应用场景对数据处理提出了严格的要求，包括低延迟、高并…
+- `official/db_distr_comp/db/iotdb.md` — **物联网点位管理引擎** — DolphinDB 提供物联网点位管理引擎（IOTDB
+- `official/db_distr_comp/db/limits.md` — **使用限制** — 本节介绍 DolphinDB 的常见使用限制，包括用户与权限管理、网络连接、数据库对象、数据类型、查询事务以及系统资源等方面的数量和大小限制。
+- `official/db_distr_comp/db/multimodal_storage.md` — **多模态存储** — 多模态存储是指一个系统可以同时支持多种不同的存储引擎，每种引擎共享同一个数据库架构，但技术实现存在差异。DolphinDB
+- `official/db_distr_comp/db/olap.md` — **OLAP 存储引擎** — 在 OLAP 场景中，通常需要执行大规模的聚合和分析操作。为了应对这种需求，DolphinDB OLAP
+- `official/db_distr_comp/db/pkey_engine.md` — **主键存储引擎** — 主键存储引擎（PKEY）是提供主键唯一性保证的，支持实时更新和高效查询的存储引擎。该引擎的设计目标是，满足从 OLTP 数据库的主键表 CDC 到 Dolphi…
+- `official/db_distr_comp/db/rdma.md` — **节点间传输协议** — 节点间通信是分布式系统中不同节点之间交换信息的过程，它对于实现系统的协同工作、数据共享和分布式计算等至关重要。DolphinDB 现支持两种节点间通信的传输协议…
+- `official/db_distr_comp/db/rebalance.md` — **数据平衡** — 数据平衡是指在一个集群中，数据在各个节点之间存储均匀。数据平衡直接关系到系统的性能、可用性和稳定性，因此在分布式架构设计中需要充分考虑如何进行数据平衡。Dolp…
+- `official/db_distr_comp/db/recovery.md` — **在线恢复** — 在线恢复（Online
+- `official/db_distr_comp/db/storage_compute_separation.md` — **存算分离** — 在 3.00.2 版本之前，DolphinDB 通过引入计算节点实现了存算分离架构的初始架构。计算节点可以分担数据节点的部分计算任务（merge 和 reduc…
+- `official/db_distr_comp/db/textdb.md` — **文本存储引擎** — DolphinDB 在 3.00.2 版本中，推出了基于倒排索引的文本存储引擎（TextDB）。TextDB 能够为主键存储引擎（ PKEY）
+- `official/db_distr_comp/db/three_centers_in_two_places.md` — **两地三中心** — 在生产环境中，业务连续性和数据安全性至关重要。为了应对各种灾难场景，需要建立完善的容灾体系：
+- `official/db_distr_comp/db/tiered_storage.md` — **分级存储** — 在数据库领域，分级存储是一种常见的需求。较旧的数据（冷数据）通常不会被用户频繁查询或计算，但是存储在本地会占用大量磁盘资源。DolphinDB
+- `official/db_distr_comp/db/transaction.md` — **分布式事务** — 事务是指对数据库中的数据对象进行的一系列增、删、改等操作。一次事务的所有操作全部纳入一个不可分割的执行单元，该执行单元里的所有操作要么都成功，要么都失败，只要其…
+- `official/db_distr_comp/db/tsdb.md` — **TSDB 存储引擎** — 随着传感器数据、金融市场数据和网络日志等时序数据的迅速增长，通用数据库在高效存储和分析方面面临挑战。针对时序数据的特点，专用的时序数据库（TSDB）能够针对数据…
+- `official/db_distr_comp/db/vectordb.md` — **向量存储引擎** — DolphinDB 在 3.00.1 版本中，基于 TSDB 存储引擎，开发并实现了支持向量检索的向量存储引擎（VectorDB）。VectorDB 针对 TS…
+- `official/db_distr_comp/db_distr_comp.md` — **数据库操作** — DolphinDB 数据库的基本操作，例如创建数据库、表，增加列、分区，数据查询，表连接等。
+- `official/db_distr_comp/db_man/web/GettingStart.md` — **如何开始** — 在启动一个集群前，先根据需求完成集群配置。
+- `official/db_distr_comp/db_man/web/Shell.md` — **交互编程** — 交互编程界面包含以下几个部分：编辑器、变量浏览器、日志浏览器、数据浏览器、数据库浏览器。进行数据库相关操作时，需要先登录。点击数据库浏览器页面的“去登录”按钮，…
+- `official/db_distr_comp/db_man/web/access_man.md` — **权限管理** — 在 Web 集群管理界面中，初始管理员（以下简称管理员）可以在控制节点、数据节点和单机节点（亦称为单节点）上完成对用户、用户组的创建、删除、修改及权限设置。
+- `official/db_distr_comp/db_man/web/cep.md` — **CEP 流计算引擎状态** — 通过本页，用户可以实时监控 CEP 内部数据状态（例如监控值变化），同时提供便捷交互操作进行测试。该页面仅支持 3.00 版本 server。![](../..…
+- `official/db_distr_comp/db_man/web/cfg_man.md` — **配置管理** — 在配置管理上，管理员可以对以下内容进行设置：
+- `official/db_distr_comp/db_man/web/cluster_overview.md` — **集群总览** — 集群总览界面可于控制节点访问，并以管理员账户登录。
+- `official/db_distr_comp/db_man/web/feature_settings.md` — **功能设置** — 此页面展示了可配置的某些功能，用户可以根据业务需求选择开启或关闭功能。目前可通过该页面配置以下4个功能：
+- `official/db_distr_comp/db_man/web/git_multiple_tabs.md` — **交互编程之多标签页与 Git 集成** — 随着 Web 集群管理器中的交互编程功能被深度使用，代码管理正在成为困扰许多用户的一个难题。单编辑器的架构已经无法满足日益增长的代码复杂度的要求。为此，Dolp…
+- `official/db_distr_comp/db_man/web/intro.md` — **Web 操作手册** — 用户可以在集群管理器的 Web 界面对同一集群中的代理节点、数据节点和计算节点进行管理。
+- `official/db_distr_comp/db_man/web/job_man.md` — **作业管理** — Web 端的作业管理界面类似于 GUI 的作业管理器。唯一区别是：Web 端的作业管理仅支持查看、停止和删除作业，不支持作业筛选和批量停止。
+- `official/db_distr_comp/db_man/web/kafka_mqtt.md` — **数据采集平台** — 数据采集平台是一款专为数据采集与管理设计的高效工具，支持 MQTT 和 Kafka
+- `official/db_distr_comp/db_man/web/log.md` — **日志查看** — 可通过日志查看界面，查看当前节点的日志信息。
+- `official/db_distr_comp/db_man/web/plugin_management.md` — **插件管理** — 通过插件管理界面，管理员用户可以在任一节点上统一管理集群中的插件，包括查看插件版本、一键安装与加载插件，从而确保插件版本与集群中部署的 DolphinDB se…
+- `official/db_distr_comp/db_man/web/querybuilder.md` — **查询向导** — Web 提供查询向导功能。用户可使用向导查询或脚本查询两种方式，并在查询成功后预览、导出结果数据。
+- `official/db_distr_comp/db_man/web/regulr_inspection.md` — **定时巡检** — 巡检是确保系统的稳定性的重要环节，能够及时发现潜在隐患。为方便用户进行数据库巡检，DolphinDB 自 3.00.2.2
+- `official/db_distr_comp/db_man/web/session_management.md` — **会话管理** — 可通过会话管理界面查看前节点的会话信息，包括系统缓存与用户会话。控制节点可查看所有节点会话。
+- `official/db_distr_comp/db_man/web/stream_graph.md` — **流图监控** — 通过流图监控模块，用户可以直观监控通过 Orca
+- `official/db_distr_comp/db_man/web/stream_monitor.md` — **流计算监控** — 流计算监控负责监控各类流计算任务的状态。用户通过点击功能面板里的流计算监控进入监控页面，可以查看以下任务的状态：
+- `official/db_distr_comp/db_oper/FunctionView.md` — **函数视图** — 函数视图提供了一种灵活的方式来控制用户访问数据库和表。函数视图是封装了访问数据库以及相关计算语句的自定义函数。用户即使不具备读写数据库原始数据的权限，也可通过执…
+- `official/db_distr_comp/db_oper/add_partitions.md` — **增加分区** — DolphinDB 目前支持给值分区或范围分区的数据库，或者包含值分区或范围分区的组合分区数据库添加分区。
+- `official/db_distr_comp/db_oper/binary_records_import.md` — **二进制记录导入** — 与其他数据格式相比，二进制记录文件可以更有效地存储和传输数据，保留我们数据的结构与格式，并且因为二进制文件是人类不可读的字符，具有更高的安全性。因此当我们面临较…
+- `official/db_distr_comp/db_oper/create_db_tb.md` — **建库建表** — 在 DolphinDB 中，创建数据库和表既可以通过 SQL 语句实现，也可以使用函数来完成。本文将分别以这两种方式进行介绍。
+- `official/db_distr_comp/db_oper/data_import_method.md` — **数据导入方法** — DolphinDB 针对各种类型的数据文件和数据源提供了便捷的导入导出工具，利用这些工具，可以完成即时或定时的数据加载、清洗和导入导出任务。
+- `official/db_distr_comp/db_oper/drop_db_tb.md` — **删除数据** — 删除数据需要执行用户具有相应权限，否则无法删除。关于删除权限，参考：用户权限管理。
+- `official/db_distr_comp/db_oper/drop_partitions.md` — **删除分区** — DolphinDB 支持通过 dropPartition
+- `official/db_distr_comp/db_oper/hdf5_files_import.md` — **HDF5 文件导入** — HDF5（Hierarchical Data Format version
+- `official/db_distr_comp/db_oper/insert_data.md` — **插入数据** — DolphinDB 支持通过 INSERT INTO 语句、 append! 和
+- `official/db_distr_comp/db_oper/parquet_files_import.md` — **Parquet 文件导入** — Apache Parquet 文件采用列式存储格式，可用于高效存储与提取数据。
+- `official/db_distr_comp/db_oper/queries.md` — **查询数据** — DolphinDB SQL 兼容标准 SQL 的语法：
+- `official/db_distr_comp/db_oper/text_files_import.md` — **文本文件导入** — DolphinDB 提供了灵活的文本文件导入机制，其内置函数支持通过明确指定列分隔符（如 CSV
+- `official/db_distr_comp/drop_database_table.md` — **删除库表** — 删除库表前请确认具有必要的权限。更多关于权限信息请参考：用户权限管理。
+- `official/db_distr_comp/gui.md` — **GUI 客户端** — DolphinDB GUI 客户端是基于 Java 的图形化编程以及数据浏览界面，可在任何支持 Java
+- `official/db_distr_comp/jupyter.md` — **Jupyter Notebook 客户端** — Jupyter Notebook
+- `official/db_distr_comp/mod_data.md` — **更新数据** — DolphinDB 支持多种方式更新数据，包括 SQL 语句、update! 、upsert! 、replaceColumn!
+- `official/db_distr_comp/modify_table_structure.md` — **更新表结构** — DolphinDB 支持使用 SQL 语句和内置函数对表结构进行修改，允许用户增加列、删除列、修改列名、修改列顺序以及修改数据类型。
+- `official/db_distr_comp/terminal.md` — **DolphinDB 终端** — DolphinDB 终端（DolphinDB Terminal）是一个命令行交互式工具，用于连接到远程的 DolphinDB
+- `official/db_distr_comp/vscode.md` — **VS Code 插件** — VS Code
+
+### stream — 流数据（58 篇）
+
+- `official/stream/anomaly_detection_engine.md` — **异常检测引擎** — 物联网设备（如机床、锅炉、电梯、水表、气表等）无时无刻不在产生海量的设备状态数据和业务消息数据。在这些数据的采集、计算和分析过程中，常常需要进行异常数据的检测。
+- `official/stream/asof_join_engine.md` — **asof join 引擎** — asof join 引擎由 createAsofJoinEngine 函数创建。
+- `official/stream/cep.md` — **复杂事件处理（CEP）引擎** — 复杂事件处理（Complex Event Processing，简称 CEP
+- `official/stream/cep_basic_concept.md` — **基本概念** — DolphinDB CEP 是面向事件编程的 DolphinScript，主要包含以下基本概念：事件、监视器、监听器、模式匹配、事件处理。
+- `official/stream/cep_engine.md` — **CEP 引擎** — 语法
+- `official/stream/cep_events_defining.md` — **定义事件** — 在 CEP 中，定义一个事件时需要指定事件类型及其每个属性的名称和类型。属性决定了事件的结构，同一个事件的每个事件实例都具有相同名称及顺序的属性集。
+- `official/stream/cep_monitor_defining.md` — **定义 Monitor** — 在 CEP 引擎中可以定义多个 Monitor，每个 Monitor 执行特定任务。Monitor 之间通过发送和接收事件进行通信。Monitor 实例中可以通…
+- `official/stream/cep_monitoring.md` — **实时监控 CEP 引擎状态及数据** — CEP 引擎内部计算为事件触发，随着事件不断地注入引擎，引擎内部会产生许多不断更新的中间变量（监控值）。用户通常希望监控到这些变量的最新值及其变化趋势。因此，D…
+- `official/stream/cep_viewing.md` — **查看 CEP 引擎运行状态** — 可通过 getStreamEngineStat().CEPEngine 查看当前所有 CEP
+- `official/stream/cluster_sub.md` — **集群内跨节点订阅** — 本节介绍集群内跨节点订阅流处理结果的交互方式。对于集群内跨节点订阅，发布端与订阅端在一个集群的不同节点，在订阅时需要指定发布端的节点名称。
+- `official/stream/cross_cluster_sub.md` — **跨集群节点间订阅** — 本节介绍跨集群节点间订阅流处理结果的交互方式。对于跨集群节点间订阅，发布端与订阅端不在同一个集群，在订阅时需要指定远程连接的句柄。
+- `official/stream/cross_sectional_engine.md` — **横截面引擎** — 横截面引擎适用于对截面数据（如每只股票代码最新时间戳下的数据）进行实时计算。如：金融场景下，使用某个指数的所有成分股的最新价格计算该指数的内在价值；工业物联网场…
+- `official/stream/datafeed_best_practice.md` — **DolphinDB DataFeed 行情插件最佳实践指南** — Datafeed 是中国金融期货交易所提供的非展示型行情源数据服务，用于发送股票或期货的实时
+- `official/stream/defining_event_listeners.md` — **定义事件监听器** — 在 CEP 引擎中，通过 addEventListener 指定事件匹配规则和回调函数，返回一个 EventListener
+- `official/stream/dual_ownership_engine.md` — **双分组响应式状态引擎** — 双分组响应式状态引擎是对响应式状态引擎的拓展，其计算规则和触发计算的方式与响应式状态引擎相同。不同之处在于，双分组响应式状态引擎在响应式状态引擎的基础上，增加支…
+- `official/stream/equi_join_engine.md` — **equi join 引擎** — equi join 引擎由 createEquiJoinEngine 函数创建。
+- `official/stream/event_stream_serializer.md` — **事件流序列化与反序列化** — 事件流序列化器（Stream Event Serializer）负责将来自各种数据源的实时事件流序列化并写入 DolphinDB
+- `official/stream/leftsemi_join_engine.md` — **leftSemi join 引擎** — leftSemi join 引擎由 createLeftSemiJoinEngine 函数创建。
+- `official/stream/local_sub.md` — **节点内部订阅** — 本节介绍节点内部订阅流处理结果的交互方式。对于节点内部订阅，发布端与订阅端在一个节点内，因此在订阅时不需要指定发布端 server。
+- `official/stream/lookup_join_engine.md` — **lookup join 引擎** — lookup join 引擎由 createLookupJoinEngine 函数创建。
+- `official/stream/mdl_best_practice.md` — **基于 MDL 行情插件的中金所L1数据最佳实践** — 本文介绍了如何通过 DolphinDB 的 MDL 插件订阅并处理中金所 Level 1 实时数据。首先，文章简要介绍了 MDL 插件的功能和作用。它是基于 M…
+- `official/stream/narrow_reactive_state_engine.md` — **窄表响应式状态引擎** — 随着量化交易竞争的加剧，量化投资团队需要处理大量因子。在许多情况下，因子数据量甚至会远远超过高频的行情数据量。在海量因子数据存储场景下，相较于宽表，窄表存储支持…
+- `official/stream/nearest_join_engine.md` — **nearest join 引擎** — nearest join 引擎由 createNearestJoinEngine 函数创建。
+- `official/stream/nsq.md` — **行情数据插件：NSQ** — 为对接恒生 NSQ 极速行情服务软件，DolphinDB 开发了 NSQ 插件。通过该插件能够获取上海和深圳市场的行情。主要获得以下三种行情：
+- `official/stream/orca.md` — **Orca 实时计算平台** — 随着多集群部署逐渐成为常态，企业对流数据产品提出了更高的要求。多集群的流数据访问、计算和运维需求日益复杂，而传统流计算架构难以应对复杂任务之间的依赖关系表达、资…
+- `official/stream/py_sub.md` — **Python 订阅** — 以下介绍通过 Python API 订阅流处理结果的交互方式。完整 Python API 可以参考：Python API。
+- `official/stream/reactive_state_engine.md` — **响应式状态引擎** — DolphinDB 的响应式状态引擎每输入一条数据引擎都将触发一条结果输出，且针对生产业务中的常见状态函数（滑动窗口函数、累积函数、序列相关函数和 topN
+- `official/stream/reactive_stateless_engine.md` — **响应式无状态引擎** — 响应式无状态引擎的核心设计目的是处理数据流中存在的依赖关系。当某个数据的值依赖于其他一个或多个数据的最新状态时，此引擎能够确保在任何被依赖的数据更新后，所有直接…
+- `official/stream/realtime_data_acces.md` — **实时流数据接入** — 实时流数据接入是指将数据从数据源实时写入 DolphinDB 流数据表以进行实时计算，或将流数据存入分布式数据库中以便后续进行清洗和计算。本章将介绍如何通过 A…
+- `official/stream/rule_engine.md` — **规则引擎** — 规则引擎是 DolphinDB 提供的一个强大的流数据处理工具，其核心思想是
+- `official/stream/session_window_engine.md` — **会话窗口引擎** — 会话窗口可以理解为一个活动阶段（数据产生阶段）。其前后都是非活动阶段（无数据产生阶段）。
+- `official/stream/snapshot_join_engine.md` — **snapshot join 引擎** — snapshot join 引擎的连接机制可以看作一个双向的 lookup join
+- `official/stream/stateful_operators.md` — **有状态算子** — 有状态算子是指在处理流数据时，需要维护状态的算子。这种算子的输出不仅依赖于当前输入，还依赖于先前的状态或历史记录。在处理完当前输入后，有状态算子会更新其内部状态…
+- `official/stream/stateless_operators.md` — **无状态算子** — 无状态算子用于无状态计算场景，其特性在于计算过程中的输出完全基于当前输入，不受先前状态或历史记录的影响。即无论计算执行之前是否有其他输入，只要每次输入相同，对应…
+- `official/stream/str_altair.md` — **Altair 连接 DolphinDB 数据源** — 在数据爆炸增长时代，不仅需要高效分析来洞察数据背后的规律，更要敏锐把握时机，才能更好地释放数据价值，实时反控商业决策。数据可视化是一种将数据转化成图形化表达的技…
+- `official/stream/str_api_python.md` — **Python API 接入数据** — 实时流数据接入是指将数据从数据源实时写入 DolphinDB 中，供后续进行清洗、计算等使用。本文档介绍如何使用 Python API 把数据写入 Dolphi…
+- `official/stream/str_batch.md` — **流批一体** — 流批一体是指将研发环境中基于历史数据建模分析得到的因子或表达式直接应用于生产环境的实时数据中，并保证流计算的结果和批量计算完全一致，二者使用同一套代码，称为“流…
+- `official/stream/str_eng_parser.md` — **StreamEngineParser 解析原理** — 流数据引擎解析器（StreamEngineParser）的主要功能是自动构建计算流水线，以及在流批一体计算场景中，将批计算因子翻译成流计算解决方案。以下内容将详…
+- `official/stream/str_funcs.md` — **功能简介** — 本节总体介绍 DolphinDB 流数据功能，主要包括：DolphinDB 流数据功能架构 、流数据表、订阅与发布 、流式处理中的状态、流处理中的时间概念
+- `official/stream/str_ha.md` — **流数据高可用** — DolphinDB
+- `official/stream/str_intro.md` — **流数据** — DolphinDB 流数据（DolphinDB Stream）是基于 C++ 自主研发的高性能流处理引擎，支持实时
+- `official/stream/str_join_engine.md` — **内置多数据源流式关联引擎** — 在进行数据分析时经常需要对多个不同的数据源进行关联操作，因此在各类数据库的 SQL 语言中均包含了丰富的 join 语句，以支持批计算中的多种关联操作。 Dol…
+- `official/stream/str_monitor.md` — **流计算状态监控** — 在 DolphinDB 中提交订阅后，流数据注入实时处理时所有的计算都在后台进行。用户无法直观地看到运行的情况，因此需要通过特定方式监控发布订阅以及消息处理的状…
+- `official/stream/str_operator.md` — **流式计算算子** — 流计算算子可以分为无状态计算和有状态计算。无状态计算是指对输入数据的流式计算不会涉及到历史数据或历史状态，只与当前最新需要处理的这条数据有关。有状态计算是指对输…
+- `official/stream/str_process.md` — **流式处理中的状态** — 流数据是指基于事件持续生成的时间序列数据。与静态有界的历史数据不同，流数据是动态变化且无界的。
+- `official/stream/str_replay.md` — **历史数据回放** — 一个量化策略在用于实际交易时，处理实时数据的程序通常为事件驱动。而研发量化策略时，需要使用历史数据进行回测，这时的程序通常不是事件驱动。因此同一个策略需要编写两…
+- `official/stream/str_replay_1.md` — **1 对 1 单表回放** — 1 对 1 单表回放功能主要由 replay 函数提供。
+- `official/stream/str_replay_n21.md` — **N 对 1 多表回放** — N 对 1 多表回放包含同构回放和异构回放两种模式：
+- `official/stream/str_replay_n2n.md` — **N 对 N 多表回放** — N 对 N 多表回放功能主要由 replay 函数提供。其语法如下：
+- `official/stream/str_table.md` — **流数据表** — 流数据表是 DolphinDB
+- `official/stream/streaming_computing_engine_in_cep.md` — **流计算引擎在 CEP 中的应用** — 基于 DolphinDB 的流数据框架，可在 CEP
+- `official/stream/streaming_sql.md` — **流式 SQL** — 自 3.00.4 版本起，DolphinDB 提供了流式 SQL 功能，通过增量计算和订阅计算结果，实现对实时数据的持续查询和即时更新。用户可以将共享内存表声明…
+- `official/stream/sub_pub.md` — **发布与订阅** — DolphinDB
+- `official/stream/time_bucket_engine.md` — **时间桶引擎** — 时间桶引擎与时间序列引擎相似，可以将数据基于指定时间窗口进行划分，并在窗口内进行聚合计算。它们的不同之处在于，时间序列引擎只能按照固定的窗口长度来进行聚合计算，…
+- `official/stream/time_series_engine.md` — **时序聚合引擎** — 时间聚合引擎将数据基于时间进行窗口划分，并在窗口内进行聚合计算。DolphinDB 提供了三种时间序列引擎，分别为：
+- `official/stream/timely_str_process.md` — **流处理中的时间** — 在流数据处理系统中，一条数据实际产生的时间和被系统处理的时间可能不同，因此存在着系统时间和事件时间两种不同的时间概念，下面介绍两种概念的含义和区别。
+- `official/stream/try_example1.md` — **入门示例** — 本节将通过两个示例展示如何实时进行因子计算。
+- `official/stream/window_join_engine.md` — **window join 引擎** — window join 引擎由 createWindowJoinEngine 函数创建。
+
+### sys_man — 系统运维（9 篇）
+
+- `official/sys_man/BatchJobManagement.md` — **批处理作业管理** — 针对某些特别耗时的任务，DolphinDB 支持批处理作业，在与常规交互作业独立的工作线程池中执行这些任务。批处理作业工作线程数的最大值是由配置参数
+- `official/sys_man/bak_resto.md` — **数据备份与恢复** — DolphinDB以分区为单位进行数据备份，每个分区备份为一个数据文件。在DolphinDB中，我们使用backup 函数备份整个库，部分表或部分分区。
+- `official/sys_man/cluster_async_replc.md` — **异步复制** — 集群间的异步复制指通过异步方式，将主集群复制到从集群，使主从集群数据一致。集群间的异步复制是集群异地容灾的一个解决方案，通常主集群用于实时的业务查询，而从集群则…
+- `official/sys_man/cluster_manage.md` — **集群管理** — DolphinDB 集群包括四种类型节点：控制节点（controller），代理节点（agent），数据节点（datanode）和计算节点（compute no…
+- `official/sys_man/multi_cluster_management.md` — **多集群管理** — 在公司内部，各个业务部门往往会独立搭建数据存储和计算集群，以满足各自的需求。然而，这种独立性导致了资源的分散和利用效率的低下。为充分利用各个集群资源，Dolph…
+- `official/sys_man/om_intro.md` — **系统运维** — 本章介绍系统运维相关内容，包括集群管理、任务管理、运维监控和安全与容灾等方面。通过学习这些内容，用户将能够获得有关如何高效、安全且可靠地运行系统的实用指导。
+- `official/sys_man/perf_man.md` — **运维监控** — DolphinDB 提供以下三种运维监控方式，以下依照推荐度排序：
+- `official/sys_man/secure_conn.md` — **安全通信** — DolphinDB 支持 Web 上 HTTPS 安全通信。
+- `official/sys_man/shutdown.md` — **安全关机** — 在DolphinDB的早期版本中，当使用 pkill -9 或 kill
+
+### error_codes — 故障排查 / 错误码（265 篇）
+
+- `official/error_codes/S00001.md` — **S00001** — S00001
+- `official/error_codes/S00002.md` — **S00002** — S00002
+- `official/error_codes/S00003.md` — **S00003** — S00003
+- `official/error_codes/S00004.md` — **S00004** — S00004
+- `official/error_codes/S00006.md` — **S00006** — S00006
+- `official/error_codes/S00007.md` — **S00007** — S00007
+- `official/error_codes/S00008.md` — **S00008** — S00008
+- `official/error_codes/S01001.md` — **S01001** — S01001
+- `official/error_codes/S01002.md` — **S01002** — S01002
+- `official/error_codes/S01003.md` — **S01003** — S01003
+- `official/error_codes/S01004.md` — **S01004** — S01004
+- `official/error_codes/S01005.md` — **S01005** — S01005
+- `official/error_codes/S01006.md` — **S01006** — S01006
+- `official/error_codes/S01007.md` — **S01007** — S01007
+- `official/error_codes/S01008.md` — **S01008** — S01008
+- `official/error_codes/S01009.md` — **S01009** — S01009
+- `official/error_codes/S01011.md` — **S01011** — S01011
+- `official/error_codes/S01012.md` — **S01012** — S01012
+- `official/error_codes/S01013.md` — **S01013** — S01013
+- `official/error_codes/S01014.md` — **S01014** — S01014
+- `official/error_codes/S01015.md` — **S01015** — S01015
+- `official/error_codes/S01016.md` — **S01016** — S01016
+- `official/error_codes/S01018.md` — **S01018** — S01018
+- `official/error_codes/S01019.md` — **S01019** — S01019
+- `official/error_codes/S01020.md` — **S01020** — S01020
+- `official/error_codes/S01021.md` — **S01021** — S01021
+- `official/error_codes/S01022.md` — **S01022** — S01022
+- `official/error_codes/S01023.md` — **S01023** — S01023
+- `official/error_codes/S01024.md` — **S01024** — S01024
+- `official/error_codes/S01025.md` — **S01025** — S01025
+- `official/error_codes/S01026.md` — **S01026** — S01026
+- `official/error_codes/S01027.md` — **S01027** — S01027
+- `official/error_codes/S01028.md` — **S01028** — S01028
+- `official/error_codes/S01029.md` — **S01029** — S01029
+- `official/error_codes/S01030.md` — **S01030** — S01030
+- `official/error_codes/S01031.md` — **S01031** — S01031
+- `official/error_codes/S01032.md` — **S01032** — S01032
+- `official/error_codes/S01035.md` — **S01035** — S01035
+- `official/error_codes/S01036.md` — **S01036** — S01036
+- `official/error_codes/S01037.md` — **S01037** — S01037
+- `official/error_codes/S01038.md` — **S01038** — S01038
+- `official/error_codes/S01039.md` — **S01039** — S01039
+- `official/error_codes/S01040.md` — **S01040** — S01040
+- `official/error_codes/S01041.md` — **S01041** — S01041
+- `official/error_codes/S01042.md` — **S01042** — S01042
+- `official/error_codes/S01043.md` — **S01043** — S01043
+- `official/error_codes/S01044.md` — **S01044** — S01044
+- `official/error_codes/S01045.md` — **S01045** — S01045
+- `official/error_codes/S01050.md` — **S01050** — S01050
+- `official/error_codes/S01051.md` — **S01051** — S01051
+- `official/error_codes/S01052.md` — **S01052** — S01052
+- `official/error_codes/S01053.md` — **S01053** — S01053
+- `official/error_codes/S01054.md` — **S01054** — S01054
+- `official/error_codes/S01055.md` — **S01055** — S01055
+- `official/error_codes/S01056.md` — **S01056** — S01056
+- `official/error_codes/S01057.md` — **S01057** — S01057
+- `official/error_codes/S01058.md` — **S01058** — S01058
+- `official/error_codes/S01059.md` — **S01059** — S01059
+- `official/error_codes/S01060.md` — **S01060** — S01060
+- `official/error_codes/S01061.md` — **S01061** — S01061
+- `official/error_codes/S01062.md` — **S01062** — S01062
+- `official/error_codes/S01063.md` — **S01063** — S01063
+- `official/error_codes/S01064.md` — **S01064** — S01064
+- `official/error_codes/S01065.md` — **S01065** — S01065
+- `official/error_codes/S01067.md` — **S01067** — S01067
+- `official/error_codes/S01068.md` — **S01068** — S01068
+- `official/error_codes/S01069.md` — **S01069** — S01069
+- `official/error_codes/S02000.md` — **S02000** — S02000
+- `official/error_codes/S02001.md` — **S02001** — S02001
+- `official/error_codes/S02002.md` — **S02002** — S02002
+- `official/error_codes/S02003.md` — **S02003** — S02003
+- `official/error_codes/S02004.md` — **S02004** — S02004
+- `official/error_codes/S02005.md` — **S02005** — S02005
+- `official/error_codes/S02006.md` — **S02006** — S02006
+- `official/error_codes/S02007.md` — **S02007** — S02007
+- `official/error_codes/S02008.md` — **S02008** — S02008
+- `official/error_codes/S02009.md` — **S02009** — S02009
+- `official/error_codes/S02010.md` — **S02010** — S02010
+- `official/error_codes/S02011.md` — **S02011** — S02011
+- `official/error_codes/S02012.md` — **S02012** — S02012
+- `official/error_codes/S02013.md` — **S02013** — S02013
+- `official/error_codes/S02014.md` — **S02014** — S02014
+- `official/error_codes/S02015_0.md` — **S02015** — S02015
+- `official/error_codes/S02016.md` — **S02016** — S02016
+- `official/error_codes/S02017.md` — **S02017** — S02017
+- `official/error_codes/S02018.md` — **S02018** — S02018
+- `official/error_codes/S02019.md` — **S02019** — S02019
+- `official/error_codes/S02020.md` — **S02020** — S02020
+- `official/error_codes/S02021.md` — **S02021** — S02021
+- `official/error_codes/S02022.md` — **S02022** — S02022
+- `official/error_codes/S02023.md` — **S02023** — S02023
+- `official/error_codes/S02024.md` — **S02024** — S02024
+- `official/error_codes/S02025.md` — **S02025** — S02025
+- `official/error_codes/S02026.md` — **S02026** — S02026
+- `official/error_codes/S02027.md` — **S02027** — S02027
+- `official/error_codes/S02028.md` — **S02028** — S02028
+- `official/error_codes/S02029.md` — **S02029** — S02029
+- `official/error_codes/S02030.md` — **S02030** — S02030
+- `official/error_codes/S02031.md` — **S02031** — S02031
+- `official/error_codes/S02044.md` — **S02044** — S02044
+- `official/error_codes/S02045.md` — **S02045** — S02045
+- `official/error_codes/S02046.md` — **S02046** — S02046
+- `official/error_codes/S02047.md` — **S02047** — S02047
+- `official/error_codes/S02048.md` — **S02048** — S02048
+- `official/error_codes/S02049.md` — **S02049** — S02049
+- `official/error_codes/S02050.md` — **S02050** — S02050
+- `official/error_codes/S02051.md` — **S02051** — S02051
+- `official/error_codes/S02052.md` — **S02052** — S02052
+- `official/error_codes/S02053.md` — **S02053** — S02053
+- `official/error_codes/S02054.md` — **S02054** — S02054
+- `official/error_codes/S02055.md` — **S02055** — S02055
+- `official/error_codes/S02056.md` — **S02056** — S02056
+- `official/error_codes/S02057.md` — **S02057** — S02057
+- `official/error_codes/S02059.md` — **S02059** — S02059
+- `official/error_codes/S03000.md` — **S03000** — S03000
+- `official/error_codes/S03001.md` — **S03001** — S03001
+- `official/error_codes/S03002.md` — **S03002** — S03002
+- `official/error_codes/S03003.md` — **S03003** — S03003
+- `official/error_codes/S03005.md` — **S03005** — S03005
+- `official/error_codes/S03006.md` — **S03006** — S03006
+- `official/error_codes/S03007.md` — **S03007** — S03007
+- `official/error_codes/S03008.md` — **S03008** — S03008
+- `official/error_codes/S03009.md` — **S03009** — S03009
+- `official/error_codes/S03012.md` — **S03012** — S03012
+- `official/error_codes/S03013.md` — **S03013** — S03013
+- `official/error_codes/S03014.md` — **S03014** — S03014
+- `official/error_codes/S03015.md` — **S03015** — S03015
+- `official/error_codes/S03016.md` — **S03016** — S03016
+- `official/error_codes/S03017.md` — **S03017** — S03017
+- `official/error_codes/S03018.md` — **S03018** — S03018
+- `official/error_codes/S03019.md` — **S03019** — S03019
+- `official/error_codes/S03020.md` — **S03020** — S03020
+- `official/error_codes/S04001.md` — **S04001** — S04001
+- `official/error_codes/S04002.md` — **S04002** — S04002
+- `official/error_codes/S04003.md` — **S04003** — S04003
+- `official/error_codes/S04004.md` — **S04004** — S04004
+- `official/error_codes/S04005.md` — **S04005** — S04005
+- `official/error_codes/S05000.md` — **S05000** — S05000
+- `official/error_codes/S05001.md` — **S05001** — S05001
+- `official/error_codes/S05003.md` — **S05003** — S05003
+- `official/error_codes/S05004.md` — **S05004** — S05004
+- `official/error_codes/S05005.md` — **S05005** — S05005
+- `official/error_codes/S05006.md` — **S05006** — S05006
+- `official/error_codes/S05007.md` — **S05007** — S05007
+- `official/error_codes/S05010.md` — **S05010** — S05010
+- `official/error_codes/S06000.md` — **S06000** — S06000
+- `official/error_codes/S06001.md` — **S06001** — S06001
+- `official/error_codes/S06002.md` — **S06002** — S06002
+- `official/error_codes/S06003.md` — **S06003** — S06003
+- `official/error_codes/S06004.md` — **S06004** — S06004
+- `official/error_codes/S06005.md` — **S06005** — S06005
+- `official/error_codes/S06006.md` — **S06006** — S06006
+- `official/error_codes/err_codes.md` — **错误代码** — DolphinDB 数据库错误代码列表用于解释 DolphinDB Server（以下简称 Server）的不同类型错误。每个错误代码对应特定的系统状态或不当操…
+- `official/error_codes/s00005.md` — **S00005** — S00005
+- `official/error_codes/s00009.md` — **S00009** — S00009
+- `official/error_codes/s00010.md` — **S00010** — S00010
+- `official/error_codes/s00011.md` — **S00011** — S00011
+- `official/error_codes/s00012.md` — **S00012** — S00012
+- `official/error_codes/s00013.md` — **S00013** — S00013
+- `official/error_codes/s00014.md` — **S00014** — S00014
+- `official/error_codes/s00015.md` — **S00015** — S00015
+- `official/error_codes/s00016.md` — **S00016** — S00016
+- `official/error_codes/s00017.md` — **S00017** — S00017
+- `official/error_codes/s00018.md` — **S00018** — S00018
+- `official/error_codes/s00019.md` — **S00019** — S00019
+- `official/error_codes/s00020.md` — **S00020** — S00020
+- `official/error_codes/s01000_0.md` — **S01000** — S01000
+- `official/error_codes/s01010.md` — **S01010** — S01010
+- `official/error_codes/s01017.md` — **S01017** — S01017
+- `official/error_codes/s01033.md` — **S01033** — S01033
+- `official/error_codes/s01034.md` — **S01034** — S01034
+- `official/error_codes/s01046.md` — **S01046** — S01046
+- `official/error_codes/s01047.md` — **S01047** — S01047
+- `official/error_codes/s01048.md` — **S01048** — S01048
+- `official/error_codes/s01049.md` — **S01049** — S01049
+- `official/error_codes/s01070.md` — **S01070** — S01070
+- `official/error_codes/s01071.md` — **S01071** — S01071
+- `official/error_codes/s01072.md` — **S01072** — S01072
+- `official/error_codes/s01074.md` — **S01074** — S01074
+- `official/error_codes/s01076.md` — **S01076** — S01076
+- `official/error_codes/s01077.md` — **S01077** — S01077
+- `official/error_codes/s02032.md` — **S02032** — S02032
+- `official/error_codes/s02033.md` — **S02033** — S02033
+- `official/error_codes/s02034.md` — **S02034** — S02034
+- `official/error_codes/s02035.md` — **S02035** — S02035
+- `official/error_codes/s02036.md` — **S02036** — S02036
+- `official/error_codes/s02037.md` — **S02037** — S02037
+- `official/error_codes/s02038.md` — **S02038** — S02038
+- `official/error_codes/s02039.md` — **S02039** — S02039
+- `official/error_codes/s02040.md` — **S02040** — S02040
+- `official/error_codes/s02041.md` — **S02041** — S02041
+- `official/error_codes/s02042.md` — **S02042** — S02042
+- `official/error_codes/s02043.md` — **S02043** — S02043
+- `official/error_codes/s03021.md` — **S03021** — S03021
+- `official/error_codes/s03022.md` — **S03022** — S03022
+- `official/error_codes/s03023.md` — **S03023** — S03023
+- `official/error_codes/s03024.md` — **S03024** — S03024
+- `official/error_codes/s03025.md` — **S03025** — S03025
+- `official/error_codes/s03027.md` — **S03027** — S03027
+- `official/error_codes/s03028.md` — **S03028** — S03028
+- `official/error_codes/s03036.md` — **S03036** — S03036
+- `official/error_codes/s03037.md` — **S03037** — S03037
+- `official/error_codes/s03038.md` — **S03038** — S03038
+- `official/error_codes/s03039.md` — **S03039** — S03039
+- `official/error_codes/s03040.md` — **S03040** — S03040
+- `official/error_codes/s03041.md` — **S03041** — S03041
+- `official/error_codes/s03042.md` — **S03042** — S03042
+- `official/error_codes/s03043.md` — **S03043** — S03043
+- `official/error_codes/s04006.md` — **S04006** — S04006
+- `official/error_codes/s04007.md` — **S04007** — S04007
+- `official/error_codes/s04008.md` — **S04008** — S04008
+- `official/error_codes/s05008.md` — **S05008** — S05008
+- `official/error_codes/s05009.md` — **S05009** — S05009
+- `official/error_codes/s05011.md` — **S05011** — S05011
+- `official/error_codes/s05012.md` — **S05012** — S05012
+- `official/error_codes/s05013.md` — **S05013** — S05013
+- `official/error_codes/s05014.md` — **S05014** — S05014
+- `official/error_codes/s05015.md` — **S05015** — S05015
+- `official/error_codes/s05016.md` — **S05016** — S05016
+- `official/error_codes/s05017.md` — **S05017** — S05017
+- `official/error_codes/s06007.md` — **S06007** — S06007
+- `official/error_codes/s06008.md` — **S06008** — S06008
+- `official/error_codes/s06009.md` — **S06009** — S06009
+- `official/error_codes/s06010.md` — **S06010** — S06010
+- `official/error_codes/s06011.md` — **S06011** — S06011
+- `official/error_codes/s06012.md` — **S06012** — S06012
+- `official/error_codes/s06013.md` — **S06013** — S06013
+- `official/error_codes/s07000.md` — **S07000** — S07000
+- `official/error_codes/s07001.md` — **S07001** — S07001
+- `official/error_codes/s07002.md` — **S07002** — S07002
+- `official/error_codes/s07003.md` — **S07003** — S07003
+- `official/error_codes/s07004.md` — **S07004** — S07004
+- `official/error_codes/s07005.md` — **S07005** — S07005
+- `official/error_codes/s07006.md` — **S07006** — S07006
+- `official/error_codes/s09000.md` — **S09000** — S09000
+- `official/error_codes/s09001.md` — **S09001** — S09001
+- `official/error_codes/s09002.md` — **S09002** — S09002
+- `official/error_codes/s09003.md` — **S09003** — S09003
+- `official/error_codes/s09004.md` — **S09004** — S09004
+- `official/error_codes/s09005.md` — **S09005** — S09005
+- `official/error_codes/s09006.md` — **S09006** — S09006
+- `official/error_codes/s09007.md` — **S09007** — S09007
+- `official/error_codes/s09008.md` — **S09008** — S09008
+- `official/error_codes/s09009.md` — **S09009** — S09009
+- `official/error_codes/s10000.md` — **S10000** — S10000
+- `official/error_codes/s10001.md` — **S10001** — S10001
+- `official/error_codes/s10002.md` — **S10002** — S10002
+- `official/error_codes/s10003.md` — **S10003** — S10003
+- `official/error_codes/s10004.md` — **S10004** — S10004
+- `official/error_codes/s10005.md` — **S10005** — S10005
+- `official/error_codes/s10006.md` — **S10006** — S10006
+- `official/error_codes/s10007.md` — **S10007** — S10007
+- `official/error_codes/s10008.md` — **S10008** — S10008
+- `official/error_codes/s10009.md` — **S10009** — S10009
+- `official/error_codes/s12000.md` — **S12000** — S12000
+- `official/error_codes/s12001.md` — **S12001** — S12001
+- `official/error_codes/s12002.md` — **S12002** — S12002
+- `official/error_codes/s12003.md` — **S12003** — S12003
+- `official/error_codes/s12004.md` — **S12004** — S12004
+- `official/error_codes/s12005.md` — **S12005** — S12005
+- `official/error_codes/s12006.md` — **S12006** — S12006
+- `official/error_codes/s12007.md` — **S12007** — S12007
+- `official/error_codes/s12008.md` — **S12008** — S12008
+- `official/error_codes/s12009.md` — **S12009** — S12009
+- `official/error_codes/troubleshooting.md` — **故障排查** — 本章介绍 DolphinDB 使用过程中一些常见的故障及其排查方式。我们将详细说明各种常见故障的原因及其解决步骤，帮助客户独立诊断和修复这些问题。
+
+### funcs — 函数参考（细目见 official/funcs/_INDEX.md）（1705 篇）
+
+- `official/funcs/a/abs.md` — **abs** — abs(X)
+- `official/funcs/a/acf.md` — **acf** — acf(X, maxLag)
+- `official/funcs/a/acos.md` — **acos** — acos(X)
+- `official/funcs/a/acosh.md` — **acosh** — acosh(X)
+- `official/funcs/a/adaBoostClassifier.md` — **adaBoostClassifier** — adaBoostClassifier(ds, yColName, xColNames, numClasses,
+- `official/funcs/a/adaBoostRegressor.md` — **adaBoostRegressor** — adaBoostRegressor(ds, yColName, xColNames,
+- `official/funcs/a/add.md` — **add** — add(X, Y)
+- `official/funcs/a/addAccessControl.md` — **addAccessControl** — addAccessControl(table)
+- `official/funcs/a/addColumn.md` — **addColumn** — addColumn(table, colNames, colTypes)
+- `official/funcs/a/addEventListener.md` — **addEventListener** — addEventListener(handler, [eventType], [condition], [times="all"], [at],
+- `official/funcs/a/addFunctionView.md` — **addFunctionView** — addFunctionView(udf|moduleName)
+- `official/funcs/a/addGroupMember.md` — **addGroupMember** — addGroupMember(userIds, groupIds)
+- `official/funcs/a/addMCPPrompt.md` — **addMCPPrompt** — 首发版本：3.00.4
+- `official/funcs/a/addMCPTool.md` — **addMCPTool** — 首发版本：3.00.4
+- `official/funcs/a/addMarketHoliday.md` — **addMarketHoliday** — addMarketHoliday(marketName, holiday, [dateType = 'holidayDate'])
+- `official/funcs/a/addMetrics.md` — **addMetrics** — addMetrics(engine, newMetrics, newMetricsSchema,
+- `official/funcs/a/addNode.md` — **addNode** — addNode(host, port, alias, [saveConfig=true],
+- `official/funcs/a/addRangePartitions.md` — **addRangePartitions** — addRangePartitions(dbHandle, newRanges, [level=0],
+- `official/funcs/a/addSparseReactiveMetrics.md` — **addSparseReactiveMetrics** — addSparseReactiveMetrics(name, metrics)
+- `official/funcs/a/addValuePartitions.md` — **addValuePartitions** — addValuePartitions(dbHandle, newValues, [level=0],
+- `official/funcs/a/addVolumes.md` — **addVolumes** — addVolumes(volumes)
+- `official/funcs/a/addcacherulesforcomputegroup.md` — **addCacheRulesForComputeGroup** — 首发版本：3.00.5
+- `official/funcs/a/addgpfunction.md` — **addGpFunction** — addGpFunction(engine, func)
+- `official/funcs/a/addipblacklist.md` — **addIPBlackList** — 首发版本：3.00.3
+- `official/funcs/a/addipwhitelist.md` — **addIPWhiteList** — 首发版本：3.00.3
+- `official/funcs/a/addreactivemetrics.md` — **addReactiveMetrics** — addReactiveMetrics(name, metricNames, metrics)
+- `official/funcs/a/addstatelessmetrics.md` — **addStatelessMetrics** — addStatelessMetrics(name)
+- `official/funcs/a/adfuller.md` — **adfuller** — adfuller(X, [maxLag], [regression="c"], [autoLag="aic"], [store=false],
+- `official/funcs/a/align.md` — **align** — align(left, right, [how='outer'], [byRow], [view=true])
+- `official/funcs/a/all.md` — **all** — all(X)
+- `official/funcs/a/and.md` — **and** — and(X, Y) 或 X && Y
+- `official/funcs/a/anova.md` — **anova** — anova(X)
+- `official/funcs/a/any.md` — **any** — any(X)
+- `official/funcs/a/append!.md` — **append!** — append!(obj, newData)
+- `official/funcs/a/appendEvent.md` — **appendEvent** — appendEvent(engine, events)
+- `official/funcs/a/appendForJoin.md` — **appendForJoin** — appendForJoin(engine, isLeftTable, data)
+- `official/funcs/a/appendMktData.md` — **appendMktData** — appendMktData(engine, data, [eventTime])
+- `official/funcs/a/appendMsg.md` — **appendMsg** — appendMsg(engine, msgBody, msgId)
+- `official/funcs/a/appendOrcaStreamTable.md` — **appendOrcaStreamTable** — 首发版本：3.00.3
+- `official/funcs/a/appendTupel_.md` — **appendTuple!** — appendTuple!(X, Y, [wholistic=false])
+- `official/funcs/a/appendeventwithresponse.md` — **appendEventWithResponse** — 首发版本：3.00.5
+- `official/funcs/a/arima.md` — **arima** — 首发版本：3.00.3
+- `official/funcs/a/array.md` — **array** — array(dataType|template, [initialSize], [capacity], [defaultValue])
+- `official/funcs/a/arrayVector.md` — **arrayVector** — arrayVector(index, value)
+- `official/funcs/a/asFreq.md` — **asFreq** — asFreq(X, rule, [closed], [label],
+- `official/funcs/a/asIs.md` — **asis** — asis(obj)
+- `official/funcs/a/asfreq1.md` — **asfreq** — 是 asFreq 的别名。
+- `official/funcs/a/asin.md` — **asin** — asin(X)
+- `official/funcs/a/asinh.md` — **asinh** — asinh(X)
+- `official/funcs/a/asof.md` — **asof** — asof(X, Y)
+- `official/funcs/a/at.md` — **at** — at(X, [index])
+- `official/funcs/a/atImax.md` — **atImax** — atImax(location, value)
+- `official/funcs/a/atImin.md` — **atImin** — atImin(location, value)
+- `official/funcs/a/atan.md` — **atan** — atan(X)
+- `official/funcs/a/atanh.md` — **atanh** — atanh(X)
+- `official/funcs/a/attributeTypes.md` — **attributeTypes** — 首发版本：3.00.4.2，3.00.3.2
+- `official/funcs/a/attributenames.md` — **attributeNames** — attributeNames(obj)
+- `official/funcs/a/attributevalues.md` — **attributeValues** — attributeValues(obj)
+- `official/funcs/a/autocorr.md` — **autocorr** — autocorr(X, lag)
+- `official/funcs/a/avg.md` — **avg** — avg(X)
+- `official/funcs/b/backup.md` — **backup** — backup(backupDir, dbPath|sqlObj, [force=false], [parallel=false],
+- `official/funcs/b/backupDB.md` — **backupDB** — backupDB(backupDir, dbPath, [keyPath])
+- `official/funcs/b/backupTable.md` — **backupTable** — backupTable(backupDir, dbPath, tableName, [keyPath])
+- `official/funcs/b/backupsettings.md` — **backupSettings** — backupSettings(fileName, [userPermission=true],
+- `official/funcs/b/bar.md` — **bar** — bar(X, interval, [closed='left'])
+- `official/funcs/b/base64Decode.md` — **base64Decode** — base64Decode(X)
+- `official/funcs/b/base64Encode.md` — **base64Encode** — base64Encode(X)
+- `official/funcs/b/beta.md` — **beta** — beta(Y, X)
+- `official/funcs/b/between.md` — **between** — between(X, Y)
+- `official/funcs/b/bfill.md` — **bfill** — bfill(obj, [limit])
+- `official/funcs/b/bfill_.md` — **bfill!** — bfill!(obj, [limit])
+- `official/funcs/b/bigarray.md` — **bigarray** — bigarray(dataType|template, [initialSize], [capacity],
+- `official/funcs/b/binaryExpr.md` — **binaryExpr** — binaryExpr(X, Y, optr)
+- `official/funcs/b/binsrch.md` — **binsrch** — binsrch(X, Y)
+- `official/funcs/b/bitAnd.md` — **bitAnd** — bitAnd(X, Y) 或 X & Y
+- `official/funcs/b/bitNot.md` — **bitNot** — bitNot(X)
+- `official/funcs/b/bitOr.md` — **bitOr** — bitOr(X, Y) 或 X | Y
+- `official/funcs/b/bitXor.md` — **bitXor** — bitXor(X, Y) 或 X ^ Y
+- `official/funcs/b/blob.md` — **blob** — blob(X)
+- `official/funcs/b/bondCalculator.md` — **bondCalculator** — 首发版本：3.00.3
+- `official/funcs/b/bondCashflow.md` — **bondCashflow** — bondCashflow(start, maturity, coupon, frequency, dayCountConvention,
+- `official/funcs/b/bondDirtyPrice.md` — **bondDirtyPrice** — bondDirtyPrice(start, maturity, issuePrice, coupon,
+- `official/funcs/b/bondDuration.md` — **bondDuration** — bondDuration(start, maturity, issuePrice, coupon,
+- `official/funcs/b/bondFuturesPricer.md` — **bondFuturesPricer** — 首发版本：3.00.4
+- `official/funcs/b/bondPricer.md` — **bondPricer** — 首发版本：3.00.4
+- `official/funcs/b/bondYieldCurveBuilder.md` — **bondYieldCurveBuilder** — 首发版本：3.00.4
+- `official/funcs/b/bondaccrint.md` — **bondAccrInt** — bondAccrInt(start, maturity, issuePrice, coupon, frequency,
+- `official/funcs/b/bondconvexity.md` — **bondConvexity** — bondConvexity(start, maturity, issuePrice, coupon,
+- `official/funcs/b/bondinstrumentcalculator.md` — **bondInstrumentCalculator** — 首发版本：3.00.4.1
+- `official/funcs/b/bondyield.md` — **bondYield** — bondYield(start, maturity, issuePrice, coupon, frequency, dayCountConvention,
+- `official/funcs/b/bool.md` — **bool** — bool(X)
+- `official/funcs/b/boxcox.md` — **boxcox** — 首发版本：3.00.3
+- `official/funcs/b/brentq.md` — **brentq** — brentq(f, a, b, [xtol], [rtol], [maxIter],
+- `official/funcs/b/brute.md` — **brute** — brute(func, ranges, [ns=20], [finish=fmin])
+- `official/funcs/b/bucket.md` — **bucket** — bucket(vector, dataRange, bucketNum, [includeOutbound=false])
+- `official/funcs/b/bucketCount.md` — **bucketCount** — bucketCount(vector, dataRange, bucketNum,
+- `official/funcs/b/businessDay.md` — **businessDay** — businessDay(X, [offset], [n=1])
+- `official/funcs/b/businessMonthBegin.md` — **businessMonthBegin** — businessMonthBegin(X, [offset], [n=1])
+- `official/funcs/b/businessMonthEnd.md` — **businessMonthEnd** — businessMonthEnd(X, [offset], [n=1])
+- `official/funcs/b/businessQuarterBegin.md` — **businessQuarterBegin** — businessQuarterBegin(X, [startingMonth=1], [offset],
+- `official/funcs/b/businessQuarterEnd.md` — **businessQuarterEnd** — businessQuarterEnd(X, [endingMonth=12], [offset],
+- `official/funcs/b/businessYearBegin.md` — **businessYearBegin** — businessYearBegin(X, [startingMonth=1], [offset],
+- `official/funcs/b/businessYearEnd.md` — **businessYearEnd** — businessYearEnd(X, [endingMonth=12], [offset],
+- `official/funcs/b/bvls.md` — **bvls** — 首发版本：3.00.3
+- `official/funcs/c/cacheDSNow.md` — **cacheDSNow** — cacheDSNow(ds)
+- `official/funcs/c/cacheDS_.md` — **cacheDS!** — cacheDS!(ds)
+- `official/funcs/c/cachedTable.md` — **cachedTable** — cachedTable(updateFunc, retentionSeconds)
+- `official/funcs/c/callMCPTool.md` — **callMCPTool** — 首发版本：3.00.4
+- `official/funcs/c/cancelConsoleJob.md` — **cancelConsoleJob** — cancelConsoleJob(rootJobId)
+- `official/funcs/c/cancelJob.md` — **cancelJob** — cancelJob(jobId)
+- `official/funcs/c/cancelRebalanceTask.md` — **cancelRebalanceTask** — cancelRebalanceTask(taskId)
+- `official/funcs/c/cancelRecoveryTask.md` — **cancelRecoveryTask** — cancelRecoveryTask(taskId)
+- `official/funcs/c/cancelpkeycompactiontask.md` — **cancelPKEYCompactionTask** — cancelPKEYCompactionTask(chunkId)
+- `official/funcs/c/cast.md` — **cast** — cast(X, Y) 或 X $ Y
+- `official/funcs/c/cbrt.md` — **cbrt** — cbrt(X)
+- `official/funcs/c/cdfBeta.md` — **cdfBeta** — cdfBeta(alpha, beta, X)
+- `official/funcs/c/cdfBinomial.md` — **cdfBinomial** — cdfBinomial(trials, p, X)
+- `official/funcs/c/cdfChiSquare.md` — **cdfChiSquare** — cdfChiSquare(df, X)
+- `official/funcs/c/cdfExp.md` — **cdfExp** — cdfExp(mean, X)
+- `official/funcs/c/cdfF.md` — **cdfF** — cdfF(numeratorDF, denominatorDF, X)
+- `official/funcs/c/cdfGamma.md` — **cdfGamma** — cdfGamma(shape, scale, X)
+- `official/funcs/c/cdfKolmogorov.md` — **cdfKolmogorov** — cdfKolmogorov(X)
+- `official/funcs/c/cdfLogistic.md` — **cdfLogistic** — cdfLogistic(mean, s, X)
+- `official/funcs/c/cdfNormal.md` — **cdfNormal** — cdfNormal(mean, stdev, X)
+- `official/funcs/c/cdfPoisson.md` — **cdfPoisson** — cdfPoisson(mean, X)
+- `official/funcs/c/cdfStudent.md` — **cdfStudent** — cdfStudent(df, X)
+- `official/funcs/c/cdfUniform.md` — **cdfUniform** — cdfUniform(lower, upper, X)
+- `official/funcs/c/cdfWeibull.md` — **cdfWeibull** — cdfWeibull(alpha, beta, X)
+- `official/funcs/c/cdfZipf.md` — **cdfZipf** — cdfZipf(num, exponent, X)
+- `official/funcs/c/ceil.md` — **ceil** — ceil(X)
+- `official/funcs/c/cell.md` — **cell** — cell(obj, row, col)
+- `official/funcs/c/cells.md` — **cells** — cells(obj, row, col)
+- `official/funcs/c/changePwd.md` — **changePwd** — changePwd(oldPwd, newPwd)
+- `official/funcs/c/changelogStreamTable.md` — **changelogStreamTable** — 首发版本：3.00.5
+- `official/funcs/c/char.md` — **char** — char(X)
+- `official/funcs/c/charAt.md` — **charAt** — charAt(X, Y)
+- `official/funcs/c/checkBackup.md` — **checkBackup** — checkBackup(backupDir, dbPath, [tableName],
+- `official/funcs/c/checkpointHaMvcc.md` — **checkpointHaMvcc** — 首发版本：3.00.5
+- `official/funcs/c/chiSquareTest.md` — **chiSquareTest** — chiSquareTest(X, [Y])
+- `official/funcs/c/cholesky.md` — **cholesky** — cholesky(obj, [lower=true])
+- `official/funcs/c/cj.md` — **cj** — cj(X, Y)
+- `official/funcs/c/cleanOutdateLogFiles.md` — **cleanOutdateLogFiles** — cleanOutdateLogFiles([retentionTime=30])
+- `official/funcs/c/clearAllCache.md` — **clearAllCache** — clearAllCache()
+- `official/funcs/c/clearCachedDatabase.md` — **clearCachedDatabase** — clearCachedDatabase(dbUrl, [tableName])
+- `official/funcs/c/clearCachedModules.md` — **clearCachedModules** — clearCachedModules()
+- `official/funcs/c/clearDSCacheNow.md` — **clearDSCacheNow** — clearDSCacheNow(ds)
+- `official/funcs/c/clearDSCache_.md` — **clearDSCache!** — clearDSCache!(ds)
+- `official/funcs/c/clearTablePersistence.md` — **clearTablePersistence** — clearTablePersistence(table)
+- `official/funcs/c/clear_.md` — **clear!** — clear!(X)
+- `official/funcs/c/clearalliotdblatestkeycache.md` — **clearAllIOTDBLatestKeyCache** — clearAllIOTDBLatestKeyCache()
+- `official/funcs/c/clearalliotdbstatictablecache.md` — **clearAllIOTDBStaticTableCache** — clearAllIOTDBStaticTableCache()
+- `official/funcs/c/clearalltsdbsymbolbasecache.md` — **clearAllTSDBSymbolBaseCache** — clearAllTSDBSymbolBaseCache()
+- `official/funcs/c/clearcomputenodecache.md` — **clearComputeNodeCache** — clearComputeNodeCache(database, [table], [partition])
+- `official/funcs/c/clearcomputenodediskcache.md` — **clearComputeNodeDiskCache** — clearComputeNodeDiskCache(database, [table], [partition])
+- `official/funcs/c/clip.md` — **clip** — clip(X,Y,Z)
+- `official/funcs/c/clip_.md` — **clip!** — clip!(X, Y, Z)
+- `official/funcs/c/close.md` — **close** — close(X)
+- `official/funcs/c/closeSessions.md` — **closeSessions** — closeSessions(sessionId)
+- `official/funcs/c/cmFutVolatilitySurfaceBuilder.md` — **cmFutVolatilitySurfaceBuilder** — 首发版本：3.00.5
+- `official/funcs/c/cmfutamericanoptionpricer.md` — **cmFutAmericanOptionPricer** — 首发版本：3.00.5
+- `official/funcs/c/cmfuteuropeanoptionpricer.md` — **cmFutEuropeanOptionPricer** — 首发版本：3.00.5
+- `official/funcs/c/coevent.md` — **coevent** — coevent(event, eventTime, window, [orderSensitive=false])
+- `official/funcs/c/coint.md` — **coint** — coint(Y0, Y1, [trend="c"], [method="aeg"],
+- `official/funcs/c/col.md` — **col** — col(obj, index) 或 column(obj,
+- `official/funcs/c/cols.md` — **cols** — cols(X)
+- `official/funcs/c/columnNames.md` — **columnNames** — columnNames(X)
+- `official/funcs/c/complex.md` — **complex** — complex(X, Y)
+- `official/funcs/c/compose.md` — **compose** — 首发版本：3.00.3
+- `official/funcs/c/compress.md` — **compress** — compress(X, [method='lz4'])
+- `official/funcs/c/concat.md` — **concat** — concat(X, Y)
+- `official/funcs/c/concatDateTime.md` — **concatDateTime** — concatDateTime(date, time)
+- `official/funcs/c/concatMatrix.md` — **concatMatrix** — concatMatrix(X, [horizontal=true])
+- `official/funcs/c/conditionalFilter.md` — **conditionalFilter** — conditionalFilter(X, condition, filterMap)
+- `official/funcs/c/conditionalIterate.md` — **conditionalIterate** — conditionalIterate(cond, trueValue,
+- `official/funcs/c/constantdesc.md` — **constantDesc** — constantDesc(obj)
+- `official/funcs/c/contextCount.md` — **contextCount** — contextCount(X, Y)
+- `official/funcs/c/contextSum.md` — **contextSum** — contextSum(X, Y)
+- `official/funcs/c/contextSum2.md` — **contextSum2** — contextSum2(X, Y)
+- `official/funcs/c/convertEncode.md` — **convertEncode** — convertEncode(str, srcEncode, destEncode)
+- `official/funcs/c/convertExcelFormula.md` — **convertExcelFormula** — convertExcelFormula(formula, colStart, colEnd, rowStart,
+- `official/funcs/c/convertTZ.md` — **convertTZ** — convertTZ(obj, srcTZ, destTZ)
+- `official/funcs/c/copy.md` — **copy** — copy(obj)
+- `official/funcs/c/copyReplicas.md` — **copyReplicas** — copyReplicas(srcNode, destNode, chunkId)
+- `official/funcs/c/corr.md` — **corr** — corr(X,Y)
+- `official/funcs/c/corrMatrix.md` — **corrMatrix** — corrMatrix(X)
+- `official/funcs/c/cos.md` — **cos** — cos(X)
+- `official/funcs/c/cosh.md` — **cosh** — cosh(X)
+- `official/funcs/c/cosine.md` — **cosine** — 首发版本：3.00.5，3.00.4.3
+- `official/funcs/c/count.md` — **count** — count(X)
+- `official/funcs/c/countNanInf.md` — **countNanInf** — countNanInf(X, [includeNull=false])
+- `official/funcs/c/covar.md` — **covar** — covar(X,Y)
+- `official/funcs/c/covarMatrix.md` — **covarMatrix** — covarMatrix(X)
+- `official/funcs/c/covarp.md` — **covarp** — 首发版本：3.00.5
+- `official/funcs/c/crc32.md` — **crc32** — crc32(str, [cksum=0])
+- `official/funcs/c/createAnomalyDetectionEngine.md` — **createAnomalyDetectionEngine** — createAnomalyDetectionEngine(name, metrics, dummyTable,
+- `official/funcs/c/createAsofJoinEngine.md` — **createAsofJoinEngine** — createAsofJoinEngine(name, leftTable, rightTable,
+- `official/funcs/c/createCEPEngine.md` — **createCEPEngine** — createCEPEngine(name, monitors, dummyTable, eventSchema,
+- `official/funcs/c/createCatalog.md` — **createCatalog** — createCatalog(catalog)
+- `official/funcs/c/createCrossSectionalAggregator.md` — **createCrossSectionalAggregator** — 是 createCrossSectionalEngine 的别名。
+- `official/funcs/c/createCrossSectionalEngine.md` — **createCrossSectionalEngine** — createCrossSectionalEngine(name, [metrics], dummyTable,
+- `official/funcs/c/createDailyTimeSeriesEngine.md` — **createDailyTimeSeriesEngine** — createDailyTimeSeriesEngine(name, windowSize, step,
+- `official/funcs/c/createDataViewEngine.md` — **createDataViewEngine** — createDataViewEngine(name, outputTable, keyColumns, timeColumn,
+- `official/funcs/c/createDistributedInMemoryTable.md` — **createDistributedInMemoryTable** — createDistributedInMemoryTable(tableName, colNames,
+- `official/funcs/c/createDualOwnershipReactiveStateEngine.md` — **createDualOwnershipReactiveStateEngine** — createDualOwnershipReactiveStateEngine(name, metrics1,
+- `official/funcs/c/createEqualJoinEngine.md` — **createEqualJoinEngine** — 是 createEquiJoinEngine
+- `official/funcs/c/createEquiJoinEngine.md` — **createEquiJoinEngine** — createEquiJoinEngine(name, leftTable, rightTable,
+- `official/funcs/c/createGroup.md` — **createGroup** — createGroup(groupId, [userIds])
+- `official/funcs/c/createIMOLTPTable.md` — **createIMOLTPTable** — createIMOLTPTable(dbHandle, table, tableName, primaryKey, [secondaryKey],
+- `official/funcs/c/createIPCInMemoryTable.md` — **createIPCInMemoryTable** — createIPCInMemoryTable(size, tableName, columnNames,
+- `official/funcs/c/createLeftSemiJoinEngine.md` — **createLeftSemiJoinEngine** — createLeftSemiJoinEngine(name, leftTable, rightTable,
+- `official/funcs/c/createLookupJoinEngine.md` — **createLookupJoinEngine** — createLookupJoinEngine(name, leftTable, rightTable,
+- `official/funcs/c/createMktDataEngine.md` — **createMktDataEngine** — 首发版本：3.00.5
+- `official/funcs/c/createNearestJoinEngine.md` — **createNearestJoinEngine** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/c/createOrcaHaKeyedStreamTable.md` — **createOrcaHaKeyedStreamTable** — 首发版本：3.00.4
+- `official/funcs/c/createOrcaHaStreamTable.md` — **createOrcaHaStreamTable** — 首发版本：3.00.4
+- `official/funcs/c/createOrcaKeyedStreamTable.md` — **createOrcaKeyedStreamTable** — 首发版本：3.00.4
+- `official/funcs/c/createOrcaLatestKeyedStreamTable.md` — **createOrcaLatestKeyedStreamTable** — 首发版本：3.00.4
+- `official/funcs/c/createOrcaStreamTable.md` — **createOrcaStreamTable** — 首发版本：3.00.4
+- `official/funcs/c/createPartitionedTable.md` — **createPartitionedTable** — createPartitionedTable(dbHandle, table, tableName,
+- `official/funcs/c/createReactiveStateEngine.md` — **createReactiveStateEngine** — dolphindb
+- `official/funcs/c/createReactiveStatelessEngine.md` — **createReactiveStatelessEngine** — createReactiveStatelessEngine(name, metrics, outputTable, [snapshotDir],
+- `official/funcs/c/createRuleEngine.md` — **createRuleEngine** — createRuleEngine(name, ruleSets, dummyTable, outputColumns, outputTable,
+- `official/funcs/c/createSchema.md` — **createSchema** — createSchema(catalog, dbUrl, schema)
+- `official/funcs/c/createSessionWindowEngine.md` — **createSessionWindowEngine** — createSessionWindowEngine(name, sessionGap, metrics,
+- `official/funcs/c/createSparseReactiveStateEngine.md` — **createSparseReactiveStateEngine** — 首发版本：3.00.5
+- `official/funcs/c/createStreamDispatchEngine.md` — **createStreamDispatchEngine** — createStreamDispatchEngine(name, dummyTable, keyColumn,
+- `official/funcs/c/createStreamGraph.md` — **createStreamGraph** — 首发版本：3.00.3
+- `official/funcs/c/createTable.md` — **createTable** — 是 createDimensionTable 的别名。
+- `official/funcs/c/createTimeSeriesAggregator.md` — **createTimeSeriesAggregator** — 是 createTimeSeriesEngine 的别名。
+- `official/funcs/c/createTimeSeriesEngine.md` — **createTimeSeriesEngine** — createTimeSeriesEngine(name, windowSize, step, metrics,
+- `official/funcs/c/createUser.md` — **createUser** — createUser(userId, password, [groupIds], [isAdmin=false],
+- `official/funcs/c/createWindowJoinEngine.md` — **createWindowJoinEngine** — createWindowJoinEngine(name, leftTable, rightTable,
+- `official/funcs/c/createcryptoorderbookengine.md` — **createCryptoOrderBookEngine** — createCryptoOrderBookEngine(name, dummyTable, inputColMap,
+- `official/funcs/c/createdeviceengine.md` — **createDeviceEngine** — createDeviceEngine(name, metrics, dummyTable, outputTable, [keyColumn],
+- `official/funcs/c/createdimensiontable.md` — **createDimensionTable** — createDimensionTable(dbHandle, table, tableName, [compressMethods],
+- `official/funcs/c/creategplearnengine.md` — **createGPLearnEngine** — createGPLearnEngine(trainData, targetData,[groupCol=''],
+- `official/funcs/c/createnarrowreactivestateengine.md` — **createNarrowReactiveStateEngine** — createNarrowReactiveStateEngine(name, metrics, metricNames, dummyTable,
+- `official/funcs/c/createorderbooksnapshotengine.md` — **createOrderBookSnapshotEngine** — createOrderBookSnapshotEngine(name, exchange,
+- `official/funcs/c/createpricingengine.md` — **createPricingEngine** — 首发版本：3.00.5
+- `official/funcs/c/createsnapshotjoinengine.md` — **createSnapshotJoinEngine** — createSnapshotJoinEngine(name, leftTable, rightTable, outputTable, metrics,
+- `official/funcs/c/createsseorderreconstructionengine.md` — **createOrderReconstituteEngine** — 首发版本：3.00.4
+- `official/funcs/c/createstreambroadcastengine.md` — **createStreamBroadcastEngine** — createStreamBroadcastEngine(name, dummyTable, outputTables)
+- `official/funcs/c/createthresholdengine.md` — **createThresholdEngine** — 首发版本：3.00.3
+- `official/funcs/c/createtimebucketengine.md` — **createTimeBucketEngine** — createTimeBucketEngine(name,timeCutPoints,metrics,dummyTable,outputTable,timeCol…
+- `official/funcs/c/crossStat.md` — **crossStat** — crossStat(X, Y)
+- `official/funcs/c/cubichermitesplinefit.md` — **cubicHermiteSplineFit** — 首发版本：3.00.3
+- `official/funcs/c/cubicspline.md` — **cubicSpline** — cubicSpline(x, y, bc_type="not-a-knot")
+- `official/funcs/c/cubicsplinepredic.md` — **cubicSplinePredict** — cubicSplinePredict(model, x)
+- `official/funcs/c/cumPositiveStreak.md` — **cumPositiveStreak** — cumPositiveStreak(X)
+- `official/funcs/c/cumavg.md` — **cumavg** — cumavg(X)
+- `official/funcs/c/cumavgTopN.md` — **cumavgTopN** — cumavgTopN(X, S, top, [ascending=true],
+- `official/funcs/c/cumbeta.md` — **cumbeta** — cumbeta(Y, X)
+- `official/funcs/c/cumbetaTopN.md` — **cumbetaTopN** — cumbetaTopN(Y, X, S, top, [ascending=true],
+- `official/funcs/c/cumcorr.md` — **cumcorr** — cumcorr(X,Y)
+- `official/funcs/c/cumcorrTopN.md` — **cumcorrTopN** — cumcorrTopN(X, Y, S, top, [ascending=true],
+- `official/funcs/c/cumcount.md` — **cumcount** — cumcount(X)
+- `official/funcs/c/cumcovar.md` — **cumcovar** — cumcovar(X,Y)
+- `official/funcs/c/cumcovarTopN.md` — **cumcovarTopN** — cumcovarTopN(X, Y, S, top, [ascending=true],
+- `official/funcs/c/cumcovarp.md` — **cumcovarp** — 首发版本：3.00.5
+- `official/funcs/c/cumcovarpTopN.md` — **cumcovarpTopN** — 首发版本：3.00.5
+- `official/funcs/c/cumdenseRank.md` — **cumdenseRank** — cumdenseRank(X, [ascending=true],
+- `official/funcs/c/cumfirstNot.md` — **cumfirstNot** — cumfirstNot(X, [k])
+- `official/funcs/c/cumkurtosisTopN.md` — **cumkurtosisTopN** — cumkurtosisTopN(X, S, top, [biased=true],
+- `official/funcs/c/cumlastNot.md` — **cumlastNot** — cumlastNot(X, [k])
+- `official/funcs/c/cummax.md` — **cummax** — cummax(X)
+- `official/funcs/c/cummdd.md` — **cummdd** — cummdd(X, [ratio=true])
+- `official/funcs/c/cummed.md` — **cummed** — cummed(X)
+- `official/funcs/c/cummin.md` — **cummin** — cummin(X)
+- `official/funcs/c/cumnunique.md` — **cumnunique** — cumnunique(X, [ignoreNull=false])
+- `official/funcs/c/cumpercentile.md` — **cumpercentile** — cumpercentile(X, percent,
+- `official/funcs/c/cumprod.md` — **cumprod** — cumprod(X)
+- `official/funcs/c/cumrank.md` — **cumrank** — cumrank(X, [ascending=true], [ignoreNA=true],
+- `official/funcs/c/cumskewTopN.md` — **cumskewTopN** — cumskewTopN(X, S, top, [biased=true], [ascending=true],
+- `official/funcs/c/cumstd.md` — **cumstd** — cumstd(X)
+- `official/funcs/c/cumstdTopN.md` — **cumstdTopN** — cumstdTopN(X, S, top, [ascending=true],
+- `official/funcs/c/cumstdp.md` — **cumstdp** — cumstdp(X)
+- `official/funcs/c/cumstdpTopN.md` — **cumstdpTopN** — cumstdpTopN(X, S, top, [ascending=true],
+- `official/funcs/c/cumsum.md` — **cumsum** — cumsum(X)
+- `official/funcs/c/cumsum2.md` — **cumsum2** — cumsum2(X)
+- `official/funcs/c/cumsum3.md` — **cumsum3** — cumsum3(X)
+- `official/funcs/c/cumsum4.md` — **cumsum4** — cumsum4(X)
+- `official/funcs/c/cumsumTopN.md` — **cumsumTopN** — cumsumTopN(X, S, top, [ascending=true],
+- `official/funcs/c/cumvar.md` — **cumvar** — cumvar(X)
+- `official/funcs/c/cumvarTopN.md` — **cumvarTopN** — cumvarTopN(X, S, top, [ascending=true],
+- `official/funcs/c/cumvarp.md` — **cumvarp** — cumvarp(X)
+- `official/funcs/c/cumvarpTopN.md` — **cumvarpTopN** — cumvarpTopN(X, S, top, [ascending=true],
+- `official/funcs/c/cumwavg.md` — **cumwavg** — cumwavg(X, Y)
+- `official/funcs/c/cumwsum.md` — **cumwsum** — cumwsum(X, Y)
+- `official/funcs/c/cumwsumTopN.md` — **cumwsumTopN** — cumwsumTopN(X, Y, S, top, [ascending=true],
+- `official/funcs/c/curvePredict.md` — **curvePredict** — 首发版本：3.00.4
+- `official/funcs/c/cut.md` — **cut** — cut(X, size|cutPositions)
+- `official/funcs/c/cutPoints.md` — **cutPoints** — cutPoints(X, binNum, [freq])
+- `official/funcs/c/cvar.md` — **condValueAtRisk** — condValueAtRisk(returns, method,
+- `official/funcs/d/DStream_SparseReactiveStateEngine.md` — **DStream::sparseReactiveStateEngine** — 首发版本：3.00.5
+- `official/funcs/d/DStream_anomalyDetectionEngine.md` — **DStream::anomalyDetectionEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_asofJoinEngine.md` — **DStream::asofJoinEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_buffer.md` — **Dstream::buffer** — 首发版本：3.00.3
+- `official/funcs/d/DStream_changelogSink.md` — **DStream::changelogSink** — 首发版本：3.00.5
+- `official/funcs/d/DStream_crossSectionalEngine.md` — **DStream::crossSectionalEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_cryptoOrderBookEngine.md` — **DStream::cryptoOrderBookEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_dailyTimeSeriesEngine.md` — **DStream::dailyTimeSeriesEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_dualOwnershipReactiveStateEngine.md` — **DStream::dualOwnershipReactiveStateEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_equalJoinEngine.md` — **DStream::equalJoinEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_fork.md` — **DStream::fork** — 首发版本：3.00.3
+- `official/funcs/d/DStream_getOutputSchema.md` — **DStream::getOutputSchema** — 首发版本：3.00.3
+- `official/funcs/d/DStream_haBuffer.md` — **Dstream::haBuffer** — 首发版本：3.00.3
+- `official/funcs/d/DStream_haKeyedBuffer.md` — **Dstream::haKeyedBuffer** — 首发版本：3.00.3
+- `official/funcs/d/DStream_haKeyedSink.md` — **DStream::haKeyedSink** — 首发版本：3.00.3
+- `official/funcs/d/DStream_haSink.md` — **DStream::haSink** — 首发版本：3.00.3
+- `official/funcs/d/DStream_keyedBuffer.md` — **Dstream::keyedBuffer** — 首发版本：3.00.3
+- `official/funcs/d/DStream_keyedSink.md` — **DStream::keyedSink** — 首发版本：3.00.3
+- `official/funcs/d/DStream_latestKeyedBuffer.md` — **Dstream::latestKeyedBuffer** — 首发版本：3.00.3
+- `official/funcs/d/DStream_latestKeyedSink.md` — **DStream::latestKeyedSink** — 首发版本：3.00.3
+- `official/funcs/d/DStream_leftSemiJoinEngine.md` — **DStream::leftSemiJoinEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_lookupJoinEngine.md` — **DStream::lookupJoinEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_map.md` — **DStream::map** — 首发版本：3.00.3
+- `official/funcs/d/DStream_narrowReactiveStateEngine.md` — **DStream::narrowReactiveStateEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_nearestJoinEngine.md` — **DStream::nearestJoinEngine** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/d/DStream_orderBookSnapshotEngine.md` — **DStream::orderBookSnapshotEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_parallelize.md` — **DStream::parallelize** — 首发版本：3.00.3
+- `official/funcs/d/DStream_reactiveStateEngine.md` — **DStream::reactiveStateEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_reactiveStatelessEngine.md` — **DStream::reactiveStatelessEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_ruleEngine.md` — **DStream::ruleEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_sessionWindowEngine.md` — **DStream::sessionWindowEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_setEngineName.md` — **DStream::setEngineName** — 首发版本：3.00.3
+- `official/funcs/d/DStream_sink.md` — **DStream::sink** — 首发版本：3.00.3
+- `official/funcs/d/DStream_snapshotJoinEngine.md` — **DStream::snapshotJoinEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_sync.md` — **DStream::sync** — 首发版本：3.00.3
+- `official/funcs/d/DStream_timeBucketEngine.md` — **DStream::timeBucketEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_timeSeriesEngine.md` — **DStream::timeSeriesEngine** — 首发版本：3.00.3
+- `official/funcs/d/DStream_timerEngine.md` — **DStream::timerEngine** — DStream::timerEngine(interval, func, args...)
+- `official/funcs/d/DStream_udfEngine.md` — **DStream::udfEngine** — 首发版本：3.00.4
+- `official/funcs/d/DStream_windowJoinEngine.md` — **DStream::windowJoinEngine** — 首发版本：3.00.3
+- `official/funcs/d/dailyAlignedBar.md` — **dailyAlignedBar** — dailyAlignedBar(X, timeOffset, n, [timeEnd],
+- `official/funcs/d/database.md` — **database** — database(directory, [partitionType], [partitionScheme], [locations],
+- `official/funcs/d/date.md` — **date** — date(X)
+- `official/funcs/d/datehour.md` — **datehour** — datehour(X)
+- `official/funcs/d/datetime.md` — **datetime** — datetime(X)
+- `official/funcs/d/datetimeParse.md` — **datetimeParse** — 是 temporalParse 的别名。
+- `official/funcs/d/dayOfMonth.md` — **dayOfMonth** — dayOfMonth(X)
+- `official/funcs/d/dayOfWeek.md` — **dayOfWeek** — dayOfWeek(X)
+- `official/funcs/d/dayOfYear.md` — **dayOfYear** — dayOfYear(X)
+- `official/funcs/d/daysInMonth.md` — **daysInMonth** — daysInMonth(X)
+- `official/funcs/d/decimal128.md` — **decimal128** — decimal128(X, scale)
+- `official/funcs/d/decimal32.md` — **decimal32** — decimal32(X, scale)
+- `official/funcs/d/decimal64.md` — **decimal64** — decimal64(X, scale)
+- `official/funcs/d/decimalFormat.md` — **decimalFormat** — decimalFormat(X, format)
+- `official/funcs/d/decimalMultiply.md` — **decimalMultiply** — decimalMultiply(X, Y, scale)
+- `official/funcs/d/declareStreamingSQLTable.md` — **declareStreamingSQLTable** — 首发版本：3.00.4
+- `official/funcs/d/decodeShortGenomeSeq.md` — **decodeShortGenomeSeq** — decodeShortGenomeSeq(X)
+- `official/funcs/d/decompress.md` — **decompress** — decompress(X)
+- `official/funcs/d/deepCopy.md` — **deepCopy** — 首发版本：3.00.3
+- `official/funcs/d/defined.md` — **defined** — defined(names, [type=VAR])
+- `official/funcs/d/defs.md` — **defs** — defs([X])
+- `official/funcs/d/deg2rad.md` — **deg2rad** — deg2rad(X)
+- `official/funcs/d/deleteDataViewItems.md` — **deleteDataViewItems** — deleteDataViewItems(engine, keys)
+- `official/funcs/d/deleteGroup.md` — **deleteGroup** — deleteGroup(groupName)
+- `official/funcs/d/deleteGroupMember.md` — **deleteGroupMember** — deleteGroupMember(userIds, groupIds)
+- `official/funcs/d/deleteMarketHoliday.md` — **deleteMarketHoliday** — 首发版本：3.00.3
+- `official/funcs/d/deleteReplicas.md` — **deleteReplicas** — deleteReplicas(chunkId, nodeAlias)
+- `official/funcs/d/deleteRule.md` — **deleteRule** — deleteRule(engineName, key)
+- `official/funcs/d/deleteScheduledJob.md` — **deleteScheduledJob** — deleteScheduledJob(jobId)
+- `official/funcs/d/deleteSparseReactiveMetric.md` — **deleteSparseReactiveMetric** — deleteSparseReactiveMetric(name, outputMetricKey)
+- `official/funcs/d/deleteUser.md` — **deleteUser** — deleteUser(userId)
+- `official/funcs/d/deletechunkmetaonmasterbyid.md` — **deleteChunkMetaOnMasterById** — deleteChunkMetaOnMasterById(chunkPath, chunkId)
+- `official/funcs/d/deltas.md` — **deltas** — deltas(X,[n])
+- `official/funcs/d/dema.md` — **dema** — dema(X, window)
+- `official/funcs/d/demean.md` — **demean** — demean(X)
+- `official/funcs/d/denseRank.md` — **denseRank** — denseRank(X, [ascending=true],[ignoreNA=true], [percent=false])
+- `official/funcs/d/deny.md` — **deny** — deny(userId|groupId, accessType, [objs])
+- `official/funcs/d/derivative.md` — **derivative** — derivative(func, X, [dx =1.0], [n=1], [order=3])
+- `official/funcs/d/destroyMonitor.md` — **destroyMonitor** — destroyMonitor()
+- `official/funcs/d/det.md` — **det** — det(X)
+- `official/funcs/d/diag.md` — **diag** — diag(X)
+- `official/funcs/d/dict.md` — **dict** — dict(keyObj, valueObj, [ordered=false])
+- `official/funcs/d/dictUpdate_.md` — **dictUpdate!** — dictUpdate!(dictionary, function, keys, parameters,
+- `official/funcs/d/difference.md` — **difference** — difference(X)
+- `official/funcs/d/differentialevolution.md` — **differentialEvolution** — differentialEvolution(func, bounds, [X0], [maxIter=1000], [popSize=15],
+- `official/funcs/d/digitize.md` — **digitize** — digitize(x, bins, [right=false])
+- `official/funcs/d/disableActivePartition.md` — **disableActivePartition** — disableActivePartition(dbHandle)
+- `official/funcs/d/disableQueryMonitor.md` — **disableQueryMonitor** — disableQueryMonitor()
+- `official/funcs/d/disableTSDBAsyncSorting.md` — **disableTSDBAsyncSorting** — disableTSDBAsyncSorting()
+- `official/funcs/d/disableTablePersistence.md` — **disableTablePersistence** — disableTablePersistence(table)
+- `official/funcs/d/disabledynamicscriptoptimization.md` — **disableDynamicScriptOptimization** — disableDynamicScriptOptimization()
+- `official/funcs/d/disableresourcetracking.md` — **disableResourceTracking** — disableResourceTracking()
+- `official/funcs/d/distance.md` — **distance** — distance(X, Y)
+- `official/funcs/d/distinct.md` — **distinct** — distinct(X)
+- `official/funcs/d/div.md` — **div** — div(X, Y) 或 X/Y
+- `official/funcs/d/dividedDifference.md` — **dividedDifference** — dividedDifference(X, Y, resampleRule, [closed='left'], [origin='start_day'],
+- `official/funcs/d/dot.md` — **dot** — dot(X, Y) 或 XY
+- `official/funcs/d/double.md` — **double** — double(X)
+- `official/funcs/d/drop.md` — **drop** — drop(obj, count)
+- `official/funcs/d/dropAggregator.md` — **dropAggregator** — 是 dropStreamEngine 的别名。
+- `official/funcs/d/dropCatalog.md` — **dropCatalog** — dropCatalog(catalog)
+- `official/funcs/d/dropColumns_.md` — **dropColumns!** — dropColumns!(table, colNames)
+- `official/funcs/d/dropDataViewEngine.md` — **dropDataViewEngine** — 首发版本：3.00.4
+- `official/funcs/d/dropDatabase.md` — **dropDatabase** — dropDatabase(dbDir)
+- `official/funcs/d/dropDistributedInMemoryTable.md` — **dropDistributedInMemoryTable** — dropDistributedInMemoryTable(tableName)
+- `official/funcs/d/dropFunctionView.md` — **dropFunctionView** — dropFunctionView(name,
+- `official/funcs/d/dropHaMvccTable.md` — **dropHaMvccTable** — 首发版本：3.00.5
+- `official/funcs/d/dropIPCInMemoryTable.md` — **dropIPCInMemoryTable** — dropIPCInMemoryTable(tableName)
+- `official/funcs/d/dropMCPPrompt.md` — **dropMCPPrompt** — 首发版本：3.00.4
+- `official/funcs/d/dropMCPTool.md` — **dropMCPTool** — 首发版本：3.00.4
+- `official/funcs/d/dropOrcaStreamTable.md` — **dropOrcaStreamTable** — 首发版本：3.00.4
+- `official/funcs/d/dropPartition.md` — **dropPartition** — dropPartition(dbHandle, partitionPaths, [tableName],
+- `official/funcs/d/dropSchema.md` — **dropSchema** — dropSchema(catalog, schema)
+- `official/funcs/d/dropStreamEngine.md` — **dropStreamEngine** — dropStreamEngine(name)
+- `official/funcs/d/dropStreamGraph.md` — **dropStreamGraph** — 首发版本：3.00.3
+- `official/funcs/d/dropStreamTable.md` — **dropStreamTable** — dropStreamTable(tableName,[force=false])
+- `official/funcs/d/dropTable.md` — **dropTable** — dropTable(dbHandle, tableName)
+- `official/funcs/d/dropna.md` — **dropna** — dropna(X, [byRow=true], [thresh])
+- `official/funcs/d/dstream_shareddict.md` — **DStream::sharedDict** — DStream::sharedDict(name, keyObj, valueObj, [ordered=false])
+- `official/funcs/d/dstream_sharedkeyedtable.md` — **DStream::sharedKeyedTable** — DStream::sharedKeyedTable(name, keyColumns, X, [X1], [X2],
+- `official/funcs/d/dstream_sharedtable.md` — **DStream::sharedTable** — DStream::sharedTable(name, X, [X1], [X2], .....)
+- `official/funcs/d/dumpheapsample.md` — **dumpHeapSample** — dumpHeapSample(filename)
+- `official/funcs/d/duration.md` — **duration** — duration(X)
+- `official/funcs/d/dynamicGroupCumcount.md` — **dynamicGroupCumcount** — dynamicGroupCumcount(membership, prevMembership, groupCount)
+- `official/funcs/d/dynamicGroupCumsum.md` — **dynamicGroupCumsum** — dynamicGroupCumsum(cumValue, prevCumValue, membership, prevMembership,
+- `official/funcs/e/eig.md` — **eig** — eig(A)
+- `official/funcs/e/elasticNet.md` — **elasticNet** — elasticNet(ds, yColName, xColNames, [alpha=1.0], [l1Ratio=0.5],
+- `official/funcs/e/elasticNetBasic.md` — **elasticNetBasic** — elasticNetBasic(Y, X, [mode=0], [alpha=1.0], [l1Ratio=0.5],
+- `official/funcs/e/elasticNetCV.md` — **elasticNetCV** — elasticNetCV(ds, yColName, xColNames, [alpha=[0.01,0.1,1.0]], [l1Ratio=0.5],
+- `official/funcs/e/ema.md` — **ema** — ema(X, window, warmup=false)
+- `official/funcs/e/emitEvent.md` — **emitEvent** — emitEvent(event, [eventTimeField], [outputName])
+- `official/funcs/e/enableActivePartition.md` — **enableActivePartition** — enableActivePartition(db, activeDate,
+- `official/funcs/e/enableQueryMonitor.md` — **enableQueryMonitor** — enableQueryMonitor()
+- `official/funcs/e/enableTSDBAsyncSorting.md` — **enableTSDBAsyncSorting** — enableTSDBAsyncSorting()
+- `official/funcs/e/enableTablePersistence.md` — **enableTablePersistence** — enableTablePersistence(table, [asynWrite=true], [compress=true], [cacheSize],
+- `official/funcs/e/enableTableShareAndPersistence.md` — **enableTableShareAndPersistence** — enableTableShareAndPersistence(table, tableName, [asynWrite=true],
+- `official/funcs/e/enabledynamicscriptoptimization.md` — **enableDynamicScriptOptimization** — enableDynamicScriptOptimization()
+- `official/funcs/e/enableresourcetracking.md` — **enableResourceTracking** — enableResourceTracking()
+- `official/funcs/e/enabletablecachepurge.md` — **enableTableCachePurge** — enableTableCachePurge(table,
+- `official/funcs/e/enabletableshareandcachepurge.md` — **enableTableShareAndCachePurge** — enableTableShareAndCachePurge(table, tableName,
+- `official/funcs/e/enabletdekey.md` — **enableTDEKey** — 首发版本：3.00.3
+- `official/funcs/e/enabletransfercompressiontocomputenode.md` — **enableTransferCompressionToComputeNode** — 首发版本：3.00.5
+- `official/funcs/e/encodeShortGenomeSeq.md` — **encodeShortGenomeSeq** — encodeShortGenomeSeq(X)
+- `official/funcs/e/encryptmodule.md` — **encryptModule** — 首发版本：3.00.5，3.00.4.3
+- `official/funcs/e/endsWith.md` — **endsWith** — endsWith(X, str)
+- `official/funcs/e/enlist.md` — **enlist** — enlist(X)
+- `official/funcs/e/eq.md` — **eq** — eq(X, Y) 或 X==Y
+- `official/funcs/e/eqDividendCurveBuilder.md` — **eqDividendCurveBuilder** — 首发版本：3.00.5
+- `official/funcs/e/eqFloat.md` — **eqFloat** — eqFloat(X, Y, [precision=9])
+- `official/funcs/e/eqObj.md` — **eqObj** — eqObj(obj1, obj2, [precision])
+- `official/funcs/e/eqamericanoptionpricer.md` — **eqAmericanOptionPricer** — 首发版本：3.00.5
+- `official/funcs/e/eqeuropeanoptionpricer.md` — **eqEuropeanOptionPricer** — 首发版本：3.00.5
+- `official/funcs/e/eqpercent.md` — **eqPercent** — eqPercent(X, Y,[toleranceLevel=0.0001])
+- `official/funcs/e/eqproxyvolatilitysurfacebuilder.md` — **eqProxyVolatilitySurfaceBuilder** — 首发版本：3.00.5
+- `official/funcs/e/eqvolatilitysurfacebuilder.md` — **eqVolatilitySurfaceBuilder** — 首发版本：3.00.5
+- `official/funcs/e/erase_.md` — **erase!** — erase!(obj, key|filter)
+- `official/funcs/e/esd.md` — **esd** — esd(data, [hybrid], [maxAnomalies], [alpha])
+- `official/funcs/e/euclidean.md` — **euclidean** — euclidean(X, Y)
+- `official/funcs/e/eval.md` — **eval** — eval(expr)
+- `official/funcs/e/evalTimer.md` — **evalTimer** — evalTimer(funcs, [count=1])
+- `official/funcs/e/ewmCorr.md` — **ewmCorr** — ewmCorr(X, [com], [span], [halfLife], [alpha], [minPeriods=0],
+- `official/funcs/e/ewmCov.md` — **ewmCov** — ewmCov(X, [com], [span], [halfLife], [alpha], [minPeriods=0], [adjust=true],
+- `official/funcs/e/ewmMean.md` — **ewmMean** — ewmMean(X, [com], [span], [halfLife], [alpha], [minPeriods=0], [adjust=true],
+- `official/funcs/e/ewmStd.md` — **ewmStd** — ewmStd(X, [com], [span], [halfLife], [alpha], [minPeriods=0], [adjust=true],
+- `official/funcs/e/ewmVar.md` — **ewmVar** — ewmVar(X, [com], [span], [halfLife], [alpha], [minPeriods=0], [adjust=true],
+- `official/funcs/e/exists.md` — **exists** — exists(path)
+- `official/funcs/e/existsCatalog.md` — **existsCatalog** — existsCatalog(catalog)
+- `official/funcs/e/existsDatabase.md` — **existsDatabase** — existsDatabase(dbUrl)
+- `official/funcs/e/existsPartition.md` — **existsPartition** — existsPartition(partitionUrl, [tableName])
+- `official/funcs/e/existsStreamTable.md` — **existsStreamTable** — existsStreamTable(tableName)
+- `official/funcs/e/existsSubscriptionTopic.md` — **existsSubscriptionTopic** — existsSubscriptionTopic([server], tableName, [actionName])
+- `official/funcs/e/existsTable.md` — **existsTable** — existsTable(dbUrl, tableName)
+- `official/funcs/e/exp.md` — **exp** — exp(X)
+- `official/funcs/e/exp2.md` — **exp2** — exp2(X)
+- `official/funcs/e/expm1.md` — **expm1** — expm1(X)
+- `official/funcs/e/expr.md` — **expr** — expr(args...)
+- `official/funcs/e/extractInstrument.md` — **extractInstrument** — 首发版本：3.00.4
+- `official/funcs/e/extractMktData.md` — **extractMktData** — 首发版本：3.00.4
+- `official/funcs/e/extractTextSchema.md` — **extractTextSchema** — extractTextSchema(filename, [delimiter], [skipRows=0])
+- `official/funcs/e/eye.md` — **eye** — eye(n)
+- `official/funcs/f/fTest.md` — **fTest** — fTest(X, Y, [ratio=1.0], [confLevel=0.95])
+- `official/funcs/f/ffill.md` — **ffill** — ffill(obj, [limit])
+- `official/funcs/f/ffill_.md` — **ffill!** — ffill!(obj,[limit])
+- `official/funcs/f/fflush.md` — **fflush** — fflush(obj)
+- `official/funcs/f/file.md` — **file** — file(name, [mode="r"], [isLittleEndian])
+- `official/funcs/f/files.md` — **files** — files(directory, [pattern])
+- `official/funcs/f/fill_.md` — **fill!** — fill!(obj, index, value)
+- `official/funcs/f/find.md` — **find** — find(X, Y)
+- `official/funcs/f/first.md` — **first** — first(X)
+- `official/funcs/f/firstHit.md` — **firstHit** — firstHit(func, X, target)
+- `official/funcs/f/firstNot.md` — **firstNot** — firstNot(X, [k])
+- `official/funcs/f/fixedLengthArrayVector.md` — **fixedLengthArrayVector** — fixedLengthArrayVector(args…)
+- `official/funcs/f/flatten.md` — **flatten** — flatten(X)
+- `official/funcs/f/flip.md` — **flip** — 是 transpose 的别名。
+- `official/funcs/f/float.md` — **float** — float([X])
+- `official/funcs/f/floor.md` — **floor** — floor(X)
+- `official/funcs/f/flushOLAPCache.md` — **flushOLAPCache** — flushOLAPCache()
+- `official/funcs/f/flushTSDBCache.md` — **flushTSDBCache** — flushTSDBCache()
+- `official/funcs/f/flushcomputenodememcache.md` — **flushComputeNodeMemCache** — flushComputeNodeMemCache()
+- `official/funcs/f/flushpkeycache.md` — **flushPKEYCache** — flushPKEYCache()
+- `official/funcs/f/fmin.md` — **fmin** — fmin(func, X0, [xtol=0.0001],
+- `official/funcs/f/fminbfgs.md` — **fminBFGS** — fminBFGS(func, X0, [fprime], [gtol=1e-5], [norm],
+- `official/funcs/f/fminlbfgsb.md` — **fminLBFGSB** — fminLBFGSB(func, X0, [fprime], [bounds], [m=10],
+- `official/funcs/f/fminncg.md` — **fminNCG** — fminNCG(func, X0, fprime, fhess, [xtol=1e-5], [maxIter],
+- `official/funcs/f/fminslsqp.md` — **fminSLSQP** — fminSLSQP(func, X0, [fprime], [constraints], [bounds],
+- `official/funcs/f/forceTriggerOrderBookSnapshot.md` — **forceTriggerOrderBookSnapshot** — 首发版本：3.00.3.1
+- `official/funcs/f/form.md` — **form** — form(X)
+- `official/funcs/f/format.md` — **format** — format(X, format)
+- `official/funcs/f/fromJson.md` — **fromJson** — fromJson(X)
+- `official/funcs/f/fromStdJson.md` — **fromStdJson** — fromStdJson(X)
+- `official/funcs/f/fromUTF8.md` — **fromUTF8** — fromUTF8(str, encode)
+- `official/funcs/f/funcByName.md` — **funcByName** — funcByName(name)
+- `official/funcs/f/fxEuropeanOptionPricer.md` — **fxEuropeanOptionPricer** — 首发版本：3.00.4
+- `official/funcs/f/fxForwardPricer.md` — **fxForwardPricer** — 首发版本：3.00.4
+- `official/funcs/f/fxSwapPricer.md` — **fxSwapPricer** — 首发版本：3.00.4
+- `official/funcs/f/fxVolatilitySurfaceBuilder.md` — **fxVolatilitySurfaceBuilder** — 首发版本：3.00.4
+- `official/funcs/f/fy5253.md` — **fy5253** — fy5253(X, [weekday=0], [startingMonth=1], [nearest=true],
+- `official/funcs/f/fy5253Quarter.md` — **fy5253Quarter** — fy5253Quarter(X, [weekday=0], [startingMonth=1],
+- `official/funcs/funcs_by_topics.md` — **函数分类** — DolphinDB 的函数按照功能可以分为以下类别：
+- `official/funcs/funcs_intro.md` — **函数参考** — 对于一个参数的函数，我们使用 X 作为参数。对于两个参数的函数，我们使用 X 和 Y 分别作为第一个和第二个参数。如果没有说明，X 或 Y
+- `official/funcs/g/garch.md` — **garch** — garch(ds, endogColName, order, [maxIter=50])
+- `official/funcs/g/gaussianNB.md` — **gaussianNB** — gaussianNB(Y, X, [varSmoothing=1e-9])
+- `official/funcs/g/gaussiankde.md` — **gaussianKde** — gaussianKde(X,[weights],[bwMethod="scott"])
+- `official/funcs/g/gaussiankdepredict.md` — **gaussianKdePredict** — gaussianKdePredict(model,X)
+- `official/funcs/g/ge.md` — **ge** — ge(X, Y) 或 X>=Y
+- `official/funcs/g/gema.md` — **gema** — gema(X, window, alpha)
+- `official/funcs/g/genShortGenomeSeq.md` — **genShortGenomeSeq** — genShortGenomeSeq(X, window)
+- `official/funcs/g/generateMachineFingerprint.md` — **generateMachineFingerprint** — generateMachineFingerprint(outputPath)
+- `official/funcs/g/generateuserticket.md` — **generateUserTicket** — 首发版本：3.00.3
+- `official/funcs/g/genericStateIterate.md` — **genericStateIterate** — genericStateIterate(X, initial, window, func)
+- `official/funcs/g/genericTStateIterate.md` — **genericTStateIterate** — genericTStateIterate(T, X, initial, window, func, [leftClosed =
+- `official/funcs/g/genoutputcolumnsforobsnapshotengine.md` — **genOutputColumnsForOBSnapshotEngine** — genOutputColumnsForOBSnapshotEngine([basic=true], [time=true], [depth],
+- `official/funcs/g/geowithin.md` — **geoWithin** — geoWithin(X, polygonVertices,
+- `official/funcs/g/getActiveMaster.md` — **getActiveMaster** — getActiveMaster()
+- `official/funcs/g/getAggregator.md` — **getAggregator** — 是 getStreamEngine 的别名。
+- `official/funcs/g/getAggregatorStat.md` — **getAggregatorStat** — 是 getStreamEngineStat
+- `official/funcs/g/getAllCatalogs.md` — **getAllCatalogs** — getAllCatalogs()
+- `official/funcs/g/getAllClusters.md` — **getAllClusters** — 首发版本：3.00.3
+- `official/funcs/g/getAllDBGranularity.md` — **getAllDBGranularity** — getAllDBGranularity()
+- `official/funcs/g/getAllDBs.md` — **getAllDBs** — getAllDBs()
+- `official/funcs/g/getAuthenticatedUsers.md` — **getAuthenticatedUsers** — getAuthenticatedUsers()
+- `official/funcs/g/getBackupList.md` — **getBackupList** — getBackupList(backupDir, dbPath, tableName)
+- `official/funcs/g/getBackupMeta.md` — **getBackupMeta** — getBackupMeta(backupDir, dbPath, partition,
+- `official/funcs/g/getBackupStatus.md` — **getBackupStatus** — getBackupStatus([userName])
+- `official/funcs/g/getCEPEngineMonitor.md` — **getCEPEngineMonitor** — getCEPEngineMonitor(engine, subEngineName, [monitorName])
+- `official/funcs/g/getCEPEngineStat%20.md` — **getCEPEngineStat** — getCEPEngineStat(engine)
+- `official/funcs/g/getCEPEngineSubMonitor.md` — **getCEPEngineSubMonitor** — getCEPEngineSubMonitor(engine, subEngineName, monitorName)
+- `official/funcs/g/getCacheEngineMemSize.md` — **getCacheEngineMemSize** — getCacheEngineMemSize()
+- `official/funcs/g/getCacheEngineStat.md` — **getCacheEngineStat** — getCacheEngineStat()
+- `official/funcs/g/getCachedSymbolBaseMemSize.md` — **getCachedSymbolBaseMemSize** — getCachedSymbolBaseMemSize()
+- `official/funcs/g/getCatalogsByCluster.md` — **getCatalogsByCluster** — 首发版本：3.00.3
+- `official/funcs/g/getChunkPath.md` — **getChunkPath** — getChunkPath(ds)
+- `official/funcs/g/getChunksMeta.md` — **getChunksMeta** — getChunksMeta([chunkPath], [top = 1024])
+- `official/funcs/g/getClusterChunksStatus.md` — **getClusterChunksStatus** — getClusterChunksStatus()
+- `official/funcs/g/getClusterDFSDatabases.md` — **getClusterDFSDatabases** — getClusterDFSDatabases([includeSysDb=true])
+- `official/funcs/g/getClusterDFSTables.md` — **getClusterDFSTables** — getClusterDFSTables([includeSysTable=true])
+- `official/funcs/g/getClusterPerf.md` — **getClusterPerf** — getClusterPerf([includeMaster=false])
+- `official/funcs/g/getClusterStatus.md` — **getClusterStatus** — 首发版本：3.00.3
+- `official/funcs/g/getClusterVolumeUsage.md` — **getClusterVolumeUsage** — 首发版本：3.00.4
+- `official/funcs/g/getCompletedQueries.md` — **getCompletedQueries** — getCompletedQueries([top])
+- `official/funcs/g/getComputeNodeCacheDetails.md` — **getComputeNodeCacheDetails** — 首发版本：3.00.3
+- `official/funcs/g/getConfig.md` — **getConfig** — getConfig([key])
+- `official/funcs/g/getConfigure.md` — **getConfigure** — 是 getConfig 的别名。
+- `official/funcs/g/getConnections.md` — **getConnections** — getConnections()
+- `official/funcs/g/getConsoleJobs.md` — **getConsoleJobs** — getConsoleJobs()
+- `official/funcs/g/getControllerAlias.md` — **getControllerAlias** — getControllerAlias()
+- `official/funcs/g/getControllerElectionTick.md` — **getControllerElectionTick** — getControllerElectionTick()
+- `official/funcs/g/getCurrentCatalog.md` — **getCurrentCatalog** — getCurrentCatalog()
+- `official/funcs/g/getCurrentSessionAndUser.md` — **getCurrentSessionAndUser** — getCurrentSessionAndUser()
+- `official/funcs/g/getDBAccess.md` — **getDBAccess** — getDBAccess(dbUrl)
+- `official/funcs/g/getDFSDatabases.md` — **getDFSDatabases** — getDFSDatabases()
+- `official/funcs/g/getDFSTablesByDatabase.md` — **getDFSTablesByDatabase** — getDFSTablesByDatabase(directory)
+- `official/funcs/g/getDataViewEngine.md` — **getDataViewEngine** — getDataViewEngine([CEPEngine], dataViewEngineName)
+- `official/funcs/g/getDatabaseClusterReplicationStatus.md` — **getDatabaseClusterReplicationStatus** — getDatabaseClusterReplicationStatus()
+- `official/funcs/g/getDatabasesByCluster.md` — **getDatabasesByCluster** — 首发版本：3.00.3
+- `official/funcs/g/getDatanodeRestartInterval.md` — **getDatanodeRestartInterval** — getDatanodeRestartInterval()
+- `official/funcs/g/getDfsRebalanceConcurrency.md` — **getDfsRebalanceConcurrency** — getDfsRebalanceConcurrency()
+- `official/funcs/g/getDfsRecoveryConcurrency.md` — **getDfsRecoveryConcurrency** — getDfsRecoveryConcurrency()
+- `official/funcs/g/getDiskIOStat.md` — **getDiskIOStat** — getDiskIOStat()
+- `official/funcs/g/getEnv.md` — **getEnv** — getEnv(name, [default])
+- `official/funcs/g/getEventListener.md` — **getEventListener** — getEventListener([listenerName])
+- `official/funcs/g/getExecDir.md` — **getExecDir** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/g/getFunctionViews.md` — **getFunctionViews** — getFunctionViews()
+- `official/funcs/g/getGroupAccess.md` — **getGroupAccess** — getGroupAccess(groupIds)
+- `official/funcs/g/getGroupAccessByCluster.md` — **getGroupAccessByCluster** — 首发版本：3.00.3
+- `official/funcs/g/getGroupList.md` — **getGroupList** — getGroupList()
+- `official/funcs/g/getGroupListOfAllClusters.md` — **getGroupListOfAllClusters** — 首发版本：3.00.3
+- `official/funcs/g/getGroupsByUserId.md` — **getGroupsByUserId** — getGroupsByUserId(userId)
+- `official/funcs/g/getHaMvccLeader.md` — **getHaMvccLeader** — 首发版本：3.00.5
+- `official/funcs/g/getHaMvccRaftGroups.md` — **getHaMvccRaftGroups** — 首发版本：3.00.5
+- `official/funcs/g/getHaMvccTableInfo.md` — **getHaMvccTableInfo** — 首发版本：3.00.5
+- `official/funcs/g/getHomeDir.md` — **getHomeDir** — getHomeDir()
+- `official/funcs/g/getIPConnectionLimit.md` — **getIPConnectionLimit** — 首发版本：3.00.4
+- `official/funcs/g/getInstrumentCoupon.md` — **getInstrumentCoupon** — 首发版本：3.00.4.1
+- `official/funcs/g/getInstrumentDayCountConvention.md` — **getInstrumentDayCountConvention** — 首发版本：3.00.4.1
+- `official/funcs/g/getInstrumentFarStrike.md` — **getInstrumentFarStrike** — 首发版本：3.00.4.1
+- `official/funcs/g/getInstrumentField.md` — **getInstrumentField** — 首发版本：3.00.4.1
+- `official/funcs/g/getInstrumentKeys.md` — **getInstrumentKeys** — 首发版本：3.00.4.1
+- `official/funcs/g/getJobMessage.md` — **getJobMessage** — getJobMessage(jobId)
+- `official/funcs/g/getJobReturn.md` — **getJobReturn** — getJobReturn(jobId, [blocking=false])
+- `official/funcs/g/getJobStat.md` — **getJobStat** — getJobStat()
+- `official/funcs/g/getJobStatus.md` — **getJobStatus** — getJobStatus(jobId)
+- `official/funcs/g/getLeftStream.md` — **getLeftStream** — getLeftStream(joinEngine)
+- `official/funcs/g/getLevelFileIndexCacheStats.md` — **getLevelFileIndexCacheStatus** — getLevelFileIndexCacheStatus()
+- `official/funcs/g/getLicenseExpiration.md` — **getLicenseExpiration** — getLicenseExpiration()
+- `official/funcs/g/getLocalIOTDBStaticTable.md` — **getLocalIOTDBStaticTable** — 首发版本：3.00.3
+- `official/funcs/g/getMCPPrompt.md` — **getMCPPrompt** — 首发版本：3.00.4
+- `official/funcs/g/getMarketCalendar.md` — **getMarketCalendar** — getMarketCalendar(marketName, [startDate], [endDate])
+- `official/funcs/g/getMasterReplicationStatus.md` — **getMasterReplicationStatus** — getMasterReplicationStatus([limit=-1])
+- `official/funcs/g/getMemLimitOfQueryResult.md` — **getMemLimitOfQueryResult** — getMemLimitOfQueryResult()
+- `official/funcs/g/getMemLimitOfTaskGroupResult.md` — **getMemLimitOfTaskGroupResult** — getMemLimitOfTaskGroupResult()
+- `official/funcs/g/getMemoryStat.md` — **getMemoryStat** — getMemoryStat()
+- `official/funcs/g/getMktData.md` — **getMktData** — getMktData(dataSet, type, date, name)
+- `official/funcs/g/getNodeAlias.md` — **getNodeAlias** — getNodeAlias()
+- `official/funcs/g/getNodeHost.md` — **getNodeHost** — getNodeHost()
+- `official/funcs/g/getNodePort.md` — **getNodePort** — getNodePort()
+- `official/funcs/g/getNodeType.md` — **getNodeType** — getNodeType()
+- `official/funcs/g/getOLAPCacheEngineSize.md` — **getOLAPCacheEngineSize** — getOLAPCacheEngineSize()
+- `official/funcs/g/getOLAPCacheEngineStat.md` — **getOLAPCacheEngineStat** — getOLAPCacheEngineStat()
+- `official/funcs/g/getOLAPCachedSymbolBaseMemSize.md` — **getOLAPCachedSymbolBaseMemSize** — getOLAPCachedSymbolBaseMemSize()
+- `official/funcs/g/getOS.md` — **getOS** — getOS()
+- `official/funcs/g/getOSBit.md` — **getOSBit** — getOSBit()
+- `official/funcs/g/getOauthClientSecret.md` — **getOauthClientSecret** — 首发版本：3.00.5，3.00.4.1，3.00.3.2
+- `official/funcs/g/getOrcaCheckpointConfig.md` — **getOrcaCheckpointConfig** — 首发版本：3.00.3
+- `official/funcs/g/getOrcaCheckpointJobInfo.md` — **getOrcaCheckpointJobInfo** — 首发版本：3.00.3
+- `official/funcs/g/getOrcaCheckpointSubjobInfo.md` — **getOrcaCheckpointSubjobInfo** — 首发版本：3.00.3
+- `official/funcs/g/getOrcaDataLineage.md` — **getOrcaDataLineage** — 首发版本：3.00.4
+- `official/funcs/g/getOrcaStateMachineEventTaskStatus.md` — **getOrcaStateMachineEventTaskStatus** — 首发版本：3.00.3
+- `official/funcs/g/getOrcaStreamEngineMeta.md` — **getOrcaStreamEngineMeta** — 首发版本：3.00.3
+- `official/funcs/g/getOrcaStreamTableMeta.md` — **getOrcaStreamTableMeta** — 首发版本：3.00.3
+- `official/funcs/g/getOrcaStreamTaskSubscriptionMeta.md` — **getOrcaStreamTaskSubscriptionMeta** — 首发版本：3.00.3
+- `official/funcs/g/getPerf.md` — **getPerf** — getPerf()
+- `official/funcs/g/getPersistenceMeta.md` — **getPersistenceMeta** — getPersistenceMeta(table)
+- `official/funcs/g/getQueryStatus.md` — **getQueryStatus** — getQueryStatus()
+- `official/funcs/g/getRaftElectionTick.md` — **getRaftElectionTick** — getRaftElectionTick(groupId)
+- `official/funcs/g/getRaftLearnersStatus.md` — **getRaftLearnersStatus** — getRaftLearnersStatus(groupId)
+- `official/funcs/g/getRawScriptLog.md` — **getRawScriptLog** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/g/getRecentJobs.md` — **getRecentJobs** — getRecentJobs([n])
+- `official/funcs/g/getRecentSlaveReplicationInfo.md` — **getRecentSlaveReplicationInfo** — getRecentSlaveReplicationInfo()
+- `official/funcs/g/getRecoveryTaskStatus.md` — **getRecoveryTaskStatus** — getRecoveryTaskStatus()
+- `official/funcs/g/getRecoveryWorkerNum.md` — **getRecoveryWorkerNum** — getRecoveryWorkerNum()
+- `official/funcs/g/getRedoLogGCStat.md` — **getRedoLogGCStat** — getRedoLogGCStat()
+- `official/funcs/g/getRightStream.md` — **getRightStream** — getRightStream(joinEngine)
+- `official/funcs/g/getRunningQueries.md` — **getRunningQueries** — getRunningQueries()
+- `official/funcs/g/getScheduledJobs.md` — **getScheduledJobs** — getScheduledJobs([jobIdPattern])
+- `official/funcs/g/getSchemaByCatalog.md` — **getSchemaByCatalog** — getSchemaByCatalog(catalog)
+- `official/funcs/g/getSchemasByCluster.md` — **getSchemasByCluster** — 首发版本：3.00.3
+- `official/funcs/g/getSessionMemoryStat.md` — **getSessionMemoryStat** — getSessionMemoryStat()
+- `official/funcs/g/getSlaveReplicationStatus.md` — **getSlaveReplicationStatus** — getSlaveReplicationStatus([limit=-1])
+- `official/funcs/g/getSnapshotMsgId.md` — **getSnapshotMsgId** — getSnapshotMsgId(engine)
+- `official/funcs/g/getSparseReactiveMetrics.md` — **getSparseReactiveMetrics** — getSparseReactiveMetrics(name)
+- `official/funcs/g/getStreamEngine.md` — **getStreamEngine** — getStreamEngine(name)
+- `official/funcs/g/getStreamEngineStat.md` — **getStreamEngineStat** — getStreamEngineStat()
+- `official/funcs/g/getStreamTableChangelog.md` — **getStreamTableChangelog** — 首发版本：3.00.5
+- `official/funcs/g/getStreamTableFilterColumn.md` — **getStreamTableFilterColumn** — getStreamTableFilterColumn(streamTable)
+- `official/funcs/g/getStreamingLeader.md` — **getStreamingLeader** — getStreamingLeader(groupId)
+- `official/funcs/g/getStreamingRaftGroups.md` — **getStreamingRaftGroups** — getStreamingRaftGroups()
+- `official/funcs/g/getStreamingSQLStatus.md` — **getStreamingSQLStatus** — 首发版本：3.00.4
+- `official/funcs/g/getStreamingStat.md` — **getStreamingStat** — getStreamingStat([stat])
+- `official/funcs/g/getSubscriptionTopic.md` — **getSubscriptionTopic** — getSubscriptionTopic(tableName, [actionName])
+- `official/funcs/g/getSupportBundle.md` — **getSupportBundle** — getSupportBundle([dir])
+- `official/funcs/g/getSystemCpuUsage.md` — **getSystemCpuUsage** — getSystemCpuUsage()
+- `official/funcs/g/getSystemLoadAvg.md` — **getSystemLoadAvg** — getSystemLoadAvg()
+- `official/funcs/g/getTSDBCacheEngineSize.md` — **getTSDBCacheEngineSize** — getTSDBCacheEngineSize()
+- `official/funcs/g/getTSDBCachedSymbolBaseMemSize.md` — **getTSDBCachedSymbolBaseMemSize** — getTSDBCachedSymbolBaseMemSize()
+- `official/funcs/g/getTSDBCompactionTaskStatus.md` — **getTSDBCompactionTaskStatus** — getTSDBCompactionTaskStatus([count])
+- `official/funcs/g/getTSDBMetaData.md` — **getTSDBMetaData** — getTSDBMetaData()
+- `official/funcs/g/getTSDBSortKeyEntry.md` — **getTSDBSortKeyEntry** — getTSDBSortKeyEntry(chunkId, [tableName])
+- `official/funcs/g/getTableAccessByCluster.md` — **getTableAccessByCluster** — 首发版本：3.00.3
+- `official/funcs/g/getTableSchemaByCluster.md` — **getTableSchemaByCluster** — 首发版本：3.00.3
+- `official/funcs/g/getTables.md` — **getTables** — getTables(dbHandle)
+- `official/funcs/g/getTablesByCluster.md` — **getTablesByCluster** — 首发版本：3.00.3
+- `official/funcs/g/getTablesOfAllClusters.md` — **getTablesOfAllClusters** — 首发版本：3.00.3
+- `official/funcs/g/getTablet.md` — **getTablet** — getTablet(table, partition)
+- `official/funcs/g/getTabletsMeta.md` — **getTabletsMeta** — getTabletsMeta([chunkPath], [tableName], [diskUsage=false],
+- `official/funcs/g/getTopicProcessedOffset.md` — **getTopicProcessedOffset** — getTopicProcessedOffset(topic)
+- `official/funcs/g/getTransactionStatus.md` — **getTransactionStatus** — getTransactionStatus()
+- `official/funcs/g/getUdfEngineVariable.md` — **getUdfEngineVariable** — 首发版本：3.00.4
+- `official/funcs/g/getUnresolvedTxn.md` — **getUnresolvedTxn** — getUnresolvedTxn()
+- `official/funcs/g/getUserAccess.md` — **getUserAccess** — getUserAccess([userIds], [finalAccess=false])
+- `official/funcs/g/getUserAccessByCluster.md` — **getUserAccessByCluster** — 首发版本：3.00.3
+- `official/funcs/g/getUserHardwareUsage.md` — **getUserHardwareUsage** — getUserHardwareUsage([from=0], [to])
+- `official/funcs/g/getUserList.md` — **getUserList** — getUserList()
+- `official/funcs/g/getUserListOfAllClusters.md` — **getUserListOfAllClusters** — 首发版本：3.00.3
+- `official/funcs/g/getUserLockedStatus.md` — **getUserLockedStatus** — 首发版本：3.00.3
+- `official/funcs/g/getUserPasswordStatus.md` — **getUserPasswordStatus** — 首发版本：3.00.3
+- `official/funcs/g/getUserTableAccessRecords.md` — **getUserTableAccessRecords** — getUserTableAccessRecords([from=0], [to])
+- `official/funcs/g/getUsersByGroupId.md` — **getUsersByGroupId** — getUsersByGroupId(groupId)
+- `official/funcs/g/getWorkDir.md` — **getWorkDir** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/g/getaclauditlog.md` — **getAclAuditLog** — getAclAuditLog([userId],[startTime],[endTime],[opType])
+- `official/funcs/g/getauditlog.md` — **getAuditLog** — getAuditLog([userId], [startTime], [endTime], [opType])
+- `official/funcs/g/getauthenticateduserticket.md` — **getAuthenticatedUserTicket** — 首发版本：3.00.3
+- `official/funcs/g/getcacherulesforcomputegroup.md` — **getCacheRulesForComputeGroup** — 首发版本：3.00.5
+- `official/funcs/g/getclustertdekeys.md` — **getClusterTDEKeys** — 首发版本：3.00.3
+- `official/funcs/g/getcomputegroupchunksstatus.md` — **getComputeGroupChunksStatus** — getComputeGroupChunksStatus([computeGroup])
+- `official/funcs/g/getcomputenodecachestat.md` — **getComputeNodeCacheStat** — getComputeNodeCacheStat()
+- `official/funcs/g/getcomputenodecachewarmupjobstatus.md` — **getComputeNodeCacheWarmupJobStatus** — 首发版本：3.00.3
+- `official/funcs/g/getcomputenodecachingdelay.md` — **getComputeNodeCachingDelay** — getComputeNodeCachingDelay()
+- `official/funcs/g/getcurrenttdekeyversion.md` — **getCurrentTDEKeyVersion** — 首发版本：3.00.3
+- `official/funcs/g/getdfsdatabasebyowner.md` — **getDFSDatabasesByOwner** — getDFSDatabasesByOwner(user)
+- `official/funcs/g/getdynamicconfig.md` — **getDynamicConfig** — getDynamicConfig()
+- `official/funcs/g/getenablenullsafejoin.md` — **getEnableNullSafeJoin** — 首发版本：3.00.3
+- `official/funcs/g/getinstrumentcalendar.md` — **getInstrumentCalendar** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentcreditrating.md` — **getInstrumentCreditRating** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentcurrency.md` — **getInstrumentCurrency** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentcurrencypair.md` — **getInstrumentCurrencyPair** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentdelivery.md` — **getInstrumentDelivery** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentdirection.md` — **getInstrumentDirection** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentexpiry.md` — **getInstrumentExpiry** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentfardelivery.md` — **getInstrumentFarDelivery** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentfarexpiry.md` — **getInstrumentFarExpiry** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentfixeddaycountconvention.md` — **getInstrumentFixedDayCountConvention** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentfixedrate.md` — **getInstrumentFixedRate** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentfloatingdaycountconvention.md` — **getInstrumentFloatingDayCountConvention** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentfrequency.md` — **getInstrumentFrequency** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentiborindex.md` — **getInstrumentIborIndex** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentinstrumentid.md` — **getInstrumentInstrumentId** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentissueprice.md` — **getInstrumentIssuePrice** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentmaturity.md` — **getInstrumentMaturity** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentneardelivery.md` — **getInstrumentNearDelivery** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentnearexpiry.md` — **getInstrumentNearExpiry** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentnearstrike.md` — **getInstrumentNearStrike** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentnominal.md` — **getInstrumentNominal** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentnominalcouponrate.md` — **getInstrumentNominalCouponRate** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentnotionalamount.md` — **getInstrumentNotionalAmount** — 首发版本：3.00.4.3
+- `official/funcs/g/getinstrumentnotionalcurrency.md` — **getInstrumentNotionalCurrency** — 首发版本：3.00.4.3
+- `official/funcs/g/getinstrumentpayofftype.md` — **getInstrumentPayoffType** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentpayreceive.md` — **getInstrumentPayReceive** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentrate.md` — **getInstrumentRate** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentsettlement.md` — **getInstrumentSettlement** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentspread.md` — **getInstrumentSpread** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentstart.md` — **getInstrumentStart** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentstrike.md` — **getInstrumentStrike** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentsubtype.md` — **getInstrumentSubType** — 首发版本：3.00.4.1
+- `official/funcs/g/getinstrumentunderlying.md` — **getInstrumentUnderlying** — 首发版本：3.00.4.1
+- `official/funcs/g/getipblacklist.md` — **getIPBlackList** — 首发版本：3.00.3
+- `official/funcs/g/getipwhitelist.md` — **getIPWhiteList** — 首发版本：3.00.3
+- `official/funcs/g/getloadedmodules.md` — **getLoadedModules** — 首发版本：3.00.5，3.00.4.3
+- `official/funcs/g/getloadedplugins.md` — **getLoadedPlugins** — getLoadedPlugins()
+- `official/funcs/g/getmemlimitofalltempresults.md` — **getMemLimitOfAllTempResults** — getMemLimitOfAllTempResults()
+- `official/funcs/g/getpkeycompactiontaskstatus.md` — **getPKEYCompactionTaskStatus** — getPKEYCompactionTaskStatus([count])
+- `official/funcs/g/getpkeymetadata.md` — **getPKEYMetaData** — getPKEYMetaData()
+- `official/funcs/g/getprefetchcomputenodedata.md` — **getPrefetchComputeNodeData** — getPrefetchComputeNodeData()
+- `official/funcs/g/getreactivemetrics.md` — **getReactiveMetrics** — getReactiveMetrics(name)
+- `official/funcs/g/getrules.md` — **getRules** — getRules([engineName])
+- `official/funcs/g/getsessionexpiredtime.md` — **getSessionExpiredTime** — 首发版本：3.00.3
+- `official/funcs/g/getslavereplicationexecutionstatus.md` — **getSlaveReplicationExecutionStatus** — getSlaveReplicationExecutionStatus()
+- `official/funcs/g/getslavereplicationqueuestatus.md` — **getSlaveReplicationQueueStatus** — getSlaveReplicationQueueStatus()
+- `official/funcs/g/getstatelessmetrics.md` — **getStatelessMetrics** — getStatelessMetrics(name)
+- `official/funcs/g/getstreamenginelist.md` — **getStreamEngineList** — getStreamEngineList()
+- `official/funcs/g/getstreamingsqlsubscriptioninfo.md` — **getStreamingSQLSubscriptionInfo** — 首发版本：3.00.5
+- `official/funcs/g/getstreamtablecacheoffset.md` — **getStreamTableCacheOffset** — getStreamTableCacheOffset(streamTable)
+- `official/funcs/g/getstreamtables.md` — **getStreamTables** — getStreamTables([option=0])
+- `official/funcs/g/gettableaccess.md` — **getTableAccess** — getTableAccess(dbUrl, table)
+- `official/funcs/g/gettradingcalendartype.md` — **getTradingCalendarType** — getTradingCalendarType(marketName)
+- `official/funcs/g/gettsdbdatastat.md` — **getTSDBDataStat** — getTSDBDataStat([dbName=""],[tableName=""],[chunkId])
+- `official/funcs/g/gettsdbtableindexcachestatus.md` — **getTSDBTableIndexCacheStatus** — getTSDBTableIndexCacheStatus()
+- `official/funcs/g/glm.md` — **glm** — glm(ds, yColName, xColNames, [family], [link], [tolerance=1e-6],
+- `official/funcs/g/gmd5.md` — **gmd5** — 首发版本：3.00.3
+- `official/funcs/g/gmm.md` — **gmm** — gmm(X, k, [maxIter=300], [tolerance=1e-4], [randomSeed], [mean],
+- `official/funcs/g/gmtime.md` — **gmtime** — gmtime(X)
+- `official/funcs/g/gpfit.md` — **gpFit** — gpFit(engine, [programNum=1], [programCorr=false])
+- `official/funcs/g/gppredict.md` — **gpPredict** — gpPredict(engine, input, [programNum = 1], [groupCol],
+- `official/funcs/g/gram.md` — **gram** — gram(ds, [colNames], [subMean], [normalize])
+- `official/funcs/g/gramSchmidt.md` — **gramSchmidt** — gramSchmidt(X, [normalize = false])
+- `official/funcs/g/grant.md` — **grant** — grant(userId|groupId, accessType, [objs])
+- `official/funcs/g/groups.md` — **groups** — groups(X, [mode='dict'])
+- `official/funcs/g/gt.md` — **gt** — gt(X, Y) 或 X>Y
+- `official/funcs/getStreamGraph.md` — **getStreamGraph** — 首发版本：3.00.3
+- `official/funcs/getStreamGraphInfo.md` — **getStreamGraphInfo** — 首发版本：3.00.3
+- `official/funcs/getStreamGraphMeta.md` — **getStreamGraphMeta** — 首发版本：3.00.3
+- `official/funcs/h/haMvccTable.md` — **haMvccTable** — 首发版本：3.00.5
+- `official/funcs/h/haStreamTable.md` — **haStreamTable** — haStreamTable(raftGroup, table, tableName, cacheSize, [keyColumn],
+- `official/funcs/h/hasNull.md` — **hasNull** — hasNull(X)
+- `official/funcs/h/hashBucket.md` — **hashBucket** — hashBucket(X, buckets)
+- `official/funcs/h/head.md` — **head** — head(X, [n=1])
+- `official/funcs/h/hex.md` — **hex** — hex(X, [reverse=false])
+- `official/funcs/h/highDouble.md` — **highDouble** — highDouble(X)
+- `official/funcs/h/highlong.md` — **highLong** — highLong(X)
+- `official/funcs/h/histogram.md` — **histogram** — 首发版本：3.00.5，3.00.4.1，3.00.3.2
+- `official/funcs/h/histogram2d.md` — **histogram2d** — histogram2d(X, Y, [bins=10], [range], [density=false],
+- `official/funcs/h/hmac.md` — **hmac** — hmac(key, message, [digest='sha256'])
+- `official/funcs/h/hour.md` — **hour** — hour(X)
+- `official/funcs/h/hourOfDay.md` — **hourOfDay** — hourOfDay(X)
+- `official/funcs/ho_funcs/accumulate.md` — **accumulate** — accumulate(func, X, [init],
+- `official/funcs/ho_funcs/aggrTopN.md` — **aggrTopN** — aggrTopN(func, funcArgs, sortingCol, top, [ascending=true])
+- `official/funcs/ho_funcs/all.md` — **all** — all(func, args...)
+- `official/funcs/ho_funcs/any.md` — **any** — any(func, args...)
+- `official/funcs/ho_funcs/byColumn.md` — **byColumn** — byColumn(func, X, [Y])
+- `official/funcs/ho_funcs/byRow.md` — **byRow** — byRow(func, X, [Y])
+- `official/funcs/ho_funcs/call.md` — **call** — call(func, args...)
+- `official/funcs/ho_funcs/composition.md` — **复合函数** — 复合函数是由两个函数组合在一起的函数，相当于 f(g(x))。其中 x
+- `official/funcs/ho_funcs/contextby.md` — **contextby** — contextby(func, funcArgs, groupingCol, [sortingCol],
+- `official/funcs/ho_funcs/cross.md` — **cross** — cross(func, X, [Y])
+- `official/funcs/ho_funcs/each.md` — **each** — each(func, args...)
+- `official/funcs/ho_funcs/eachLeft.md` — **eachLeft** — eachLeft(func, X, Y, [assembleRule|consistent=false])
+- `official/funcs/ho_funcs/eachPost.md` — **eachPost** — eachPost(func, X, [post],
+- `official/funcs/ho_funcs/eachPre.md` — **eachPre** — eachPre(func, X, [pre], [assembleRule|consistent=false])
+- `official/funcs/ho_funcs/eachRight.md` — **eachRight** — eachRight(func, X, Y,
+- `official/funcs/ho_funcs/groupby.md` — **groupby** — groupby(func, funcArgs, groupingCol)
+- `official/funcs/ho_funcs/ho_funcs.md` — **高阶函数** — DolphinDB内置的高阶函数，可以扩展或增强函数或者运算符的功能。高阶函数以一个函数与数据对象作为输入内容，类似于一个函数和数据之间的管道。通常，输入数据首…
+- `official/funcs/ho_funcs/loop.md` — **loop** — loop(func, args...)
+- `official/funcs/ho_funcs/moving.md` — **moving** — moving(func, funcArgs, window, [minPeriods])
+- `official/funcs/ho_funcs/movingvalid.md` — **movingValid** — 首发版本：3.00.5
+- `official/funcs/ho_funcs/nothrowcall.md` — **nothrowCall** — 首发版本：3.00.5
+- `official/funcs/ho_funcs/nullCompare.md` — **nullCompare** — nullCompare(func, X, Y)
+- `official/funcs/ho_funcs/pcall.md` — **pcall** — pcall(func, args...)
+- `official/funcs/ho_funcs/pcross.md` — **pcross** — pcross(func, X, [Y])
+- `official/funcs/ho_funcs/peach.md` — **peach** — peach(func, args...)
+- `official/funcs/ho_funcs/pivot.md` — **pivot** — pivot(func, funcArgs, rowAlignCol, colAlignCol)
+- `official/funcs/ho_funcs/ploop.md` — **ploop** — ploop(func, args...)
+- `official/funcs/ho_funcs/reduce.md` — **reduce** — reduce(func, X, [init], [assembleRule|consistent=false])
+- `official/funcs/ho_funcs/rolling.md` — **rolling** — rolling(func, funcArgs, window, [step=1])
+- `official/funcs/ho_funcs/rowgroupby.md` — **rowGroupby** — rowGroupby(func, funcArgs, groupingCol, [mode='tuple'],
+- `official/funcs/ho_funcs/segmentby.md` — **segmentby** — segmentby(func, funcArgs, segment)
+- `official/funcs/ho_funcs/talib.md` — **talib** — talib(func, args...)
+- `official/funcs/ho_funcs/tmoving.md` — **tmoving** — tmoving(func, T, funcArgs, window, [excludedPeriod])
+- `official/funcs/ho_funcs/twindow.md` — **twindow** — twindow(func, funcArgs, T, range, [prevailing=false],
+- `official/funcs/ho_funcs/unifiedCall.md` — **unifiedCall** — unifiedCall(func, args)
+- `official/funcs/ho_funcs/window.md` — **window** — window(func, funcArgs, range)
+- `official/funcs/ho_funcs/withNullFill.md` — **withNullFill** — withNullFill(func, x, y, fillValue)
+- `official/funcs/i/ifNull.md` — **ifNull** — ifNull(X, Y)
+- `official/funcs/i/ifValid.md` — **ifValid** — ifValid(X,Y)
+- `official/funcs/i/ifirstHit.md` — **ifirstHit** — ifirstHit(func, X, target)
+- `official/funcs/i/ifirstNot.md` — **ifirstNot** — ifirstNot(X)
+- `official/funcs/i/iif.md` — **iif** — iif(cond, trueResult, falseResult)
+- `official/funcs/i/ilastNot.md` — **ilastNot** — ilastNot(X)
+- `official/funcs/i/ilike.md` — **ilike** — ilike(X, pattern)
+- `official/funcs/i/imax.md` — **imax** — imax(X)
+- `official/funcs/i/imaxlast.md` — **imaxLast** — imaxLast(X)
+- `official/funcs/i/imin.md` — **imin** — imin(X)
+- `official/funcs/i/iminlast.md` — **iminLast** — iminLast(X)
+- `official/funcs/i/imr.md` — **imr** — imr(ds, initValue, mapFunc, [reduceFunc], [finalFunc], terminateFunc,
+- `official/funcs/i/imtForceGCRedolog.md` — **imtForceGCRedolog** — imtForceGCRedolog(tid)
+- `official/funcs/i/imtUpdateChunkVersionOnDataNode.md` — **imtUpdateChunkVersionOnDataNode** — imtUpdateChunkVersionOnDataNode(chunkId, version)
+- `official/funcs/i/in.md` — **in** — in(X, Y)
+- `official/funcs/i/indexedSeries.md` — **indexedSeries** — indexedSeries(index, value)
+- `official/funcs/i/indexedTable.md` — **indexedTable** — indexedTable(keyColumns, X, [X1], [X2], .....)
+- `official/funcs/i/initcap.md` — **initcap** — initcap(X)
+- `official/funcs/i/initimoltpcheckpointencryption.md` — **initIMOLTPCheckpointEncryption** — 首发版本：3.00.3
+- `official/funcs/i/installPlugin.md` — **installPlugin** — installPlugin(pluginName, [pluginVersion],
+- `official/funcs/i/installmodule.md` — **installModule** — 首发版本：3.00.5，3.00.4.3
+- `official/funcs/i/instrumentPricer.md` — **instrumentPricer** — 首发版本：3.00.4
+- `official/funcs/i/int.md` — **int** — int(X)
+- `official/funcs/i/int128.md` — **int128** — int128(X)
+- `official/funcs/i/integral.md` — **integral** — integral(func, start, end, [start2], [end2])
+- `official/funcs/i/interpolate.md` — **interpolate** — interpolate(X, [method='linear'], [limit], [inplace=false],
+- `official/funcs/i/intersection.md` — **intersection** — intersection(X, Y) 或 X&Y
+- `official/funcs/i/invBeta.md` — **invBeta** — invBeta(alpha, beta, X)
+- `official/funcs/i/invBinomial.md` — **invBinomial** — invBinomial(trials, p, X)
+- `official/funcs/i/invChiSquare.md` — **invChiSquare** — invChiSquare(df, X)
+- `official/funcs/i/invExp.md` — **invExp** — invExp(mean, X)
+- `official/funcs/i/invF.md` — **invF** — invF(numeratorDF, denominatorDF, X)
+- `official/funcs/i/invGamma.md` — **invGamma** — invGamma(shape, scale, X)
+- `official/funcs/i/invLogistic.md` — **invLogistic** — invLogistic(mean, s, X)
+- `official/funcs/i/invNormal.md` — **invNormal** — invNormal(mean, stdev, X)
+- `official/funcs/i/invPoisson.md` — **invPoisson** — invPoisson(mean, X)
+- `official/funcs/i/invStudent.md` — **invStudent** — invStudent(df, X)
+- `official/funcs/i/invUniform.md` — **invUniform** — invUniform(lower, upper, X)
+- `official/funcs/i/invWeibull.md` — **invWeibull** — invWeibull(alpha, beta, X)
+- `official/funcs/i/inverse.md` — **inverse** — inverse(X)
+- `official/funcs/i/ipaddr.md` — **ipaddr** — ipaddr(X)
+- `official/funcs/i/irCrossCurrencyCurveBuilder.md` — **irCrossCurrencyCurveBuilder** — 首发版本：3.00.4
+- `official/funcs/i/irDepositPricer.md` — **irDepositPricer** — 首发版本：3.00.4
+- `official/funcs/i/irFixedFloatingSwapPricer.md` — **irFixedFloatingSwapPricer** — 首发版本：3.00.4
+- `official/funcs/i/irSingleCurrencyCurveBuilder.md` — **irSingleCurrencyCurveBuilder** — 首发版本：3.00.4
+- `official/funcs/i/isAlNum.md` — **isAlNum** — isAlNum(X)
+- `official/funcs/i/isAlpha.md` — **isAlpha** — isAlpha(X)
+- `official/funcs/i/isCheckpointingHaMvcc.md` — **isCheckpointingHaMvcc** — 首发版本：3.00.5
+- `official/funcs/i/isChunkNodeInit.md` — **isChunkNodeInit** — 是 isDataNodeInitialized
+- `official/funcs/i/isColumnarTuple.md` — **isColumnarTuple** — isColumnarTuple(X)
+- `official/funcs/i/isControllerInitialized.md` — **isControllerInitialized** — isControllerInitialized()
+- `official/funcs/i/isDataNodeInitialized.md` — **isDataNodeInitialized** — isDataNodeInitialized()
+- `official/funcs/i/isDigit.md` — **isDigit** — isDigit(X)
+- `official/funcs/i/isDuplicated.md` — **isDuplicated** — isDuplicated(X, [keep=FIRST])
+- `official/funcs/i/isIndexedMatrix.md` — **isIndexedMatrix** — isIndexedMatrix(X)
+- `official/funcs/i/isIndexedSeries.md` — **isIndexedSeries** — isIndexedSeries(X)
+- `official/funcs/i/isLeapYear.md` — **isLeapYear** — isLeapYear(X)
+- `official/funcs/i/isLoggedIn.md` — **isLoggedIn** — isLoggedIn(userId)
+- `official/funcs/i/isLower.md` — **isLower** — isLower(X)
+- `official/funcs/i/isMonotonic.md` — **isMonotonic** — 是 isMonotonicIncreasing 的别名。
+- `official/funcs/i/isMonotonicDecreasing.md` — **isMonotonicDecreasing** — isMonotonicDecreasing(X)
+- `official/funcs/i/isMonotonicIncreasing.md` — **isMonotonicIncreasing** — isMonotonicIncreasing(X)
+- `official/funcs/i/isMonthEnd.md` — **isMonthEnd** — isMonthEnd(X)
+- `official/funcs/i/isMonthStart.md` — **isMonthStart** — isMonthStart(X)
+- `official/funcs/i/isNanInf.md` — **isNanInf** — isNanInf(X, [includeNull=false])
+- `official/funcs/i/isNothing.md` — **isNothing** — isNothing(X)
+- `official/funcs/i/isNull.md` — **isNull** — isNull(X)
+- `official/funcs/i/isNumeric.md` — **isNumeric** — isNumeric(X)
+- `official/funcs/i/isOrderedDict.md` — **isOrderedDict** — isOrderedDict(X)
+- `official/funcs/i/isPeak.md` — **isPeak** — isPeak(X, [strict=true])
+- `official/funcs/i/isQuarterEnd.md` — **isQuarterEnd** — isQuarterEnd(X)
+- `official/funcs/i/isQuarterStart.md` — **isQuarterStart** — isQuarterStart(X)
+- `official/funcs/i/isSorted.md` — **isSorted** — isSorted(X, [ascending=true])
+- `official/funcs/i/isSpace.md` — **isSpace** — isSpace(X)
+- `official/funcs/i/isTitle.md` — **isTitle** — isTitle(X)
+- `official/funcs/i/isUpper.md` — **isUpper** — isUpper(X)
+- `official/funcs/i/isValid.md` — **isValid** — isValid(X)
+- `official/funcs/i/isValley.md` — **isValley** — isValley(X, [strict=true])
+- `official/funcs/i/isVoid.md` — **isVoid** — isVoid(X)
+- `official/funcs/i/isYearEnd.md` — **isYearEnd** — isYearEnd(X)
+- `official/funcs/i/isYearStart.md` — **isYearStart** — isYearStart(X)
+- `official/funcs/i/isclientauth.md` — **isClientAuth** — isClientAuth()
+- `official/funcs/i/isort.md` — **isort** — isort(X, [ascending=true])
+- `official/funcs/i/isortTop.md` — **isortTop** — isortTop(X, top, [ascending=true])
+- `official/funcs/i/isort_.md` — **isort!** — isort!(X, [ascending=true], indices)
+- `official/funcs/i/istransfercompressiontocomputenodeenabled.md` — **isTransferCompressionToComputeNodeEnabled** — isTransferCompressionToComputeNodeEnabled()
+- `official/funcs/i/iterate.md` — **iterate** — iterate(init, coeffs, input)
+- `official/funcs/j/join!.md` — **join!** — join!(X, Y)
+- `official/funcs/j/join.md` — **join** — join(X,Y) 或 X<-Y
+- `official/funcs/j/jsonextract.md` — **jsonExtract** — jsonExtract(json, location, type)
+- `official/funcs/k/kama.md` — **kama** — kama(X, window)
+- `official/funcs/k/kendall.md` — **kendall** — kendall(X, Y)
+- `official/funcs/k/kernelRidge.md` — **kernelRidge** — 首发版本：3.00.3
+- `official/funcs/k/keyedStreamTable.md` — **keyedStreamTable** — keyedStreamTable(keyColumn, X, [X1], [X2], .....)
+- `official/funcs/k/keyedTable.md` — **keyedTable** — keyedTable(keyColumns, X, [X1], [X2], .....)
+- `official/funcs/k/keys.md` — **keys** — keys(X)
+- `official/funcs/k/kmeans.md` — **kmeans** — kmeans(X, k, [maxIter=300], [randomSeed], [init='random'])
+- `official/funcs/k/knn.md` — **knn** — knn(Y, X, type, nNeighbor, [power=2])
+- `official/funcs/k/kroghinterpolate.md` — **kroghInterpolate** — kroghInterpolate(X, Y, newX, [der=0])
+- `official/funcs/k/kroghinterpolatefit.md` — **kroghInterpolateFit** — kroghInterpolateFit(X, Y, [der=0])
+- `official/funcs/k/ksTest.md` — **ksTest** — ksTest(X, Y)
+- `official/funcs/k/kurtosis.md` — **kurtosis** — kurtosis(X, [biased=true])
+- `official/funcs/l/lasso.md` — **lasso** — lasso(ds, yColName, xColNames, [alpha=1.0], [intercept=true],
+- `official/funcs/l/lassoBasic.md` — **lassoBasic** — lassoBasic(Y, X, [mode=0], [alpha=1.0], [intercept=true], [normalize=false],
+- `official/funcs/l/lassoCV.md` — **lassoCV** — lassoCV(ds, yColName, xColNames, [alphas=[0.01,0.1,1.0]], [intercept=true],
+- `official/funcs/l/last.md` — **last** — last(X)
+- `official/funcs/l/lastNot.md` — **lastNot** — lastNot(X, [k])
+- `official/funcs/l/lastWeekOfMonth.md` — **lastWeekOfMonth** — lastWeekOfMonth(X, [weekday=0], [offset],
+- `official/funcs/l/latestIndexedTable.md` — **latestIndexedTable** — latestIndexedTable(keyColumns, timeColumn, [X1], [X2], .....)
+- `official/funcs/l/latestKeyedTable.md` — **latestKeyedTable** — latestKeyedTable(keyColumns, timeColumn, [X1], [X2], .....)
+- `official/funcs/l/latestkeyedstreamtable.md` — **latestKeyedStreamTable** — latestKeyedStreamTable(keyColumns, timeColumn, [X1], [X2],
+- `official/funcs/l/le.md` — **le** — le(X, Y) 或 X<=Y
+- `official/funcs/l/left.md` — **left** — left(X,n)
+- `official/funcs/l/lfill.md` — **lfill** — lfill(obj)
+- `official/funcs/l/lfill_.md` — **lfill!** — lfill!(obj)
+- `official/funcs/l/license.md` — **license** — license([fileName], [pubKeyFile], [read=false])
+- `official/funcs/l/like.md` — **like** — like(X, pattern)
+- `official/funcs/l/linearTimeTrend.md` — **linearTimeTrend** — linearTimeTrend(X, window)
+- `official/funcs/l/linearinterpolatefit.md` — **linearInterpolateFit** — linearInterpolateFit(X, Y, [fillValue], [sorted=false])
+- `official/funcs/l/linprog.md` — **linprog** — linprog(f, [A], [b], [Aeq], [beq], [lb], [ub], [method='simplex'])
+- `official/funcs/l/listAllMarkets.md` — **listAllMarkets** — 首发版本：3.00.3
+- `official/funcs/l/listMCPPrompts.md` — **listMCPPrompts** — 首发版本：3.00.4
+- `official/funcs/l/listMCPTools.md` — **listMCPTools** — 首发版本：3.00.4
+- `official/funcs/l/listPluginsByCluster.md` — **listPluginsByCluster** — 首发版本：3.00.3
+- `official/funcs/l/listRemotePlugins.md` — **listRemotePlugins** — listRemotePlugins([pluginName],
+- `official/funcs/l/listStreamingSQLTables.md` — **listStreamingSQLTables** — 首发版本：3.00.4
+- `official/funcs/l/listTables.md` — **listTables** — listTables(dbUrl)
+- `official/funcs/l/listremotemodules.md` — **listRemoteModules** — 首发版本：3.00.5，3.00.4.3
+- `official/funcs/l/loadBackup.md` — **loadBackup** — loadBackup(backupDir, dbPath, partition, tableName)
+- `official/funcs/l/loadDistributedInMemoryTable.md` — **loadDistributedInMemoryTable** — loadDistributedInMemoryTable(tableName)
+- `official/funcs/l/loadHaMvccTable.md` — **loadHaMvccTable** — 首发版本：3.00.5
+- `official/funcs/l/loadIPCInMemoryTable.md` — **loadIPCInMemoryTable** — loadIPCInMemoryTable(tableName)
+- `official/funcs/l/loadModel.md` — **loadModel** — loadModel(file)
+- `official/funcs/l/loadModule.md` — **loadModule** — loadModule(name, [moduleDir])
+- `official/funcs/l/loadMvccTable.md` — **loadMvccTable** — loadMvccTable(path, tableName)
+- `official/funcs/l/loadNpy.md` — **loadNpy** — loadNpy(fileName)
+- `official/funcs/l/loadNpz.md` — **loadNpz** — loadNpz(fileName)
+- `official/funcs/l/loadPlugin.md` — **loadPlugin** — loadPlugin(filepath)
+- `official/funcs/l/loadRecord.md` — **loadRecord** — loadRecord(filename, schema, [skipBytes=0], [count])
+- `official/funcs/l/loadTable.md` — **loadTable** — loadTable(database, tableName, [partitions], [memoryMode=false])
+- `official/funcs/l/loadTableBySQL.md` — **loadTableBySQL** — loadTableBySQL(sql)
+- `official/funcs/l/loadText.md` — **loadText** — loadText(filename, [delimiter], [schema], [skipRows=0], [arrayDelimiter], [conta…
+- `official/funcs/l/loadTextEx.md` — **loadTextEx** — loadTextEx(dbHandle, tableName, partitionColumns,
+- `official/funcs/l/loadVocab.md` — **loadVocab** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/l/loadmodulefromscript.md` — **loadModuleFromScript** — loadModuleFromScript(moduleNamespace, moduleScript,
+- `official/funcs/l/loc.md` — **loc** — loc(obj, rowFilter, [colFilter], [view=false])
+- `official/funcs/l/localtime.md` — **localtime** — localtime(X)
+- `official/funcs/l/lockUser.md` — **lockUser** — 首发版本：3.00.3
+- `official/funcs/l/loess.md` — **loess** — loess(X, Y, resampleRule, [closed='left'], [origin='start_day'],
+- `official/funcs/l/log.md` — **log** — log(X, [Y])
+- `official/funcs/l/log10.md` — **log10** — log10(X)
+- `official/funcs/l/log1p.md` — **log1p** — log1p(X)
+- `official/funcs/l/log2.md` — **log2** — log2(X)
+- `official/funcs/l/login.md` — **login** — login(userId, password)
+- `official/funcs/l/logisticRegression.md` — **logisticRegression** — logisticRegression(ds, yColName, xColNames, [intercept=true], [initTheta],
+- `official/funcs/l/logout.md` — **logout** — logout([userId], [sessionOnly=true])
+- `official/funcs/l/long.md` — **long** — long(X)
+- `official/funcs/l/lowDouble.md` — **lowDouble** — lowDouble(X)
+- `official/funcs/l/lowRange.md` — **lowRange** — lowRange(X)
+- `official/funcs/l/lower.md` — **lower** — lower(X)
+- `official/funcs/l/lowerbound.md` — **lowerBound** — lowerBound(X,Y)
+- `official/funcs/l/lowlong.md` — **lowLong** — lowLong(X)
+- `official/funcs/l/lpad.md` — **lpad** — lpad(str, length, [pattern])
+- `official/funcs/l/lshift.md` — **lshift** — lshift(X, a) 或 X<<a
+- `official/funcs/l/lt.md` — **lt** — lt(X, Y) 或 X<Y
+- `official/funcs/l/ltrim.md` — **ltrim** — ltrim(X)
+- `official/funcs/l/lu.md` — **lu** — lu(obj, [permute=false])
+- `official/funcs/m/ma.md` — **ma** — ma(X, window, maType)
+- `official/funcs/m/mad.md` — **mad** — mad(X, [useMedian=false])
+- `official/funcs/m/mahalanobis.md` — **mahalanobis** — 首发版本：3.00.5，3.00.4.3
+- `official/funcs/m/makeCall.md` — **makeCall** — makeCall(F, args...)
+- `official/funcs/m/makeKey.md` — **makeKey** — makeKey(args...)
+- `official/funcs/m/makeSortedKey.md` — **makeSortedKey** — makeSortedKey(args...)
+- `official/funcs/m/makeUnifiedCall.md` — **makeUnifiedCall** — makeUnifiedCall(func, args)
+- `official/funcs/m/mannWhitneyUTest.md` — **mannWhitneyUTest** — mannWhitneyUTest(X, Y, [correct=true])
+- `official/funcs/m/manova.md` — **manova** — manova(X, group)
+- `official/funcs/m/mask.md` — **mask** — mask(X, Y)
+- `official/funcs/m/matchFuzzy.md` — **matchFuzzy** — 首发版本：3.00.4
+- `official/funcs/m/matchall.md` — **matchAll** — matchAll(textCol, terms, [scoreColName])
+- `official/funcs/m/matchany.md` — **matchAny** — matchAny(textCol, terms, [scoreColName])
+- `official/funcs/m/matchedrowcount.md` — **matchedRowCount** — 首发版本：3.00.5
+- `official/funcs/m/matchphrase.md` — **matchPhrase** — matchPhrase(textCol, phrase, [scoreColName])
+- `official/funcs/m/matchphraseinfix.md` — **matchPhraseInfix** — matchPhraseInfix(textCol, suffix, phrase, prefix,
+- `official/funcs/m/matchphraseprefix.md` — **matchPhrasePrefix** — matchPhrasePrefix(textCol, phrase, prefix, [scoreColName])
+- `official/funcs/m/matchphrasesuffix.md` — **matchPhraseSuffix** — matchPhraseSuffix(textCol, suffix, phrase, [scoreColName])
+- `official/funcs/m/matchprefix.md` — **matchPrefix** — matchPrefix(textCol, prefix, [scoreColName])
+- `official/funcs/m/matchprefixsuffix.md` — **matchPrefixSuffix** — matchPrefixSuffix(textCol, prefix, suffix, [scoreColName])
+- `official/funcs/m/matchspan.md` — **matchSpan** — matchSpan(textCol, span, slop, [scoreColName])
+- `official/funcs/m/matchsuffix.md` — **matchSuffix** — matchSuffix(textCol, suffix, [scoreColName])
+- `official/funcs/m/matchunorderedspan.md` — **matchUnorderedSpan** — matchUnorderedSpan(textCol, span, slop, [scoreColName])
+- `official/funcs/m/matrix.md` — **matrix** — matrix(X1, [X2], ...)
+- `official/funcs/m/matrixRank.md` — **matrixRank** — matrixRank(A, [tol])
+- `official/funcs/m/mavg.md` — **mavg** — mavg(X, window|weights, [minPeriods])
+- `official/funcs/m/mavgTopN.md` — **mavgTopN** — mavgTopN(X, S, window, top, [ascending=true],
+- `official/funcs/m/max.md` — **max** — max(X, [Y])
+- `official/funcs/m/maxPositiveStreak.md` — **maxPositiveStreak** — maxPositiveStreak(X)
+- `official/funcs/m/maxdrawdown.md` — **maxDrawdown** — maxDrawdown(X, [ratio=true])
+- `official/funcs/m/maxignorenull.md` — **maxIgnoreNull** — dolphindb
+- `official/funcs/m/mbeta.md` — **mbeta** — mbeta(Y, X, window, [minPeriods])
+- `official/funcs/m/mbetaTopN.md` — **mbetaTopN** — mbetaTopN(X, Y, S, window, top, [ascending=true],
+- `official/funcs/m/mcorr.md` — **mcorr** — mcorr(X, Y, window, [minPeriods])
+- `official/funcs/m/mcorrTopN.md` — **mcorrTopN** — mcorrTopN(X, Y, S, window, top, [ascending=true],
+- `official/funcs/m/mcount.md` — **mcount** — mcount(X, window, [minPeriods=1])
+- `official/funcs/m/mcovar.md` — **mcovar** — mcovar(X, Y, window, [minPeriods])
+- `official/funcs/m/mcovarTopN.md` — **mcovarTopN** — mcovarTopN(X, Y, S, window, top, [ascending=true],
+- `official/funcs/m/mcovarp.md` — **mcovarp** — 首发版本：3.00.5
+- `official/funcs/m/mcovarpTopN.md` — **mcovarpTopN** — 首发版本：3.00.5
+- `official/funcs/m/md5.md` — **md5** — md5(X)
+- `official/funcs/m/mdd.md` — **mdd** — 是 maxDrawdown 的别名。
+- `official/funcs/m/mean.md` — **mean** — mean(X)
+- `official/funcs/m/med.md` — **med** — med(X)
+- `official/funcs/m/mem.md` — **mem** — mem([freeUnusedBlocks=false])
+- `official/funcs/m/memSize.md` — **memSize** — memSize(obj)
+- `official/funcs/m/member.md` — **member** — member(X, Y) 或 X.Y
+- `official/funcs/m/membermodify.md` — **memberModify!** — memberModify!(obj, function, indices, parameters)
+- `official/funcs/m/merge.md` — **merge** — merge(left, right, [how='inner'])
+- `official/funcs/m/mfirst.md` — **mfirst** — mfirst(X, window, [minPeriods])
+- `official/funcs/m/mfirstnot.md` — **mfirstNot** — mfirstNot(X, window, [k=NULL], [minPeriods=1])
+- `official/funcs/m/microsecond.md` — **microsecond** — microsecond(X)
+- `official/funcs/m/mifirstNot.md` — **mifirstNot** — mifirstNot(X, window, [minPeriods])
+- `official/funcs/m/migrate.md` — **migrate** — migrate(backupDir, [backupDBPath], [backupTableName],
+- `official/funcs/m/milastNot.md` — **milastNot** — milastNot(X, window, [minPeriods])
+- `official/funcs/m/millisecond.md` — **millisecond** — millisecond(X)
+- `official/funcs/m/mimax.md` — **mimax** — mimax(X, window, [minPeriods])
+- `official/funcs/m/mimaxlast.md` — **mimaxLast** — mimaxLast(X, window, [minPeriods])
+- `official/funcs/m/mimin.md` — **mimin** — mimin(X, window, [minPeriods])
+- `official/funcs/m/miminlast.md` — **miminLast** — miminLast(X, window, [minPeriods])
+- `official/funcs/m/min.md` — **min** — min(X, [Y])
+- `official/funcs/m/minignorenull.md` — **minIgnoreNull** — minIgnoreNull(X, Y)
+- `official/funcs/m/minkowski.md` — **minkowski** — 首发版本：3.00.5，3.00.4.3
+- `official/funcs/m/minute.md` — **minute** — minute(X)
+- `official/funcs/m/minuteOfHour.md` — **minuteOfHour** — minuteOfHour(X)
+- `official/funcs/m/mkdir.md` — **mkdir** — mkdir(directory)
+- `official/funcs/m/mkurtosis.md` — **mkurtosis** — mkurtosis(X, window, [biased=true], [minPeriods])
+- `official/funcs/m/mkurtosisTopN.md` — **mkurtosisTopN** — mkurtosisTopN(X, S, window, top, [biased=true], [ascending=true],
+- `official/funcs/m/mlast.md` — **mlast** — mlast(X, window, [minPeriods])
+- `official/funcs/m/mlastnot.md` — **mlastNot** — mlastNot(X, window, [k=NULL], [minPeriods=1])
+- `official/funcs/m/mlowrange.md` — **mLowRange** — mLowRange(X, window, [minPeriods])
+- `official/funcs/m/mmad.md` — **mmad** — mmad(X, window, [useMedian=false], [minPeriods])
+- `official/funcs/m/mmax.md` — **mmax** — mmax(X, window, [minPeriods])
+- `official/funcs/m/mmaxPositiveStreak.md` — **mmaxPositiveStreak** — mmaxPositiveStreak(X, window)
+- `official/funcs/m/mmed.md` — **mmed** — mmed(X, window, [minPeriods])
+- `official/funcs/m/mmin.md` — **mmin** — mmin(X, window, [minPeriods])
+- `official/funcs/m/mmse.md` — **mmse** — mmse(Y, X, window, [minPeriods])
+- `official/funcs/m/mod.md` — **mod** — mod(X, Y)
+- `official/funcs/m/mode.md` — **mode** — mode(X)
+- `official/funcs/m/month.md` — **month** — month(X)
+- `official/funcs/m/monthBegin.md` — **monthBegin** — monthBegin(X, [offset], [n=1])
+- `official/funcs/m/monthEnd.md` — **monthEnd** — monthEnd(X, [offset], [n=1])
+- `official/funcs/m/monthOfYear.md` — **monthOfYear** — monthOfYear(X)
+- `official/funcs/m/move.md` — **move** — move(X, steps)
+- `official/funcs/m/moveChunksAcrossVolume.md` — **moveChunksAcrossVolume** — 注：
+- `official/funcs/m/moveHotDataToColdVolume.md` — **moveHotDataToColdVolume** — moveHotDataToColdVolume([checkRange=240])
+- `official/funcs/m/moveReplicas.md` — **moveReplicas** — moveReplicas(srcNode, destNode, chunkId,
+- `official/funcs/m/movingTopNIndex.md` — **movingTopNIndex** — movingTopNIndex(X, window, top, [ascending=true], [fixed=false],
+- `official/funcs/m/movingWindowData.md` — **movingWindowData** — movingWindowData(X, window, [fixed=false])
+- `official/funcs/m/movingWindowIndex.md` — **movingWindowIndex** — movingWindowIndex(X, window, [fixed=false])
+- `official/funcs/m/mpercentile.md` — **mpercentile** — mpercentile(X, percent, window, [interpolation='linear'],
+- `official/funcs/m/mpercentiletopn.md` — **mpercentileTopN** — mpercentileTopN(X, S, percent, window, top, [interpolation], [ascending],
+- `official/funcs/m/mprod.md` — **mprod** — mprod(X, window, [minPeriods])
+- `official/funcs/m/mr.md` — **mr** — mr(ds, mapFunc, [reduceFunc], [finalFunc], [parallel=true])
+- `official/funcs/m/mrank.md` — **mrank** — mrank(X, ascending, window, [ignoreNA=true], [tiesMethod='min'],
+- `official/funcs/m/mskew.md` — **mskew** — mskew(X, window, [biased=true], [minPeriods])
+- `official/funcs/m/mskewTopN.md` — **mskewTopN** — mskewTopN(X, S, window, top, [biased=true], [ascending=true],
+- `official/funcs/m/mslr.md` — **mslr** — mslr(Y, X, window, [minPeriods])
+- `official/funcs/m/mstd.md` — **mstd** — mstd(X, window, [minPeriods])
+- `official/funcs/m/mstdTopN.md` — **mstdTopN** — mstdTopN(X, S, window, top, [ascending=true],
+- `official/funcs/m/mstdp.md` — **mstdp** — mstdp(X, window, [minPeriods])
+- `official/funcs/m/mstdpTopN.md` — **mstdpTopN** — mstdpTopN(X, S, window, top, [ascending=true],
+- `official/funcs/m/msum.md` — **msum** — msum(X, window, [minPeriods])
+- `official/funcs/m/msum2.md` — **msum2** — msum2(X, window, [minPeriods])
+- `official/funcs/m/msumTopN.md` — **msumTopN** — msumTopN(X, S, window, top, [ascending=true],
+- `official/funcs/m/mtoprange.md` — **mTopRange** — mTopRange(X, window, [minPeriods])
+- `official/funcs/m/mul.md` — **mul** — mul(X, Y) 或 XY
+- `official/funcs/m/multiTableRepartitionDS.md` — **multiTableRepartitionDS** — multiTableRepartitionDS(query, [column], [partitionType], [partitionScheme],
+- `official/funcs/m/multinomialNB.md` — **multinomialNB** — multinomialNB(Y, X, [varSmoothing=1.0])
+- `official/funcs/m/mutualInfo.md` — **mutualInfo** — mutualInfo(X, Y)
+- `official/funcs/m/mvar.md` — **mvar** — mvar(X, window, [minPeriods])
+- `official/funcs/m/mvarTopN.md` — **mvarTopN** — mvarTopN(X, S, window, top, [ascending=true],
+- `official/funcs/m/mvarp.md` — **mvarp** — mvarp(X, window, [minPeriods])
+- `official/funcs/m/mvarpTopN.md` — **mvarpTopN** — mvarpTopN(X, S, window, top, [ascending=true],
+- `official/funcs/m/mvccTable.md` — **mvccTable** — mvccTable(X, [X1], [X2], .....)
+- `official/funcs/m/mwavg.md` — **mwavg** — mwavg(X, Y, window, [minPeriods])
+- `official/funcs/m/mwsum.md` — **mwsum** — mwsum(X, Y, window, [minPeriods])
+- `official/funcs/m/mwsumTopN.md` — **mwsumTopN** — mwsumTopN(X, Y, S, window, top, [ascending=true],
+- `official/funcs/n/nanInfFill.md` — **nanInfFill** — nanInfFill(X,Y)
+- `official/funcs/n/nanosecond.md` — **nanosecond** — nanosecond(X)
+- `official/funcs/n/nanotime.md` — **nanotime** — nanotime(X)
+- `official/funcs/n/nanotimestamp.md` — **nanotimestamp** — nanotimestamp(X)
+- `official/funcs/n/ne.md` — **ne** — ne(X, Y) 或 X!=Y
+- `official/funcs/n/neg.md` — **neg** — neg(X) 或 neg X
+- `official/funcs/n/neville.md` — **neville** — neville(X, Y, resampleRule, [closed='left'], [origin='start_day'],
+- `official/funcs/n/next.md` — **next** — next(X)
+- `official/funcs/n/nextState.md` — **nextState** — nextState(X)
+- `official/funcs/n/norm.md` — **norm** — norm(mean, std, count)
+- `official/funcs/n/normal.md` — **normal** — 是 norm 的别名。
+- `official/funcs/n/not.md` — **not** — not(X) 或 !(X)
+- `official/funcs/n/notbetween.md` — **notBetween** — 首发版本：3.00.3
+- `official/funcs/n/notin.md` — **notIn** — 首发版本：3.00.3
+- `official/funcs/n/notlike.md` — **notLike** — 首发版本：3.00.3
+- `official/funcs/n/now.md` — **now** — now([nanoSecond=false])
+- `official/funcs/n/ns.md` — **ns** — ns(maturity, yield, [method='nm'], [maxIter], [bounds], [initialGuess],
+- `official/funcs/n/nss.md` — **nss** — nss(maturity, yield, [method='nm'], [maxIter], [bounds], [initialGuess],
+- `official/funcs/n/nsspredict.md` — **nssPredict** — nssPredict(model, T)
+- `official/funcs/n/nullFill.md` — **nullFill** — nullFill(X, Y)
+- `official/funcs/n/nullFill_.md` — **nullFill!** — nullFill!(X, Y)
+- `official/funcs/n/nullIf.md` — **nullIf** — nullIf(X, Y)
+- `official/funcs/n/nunique.md` — **nunique** — nunique(X, [ignoreNull=false])
+- `official/funcs/o/oauthlogin.md` — **oauthLogin** — oauthLogin(oauthType, params)
+- `official/funcs/o/objByName.md` — **objByName** — objByName(name, [sharedVar])
+- `official/funcs/o/objectChecksum.md` — **objectChecksum** — objectChecksum(vector, [prev])
+- `official/funcs/o/objectComponent.md` — **objectComponent** — objectComponent(obj)
+- `official/funcs/o/objectType.md` — **objectType** — objectType(obj)
+- `official/funcs/o/objs.md` — **objs** — objs([shared=false])
+- `official/funcs/o/ols.md` — **ols** — ols(Y, X, [intercept=true], [mode=0], [method="default"], [usePinv=true])
+- `official/funcs/o/olsEx.md` — **olsEx** — olsEx(ds, Y, X, [intercept=true], [mode=0])
+- `official/funcs/o/oneHot.md` — **oneHot** — oneHot(obj, encodingColumns)
+- `official/funcs/o/optionVolPredict.md` — **optionVolPredict** — 首发版本：3.00.4
+- `official/funcs/o/or.md` — **or** — or(X, Y) 或 X||Y
+- `official/funcs/o/osqp.md` — **osqp** — osqp(q, [P], [A], [lb], [ub])
+- `official/funcs/p/pack.md` — **pack** — pack(format, args...)
+- `official/funcs/p/pair.md` — **pair** — pair(a, b) 或 a:b
+- `official/funcs/p/panel.md` — **panel** — panel(row, col, metrics, [rowLabel], [colLabel], [parallel=false])
+- `official/funcs/p/parseExpr.md` — **parseExpr** — parseExpr(X, [varDict], [modules], [overloadedOperators])
+- `official/funcs/p/parseInstrument.md` — **parseInstrument** — 首发版本：3.00.4
+- `official/funcs/p/parseInt.md` — **parseInt** — 是 parseInteger 的别名。
+- `official/funcs/p/parseInteger.md` — **parseInteger** — parseInteger(X, type, [radix=10])
+- `official/funcs/p/parseMktData.md` — **parseMktData** — 首发版本：3.00.4
+- `official/funcs/p/parsejsontable.md` — **parseJsonTable** — parseJsonTable(json, [schema],
+- `official/funcs/p/partial.md` — **partial** — partial(func, args...)
+- `official/funcs/p/pca.md` — **pca** — pca(ds, [colNames], [k], [normalize], [maxIter], [svdSolver],
+- `official/funcs/p/pchipInterpolateFit.md` — **pchipInterpolateFit** — 首发版本：3.00.3
+- `official/funcs/p/pdfChiSquare.md` — **pdfChiSquare** — pdfChiSquare(df, X)
+- `official/funcs/p/pdfF.md` — **pdfF** — pdfF(numeratorDF, denominatorDF, X)
+- `official/funcs/p/pdfNormal.md` — **pdfNormal** — pdfNormal(mean, stdev, X)
+- `official/funcs/p/peekAppend.md` — **peekAppend** — 首发版本：3.00.5
+- `official/funcs/p/percentChange.md` — **percentChange** — percentChange(X,[n])
+- `official/funcs/p/percentile.md` — **percentile** — percentile(X, percent, [interpolation='linear'])
+- `official/funcs/p/percentileRank.md` — **percentileRank** — percentileRank(X, score, [method='excel'])
+- `official/funcs/p/piecewiselinfit.md` — **piecewiseLinFit** — piecewiseLinFit(X, Y, numSegments, [XC], [YC], [bounds],
+- `official/funcs/p/pinverse.md` — **pinverse** — pinverse(X)
+- `official/funcs/p/pipeline.md` — **pipeline** — pipeline(initTasks, followers,
+- `official/funcs/p/ploadText.md` — **ploadText** — ploadText(filename, [delimiter], [schema], [skipRows=0], [arrayDelimiter], [cont…
+- `official/funcs/p/plot.md` — **plot** — plot(data, [labels], [title], [chartType=LINE],
+- `official/funcs/p/plotHist.md` — **plotHist** — plotHist(data, [binNum], [range], [title])
+- `official/funcs/p/pnodeRun.md` — **pnodeRun** — pnodeRun(function, [nodes],
+- `official/funcs/p/point.md` — **point** — point(X, Y)
+- `official/funcs/p/poly1d.md` — **poly1d** — 是 polyPredict的别名。
+- `official/funcs/p/polyPredict.md` — **polyPredict** — polyPredict(model, X)
+- `official/funcs/p/polyfit.md` — **polyFit** — polyFit(X, Y, n, mode)
+- `official/funcs/p/polynomial.md` — **polynomial** — polynomial(X, coeffs)
+- `official/funcs/p/pop_.md` — **pop!** — pop!(X)
+- `official/funcs/p/portfolioPricer.md` — **portfolioPricer** — 首发版本：3.00.4
+- `official/funcs/p/pow.md` — **pow** — pow(X, Y)
+- `official/funcs/p/power.md` — **power** — power(X, Y)
+- `official/funcs/p/predict.md` — **predict** — predict(model, X)
+- `official/funcs/p/prev.md` — **prev** — prev(X)
+- `official/funcs/p/prevState.md` — **prevState** — prevState(X)
+- `official/funcs/p/print.md` — **print** — print(X)
+- `official/funcs/p/prod.md` — **prod** — prod(X)
+- `official/funcs/p/publishMCPPrompts.md` — **publishMCPPrompts** — 首发版本：3.00.4
+- `official/funcs/p/publishMCPTools.md` — **publishMCPTools** — 首发版本：3.00.4
+- `official/funcs/p/purgeCacheEngine.md` — **purgeCacheEngine** — 是 flushOLAPCache 的别名。
+- `official/funcs/p/push_.md` — **push!** — 是 append! 的别名。
+- `official/funcs/p/pwlfpredict.md` — **pwlfPredict** — pwlfPredict(model, X, [beta], [breaks])
+- `official/funcs/purgeStreamGraphRecords.md` — **purgeStreamGraphRecords** — 首发版本：3.00.3
+- `official/funcs/q/qclp.md` — **qclp** — qclp(r, V, k, [A], [b], [Aeq], [beq], [x0], [c], [eps], [alpha])
+- `official/funcs/q/qcut.md` — **qcut** — 首发版本：3.00.5
+- `official/funcs/q/qr.md` — **qr** — qr(obj, [mode='full'], [pivoting=false])
+- `official/funcs/q/quadprog.md` — **quadprog** — quadprog(H, f, [A], [b], [Aeq], [beq])
+- `official/funcs/q/quantile.md` — **quantile** — quantile(X, q, [interpolation='linear'])
+- `official/funcs/q/quantileSeries.md` — **quantileSeries** — quantileSeries(X, q, [interpolation='linear'])
+- `official/funcs/q/quarterBegin.md` — **quarterBegin** — quarterBegin(X, [startingMonth=1], [offset],
+- `official/funcs/q/quarterEnd.md` — **quarterEnd** — quarterEnd(X, [endingMonth=12], [offset],
+- `official/funcs/q/quarterOfYear.md` — **quarterOfYear** — quarterOfYear(X)
+- `official/funcs/r/rad2deg.md` — **rad2deg** — rad2deg(X)
+- `official/funcs/r/rand.md` — **rand** — rand(X, [count])
+- `official/funcs/r/randBeta.md` — **randBeta** — randBeta(alpha, beta, count)
+- `official/funcs/r/randBinomial.md` — **randBinomial** — randBinomial(trials, p, count)
+- `official/funcs/r/randChiSquare.md` — **randChiSquare** — randChiSquare(df, count)
+- `official/funcs/r/randDiscrete.md` — **randDiscrete** — randDiscrete(v, p, count)
+- `official/funcs/r/randExp.md` — **randExp** — randExp(mean, count)
+- `official/funcs/r/randF.md` — **randF** — randF(numeratorDF, denominatorDF, count)
+- `official/funcs/r/randGamma.md` — **randGamma** — randGamma(shape, scale, count)
+- `official/funcs/r/randLogistic.md` — **randLogistic** — randLogistic(mean, s, count)
+- `official/funcs/r/randMultivariateNormal.md` — **randMultivariateNormal** — randMultivariateNormal(mean, covar, count, [sampleAsRow=true])
+- `official/funcs/r/randNormal.md` — **randNormal** — randNormal(mean, stdev, count)
+- `official/funcs/r/randPoisson.md` — **randPoisson** — randPoisson(mean, count)
+- `official/funcs/r/randStudent.md` — **randStudent** — randStudent(df, count)
+- `official/funcs/r/randUniform.md` — **randUniform** — randUniform(lower, upper, count)
+- `official/funcs/r/randWeibull.md` — **randWeibull** — randWeibull(alpha, beta, count)
+- `official/funcs/r/randomForestClassifier.md` — **randomForestClassifier** — randomForestClassifier(ds, yColName, xColNames,
+- `official/funcs/r/randomForestRegressor.md` — **randomForestRegressor** — randomForestRegressor(ds, yColName, xColNames,
+- `official/funcs/r/rank.md` — **rank** — rank(X, [ascending=true],
+- `official/funcs/r/ratio.md` — **ratio** — ratio(X, Y)
+- `official/funcs/r/ratios.md` — **ratios** — ratios(X)
+- `official/funcs/r/rdp.md` — **rdp** — rdp(pointList, epsilon)
+- `official/funcs/r/readBytes.md` — **readBytes** — readBytes(fileHandle, sizeInByte)
+- `official/funcs/r/readLine.md` — **readLine** — readLine(handle)
+- `official/funcs/r/readLines.md` — **readLines** — readLines(handle, [length=1024])
+- `official/funcs/r/readLines_.md` — **readLines!** — readLines!(handle, holder, [offset=0], [length=1])
+- `official/funcs/r/readObject.md` — **readObject** — readObject(handle)
+- `official/funcs/r/readRecord_.md` — **readRecord!** — readRecord!(handle, holder, [offset=0], [length])
+- `official/funcs/r/read_.md` — **read!** — read!(handle, holder, [offset=0], [length=1])
+- `official/funcs/r/rebalanceChunksAmongDataNodes.md` — **rebalanceChunksAmongDataNodes** — rebalanceChunksAmongDataNodes([exec = false], [updatedBeforeDays =
+- `official/funcs/r/rebalanceChunksWithinDataNode.md` — **rebalanceChunksWithinDataNode** — rebalanceChunksWithinDataNode(nodeAlias, [exec=false], [updatedBeforeDays =
+- `official/funcs/r/reciprocal.md` — **reciprocal** — reciprocal(X)
+- `official/funcs/r/recursiveSplitText.md` — **recursiveSplitText** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/r/refCount.md` — **refCount** — refCount(varname)
+- `official/funcs/r/regexCount.md` — **regexCount** — regexCount(str, pattern, [offset=0])
+- `official/funcs/r/regexFind.md` — **regexFind** — regexFind(str, pattern, [offset])
+- `official/funcs/r/regexReplace.md` — **regexReplace** — regexReplace(str, pattern, replacement,
+- `official/funcs/r/regexfindstr.md` — **regexFindStr** — regexFindStr(str, pattern, [onlyFirst=true],
+- `official/funcs/r/registerStreamingSQL.md` — **registerStreamingSQL** — 首发版本：3.00.4
+- `official/funcs/r/regroup.md` — **regroup** — regroup(X, label, func, [byRow=true])
+- `official/funcs/r/remoteRun.md` — **remoteRun** — remoteRun(conn, script, args)
+- `official/funcs/r/remoteRunWithCompression.md` — **remoteRunWithCompression** — remoteRunWithCompression(conn, script, args)
+- `official/funcs/r/remoteruncompatible.md` — **remoteRunCompatible** — remoteRunCompatible(conn, script, args)
+- `official/funcs/r/remove.md` — **remove!** — 首发版本：3.00.5
+- `official/funcs/r/removeHead_.md` — **removeHead!** — removeHead!(obj, n)
+- `official/funcs/r/removeTail_.md` — **removeTail!** — removeTail!(obj, n)
+- `official/funcs/r/removeTopicOffset.md` — **removeTopicOffset** — removeTopicOffset(topic)
+- `official/funcs/r/removecacherulesforcomputegroup.md` — **removeCacheRulesForComputeGroup** — 首发版本：3.00.5
+- `official/funcs/r/removeipblacklist.md` — **removeIPBlackList** — 首发版本：3.00.3
+- `official/funcs/r/removeipwhitelist.md` — **removeIPWhiteList** — 首发版本：3.00.3
+- `official/funcs/r/removenode.md` — **removeNode** — removeNode(alias, [force=false])
+- `official/funcs/r/renameCatalog.md` — **renameCatalog** — renameCatalog(oldCatalog, newCatalog)
+- `official/funcs/r/renameCatalogName.md` — **renameCatalogName** — 首发版本：3.00.4
+- `official/funcs/r/renameSchema.md` — **renameSchema** — renameSchema(catalog, oldSchema, newSchema)
+- `official/funcs/r/renameTable.md` — **renameTable** — renameTable(dbHandle, tableName, newTableName)
+- `official/funcs/r/rename_.md` — **rename!** — rename!(X, Y, [Z])
+- `official/funcs/r/reorderColumns_.md` — **reorderColumns!** — reorderColumns!(table, reorderedColNames)
+- `official/funcs/r/repartitionDS.md` — **repartitionDS** — repartitionDS(query, [column], [partitionType], [partitionScheme],
+- `official/funcs/r/repeat.md` — **repeat** — repeat(X, n)
+- `official/funcs/r/replace.md` — **replace** — replace(X, oldValue, newValue)
+- `official/funcs/r/replaceColumn_.md` — **replaceColumn!** — replaceColumn!(table, colName, newCol)
+- `official/funcs/r/replace_.md` — **replace!** — 是 replace 的别名。
+- `official/funcs/r/replay.md` — **replay** — replay(inputTables, outputTables, [dateColumn], [timeColumn], [replayRate],
+- `official/funcs/r/replayDS.md` — **replayDS** — replayDS(sqlObj, [dateColumn], [timeColumn],
+- `official/funcs/r/repmat.md` — **repmat** — repmat(X, rowRep, colRep)
+- `official/funcs/r/resample.md` — **resample** — resample(X, rule, func, [closed], [label],
+- `official/funcs/r/resetDBDirMeta.md` — **resetDBDirMeta** — resetDBDirMeta(dbDir)
+- `official/funcs/r/resetDfsRebalanceConcurrency.md` — **resetDfsRebalanceConcurrency** — resetDfsRebalanceConcurrency(newConcurrecyNum)
+- `official/funcs/r/resetDfsRecoveryConcurrency.md` — **resetDfsRecoveryConcurrency** — resetDfsRecoveryConcurrency(newConcurrecyNum)
+- `official/funcs/r/resetPwd.md` — **resetPwd** — resetPwd(userId, newPwd)
+- `official/funcs/r/resetRecoveryWorkerNum.md` — **resetRecoveryWorkerNum** — resetRecoveryWorkerNum(newWorkerNum)
+- `official/funcs/r/reshape.md` — **reshape** — reshape(obj, [dim])
+- `official/funcs/r/residual.md` — **residual** — residual(Y,X,params,[intercept=true])
+- `official/funcs/r/restore.md` — **restore** — restore(backupDir, dbPath, tableName, partition, [force=false],
+- `official/funcs/r/restoreDB.md` — **restoreDB** — restoreDB(backupDir, dbPath, [newDBPath], [keyPath])
+- `official/funcs/r/restoreDislocatedTablet.md` — **restoreDislocatedTablet** — restoreDislocatedTablet()
+- `official/funcs/r/restoreTable.md` — **restoreTable** — restoreTable(backupDir, dbPath, tableName, [newDBPath], [newTableName],
+- `official/funcs/r/restoresettings.md` — **restoreSettings** — restoreSettings(fileName, [overwrite=false])
+- `official/funcs/r/resubmitStreamGraph.md` — **resubmitStreamGraph** — 首发版本：3.00.3
+- `official/funcs/r/resumeRecovery.md` — **resumeRecovery** — resumeRecovery()
+- `official/funcs/r/resumeTimerEngine.md` — **resumeTimerEngine** — resumeTimerEngine(engine)
+- `official/funcs/r/reverse.md` — **reverse** — reverse(X)
+- `official/funcs/r/revoke.md` — **revoke** — revoke(userId|groupId, accessType, [objs])
+- `official/funcs/r/revokeStreamingSQL.md` — **revokeStreamingSQL** — 首发版本：3.00.4
+- `official/funcs/r/revokeStreamingSQLTable.md` — **revokeStreamingSQLTable** — 首发版本：3.00.4
+- `official/funcs/r/ridge.md` — **ridge** — ridge(ds, yColName, xColNames, [alpha=1.0], [intercept=true],
+- `official/funcs/r/ridgeBasic.md` — **ridgeBasic** — ridgeBasic(Y, X, [mode=0], [alpha=1.0], [intercept=true], [normalize=false],
+- `official/funcs/r/ridgeCV.md` — **ridgeCV** — ridgeCV(ds, yColName, xColNames, [alphas=[0.01,0.1,1.0]], [intercept=true],
+- `official/funcs/r/right.md` — **right** — right(X, n)
+- `official/funcs/r/rm.md` — **rm** — rm(filename)
+- `official/funcs/r/rmdir.md` — **rmdir** — rmdir(directory,
+- `official/funcs/r/rms.md` — **rms** — 首发版本：3.00.3
+- `official/funcs/r/rollingPanel.md` — **rollingPanel** — rollingPanel(X, window, [groupingCol])
+- `official/funcs/r/rotatetdekey.md` — **rotateTDEKey** — 首发版本：3.00.3
+- `official/funcs/r/round.md` — **round** — round(X, [precision])
+- `official/funcs/r/routeEvent.md` — **routeEvent** — routeEvent(event)
+- `official/funcs/r/row.md` — **row** — row(obj,index)
+- `official/funcs/r/rowAlign.md` — **rowAlign** — rowAlign(left, right,
+- `official/funcs/r/rowAnd.md` — **rowAnd** — rowAnd(args...)
+- `official/funcs/r/rowAt.md` — **rowAt** — rowAt(X, [Y])
+- `official/funcs/r/rowAvg.md` — **rowAvg** — rowAvg(args...)
+- `official/funcs/r/rowBeta.md` — **rowBeta** — rowBeta(Y, X)
+- `official/funcs/r/rowCorr.md` — **rowCorr** — rowCorr(X, Y)
+- `official/funcs/r/rowCount.md` — **rowCount** — rowCount(args...)
+- `official/funcs/r/rowCovar.md` — **rowCovar** — rowCovar(X, Y)
+- `official/funcs/r/rowCovarp.md` — **rowCovarp** — 首发版本：3.00.5
+- `official/funcs/r/rowCummax.md` — **rowCummax** — rowCummax(X)
+- `official/funcs/r/rowCummin.md` — **rowCummin** — rowCummin(X)
+- `official/funcs/r/rowCumprod.md` — **rowCumprod** — rowCumprod(X)
+- `official/funcs/r/rowCumsum.md` — **rowCumsum** — rowCumsum(X)
+- `official/funcs/r/rowCumwsum.md` — **rowCumwsum** — rowCumwsum(X, Y)
+- `official/funcs/r/rowDenseRank.md` — **rowDenseRank** — rowDenseRank(X, [ascending=true], [ignoreNA=true], [percent=false])
+- `official/funcs/r/rowDot.md` — **rowDot** — rowDot(X, Y)
+- `official/funcs/r/rowEuclidean.md` — **rowEuclidean** — rowEuclidean(X, Y)
+- `official/funcs/r/rowImax.md` — **rowImax** — rowImax(args...)
+- `official/funcs/r/rowImin.md` — **rowImin** — rowImin(args...)
+- `official/funcs/r/rowKurtosis.md` — **rowKurtosis** — rowKurtosis(X, [biased=true])
+- `official/funcs/r/rowMax.md` — **rowMax** — rowMax(args...)
+- `official/funcs/r/rowMin.md` — **rowMin** — rowMin(args...)
+- `official/funcs/r/rowMove.md` — **rowMove** — rowMove(X, steps)
+- `official/funcs/r/rowNames.md` — **rowNames** — rowNames(X)
+- `official/funcs/r/rowNext.md` — **rowNext** — rowNext(X)
+- `official/funcs/r/rowNo.md` — **rowNo** — rowNo(X)
+- `official/funcs/r/rowOr.md` — **rowOr** — rowOr(args...)
+- `official/funcs/r/rowPrev.md` — **rowPrev** — rowPrev(X)
+- `official/funcs/r/rowProd.md` — **rowProd** — rowProd(args...)
+- `official/funcs/r/rowRank.md` — **rowRank** — rowRank(X, [ascending=true], [groupNum], [ignoreNA=true],
+- `official/funcs/r/rowSize.md` — **rowSize** — rowSize(args...)
+- `official/funcs/r/rowSkew.md` — **rowSkew** — rowSkew(X, [biased=true])
+- `official/funcs/r/rowStd.md` — **rowStd** — rowStd(args...)
+- `official/funcs/r/rowStdp.md` — **rowStdp** — rowStdp(args...)
+- `official/funcs/r/rowSum.md` — **rowSum** — rowSum(args...)
+- `official/funcs/r/rowSum2.md` — **rowSum2** — rowSum2(args...)
+- `official/funcs/r/rowTanimoto.md` — **rowTanimoto** — rowTanimoto(X, Y)
+- `official/funcs/r/rowVar.md` — **rowVar** — rowVar(args...)
+- `official/funcs/r/rowVarp.md` — **rowVarp** — rowVarp(args...)
+- `official/funcs/r/rowWavg.md` — **rowWavg** — rowWavg(X, Y)
+- `official/funcs/r/rowWsum.md` — **rowWsum** — rowWsum(X, Y)
+- `official/funcs/r/rowXor.md` — **rowXor** — rowXor(args...)
+- `official/funcs/r/rowfilterandsort.md` — **rowFilterAndSort** — 首发版本：3.00.5
+- `official/funcs/r/rowgmd5.md` — **rowGmd5** — 首发版本：3.00.3
+- `official/funcs/r/rowimaxlast.md` — **rowImaxLast** — rowImaxLast(args…)
+- `official/funcs/r/rowiminlast.md` — **rowIminLast** — rowIminLast(args…)
+- `official/funcs/r/rowmergeandsort.md` — **rowMergeAndSort** — 首发版本：3.00.5
+- `official/funcs/r/rows.md` — **rows** — rows(X)
+- `official/funcs/r/rpad.md` — **rpad** — rpad(str, length, [pattern])
+- `official/funcs/r/rpc.md` — **rpc** — rpc(nodeAlias, func, args, ...)
+- `official/funcs/r/rshift.md` — **rshift** — rshift(X, a) 或 X>>a
+- `official/funcs/r/rtrim.md` — **rtrim** — rtrim(X)
+- `official/funcs/r/run.md` — **run** — run(scriptFile, [newSession=false],
+- `official/funcs/r/runScript.md` — **runScript** — runScript(script)
+- `official/funcs/r/runexternalquery.md` — **runExternalQuery** — 首发版本：3.00.5
+- `official/funcs/r/runsql.md` — **runSQL** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_changelogSource.md` — **StreamGraph::changelogSource** — 首发版本：3.00.5
+- `official/funcs/s/StreamGraph_deleteRule.md` — **StreamGraph::deleteRule** — 首发版本：3.00.4
+- `official/funcs/s/StreamGraph_dropGraph.md` — **StreamGraph::dropGraph** — 首发版本：3.00.4
+- `official/funcs/s/StreamGraph_haKeyedSource.md` — **StreamGraph::haKeyedSource** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_haSource.md` — **StreamGraph::haSource** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_keyedSource.md` — **StreamGraph::keyedSource** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_latestKeyedSource.md` — **StreamGraph::latestKeyedSource** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_name.md` — **StreamGraph::name** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_setConfigMap.md` — **StreamGraph::setConfigMap** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_setLocalConfigOnce.md` — **StreamGraph::setLocalConfigOnce** — 首发版本：3.00.3.1
+- `official/funcs/s/StreamGraph_source.md` — **StreamGraph::source** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_sourceByName.md` — **StreamGraph::sourceByName** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_str.md` — **StreamGraph::str** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_submit.md` — **StreamGraph::submit** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_toGraphviz.md` — **StreamGraph::toGraphviz** — 首发版本：3.00.3
+- `official/funcs/s/StreamGraph_updateRule.md` — **StreamGraph::updateRule** — 首发版本：3.00.4
+- `official/funcs/s/saveAsNpy.md` — **saveAsNpy** — saveAsNpy(obj, fileName)
+- `official/funcs/s/saveDatabase.md` — **saveDatabase** — saveDatabase(dbHandle)
+- `official/funcs/s/saveDualPartition.md` — **saveDualPartition** — saveDualPartition(dbHandle1, dbHandle2, table, tableName, partitionColumn1,
+- `official/funcs/s/saveModel.md` — **saveModel** — saveModel(model, location)
+- `official/funcs/s/saveModule.md` — **saveModule** — saveModule(name, [moduleDir],
+- `official/funcs/s/savePartition.md` — **savePartition** — savePartition(dbHandle, table, tableName,
+- `official/funcs/s/saveTable.md` — **saveTable** — saveTable(dbHandle, table, [tableName], [append=false],
+- `official/funcs/s/saveText.md` — **saveText** — saveText(obj, filename, [delimiter=','], [append=false],
+- `official/funcs/s/saveTextFile.md` — **saveTextFile** — saveTextFile(content, filename, [append=false],
+- `official/funcs/s/scheduleJob.md` — **scheduleJob** — scheduleJob(jobId, jobDesc, jobFunc, scheduleTime, startDate, endDate,
+- `official/funcs/s/schema.md` — **schema** — schema(table|dbHandle)
+- `official/funcs/s/schur.md` — **schur** — schur(obj, [sort])
+- `official/funcs/s/scramClientFinal.md` — **scramClientFinal** — 首发版本：3.00.3
+- `official/funcs/s/scramClientFirst.md` — **scramClientFirst** — 首发版本：3.00.3
+- `official/funcs/s/scs.md` — **scs** — scs(f, [P], [A], [b], [Aeq], [beq], [lb], [ub], [x0], [c], [eps],
+- `official/funcs/s/searchK.md` — **searchK** — searchK(X, k)
+- `official/funcs/s/seasonalEsd.md` — **seasonalEsd** — seasonalEsd(data, period, [hybrid], [maxAnomalies], [alpha])
+- `official/funcs/s/second.md` — **second** — second(X)
+- `official/funcs/s/secondOfMinute.md` — **secondOfMinute** — secondOfMinute(X)
+- `official/funcs/s/seek.md` — **seek** — seek(handle, offset, [mode])
+- `official/funcs/s/segment.md` — **segment** — segment(X, [segmentOffset=true])
+- `official/funcs/s/sem.md` — **sem** — sem(X)
+- `official/funcs/s/semiMonthBegin.md` — **semiMonthBegin** — semiMonthBegin(X, [dayOfMonth=15], [offset], [n=1])
+- `official/funcs/s/semiMonthEnd.md` — **semiMonthEnd** — semiMonthEnd(X, [dayOfMonth=15], [offset],
+- `official/funcs/s/semiannualBegin.md` — **semiannualBegin** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/s/semiannualEnd.md` — **semiannualEnd** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/s/sendEvent.md` — **sendEvent** — sendEvent(event)
+- `official/funcs/s/seq.md` — **seq** — seq(start, end) 或 start..end
+- `official/funcs/s/sessionWindow.md` — **sessionWindow** — sessionWindow(X, sessionGap)
+- `official/funcs/s/set.md` — **set** — set(X)
+- `official/funcs/s/setAtomicLevel.md` — **setAtomicLevel** — setAtomicLevel(dbHandle, atomic)
+- `official/funcs/s/setChunkLastUpdateTime.md` — **setChunkLastUpdateTime** — 首发版本：3.00.3
+- `official/funcs/s/setColumnComment.md` — **setColumnComment** — setColumnComment(table, columnComments)
+- `official/funcs/s/setColumnarTuple_.md` — **setColumnarTuple!** — setColumnarTuple!(X, [on=true])
+- `official/funcs/s/setDatabaseForClusterReplication.md` — **setDatabaseForClusterReplication** — setDatabaseForClusterReplication(dbHandle, option)
+- `official/funcs/s/setDatanodeRestartInterval.md` — **setDatanodeRestartInterval** — setDatanodeRestartInterval(interval)
+- `official/funcs/s/setDefaultCatalog.md` — **setDefaultCatalog** — setDefaultCatalog(catalog)
+- `official/funcs/s/setHaMvccColumnDefaultValue.md` — **setHaMvccColumnDefaultValue** — setHaMvccColumnDefaultValue(table, colName,
+- `official/funcs/s/setHaMvccColumnNullability.md` — **setHaMvccColumnNullability** — setHaMvccColumnNullability(table, colName,
+- `official/funcs/s/setIPConnectionLimit.md` — **setIPConnectionLimit** — setIPConnectionLimit(IP, limit)
+- `official/funcs/s/setIndexedMatrix_.md` — **setIndexedMatrix!** — setIndexedMatrix!(X, [on=true])
+- `official/funcs/s/setIndexedSeries_.md` — **setIndexedSeries!** — setIndexedSeries!(X, [on=true])
+- `official/funcs/s/setLogLevel.md` — **setLogLevel** — setLogLevel(logLevel)
+- `official/funcs/s/setMaxBlockSizeForReservedMemory.md` — **setMaxBlockSizeForReservedMemory** — setMaxBlockSizeForReservedMemory(blockSizeKB)
+- `official/funcs/s/setMaxConnections.md` — **setMaxConnections** — setMaxConnections(newValue)
+- `official/funcs/s/setMaxJobParallelism.md` — **setMaxJobParallelism** — setMaxJobParallelism(userId, maxParallelism)
+- `official/funcs/s/setMaxJobPriority.md` — **setMaxJobPriority** — setMaxJobPriority(userId, maxPriority)
+- `official/funcs/s/setMaxMemSize.md` — **setMaxMemSize** — setMaxMemSize(memSizeGB, [emergencyMemSizeGB])
+- `official/funcs/s/setMaxTransactionSize.md` — **setMaxTransactionSize** — setMaxTransactionSize(engine, maxSizeGB)
+- `official/funcs/s/setMemLimitOfQueryResult.md` — **setMemLimitOfQueryResult** — setMemLimitOfQueryResult(memLimit)
+- `official/funcs/s/setMemLimitOfTaskGroupResult.md` — **setMemLimitOfTaskGroupResult** — setMemLimitOfTaskGroupResult(memLimit)
+- `official/funcs/s/setMemLimitOfTempResult.md` — **setMemLimitOfTempResult** — setMemLimitOfTempResult(X)
+- `official/funcs/s/setOLAPCacheEngineSize.md` — **setOLAPCacheEngineSize** — setOLAPCacheEngineSize(memSize)
+- `official/funcs/s/setOrcaCheckpointConfig.md` — **setOrcaCheckpointConfig** — 首发版本：3.00.3
+- `official/funcs/s/setRaftElectionTick.md` — **setRaftElectionTick** — setRaftElectionTick(groupId, tickCount)
+- `official/funcs/s/setRandomSeed.md` — **setRandomSeed** — setRandomSeed(seed)
+- `official/funcs/s/setReservedMemSize.md` — **setReservedMemSize** — setReservedMemSize(memSizeGB)
+- `official/funcs/s/setRetentionPolicy.md` — **setRetentionPolicy** — setRetentionPolicy(dbHandle, retentionHours,
+- `official/funcs/s/setStreamTableFilterColumn.md` — **setStreamTableFilterColumn** — setStreamTableFilterColumn(streamTable, columnName)
+- `official/funcs/s/setSystem.md` — **setSystem** — setSystem(paramName, paramValue)
+- `official/funcs/s/setTSDBCacheEngineSize.md` — **setTSDBCacheEngineSize** — setTSDBCacheEngineSize(memSize)
+- `official/funcs/s/setTableSensitiveColumn.md` — **setTableSensitiveColumn** — 首发版本：3.00.3
+- `official/funcs/s/setTimeoutTick.md` — **setTimeoutTick** — setTimeoutTick(tick)
+- `official/funcs/s/setcomputenodecachingdelay.md` — **setComputeNodeCachingDelay** — setComputeNodeCachingDelay(delay)
+- `official/funcs/s/setdatabaseclusterreplicationexecutionset.md` — **setDatabaseClusterReplicationExecutionSet** — setDatabaseClusterReplicationExecutionSet(dbHandle,
+- `official/funcs/s/setdynamicconfig.md` — **setDynamicConfig** — setDynamicConfig(configName, configValue)
+- `official/funcs/s/setgpfitnessfunc.md` — **setGpFitnessFunc** — setGpFitnessFunc(engine, func, [funcArgs])
+- `official/funcs/s/setmemlimitofalltempresults.md` — **setMemLimitOfAllTempResults** — setMemLimitOfAllTempResults()
+- `official/funcs/s/setprefetchcomputenodedata.md` — **setPrefetchComputeNodeData** — setPrefetchComputeNodeData(flag)
+- `official/funcs/s/setsessionexpiredtime.md` — **setSessionExpiredTime** — 首发版本：3.00.3
+- `official/funcs/s/setstreamtabletimestamp.md` — **setStreamTableTimestamp** — setStreamTableTimestamp(streamTable, columnName)
+- `official/funcs/s/settablecomment.md` — **setTableComment** — setTableComment(table, comment)
+- `official/funcs/s/seuclidean.md` — **seuclidean** — 首发版本：3.00.5，3.00.4.3
+- `official/funcs/s/shape.md` — **shape** — shape(X)
+- `official/funcs/s/shapiroTest.md` — **shapiroTest** — shapiroTest(X)
+- `official/funcs/s/share.md` — **share** — share(table, sharedName, [database], [dbName],
+- `official/funcs/s/shell.md` — **shell** — shell(cmd)
+- `official/funcs/s/short.md` — **short** — short(X)
+- `official/funcs/s/shuffle.md` — **shuffle** — shuffle(X)
+- `official/funcs/s/shuffle_.md` — **shuffle!** — shuffle!(X)
+- `official/funcs/s/signbit.md` — **signbit** — signbit(X)
+- `official/funcs/s/signum.md` — **signum** — signum(X)
+- `official/funcs/s/sin.md` — **sin** — sin(X)
+- `official/funcs/s/sinh.md` — **sinh** — sinh(X)
+- `official/funcs/s/sinppet.md` — **snippet** — snippet(X)
+- `official/funcs/s/size.md` — **size** — size(X)
+- `official/funcs/s/skew.md` — **skew** — skew(X, [biased=true])
+- `official/funcs/s/skipClusterReplicationTask.md` — **skipClusterReplicationTask** — skipClusterReplicationTask(taskIds)
+- `official/funcs/s/sleep.md` — **sleep** — sleep(X)
+- `official/funcs/s/slice.md` — **slice** — slice(obj, index)
+- `official/funcs/s/sliceByKey.md` — **sliceByKey** — sliceByKey(table, rowKeys, [colNames], [preserveOrder=false])
+- `official/funcs/s/sma.md` — **sma** — sma(X, window)
+- `official/funcs/s/socp.md` — **socp** — socp(f, [G], [h], [l], [q], [A], [b])
+- `official/funcs/s/solve.md` — **solve** — solve(X, Y)
+- `official/funcs/s/sort.md` — **sort** — sort(X, [ascending=true])
+- `official/funcs/s/sortBy_.md` — **sortBy!** — sortBy!(table, sortColumns, [sortDirections])
+- `official/funcs/s/sort_.md` — **sort!** — sort!(X, [ascending=true])
+- `official/funcs/s/spawnMonitor.md` — **spawnMonitor** — spawnMonitor(name, handler, arguments...)
+- `official/funcs/s/spearmanr.md` — **spearmanr** — spearmanr(X, Y)
+- `official/funcs/s/splev.md` — **splev** — splev(x, tck)
+- `official/funcs/s/spline.md` — **spline** — spline(X, Y, resampleRule, [closed='left'], [origin='start_day'],
+- `official/funcs/s/split.md` — **split** — split(str, [delimiter])
+- `official/funcs/s/splrep.md` — **splrep** — splrep(x, y, t)
+- `official/funcs/s/sql.md` — **sql** — sql(select, from, [where], [groupBy], [groupFlag=1],
+- `official/funcs/s/sqlCol.md` — **sqlCol** — sqlCol(colName, [func], [alias], [qualifier])
+- `official/funcs/s/sqlColAlias.md` — **sqlColAlias** — sqlColAlias(colDefs, [colNames])
+- `official/funcs/s/sqlDS.md` — **sqlDS** — sqlDS(sqlObj, [forcePartition=false])
+- `official/funcs/s/sqlDelete.md` — **sqlDelete** — sqlDelete(table, [where], [from])
+- `official/funcs/s/sqlTuple.md` — **sqlTuple** — sqlTuple(colNames)
+- `official/funcs/s/sqlUpdate.md` — **sqlUpdate** — sqlUpdate(table, updates, [from], [where], [contextBy], [csort], [ascSort],
+- `official/funcs/s/sqrt.md` — **sqrt** — sqrt(X)
+- `official/funcs/s/square.md` — **square** — square(X)
+- `official/funcs/s/startClusterReplication.md` — **startClusterReplication** — startClusterReplication()
+- `official/funcs/s/startDataNode.md` — **startDataNode** — startDataNode(X)
+- `official/funcs/s/startStreamGraph.md` — **startStreamGraph** — 首发版本：3.00.4
+- `official/funcs/s/startheapsample.md` — **startHeapSample** — startHeapSample(sampleParameter)
+- `official/funcs/s/startsWith.md` — **startsWith** — startsWith(X, str)
+- `official/funcs/s/stat.md` — **stat** — stat(X)
+- `official/funcs/s/stateIterate.md` — **stateIterate** — stateIterate(X, initial, initialWindow, iterateFunc,
+- `official/funcs/s/stateMavg.md` — **stateMavg** — stateMavg(X, window)
+- `official/funcs/s/std.md` — **std** — std(X)
+- `official/funcs/s/stdp.md` — **stdp** — stdp(X)
+- `official/funcs/s/stl.md` — **stl** — stl(data, period, sWindow, [sDegree], [sJump], [tWindow], [tDegree],
+- `official/funcs/s/stopClusterReplication.md` — **stopClusterReplication** — stopClusterReplication()
+- `official/funcs/s/stopDataNode.md` — **stopDataNode** — stopDataNode(X)
+- `official/funcs/s/stopStreamGraph.md` — **stopStreamGraph** — 首发版本：3.00.4
+- `official/funcs/s/stopSubEngine.md` — **stopSubEngine** — stopSubEngine()
+- `official/funcs/s/stopTimerEngine.md` — **stopTimerEngine** — stopTimerEngine(engine)
+- `official/funcs/s/stopheapsample.md` — **stopHeapSample** — stopHeapSample()
+- `official/funcs/s/strReplace.md` — **strReplace** — strReplace(str, pattern, replacement)
+- `official/funcs/s/streamEngineParser.md` — **streamEngineParser** — streamEngineParser(name, metrics, dummyTable, outputTable, keyColumn,
+- `official/funcs/s/streamEventSerializer.md` — **streamEventSerializer** — streamEventSerializer(name, eventSchema, outputTable, [eventTimeField],
+- `official/funcs/s/streamFilter.md` — **streamFilter** — streamFilter(name, dummyTable, filter, [msgSchema],
+- `official/funcs/s/streamTable.md` — **streamTable** — streamTable(X, [X1], [X2], .....)
+- `official/funcs/s/stretch.md` — **stretch** — stretch(X, n)
+- `official/funcs/s/string.md` — **string** — string(X)
+- `official/funcs/s/stringFormat.md` — **stringFormat** — stringFormat(format, [args...])
+- `official/funcs/s/strip.md` — **strip** — strip(X)
+- `official/funcs/s/strlen.md` — **strlen** — strlen(X)
+- `official/funcs/s/strlenu.md` — **strlenu** — strlenu(X)
+- `official/funcs/s/strpos.md` — **strpos** — strpos(X, str)
+- `official/funcs/s/sub.md` — **sub** — sub(X, Y) 或 X-Y
+- `official/funcs/s/subarray.md` — **subarray** — subarray(X, range)
+- `official/funcs/s/submitJob.md` — **submitJob** — submitJob(jobId, jobDesc, jobDef, args...)
+- `official/funcs/s/submitJobEx.md` — **submitJobEx** — submitJobEx(jobId, jobDesc, priority, parallelism, jobDef,
+- `official/funcs/s/submitJobEx2.md` — **submitJobEx2** — submitJobEx2(jobId, jobDesc, priority, parallelism, onComplete, jobDef,
+- `official/funcs/s/subscribeStreamingSQL.md` — **subscribeStreamingSQL** — 首发版本：3.00.4
+- `official/funcs/s/subscribeTable.md` — **subscribeTable** — subscribeTable([server],tableName,[actionName],[offset=-1],handler,[msgAsTable=f…
+- `official/funcs/s/substr.md` — **substr** — substr(X, offset, [length])
+- `official/funcs/s/substru.md` — **substru** — substru(X, offset, [length])
+- `official/funcs/s/subtuple.md` — **subtuple** — subtuple(X, range)
+- `official/funcs/s/sum.md` — **sum** — sum(X)
+- `official/funcs/s/sum2.md` — **sum2** — sum2(X)
+- `official/funcs/s/sum3.md` — **sum3** — sum3(X)
+- `official/funcs/s/sum4.md` — **sum4** — sum4(X)
+- `official/funcs/s/sumbars.md` — **sumbars** — sumbars(X, Y)
+- `official/funcs/s/summary.md` — **summary** — summary(X,[interpolation],[characteristic],[percentile],[precision],[partitionSa…
+- `official/funcs/s/suspendRecovery.md` — **suspendRecovery** — suspendRecovery()
+- `official/funcs/s/svd.md` — **svd** — svd(obj, [fullMatrices=true], [computeUV=true])
+- `official/funcs/s/symbol.md` — **symbol** — symbol(X)
+- `official/funcs/s/symbolCode.md` — **symbolCode** — symbolCode(X)
+- `official/funcs/s/symmetricDifference.md` — **symmetricDifference** — symmetricDifference(X, Y) 或
+- `official/funcs/s/syncDict.md` — **syncDict** — syncDict(keyObj, valueObj, [sharedName], [ordered=false])
+- `official/funcs/s/syntax.md` — **syntax** — syntax(X)
+- `official/funcs/t/t3.md` — **t3** — t3(X, window, [vfactor=1.0])
+- `official/funcs/t/tTest.md` — **tTest** — tTest(X, [Y], [mu=0.0], [confLevel=0.95], [equalVar=false])
+- `official/funcs/t/table.md` — **table** — table(X, [X1], [X2], .....) 或 table(capacity:size, colNames,
+- `official/funcs/t/tableInsert.md` — **tableInsert** — tableInsert(table, args...)
+- `official/funcs/t/tableUpsert.md` — **tableUpsert** — tableUpsert(obj, newData, [ignoreNull=false], [keyColNames],
+- `official/funcs/t/tail.md` — **tail** — tail(obj, [n=1])
+- `official/funcs/t/take.md` — **take** — take(X, n)
+- `official/funcs/t/talibNull.md` — **talibNull** — talibNull(args...)
+- `official/funcs/t/tan.md` — **tan** — tan(X)
+- `official/funcs/t/tanh.md` — **tanh** — tanh(X)
+- `official/funcs/t/tanimoto.md` — **tanimoto** — tanimoto(X, Y)
+- `official/funcs/t/tema.md` — **tema** — tema(X, window)
+- `official/funcs/t/temporalAdd.md` — **temporalAdd** — temporalAdd(obj, duration, [unit])
+- `official/funcs/t/temporalDeltas.md` — **temporalDeltas** — 别名：datetimeDeltas
+- `official/funcs/t/temporalDiff.md` — **temporalDiff** — 别名：datetimeDiff
+- `official/funcs/t/temporalFormat.md` — **temporalFormat** — temporalFormat(X, format)
+- `official/funcs/t/temporalParse.md` — **temporalParse** — temporalParse(X, format)
+- `official/funcs/t/temporalSeq.md` — **temporalSeq** — temporalSeq(start, end, rule, [closed], [label],
+- `official/funcs/t/tensor.md` — **tensor** — tensor(X)
+- `official/funcs/t/terminate.md` — **terminate** — terminate()
+- `official/funcs/t/test.md` — **test** — test(scriptFile, [outputFile], [testMemLeaking=false])
+- `official/funcs/t/textChunkDS.md` — **textChunkDS** — textChunkDS(filename, chunkSize, [delimiter], [schema], [skipRows=0], [arrayDeli…
+- `official/funcs/t/til.md` — **til** — til(n)
+- `official/funcs/t/time.md` — **time** — time(X)
+- `official/funcs/t/timestamp.md` — **timestamp** — timestamp(X)
+- `official/funcs/t/tmavg.md` — **tmavg** — tmavg(T, X, window)
+- `official/funcs/t/tmavgTopN.md` — **tmavgTopN** — tmavgTopN(T, X, S, window, top, [ascending=true],
+- `official/funcs/t/tmbeta.md` — **tmbeta** — tmbeta(T, Y, X, window)
+- `official/funcs/t/tmbetaTopN.md` — **tmbetaTopN** — tmbetaTopN(T, X, Y, S, window, top, [ascending=true],
+- `official/funcs/t/tmcorr.md` — **tmcorr** — tmcorr(T, X, Y, window)
+- `official/funcs/t/tmcorrTopN.md` — **tmcorrTopN** — tmcorrTopN(T, X, Y, S, window, top, [ascending=true],
+- `official/funcs/t/tmcount.md` — **tmcount** — tmcount(T, X, window)
+- `official/funcs/t/tmcovar.md` — **tmcovar** — tmcovar(T, X, Y, window)
+- `official/funcs/t/tmcovarTopN.md` — **tmcovarTopN** — tmcovarTopN(T, X, Y, S, window, top, [ascending=true],
+- `official/funcs/t/tmcovarp.md` — **tmcovarp** — 首发版本：3.00.5
+- `official/funcs/t/tmcovarpTopN.md` — **tmcovarpTopN** — 首发版本：3.00.5
+- `official/funcs/t/tmfirst.md` — **tmfirst** — tmfirst(T, X, window)
+- `official/funcs/t/tmkurtosis.md` — **tmkurtosis** — tmkurtosis(T, X, window, [biased=true])
+- `official/funcs/t/tmkurtosisTopN.md` — **tmkurtosisTopN** — tmkurtosisTopN(T, X, S, window, top, [biased=true], [ascending=true],
+- `official/funcs/t/tmlast.md` — **tmlast** — tmlast(T, X, window)
+- `official/funcs/t/tmlowrange.md` — **tmLowRange** — tmLowRange(T, X, window)
+- `official/funcs/t/tmmax.md` — **tmmax** — tmmax(T, X, window)
+- `official/funcs/t/tmmed.md` — **tmmed** — tmmed(T, X, window)
+- `official/funcs/t/tmmin.md` — **tmmin** — tmmin(T, X, window)
+- `official/funcs/t/tmove.md` — **tmove** — tmove(T, X, window)
+- `official/funcs/t/tmovingWindowData.md` — **tmovingWindowData** — tmovingWindowData(T, X, window, [leftClosed =
+- `official/funcs/t/tmpercentile.md` — **tmpercentile** — tmpercentile(T, X, percent, window, [interpolation='linear'])
+- `official/funcs/t/tmprod.md` — **tmprod** — tmprod(T, X, window)
+- `official/funcs/t/tmrank.md` — **tmrank** — tmrank(T, X, ascending, window, [ignoreNA=true], [tiesMethod='min'],
+- `official/funcs/t/tmskew.md` — **tmskew** — tmskew(T, X, window, [biased=true])
+- `official/funcs/t/tmskewTopN.md` — **tmskewTopN** — tmskewTopN(T, X, S, window, top, [biased=true], [ascending=true],
+- `official/funcs/t/tmstd.md` — **tmstd** — tmstd(T, X, window)
+- `official/funcs/t/tmstdTopN.md` — **tmstdTopN** — tmstdTopN(T, X, S, window, top, [ascending=true],
+- `official/funcs/t/tmstdp.md` — **tmstdp** — tmstdp(T, X, window)
+- `official/funcs/t/tmstdpTopN.md` — **tmstdpTopN** — tmstdpTopN(T, X, S, window, top, [ascending=true],
+- `official/funcs/t/tmsum.md` — **tmsum** — tmsum(T, X, window)
+- `official/funcs/t/tmsum2.md` — **tmsum2** — tmsum2(T, X, window)
+- `official/funcs/t/tmsumTopN.md` — **tmsumTopN** — tmsumTopN(T, X, S, window, top, [ascending=true],
+- `official/funcs/t/tmtoprange.md` — **tmTopRange** — tmTopRange(T, X, window)
+- `official/funcs/t/tmvar.md` — **tmvar** — tmvar(T, X, window)
+- `official/funcs/t/tmvarTopN.md` — **tmvarTopN** — tmvarTopN(T, X, S, window, top, [ascending=true],
+- `official/funcs/t/tmvarp.md` — **tmvarp** — tmvarp(T, X, window)
+- `official/funcs/t/tmvarpTopN.md` — **tmvarpTopN** — tmvarpTopN(T, X, S, window, top, [ascending=true],
+- `official/funcs/t/tmwavg.md` — **tmwavg** — tmwavg(T, X, Y, window)
+- `official/funcs/t/tmwsum.md` — **tmwsum** — tmwsum(T, X, Y, window)
+- `official/funcs/t/tmwsumTopN.md` — **tmwsumTopN** — tmwsumTopN(T, X, Y, S, window, top, [ascending=true],
+- `official/funcs/t/toArray.md` — **toArray** — toArray(X)
+- `official/funcs/t/toCharArray.md` — **toCharArray** — toCharArray(X)
+- `official/funcs/t/toJson.md` — **toJson** — toJson(X)
+- `official/funcs/t/toStdJson.md` — **toStdJson** — toStdJson(obj)
+- `official/funcs/t/toUTF8.md` — **toUTF8** — toUTF8(str, encode)
+- `official/funcs/t/tocolumnartuple.md` — **toColumnarTuple** — 首发版本：3.00.5
+- `official/funcs/t/today.md` — **today** — today()
+- `official/funcs/t/tokenize.md` — **tokenize** — tokenize(text, parser, [full=false], [lowercase=true],
+- `official/funcs/t/tokenizeBert.md` — **tokenizeBert** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/t/topRange.md` — **topRange** — topRange(X)
+- `official/funcs/t/totuple.md` — **toTuple** — 首发版本：3.00.5
+- `official/funcs/t/transDS_.md` — **transDS!** — transDS!(ds, transFunc)
+- `official/funcs/t/transFreq.md` — **transFreq** — transFreq(X, rule, [closed], [label],
+- `official/funcs/t/transpose.md` — **transpose** — transpose(X)
+- `official/funcs/t/treasuryconversionfactor.md` — **treasuryConversionFactor** — treasuryConversionFactor(contractCoupon, deliverableCoupon,
+- `official/funcs/t/triggerNodeReport.md` — **triggerNodeReport** — triggerNodeReport(nodeAlias, [chunkId])
+- `official/funcs/t/triggerPKEYCompaction.md` — **triggerPKEYCompaction** — triggerPKEYCompaction(chunkId, [async=true])
+- `official/funcs/t/triggerTSDBCompaction.md` — **triggerTSDBCompaction** — triggerTSDBCompaction(chunkId, [level=0])
+- `official/funcs/t/triggercheckpointforimoltp.md` — **triggerCheckpointForIMOLTP** — triggerCheckpointForIMOLTP([force=false], [sync=false])
+- `official/funcs/t/tril.md` — **tril** — tril(X, [k=0])
+- `official/funcs/t/trim.md` — **trim** — trim(X)
+- `official/funcs/t/trima.md` — **trima** — trima(X, window)
+- `official/funcs/t/triu.md` — **triu** — triu(X, [k=0])
+- `official/funcs/t/trueRange.md` — **trueRange** — trueRange(high, low, close)
+- `official/funcs/t/truncate.md` — **truncate** — truncate(dbUrl, tableName)
+- `official/funcs/t/tupleSum.md` — **tupleSum** — tupleSum(X)
+- `official/funcs/t/type.md` — **type** — type(X)
+- `official/funcs/t/typestr.md` — **typestr** — typestr(X)
+- `official/funcs/themes/TAlib.md` — **TA-lib 系列** — TA-lib（Technical Analysis
+- `official/funcs/themes/TopN.md` — **mTopN 系列** — 数据依照某个指标进行排序，并取排序后前 top 个元素进行计算。
+- `official/funcs/themes/cepFunctions.md` — **CEP 相关函数** — 复杂事件处理引擎用于从大规模实时数据流中提取信息、识别模式并进行实时分析和决策。本文提供 CEP
+- `official/funcs/themes/cepFunctions_2.md` — **CEP 相关函数** — 复杂事件处理引擎用于从大规模实时数据流中提取信息、识别模式并进行实时分析和决策。本文提供 CEP
+- `official/funcs/themes/cumFunctions.md` — **累计窗口系列（cum 系列）** — 累积窗口，即窗口的起始边界固定，结束边界逐步向右移动的窗口。针对累计窗口计算场景，DolphinDB 提供了 cum 系列函数。
+- `official/funcs/themes/cumTopN.md` — **cumTopN 系列** — DolphinDB 提供了 cumTopN 系列函数，在累积窗口内，将数据根据某个指标排序后，只取排序靠前的 top 个元素进行计算。
+- `official/funcs/themes/mFunctions.md` — **滑动窗口系列（m 系列）** — 对窗口内聚合计算，DolphinDB引入了 m 系列函数。m
+- `official/funcs/themes/orcaFunctions.md` — **Orca 系列** — Orca 实时计算平台构建于 DolphinDB 流数据框架之上，提供了更高层次的抽象。通过声明式
+- `official/funcs/themes/rowFunctions.md` — **行计算系列（row 系列）** — DolphinDB 中，绝大部分计算函数是基于向量、矩阵或表的一列进行的。若需要逐行计算，普通函数无法满足要求。为此，DolphinDB 设计了row
+- `official/funcs/themes/streamingEngine.md` — **流计算引擎** — 在流数据处理中，要求持续高效地进行实时计算。为此，DolphinDB
+- `official/funcs/themes/streaming_sql.md` — **流式 SQL** — 流式 SQL 支持基于共享内存表进行实时 SQL 查询和持续结果更新。用户可以声明表为流式 SQL 输入表，注册流式 SQL
+- `official/funcs/themes/themes.md` — **系列函数** — 系列函数为同类函数提供了一个主题页面，总体介绍同类函数的函数结构以及计算方法，便于用户更好地理解和使用。
+- `official/funcs/themes/tmFunctions.md` — **时序滑动窗口系列（tm 系列）** — 在涉及到时序数据的窗口计算场景，往往需要窗口根据时间列滑动进行指标的计算，为此 DolphinDB 引入了 tm 系列函数。tm 系列函数的窗口计算和 m 系列…
+- `official/funcs/themes/tmTopN.md` — **tmTopN 系列** — DolphinDB 提供了 tmTopN 系列函数，在根据时间滑动的窗口内，将数据根据某个指标排序后，只取排序靠前的 top 个元素进行计算。
+- `official/funcs/u/undef.md` — **undef** — undef(obj, [objType=VAR])
+- `official/funcs/u/ungroup.md` — **ungroup** — ungroup(X)
+- `official/funcs/u/unifiedExpr.md` — **unifiedExpr** — unifiedExpr(objs, optrs)
+- `official/funcs/u/union.md` — **union** — union(X, Y) 或 X|Y
+- `official/funcs/u/unionAll.md` — **unionAll** — unionAll(tableA, tableB, [byColName=false])
+- `official/funcs/u/unloadVocab.md` — **unloadVocab** — 首发版本：3.00.4，3.00.3.1
+- `official/funcs/u/unlockUser.md` — **unlockUser** — 首发版本：3.00.3
+- `official/funcs/u/unpack.md` — **unpack** — unpack(format, buf)
+- `official/funcs/u/unpivot.md` — **unpivot** — unpivot(obj, keyColNames, valueColNames, [func])
+- `official/funcs/u/unsubscribeStreamingSQL.md` — **unsubscribeStreamingSQL** — 首发版本：3.00.4
+- `official/funcs/u/unsubscribeTable.md` — **unsubscribeTable** — unsubscribeTable([server], tableName, [actionName], [removeOffset=true],
+- `official/funcs/u/updateDataViewItems.md` — **updateDataViewItems** — updateDataViewItems(engine, keys, valueNames, newValues)
+- `official/funcs/u/updateLicense.md` — **updateLicense** — updateLicense()
+- `official/funcs/u/updateMCPPrompt.md` — **updateMCPPrompt** — 首发版本：3.00.4
+- `official/funcs/u/updateMCPTool.md` — **updateMCPTool** — 首发版本：3.00.4
+- `official/funcs/u/updateMarketHoliday.md` — **updateMarketHoliday** — updateMarketHoliday(marketName, holiday)
+- `official/funcs/u/updateOrderBookEngineParams.md` — **updateOrderBookEngineParams** — updateOrderBookEngineParams(engine, [prevClose], [maxPrice], [minPrice],
+- `official/funcs/u/updateRule.md` — **updateRule** — updateRule(engineName, key, rules, [add=false])
+- `official/funcs/u/update_.md` — **update!** — update!(table, colNames, newValues, [filter])
+- `official/funcs/u/update_stream_graph_user_tickets.md` — **updateStreamGraphUserTickets** — updateStreamGraphUserTickets()
+- `official/funcs/u/updatepkeydeletebitmap.md` — **updatePKEYDeleteBitmap** — updatePKEYDeleteBitmap(chunkId)
+- `official/funcs/u/upper.md` — **upper** — upper(X)
+- `official/funcs/u/upsert_.md` — **upsert!** — upsert!(obj, newData, [ignoreNull=false], [keyColNames],
+- `official/funcs/u/useOrcaStreamEngine.md` — **useOrcaStreamEngine** — 首发版本：3.00.3
+- `official/funcs/u/useOrcaStreamTable.md` — **useOrcaStreamTable** — 首发版本：3.00.3
+- `official/funcs/u/uuid.md` — **uuid** — uuid(X)
+- `official/funcs/v/valueChanged.md` — **valueChanged** — valueChanged(X, [mode="prev"])
+- `official/funcs/v/values.md` — **values** — values(X)
+- `official/funcs/v/vanillaoption.md` — **vanillaOption** — vanillaOption(settlement, maturity, evalDate, spot, strike, riskFree,
+- `official/funcs/v/var.md` — **var** — var(X)
+- `official/funcs/v/var_0.md` — **valueAtRisk** — valueAtRisk(returns, method,
+- `official/funcs/v/varma.md` — **varma** — varma(ds,endogColNames,order,[exog],[trend='c'],[errorCovType='unstructured'],[m…
+- `official/funcs/v/varp.md` — **varp** — varp(X)
+- `official/funcs/v/vectorar.md` — **vectorAR** — vectorAR(ds, endogColNames, [exog], [trend='c'], [maxLag],
+- `official/funcs/v/vectornorm.md` — **vectorNorm** — vectorNorm(x, [ord], [axis], [keepDims])
+- `official/funcs/v/version.md` — **version** — version()
+- `official/funcs/v/volumeBar.md` — **volumeBar** — volumeBar(X, interval, [label='seq'])
+- `official/funcs/w/warmupOrcaStreamEngine.md` — **warmupOrcaStreamEngine** — 首发版本：3.00.3
+- `official/funcs/w/warmupStreamEngine.md` — **warmupStreamEngine** — warmupStreamEngine(engine, msgs)
+- `official/funcs/w/warmupcomputenodecache.md` — **warmupComputeNodeCache** — 首发版本：3.00.3
+- `official/funcs/w/wavg.md` — **wavg** — wavg(X, Y)
+- `official/funcs/w/wc.md` — **wc** — wc(X)
+- `official/funcs/w/wcovar.md` — **wcovar** — wcovar(X, Y, W)
+- `official/funcs/w/weekBegin.md` — **weekBegin** — weekBegin(X, [weekday=0], [offset], [n=1])
+- `official/funcs/w/weekEnd.md` — **weekEnd** — weekEnd(X, [weekday=6], [offset], [n=1])
+- `official/funcs/w/weekOfMonth.md` — **weekOfMonth** — weekOfMonth(X, [week=0], [weekday=0], [offset],
+- `official/funcs/w/weekOfYear.md` — **weekOfYear** — weekOfYear(X)
+- `official/funcs/w/weekday.md` — **weekday** — weekday(X, [startFromSunday=true])
+- `official/funcs/w/wilder.md` — **wilder** — wilder(X, window)
+- `official/funcs/w/winsorize.md` — **winsorize** — winsorize(X, limit, [inclusive=true], [nanPolicy='upper'])
+- `official/funcs/w/winsorize_.md` — **winsorize!** — winsorize!(X, limit, [inclusive=true], [nanPolicy='omit'])
+- `official/funcs/w/withdrawMCPPrompts.md` — **withdrawMCPPrompts** — 首发版本：3.00.4
+- `official/funcs/w/withdrawMCPTools.md` — **withdrawMCPTools** — 首发版本：3.00.4
+- `official/funcs/w/wls.md` — **wls** — wls(Y, X, W, [intercept=true], [mode=0])
+- `official/funcs/w/wma.md` — **wma** — wma(X, window)
+- `official/funcs/w/write.md` — **write** — write(handle, object, [offset=0], [length])
+- `official/funcs/w/writeBytes.md` — **writeBytes** — writeBytes(handle, bytes)
+- `official/funcs/w/writeLine.md` — **writeLine** — writeLine(handle, string,
+- `official/funcs/w/writeLines.md` — **writeLines** — writeLines(handle, object, [offset=0], [length],
+- `official/funcs/w/writeLog.md` — **writeLog** — writeLog(X1, [X2, X3....Xn])
+- `official/funcs/w/writeObject.md` — **writeObject** — writeObject(handle, object)
+- `official/funcs/w/writeRecord.md` — **writeRecord** — writeRecord(handle, object, [offset=0], [length])
+- `official/funcs/w/writeloglevel.md` — **writeLogLevel** — writeLogLevel(level,X1,[X2, X3,...,Xn])
+- `official/funcs/w/wslr.md` — **wslr** — wslr(Y, X, W, [mse=false])
+- `official/funcs/w/wsum.md` — **wsum** — wsum(X, Y)
+- `official/funcs/w/wsum2.md` — **wsum2** — wsum2(X, Y)
+- `official/funcs/x/xdb.md` — **xdb** — xdb(siteAlias, [userId], [password],
+- `official/funcs/x/xor.md` — **xor** — xor(X, Y)
+- `official/funcs/y/year.md` — **year** — year(X)
+- `official/funcs/y/yearBegin.md` — **yearBegin** — yearBegin(X, [startingMonth=1], [offset],
+- `official/funcs/y/yearEnd.md` — **yearEnd** — yearEnd(X, [endingMonth=12], [offset], [n=1])
+- `official/funcs/y/yearFrac.md` — **yearFrac** — 首发版本：3.00.5
+- `official/funcs/z/zTest.md` — **zTest** — zTest(X, [Y], [mu=0.0], [sigmaX=1.0], [sigmaY=1.0],
+- `official/funcs/z/zigzag.md` — **zigzag** — zigzag(HL, [change=10], [percent=true], [retrace=false],
+- `official/funcs/z/zscore.md` — **zscore** — zscore(X)
+
+### api — 连接器 & API（多语言）（1 篇）
+
+- `official/api/connapi_intro.md` — **连接器 & API** — 适用于130、200及更高版本系列的 Server。
+
+### pydoc — Python SDK 文档（60 篇）
+
+- `official/pydoc/AdvancedOperations/DataTypeCasting/ForceTypeCasting.md` — **强制类型转换** — 在使用 upload 接口上传 pandas.DataFrame 时，由于 DolphinDB 类型系统与 Python 类型系统不是一一对应的关系，所以无法直…
+- `official/pydoc/AdvancedOperations/DataTypeCasting/PROTOCOL_ARROW.md` — **PROTOCOL_ARROW** — Apache Arrow 协议是一种用于对大型数据集进行序列化和反序列化的协议，可以跨平台、跨语言地进行高效数据传输。DolphinDB 提供的 Arrow 插…
+- `official/pydoc/AdvancedOperations/DataTypeCasting/PROTOCOL_DDB.md` — **PROTOCOL_DDB** — PROTOCOL\_DDB 作为 DolphinDB 自定义的一套数据序列化、反序列化方案，广泛使用于 Python API、C++ API、Java API …
+- `official/pydoc/AdvancedOperations/DataTypeCasting/PROTOCOL_PICKLE.md` — **PROTOCOL_PICKLE** — Pickle 协议是一种对 Python 对象进行序列化和反序列化的方式，允许使用者将复杂的 Python 对象转换为可以存储或传输的字节流，再将该字节流转换为…
+- `official/pydoc/AdvancedOperations/DataTypeCasting/TypeCasting.md` — **类型转换** — DolphinDB 与 Python API 的交互过程始终遵循 API交互协议。该协议规定了通信双方在交互过程中使用的报文信息格式。在 API 与 Dolph…
+- `official/pydoc/AdvancedOperations/EventSendSub/event.md` — **自定义事件** — 在客户端自定义事件之前，需要先在 DolphinDB 服务端定义事件。例如：如下 DolphinDB 脚本定义了1个事件类 TestEvent，该类具有3个属性…
+- `official/pydoc/AdvancedOperations/EventSendSub/eventclient.md` — **事件订阅 EventClient** — Python API 从 3.0.0.0 版本开始，提供 EventClient 类用于订阅异构流表中的事件数据。该异构流表通常接收 DolphinDB 服务端…
+- `official/pydoc/AdvancedOperations/EventSendSub/eventsender.md` — **事件发送 EventSender** — Python API 从 3.0.0.0 版本开始，提供 EventSender 类用于向存储事件信息的异构流表中写入序列化后的事件数据。DolphinDB 服…
+- `official/pydoc/AdvancedOperations/EventSendSub/eventsendsub.md` — **事件发送及订阅** — DolphinDB 3.00.0 版本引入了重大功能——复杂事件处理引擎（Complex Event Processing Engine，简称 CEP
+- `official/pydoc/AdvancedOperations/ObjectOrientedOperationsOnDdbOBjects/Database.md` — **Database** — 在 Python API 中，可以使用 DolphinDB Python API 的原生方法来创建、使用数据库及数据表。本节将介绍如何创建数据库，以及通过数据库…
+- `official/pydoc/AdvancedOperations/ObjectOrientedOperationsOnDdbOBjects/Table.md` — **Table** — 在 Python API 中，可以使用 DolphinDB Python API 的原生方法来创建、使用数据库及数据表，本节将介绍如何创建数据表、使用 SQL …
+- `official/pydoc/AdvancedOperations/OtherFunctions/OtherFunctions.md` — **其他功能** — session 对象中提供静态方法 enableJobCancellation()，用于开启强制取消任务的功能。此功能默认关闭。开启后，通过 “Ctrl+C” …
+- `official/pydoc/AdvancedOperations/SubscriptionOptions/SubscriptionOptions.md` — **流订阅模式** — 在 Python API 中，共推荐使用四种流订阅模式：单条订阅、批量订阅（设置 msgAsTable=False）、批量订阅（设置 msgAsTable=Tr…
+- `official/pydoc/AdvancedOperations/WriteOptions/WriteOptions.md` — **多种写入方案** — Python API 提供多种写入方案，可以适配不同场景的写入需求，下面将详细介绍各种写入方案之间的区别。
+- `official/pydoc/AdvancedOperations/convert_type.md` — **数据类型转换** — 本节介绍了在 PROTOCOL\_DDB 协议、Python PICKLE 协议和 Apache ARROW 协议下 Python 与
+- `official/pydoc/AdvancedOperations/ddb_ooo.md` — **面向对象数据库操作** — 本节介绍如何通过 DolphinDB Python API 的原生方法来创建、使用数据库及数据表。
+- `official/pydoc/BasicOperations/AsyncWrites/BatchTableWriter.md` — **BatchTableWriter** — 注意 ：BatchTableWriter 现已不再维护，不推荐使用。
+- `official/pydoc/BasicOperations/AsyncWrites/MultithreadedTableWriter.md` — **MultithreadedTableWriter** — 针对单条数据批量写入的场景，DolphinDB Python API 提供 MultithreadedTableWriter（推荐）和 BatchTableWr…
+- `official/pydoc/BasicOperations/AsyncWrites/SessionAsyncMode.md` — **session 异步提交** — 在高吞吐率的场景下，尤其是典型的高速小数据写入，使用 API 的异步调用功能可以有效提高 API 的任务吞吐量。异步方式提交有如下几个特点：
+- `official/pydoc/BasicOperations/AutoFitTableAppender/PartitionedTableAppender.md` — **PartitionedTableAppender** — 与 TableAppender 对象类似，使用 PartitionedTableAppender 对象向表中追加时间类型数据时，能够实现对时间类型数据的自动转换…
+- `official/pydoc/BasicOperations/AutoFitTableAppender/TableAppender.md` — **TableAppender** — 由于 Python 与 DolphinDB 的数据类型并不是一一对应的，故部分类型数据无法直接进行上传、写入等操作。举例来说，Python 中的 DataFra…
+- `official/pydoc/BasicOperations/AutoFitTableAppender/TableUpserter.md` — **TableUpserter** — Python API 提供 TableUpserter 对象，可以通过 upsert 方式向索引内存表、键值内存表以及分布式表中追加数据。与 TableAppe…
+- `official/pydoc/BasicOperations/DBConnectionPool/AsyncMethodsAndOthers.md` — **方法介绍** — 本节将介绍连接池 DBConnectionPool 的三类常用方法，该三类方法兼可用于异步执行脚本，用户可根据实际需求选用不同的方法。
+- `official/pydoc/BasicOperations/DBConnectionPool/Constructor.md` — **DBConnectionPool** — DBConnectionPool （连接池）可以实现并发执行脚本。由前一章节的内容可知，session（会话控制）可以实现 API 客户端与 DolphinDB…
+- `official/pydoc/BasicOperations/DBConnectionPool/simple_dbconnection_pool.md` — **SimpleDBConnectionPool** — Python API 自 3.0.4.0 版本起，提供 SimpleDBConnectionPool 连接池，以此对连接进行管理和重用。
+- `official/pydoc/BasicOperations/Session/Connect.md` — **Connect** — dolphindb 支持以下两种创建连接的方式：
+- `official/pydoc/BasicOperations/Session/Constructor.md` — **session/Session** — session（会话控制）可以实现 API 客户端与 DolphinDB 服务端之间的信息交互。dolphindb 通过 session 在 DolphinDB…
+- `official/pydoc/BasicOperations/Session/OtherParams.md` — **常用方法** — 本节将介绍 session 中常用的方法。
+- `official/pydoc/BasicOperations/Subscription/Subscription.md` — **流数据订阅** — Python API 支持流数据订阅的功能，以下介绍如何启用流数据，订阅流数据，获取订阅主题和取消订阅流数据。
+- `official/pydoc/BasicOperations/async_write.md` — **异步提交数据** — 本节将详细介绍使用三种对象异步提交数据的方法，以及它们之间的异同点。
+- `official/pydoc/BasicOperations/connection_pool.md` — **构造连接池** — 本节介绍构造连接池的 DBConnectionPool 及其常用方法。
+- `official/pydoc/BasicOperations/serialization.md` — **序列化与反序列化** — Python API 从 3.0.2.1 版本新增 io 模块，包含如下函数：
+- `official/pydoc/BasicOperations/session_connect.md` — **建立会话连接** — 本节介绍建立会话连接的 session 对象和 Connect 方法，以及 session 对象的其它常用方法。
+- `official/pydoc/BasicOperations/table_append.md` — **更新表数据** — 本节将详细介绍使用三种对象更新表数据的方法，以及它们之间的异同点。
+- `official/pydoc/QuickStart/Demo.md` — **快速开始** — 本节将展示通过 dolphindb 连接、使用及操作单节点 DolphinDB 服务器的完整操作。
+- `official/pydoc/QuickStart/Install.md` — **安装** — 在安装 dolphindb 前，请确定已部署 Python 执行环境。若无，推荐使用 Anaconda Distribution 下载 Python 及常用库。
+- `official/pydoc/adv_oper.md` — **进阶操作** — 本节重点介绍以下内容：
+- `official/pydoc/basic_oper.md` — **基础操作** — 本节介绍以下内容：
+- `official/pydoc/py.md` — **Python API** — dolphindb 是 DolphinDB 的官方 Python API，用于连接 DolphinDB 服务端和 Python
+- `official/pydoc/py_api_inst_offline.md` — **离线安装 Python API** — 出于安全考虑，通常生产环境与互联网隔离，因此无法使用 pip install 在线安装 DolphinDB Python API（以下简称 Python API…
+- `official/pydoc/py_vamos.md` — **快速上手** — 本节介绍以下内容：
+- `official/pydoc/release_notes/3_0_3.md` — **3.0.3** — - 更新支持的 Python 版本范围：由 3.6–3.12 调整为 3.8–3.13 (with-GIL)。
+- `official/pydoc/release_notes/3_0_4.md` — **3.0.4** — - 修复在部分情况下连接断开后未自动重连的问题。
+- `official/pydoc/release_notes/rn_13010_py.md` — **1.30.0.10** — orca: 修复 orca.panel 函数。
+- `official/pydoc/release_notes/rn_13015_py.md` — **1.30.0.15** — session 对象增加了 keepAliveTime 参数，设置检测 TCP
+- `official/pydoc/release_notes/rn_13016_py.md` — **1.30.16** — - 支持200及以上版本的服务器。
+- `official/pydoc/release_notes/rn_13017_py.md` — **1.30.17** — 修复上传 DataFrame 数据，且它的字符串类型列的首行为 None 时，出现上传失败的问题。
+- `official/pydoc/release_notes/rn_13019_py.md` — **1.30.19** — 流订阅指定 batchSize 为小数时增加报错提示。
+- `official/pydoc/release_notes/rn_13021_py.md` — **1.30.21** — 调整 Python API 依赖库pandas 的版本为不小于1.0.0。
+- `official/pydoc/release_notes/rn_13022_py.md` — **1.30.22** — - 新增支持 Python 3.11。
+- `official/pydoc/release_notes/rn_1305_py.md` — **1.30.0.5** — - 优化数据传输性能, 最新Server版本请升级 Python API 到1.30.0.5
+- `official/pydoc/release_notes/rn_1306_py.md` — **1.30.0.6** — - 提供 partitionTableAppender
+- `official/pydoc/release_notes/rn_1307_py.md` — **1.30.0.7** — 取消 Python API 安装时 pandas 版本必须低于1.0的限制。
+- `official/pydoc/release_notes/rn_1308_py.md` — **1.30.0.8** — DBConnectionPool 新增了 runTaskAsyn
+- `official/pydoc/release_notes/rn_1309_py.md` — **1.30.0.9** — - orca: 添加 rolling rank 函数。
+- `official/pydoc/release_notes/rn_2011_py.md` — **2.0.11** — - 取消对上传 BLOB 类型数据长度的限制；上传 SYMBOL/STRING 类型数据的长度必须小于 256 KB。
+- `official/pydoc/release_notes/rn_3000_py.md` — **3.0.0** — - Session/session、DBConnectionPool 类的
+- `official/pydoc/release_notes/rn_3001_py.md` — **3.0.1** — 连接池 DBConnectionPool 和 session 的 run 方法中的参数 parallelism
+- `official/pydoc/release_notes/rn_3002_py.md` — **3.0.2** — - subscribe 的 filter 参数支持传入 lambda 字符串。
+- `official/pydoc/release_notes/rn_py.md` — **版本说明** — Notice:
+
+### plugins — 插件（93 篇）
+
+- `official/plugins/ASTTrader.md` — **ASTTrader** — ASTTrader 插件用于对接恒生极速交易系统，支持高速下单、快速撤单、持仓查询等功能。借助该插件，用户可在 DolphinDB 中基于实时行情灵活实现多种交…
+- `official/plugins/Arrow/arrow.md` — **Arrow** — Apache Arrow 是一种跨平台的内存数据格式，被设计为一种内存中的列式数据格式，可以高效地存储和传输大规模数据集，同时提供了高性能的数据操作功能。在引入…
+- `official/plugins/CSM.md` — **CSM** — CSMAR 面向机构提供金融数据，覆盖股票、债券、基金、指数、期货期权、宏观经济、行业及市场资讯等多个类别，强调内容专业、数据准确、来源权威、更新及时和交付方式…
+- `official/plugins/EncoderDecoder.md` — **EncoderDecoder** — DolphinDB 提供 EncoderDecoder 插件用于高效解析、转换 JSON 以及 protobuf 数据为 DolphinDB table 格式数…
+- `official/plugins/LDAP.md` — **LDAP** — The Lightweight Directory Access Protocol（LDAP）是一种软件协议 ，使任何人都可以在公共互联网或公司内网上查找网络中…
+- `official/plugins/MDL.md` — **MDL** — 通联数据依托于金融大数据，结合人工智能技术为投资者提供个性化、智能化、专业化投资服务。而 MDL 是通联数据提供的高频行情数据服务，DolphinDB 提供了能…
+- `official/plugins/MatchingEngine/me.md` — **MatchingEngine** — （该插件已停用，新模拟交易所插件详见 SimulatedExchangeEngine）
+- `official/plugins/SSEQuotationFile.md` — **SSEQuotationFile** — 上交所提供多种行情文件的转发服务，例如港股通行情、指数通行情等。通过 DolphinDB 的 SSEQuotationFile 插件，用户可以解析上交所提供的这…
+- `official/plugins/amdquote/amdhistory.md` — **amdHistory** — 为了方便在 DolphinDB 中对 AMD 历史行情数据进行分析与建模，DolphinDB 提供了 amdHistory 插件。该插件基于华锐 AMD
+- `official/plugins/amdquote/amdquote.md` — **amdQuote** — 华锐高速行情平台（Archforce Market Data）简称 AMD，是华锐提供的超高可用、超低时延的优质行情服务。DolphinDB 提供了 amdQu…
+- `official/plugins/amdquote/amdquote_2.md` — **amdQuote** — 华锐高速行情平台（Archforce Market Data）简称 AMD，是华锐提供的超高可用、超低时延的优质行情服务。DolphinDB 提供了 amdQu…
+- `official/plugins/aws/aws.md` — **AWS** — Amazon S3 是一种云存储服务，可以存储和检索大量数据。通过 DolphinDB 的 AWS 插件，用户可以与 Amazon S3 服务进行交互，将数据备…
+- `official/plugins/backtest.md` — **回测插件（Backtest）** — 为精准测试和验证策略在实盘交易中的效果，DolphinDB
+- `official/plugins/backtest/digital_currency.md` — **数字货币回测配置** — 回测平台支持的数字货币行情数据类型包括：快照，分钟频率，日频等。
+- `official/plugins/backtest/futures.md` — **期货回测配置** — 回测平台支持的期货资产行情数据类型包括：快照，分钟频率，日频。
+- `official/plugins/backtest/interbank_bonds.md` — **债券回测配置** — 回测平台支持债券资产，包括银行间债券和上交所债券。
+- `official/plugins/backtest/interface_description.md` — **接口说明** — 本节将介绍 DolphinDB 的回测引擎接口。用户可以基于自定义的策略创建回测引擎并执行回测，获取每日持仓、每日权益、收益概述、成交明细等回测结果。
+- `official/plugins/backtest/multi_asset.md` — **多资产回测配置** — 回测平台支持多资产回测，目前支持的资产包括股票、期权、期货、债券、通用资产。
+- `official/plugins/backtest/option.md` — **期权回测配置** — 回测平台支持的期权资产行情数据类型包括：快照，分钟频率，日频。
+- `official/plugins/backtest/performance_tuning.md` — **DolphinDB 回测平台使用和性能优化攻略** — 策略回测是量化交易投研的一个重要环节。量化策略上线之前，必须通过回测评估策略在历史数据上的表现。中高频策略回测相比于低频策略回测，数据量增加了几个数量级，无论是…
+- `official/plugins/backtest/quick_start.md` — **DolphinDB 回测插件快速上手** — 使用 DolphinDB 脚本来编写回测策略，通常包含以下步骤：
+- `official/plugins/backtest/release/3_00_2.md` — **3.00.2** — - getBacktestEngineStat 新增参数
+- `official/plugins/backtest/release/3_00_3.md` — **3.00.3** — - getBacktestEngineStat 新增参数
+- `official/plugins/backtest/release/3_00_4.md` — **3.00.4** — - getBacktestEngineStat 新增参数
+- `official/plugins/backtest/release/3_00_5.md` — **3.00.5** — - getBacktestEngineStat 新增参数
+- `official/plugins/backtest/stock.md` — **股票回测配置** — 回测平台支持的股票资产行情数据类型包括：逐笔或逐笔+快照，快照，快照+逐笔成交明细，分钟频率，日频，逐笔（宽表），逐笔+快照（宽表），快照+分钟频率等。
+- `official/plugins/ctp.md` — **CTP** — 综合交易平台（Comprehensive Transaction Platform）简称 CTP，是服务于期货市场的业务管理系统。DolphinDB 提供了对接…
+- `official/plugins/ctp_2.md` — **CTP** — 综合交易平台（Comprehensive Transaction Platform）简称 CTP，是服务于期货市场的业务管理系统。DolphinDB 提供了对接…
+- `official/plugins/ctp_best_practice.md` — **DolphinDB CTP 行情插件最佳实践指南** — 综合交易平台（Comprehensive Transaction Platform），简称
+- `official/plugins/datafeed.md` — **DataFeed** — DolphinDB DataFeed 插件通过集成中金所提供的 SDK 来接收非展示型行情源数据，并将数据存入 DolphinDB 的数据表。该插件支持通过 T…
+- `official/plugins/dataxwriter/README_CN.md` — **基于 DataX 的 DolphinDB 数据导入工具** — DataX-dolphindbwriter 是为解决用户将不同数据来源的数据同步到 DolphinDB 而开发的插件。这类数据的特征是改动很少，并且数据分散在不…
+- `official/plugins/efh.md` — **EFH** — 盛立极速行情系统（EFH）是以FPGA硬件技术处理交易所原始行情及行情发布的低延迟系统。为对接盛立 EFH 行情服务软件，DolphinDB 开发了 EFH 插…
+- `official/plugins/excel_add_in.md` — **Excel Add-In** — Excel 是一款功能强大的电子表格软件，它支持数据的录入、存储、计算与分析。用户可以利用其内置的丰富函数进行数据处理，并通过图表直观展示数据趋势。此外，Exc…
+- `official/plugins/feather/feather.md` — **Feather** — Apache Arrow Feather 文件采用列式存储格式，可用于高效存储与提取数据。DolphinDB 提供的 Feather 插件支持高效地将 Feat…
+- `official/plugins/gp/gp.md` — **GP** — DolphinDB 的 gp 插件可以使用 vector 、table 类型的数据进行画图，并绘绘制好的文件保存到本地。gp 插件基于 gnuplot 开发。
+- `official/plugins/hbase/hbase.md` — **HBase** — 本插件通过 Thrift 接口连接到 HBase，并读取数据。推荐版本：HBase 版本为 1.2.0，Thrift 版本为 0.14.0。
+- `official/plugins/hdf5/hdf5.md` — **HDF5** — HDF5 (Hierarchical Data Format) 是一种常见的跨平台数据储存文件，可以表示非常复杂、异构的数据对象。DolphinDB 提供了 H…
+- `official/plugins/hdfs/hdfs.md` — **HDFS** — HDFS 是 Hadoop 的分布式文件系统（Hadoop Distributed File System），实现大规模数据可靠的分布式读写。DolphinDB…
+- `official/plugins/httpClient/httpclient.md` — **HttpClient** — 通过 DolphinDB 的 httpClient 插件，用户可以发送 HTTP 请求以及发送邮件。该插件使用第三方库 CURL 来进行 HTTP 相关的操作。
+- `official/plugins/input.md` — **input** — input 插件基于 libarchive 开发，用于解压缩内存数据或文件内容，并返回解压后的文本。插件能够自动识别压缩格式（目前支持 zstd 和
+- `official/plugins/insight/insight.md` — **INSIGHT** — INSIGHT 是华泰证券提供的极速金融数据服务，为方便与该金融数据服务对接，DolphinDB 开发了 insight 插件，获取由华泰提供的实时行情数据。插…
+- `official/plugins/insight/insight_2.md` — **INSIGHT** — INSIGHT 是华泰证券提供的极速金融数据服务，为方便与该金融数据服务对接，DolphinDB 开发了 insight 插件，获取由华泰提供的实时行情数据。插…
+- `official/plugins/kafka/kafka.md` — **Kafka** — Kafka 是一种高吞吐量的分布式消息队列，DolphinDB 提供了 Kafka 插件用于发布或订阅 Kafka 流服务。Kafka 插件支持以 Json 格…
+- `official/plugins/kdb/kdb.md` — **Kdb+** — Kdb+ 是可以用于存储、分析、处理和检索大型数据集的列式关系型时间序列数据库。为便于从 Kdb+ 迁移数据，DolphinDB 提供了 kdb+ 插件，支持导…
+- `official/plugins/lgbm.md` — **lgbm** — lgbm 插件用于调用 LightGBM 库，能够高效地对 DolphinDB 进行分类和回归。具体功能包括：
+- `official/plugins/libtorch/libtorch.md` — **LibTorch** — DolphinDB 的 LibTorch 插件允许用户在 DolphinDB 环境中直接加载和使用 TorchScript 模型。这种集成使得用户能够将 Dol…
+- `official/plugins/mat/mat.md` — **mat** — DolphinDB 的 mat 插件支持读取 mat 文件的数据到 DolphinDB，或将 DolphinDB 变量写入 mat 文件，且在读取或写入时自动进…
+- `official/plugins/matchingEngineSimulator/mes.md` — **模拟撮合引擎（Matching Engine Simulator）** — 模拟撮合引擎插件（Matching Engine Simulator）用于模拟用户在某个时间点发出或取消订单的操作，并获取相应的交易结果。
+- `official/plugins/matchingEngineSimulator/rn.md` — **版本说明** — - 股票分钟频支持开启 immediateOrderConfirmation，使委托提交后能够立即返回委托确认回报。（3.00.5.3）
+- `official/plugins/mongodb/mongodb.md` — **MongoDB** — MongoDB 是一个基于分布式文件存储的数据库。DolphinDB 的 MongoDB 插件可以建立与 MongoDB 服务器的连接，导出 MongoDB 数…
+- `official/plugins/mqtt/mqtt.md` — **mqtt** — mqtt 插件基于 MQTT-C 库开发，用于与 MQTT 服务器建立连接并进行交互。该插件支持订阅消息，将收到的消息解析为 CSV 或 JSON 格式；亦支持…
+- `official/plugins/mqtt5.md` — **mqtt5** — mqtt5 插件基于 Paho MQTT C 库开发，用于与 MQTT 服务器建立连接并进行交互。
+- `official/plugins/mseed/mseed.md` — **mseed** — miniSEED 是SEED 格式的子集，一般用于地震学时间序列数据的归档和交换。DolphinDB 的 mseed 插件可以读取 miniSEED 文件的数据…
+- `official/plugins/mysql/mysql.md` — **MySQL** — DolphinDB MySQL 插件可将 MySQL 中的数据表或语句查询结果高速导入 DolphinDB，同时支持数据类型转换。本插件的部分设计参考了来自 Y…
+- `official/plugins/nsq/nsq.md` — **NSQ** — 为对接恒生 NSQ 极速行情服务软件，DolphinDB 基于恒生 HSNsqApi 开发了 NSQ 插件。通过该插件能够获取上海和深圳市场的行情。主要获得以下…
+- `official/plugins/nsq/nsq_2.md` — **NSQ** — 为对接恒生 NSQ 极速行情服务软件，DolphinDB 基于恒生 HSNsqApi 开发了 NSQ 插件。通过该插件能够获取上海和深圳市场的行情。主要获得以下…
+- `official/plugins/odbc/odbc.md` — **ODBC** — ODBC 提供了一个统一的接口，使应用程序能够以 SQL 标准访问异构数据库。通过使用 DolphinDB 的 ODBC 插件，您可以连接其他数据库，将数据导入…
+- `official/plugins/odbc/odbc_faq.md` — **ODBC插件常见问题** — 在使用 DolphinDB 的业务场景中，我们有从其他数据源和 DolphinDB 之间同步数据的需求。比如从 Oracle 读数据写入到 DolphinDB，…
+- `official/plugins/opc/opc.md` — **OPC** — OPC 是一项应用于自动化行业及其他行业的数据安全交换可互操作性标准。DolphinDB 的 OPC 插件可用于访问并采集自动化行业 OPC 服务器的数据。OP…
+- `official/plugins/opcua/opcua.md` — **OPCUA** — OPC 是自动化行业与其他行业用于数据安全交换的互操作性标准。OPC DA 只可用于 Windows 操作系统，OPC UA 则可以独立于平台。本插件实现了 D…
+- `official/plugins/orc.md` — **ORC** — ORC 是一种自描述列式文件格式，专门为 Hadoop 生态设计，可用于高效存储与提取数据，因此适合大批量流数据读取场景。
+- `official/plugins/order_management_engine.md` — **订单管理引擎（Order Management Engine）** — OrderManagementEngine 用于创建订单管理引擎，该引擎支持插入行情和委托下单，实现订单撮合、持仓管理和资金计算， 并返回可用现金、持仓结明细等…
+- `official/plugins/parquet/parquet.md` — **Parquet** — Apache Parquet 文件采用列式存储格式，可用于高效存储与提取数据。DolphinDB 提供的 Parquet 插件支持将 Parquet 文件导入和…
+- `official/plugins/performance_comparison.md` — **DolphinDB 回测平台与其它回测产品的对比分析** — DolphinDB 回测框架建立在已有的数据库基础上，以插件的形式提供多种资产回测方案。 DolphinDB
+- `official/plugins/plg_dev_adv.md` — **插件开发深度解析** — DolphinDB 支持动态加载外部插件，以扩展系统功能。插件用 C++ 编写，需要编译成 .so 或 .dll 共享库文件。插件使用的整体流程请参考：插件介绍…
+- `official/plugins/plg_dev_tutorial.md` — **插件开发教程** — DolphinDB 支持动态加载外部插件，以扩展系统功能。插件用 C++ 编写，需要编译成 ".so" 或 ".dll" 共享库文件。插件使用的流程请参考：插件…
+- `official/plugins/plg_howtos.md` — **插件介绍与使用** — DolphinDB database 支持动态载入外部插件，以拓展系统功能。插件仅支持使用 C++ 编写，并且需要编译成 so 共享库或者 dll 共享库文件。
+- `official/plugins/plg_intro.md` — **插件** — 注：
+- `official/plugins/plg_mkt_inst.md` — **在插件市场安装插件** — - DolphinDB Server: 2.00.10 及更高版本
+- `official/plugins/pulsar.md` — **pulsar** — [Apache
+- `official/plugins/py/py.md` — **Py（3.6/3.7版本）** — 利用 python C-API 协议，实现在 DolphinDB 内调用 Python 环境中的第三方库。本插件使用了 pybind11 库。
+- `official/plugins/py/py_3_9.md` — **Py（3.9 及以上版本）** — 新 py 插件支持在 DolphinDB 中通过面向对象风格的接口调用 Python 包及各种函数。目前，新 py 插件支持 Python
+- `official/plugins/quantlib/quantlib.md` — **QuantLib** — QuantLib是一个开源的金融计算库，用于执行复杂的定量金融分析和衍生品定价。其由
+- `official/plugins/quick_fix.md` — **QuickFix** — DolphinDB QuickFix 插件基于全球金融行业通用的 FIX
+- `official/plugins/rabbitMQ.md` — **RabbitMQ** — DolphinDB Server: 2.00.10 及更高版本。支持 Linux x64。
+- `official/plugins/redis.md` — **Redis** — 通过 DolphinDB 的 Redis 插件，用户可以建立连接到指定 IP 和端口的 Redis 服务器，并进行数据操作。Redis 插件使用了 Hiredi…
+- `official/plugins/rocketMQ.md` — **RocketMQ** — DolphinDB 的 RocketMQ 插件，支持发送数据消息到 RocketMQ 集群、从 RocketMQ 集群中的 Topic 中接收数据。
+- `official/plugins/sevenzip.md` — **SevenZip** — 7Zip 是一个开源压缩库，可用于文件解压缩。DolphinDB 的 SevenZip 插件基于 P7Zip 开源库开发，支持压缩和解压缩多种格式：
+- `official/plugins/signal/signal.md` — **signal** — signal 插件集成了功能强大且性能高的 FFTW3 开源傅里叶变换库，为用户提供了便捷高效的傅里叶变换计算方式。该插件包含多种信号处理函数，如离散正弦变换、…
+- `official/plugins/signal/sipui2.md` — **SipUI2** — DolphinDB SipUI2 插件通过使用中畅原生 API（SipUI2）来订阅实时行情，包括沪深市场的股票、基金、债券的快照和沪深市场的逐笔行情，并将数据…
+- `official/plugins/simulatedexchangeengine.md` — **SimulatedExchangeEngine** — DolphinDB 的 SimulatedExchangeEngine
+- `official/plugins/slwriter.md` — **SchemalessWriter** — 在物联网场景中，日志型数据是一种常见的数据类型。它的特点是不同的数据可能包含不同的字段，因此在存储日志型数据时，需要根据数据的结构动态创建数据表，而不能事先确定…
+- `official/plugins/svm/svm.md` — **SVM** — 支持向量机（Support Vector Machine, SVM）是一种监督学习算法，常用于分类和回归问题。DolphinDB 提供了 SVM 插件，使用户可…
+- `official/plugins/tcpsocket.md` — **TCPSocket** — 通过 DolphinDB 的 TCPSocket 插件，用户可以通过 TCP 连接到指定的 IP 和端口，然后遵循自定义格式的传输报文进行数据的接收和发送。
+- `official/plugins/uniqueid.md` — **UniqueID** — DolphinDB 推出了 UniqueID 插件，用于生成唯一 ID。相比于长度较长且不便于记忆的 UUID，该插件提供了一种更简洁的自增 ID 方案。用户可…
+- `official/plugins/websocket.md` — **WebSocket** — DolphinDB 的 WebSocket 插件提供了强大的 WebSocket 客户端功能。作为一个 WebSocket 客户端，该插件能够连接到 WebSo…
+- `official/plugins/windtdf.md` — **WindTDF** — 为接收万得实时行情数据，DolphinDB 开发了 WindTDF 插件。通过该插件可以获取实时的股票、债券、期货等行情。
+- `official/plugins/windtdf_tutorial.md` — **WindTDF 行情插件最佳实践指南** — 万得宏汇行情系统为各类证券投资机构提供多市场整合的实时行情，通过统一的数据接口标准，提供低延时以及高质量的行情数据服务。DolphinDB 提供了基于万得宏汇行…
+- `official/plugins/xgboost/xgboost.md` — **xgboost** — XGBoost（eXtreme Gradient Boosting）是一个用于建立梯度提升树（Gradient Boosting Decision
+- `official/plugins/xtp.md` — **XTP** — 通过 DolphinDB 的 XTP 插件，用户可以接收上交所、深交所以及北交所的实时行情，并将数据存储于 DolphinDB 的共享表中。可接收的数据如下表所…
+- `official/plugins/zip/zip.md` — **zip** — zip 是一种标准的压缩文件的格式。DolphinDB 的 zip 插件可以对 zip 文件进行解压、压缩文件到 zip 文件中。zip 插件基于 minizi…
+- `official/plugins/zlib/zlib.md` — **Zlib** — DolphinDB 的 zlib 插件，支持文件到文件的 zlib 压缩与解压缩。
+- `official/plugins/zmq/zmq.md` — **zmq** — ZeroMQ (zmq) 是一个高性能异步消息库，能够支持可伸缩的分布式或并发应用程序设计。与面向消息的中间件不同，zmq 可以在无需专门消息代理的情况下运行。…
+
+### backtest — 回测与模拟撮合（1 篇）
+
+- `official/backtest/backtest_intro.md` — **回测与模拟撮合** — DolphinDB 提供了强大的回测解决方案，包括回测引擎插件（Backtest）和模拟撮合引擎插件（Matching Engine Simulator），帮助…
+
+### mcp — MCP（8 篇）
+
+- `official/mcp/architecture_scope.md` — **系统架构和边界** — 本节介绍 Stock MCP 在投研场景下的数据体系及其能力边界，阐明 DolphinDB 数据底座如何支撑 AI 投研能力，以及 Stock MCP
+- `official/mcp/develop_mcp_tool.md` — **MCP 工具开发指南** — DolphinDB MCP 工具的开发遵循以下标准流程:
+- `official/mcp/examples.md` — **场景案例** — 借助 MCP 服务，您可以将 ChatGPT、Claude、DeepSeek 或自建的大模型，借助第三方 MCP Client 平台如 Cherry Studi…
+- `official/mcp/mcp_introduction.md` — **MCP** — MCP（Model Context Protocol）是一种标准协议，用于将 大模型调用工具 的能力从原本紧耦合的 Function Call
+- `official/mcp/mcp_use_guide.md` — **MCP 使用指南** — 1. 下载 DolphinDB 最新版本 3.00.4。
+- `official/mcp/quick_start.md` — **快速开始** — 本章节介绍如何快速接入 Stock MCP 服务，包括如何申请访问凭证（API Key）、配置鉴权信息、接入 MCP 平台以及使用不同权限组调用工具。
+- `official/mcp/stock_mcp.md` — **Stock MCP 金融工具包** — DolphinDB Stock MCP Server（以下简称为 Stock MCP）是一款面向股票智能投研的 AI 金融工具包。
+- `official/mcp/tools.md` — **工具列表** — 目前发布的 MCP 工具主要包含：
+
+### tutorials — 教程（269 篇）
+
+- `official/tutorials/ACL_and_Security.md` — **用户权限管理** — 在数据库产品使用过程中，为保证数据不被窃取、不遭破坏，我们需要通过用户权限来限制用户对数据库、数据表、视图等功能的操作范围，以保证数据库安全性。为此，Dolph…
+- `official/tutorials/ACL_and_Security_2.md` — **用户权限管理** — 在数据库产品使用过程中，为保证数据不被窃取、不遭破坏，我们需要通过用户权限来限制用户对数据库、数据表、视图等功能的操作范围，以保证数据库安全性。为此，Dolph…
+- `official/tutorials/ARM_standalone_deploy.md` — **单节点部署与升级 (ARM)** — 本教程用于嵌入式 ARM 版本的单节点部署、升级、过期 License 升级，并对常见问题做出解答，便于用户快速上手 DolphinDB 。包含以下主题：
+- `official/tutorials/Array_Vector.md` — **Array Vector 的最佳实践指南** — 越来越多的机构使用 L1/L2 的快照行情数据进行量化金融的研究。作为一个高性能实时计算平台，DolphinDB 非常适合存储和处理海量的历史高频行情数据。针对…
+- `official/tutorials/CSI_1000.md` — **流式计算中证 1000 指数主买/主卖交易量** — 主买是指以卖方的报价成交，主卖是指以买方的报价成交。 一般来说，主动买入就是资金流入，主动卖出就是资金流出，所以实时统计主买/主卖交易量能够实时监控资金的流入流…
+- `official/tutorials/CSI_1000_2.md` — **流式计算中证 1000 指数主买/主卖交易量** — 主买是指以卖方的报价成交，主卖是指以买方的报价成交。 一般来说，主动买入就是资金流入，主动卖出就是资金流出，所以实时统计主买/主卖交易量能够实时监控资金的流入流…
+- `official/tutorials/ClickHouse_to_DolphinDB.md` — **从 ClickHouse 迁移到 DolphinDB** — ClickHouse 是 Yandex 公司于 2016 年开源的用于 OLAP 的列式数据库管理系统，主要用于 WEB 流量分析。凭借面向列式存储、支持数据压…
+- `official/tutorials/Compute_Node.md` — **使用计算节点** — 导读
+- `official/tutorials/DECIMAL.md` — **DECIMAL 类型之于 DolphinDB** — 数字运算在数据库中是很常见的需求，例如计算数量、重量、价格等，为了满足各种需求，数据库系统通常支持精准的数据类型和近似的数据类型。在金融领域中，对数据的计算精度…
+- `official/tutorials/DECIMAL_Calculation_Characteristics.md` — **计算精度问题与 DECIMAL 类型** — DECIMAL 的存储分为两部分，即存储整型数据的 raw data 和存储小数位数的 scale。例如，对于DECIMAL32(2) 类型的 1.23, 它存…
+- `official/tutorials/Data_Move_Rebalance.md` — **数据再平衡** — 数据迁移再平衡的目标是保证分区副本尽可能均衡分布，副本位置影响着 IO 性能、节点负载，对于数据访问延迟有着较大的影响。近来，越来越多的客户对于数据容量或计算性…
+- `official/tutorials/Debezium_Kafka_Oracle_sync.md` — **Debezium + Kafka 实时同步 Oracle 11g 数据到 DolphinDB** — 教程难度
+- `official/tutorials/Debezium_Kafka_PostgreSQL_sync.md` — **Debezium + Kafka 实时同步 PostgreSQL 数据到 DolphinDB** — 随着越来越多的用户使用 DolphinDB，各种不同的应用的场景也对 DolphinDB 的数据接入提出了不同的要求。部分用户需要将 PostgreSQL 的数…
+- `official/tutorials/Debezium_and_Kafka_data_sync.md` — **Debezium + Kafka 实时同步 MySQL 数据到 DolphinDB** — Debezium 是一个开源的分布式平台，用于实时捕获和发布数据库更改事件。它可以将关系型数据库（如 MySQL、PostgreSQL、Oracle 等）的变更…
+- `official/tutorials/DolphinDB_Explain.md` — **SQL 执行计划** — 为了更直观优化数据查询的性能，DolphinDB提供查询SQL执行计划的功能，便于对SQL语句进行调优。
+- `official/tutorials/DolphinDB_TopN.md` — **TopN 系列函数** — DolphinDB 已经有非常多的窗口计算函数，例如 m 系列的滑动窗口计算，cum 系列累计窗口计算，tm 系列的的时间窗口滑动计算。但是所有这类函数都是对窗…
+- `official/tutorials/DolphinDB_VS_PythonFile_Storage.md` — **Python + 文件存储与 DolphinDB 因子计算性能比较** — 在量化交易中，基于金融市场 L1/L2 报价和交易高频数据进行高频因子计算是一项常见的投研需求。随着金融市场数据量的不断增加，传统的关系数据库已经难以满足大规模…
+- `official/tutorials/FxSwapValuation.md` — **外汇掉期估值计算** — 在金融领域，合约的估值计算是个常见需求。几百万个合约，由于到期时间和期限长短不同，计算时往往对应不同的利率。合约匹配利率，最常见的做法是通过循环语句对每一个合约…
+- `official/tutorials/IV_Greeks_Calculation_for_ETF_Options_Using_JIT.md` — **利用JIT加速计算 ETF 期权隐含波动率和希腊值** — 期权的隐含波动率可以反应市场对未来的预期，通常使用牛顿法和二分法来计算。这两种方法都需要频繁迭代，且迭代次数不能确定，核心代码无法向量化，因此只能通过循环来逼近…
+- `official/tutorials/ImportTLData_toturial.md` — **通联历史数据导入教程** — 通联数据的原始历史数据包含多层次市场结构与高频时序特征，因此在标准化入库过程中，需要完成库表分区设计、数据处理转换和分布式存储等多个环节。针对通联数据特有的多层…
+- `official/tutorials/Iot_intelligent_O&M.md` — **助力工业物联网实现智能运维** — 随着数字化转型的浪潮兴起，越来越多企业认识到工业物联网在提升工业生产安全性和效率方面的关键作用。然而，随着设备规模的扩大和工艺复杂性的提升，智能化运维监管成为工…
+- `official/tutorials/LoadDataForPoc.md` — **金融 PoC 用户历史数据导入指导手册之股票 Level-2 逐笔篇** — 在部署完 DolphinDB 后，将历史数据导入数据库是后续进行数据查询、计算和分析的基础。为协助用户快速导入数据，本文档基于 DolphinDB 已有的教程与…
+- `official/tutorials/MVO.md` — **优化投资组合：DolphinDB 最优化求解系列函数应用指南** — 线性规划和非线性规划是运筹学中重要的内容，在金融和经济领域的问题解决中具有广泛的应用。在金融量化领域的多因子量化模型中，组合权重优化起着至关重要的作用，组合权重…
+- `official/tutorials/Migrate_data_from_InfluxDB_to_DolphinDB.md` — **从 InfluxDB 迁移到 DolphinDB** — InfluxDB 是一款流行的时序数据处理平台，有着丰富的数据导入方式，完善的集数据处理、预警、可视化等功能为一体的操作界面。其主要是面向物联网场景开发的，同时…
+- `official/tutorials/Migrate_data_from_Redshift_to_DolphinDB.md` — **从 Redshift 迁移到 DolphinDB** — AWS Redshift 是最早的云数据仓库之一，为用户提供完全托管的 PB 级云中数据仓库服务。用户可以使用标准 SQL 和现有的商业智能工具，经济高效地进行…
+- `official/tutorials/MySQL_to_DolphinDB.md` — **从 MySQL 迁移到 DolphinDB** — 将数据从 MySQL 导入到 DolphinDB，或从 DolphinDB 导出数据到 MySQL，有多种实现方法，常用的方法如下图所示：
+- `official/tutorials/OHLC.md` — **K 线计算** — DolphinDB 提供了功能强大的内存计算引擎，内置时间序列函数，分布式计算以及流数据处理引擎，在众多场景下均可高效的计算K线。本教程将介绍DolphinDB…
+- `official/tutorials/OHLC_2.md` — **K 线计算** — DolphinDB 提供了功能强大的内存计算引擎，内置时间序列函数，分布式计算以及流数据处理引擎，在众多场景下均可高效的计算K线。本教程将介绍DolphinDB…
+- `official/tutorials/OceanBase_to_DolphinDB.md` — **从 OceanBase 迁移到 DolphinDB** — OceanBase 是一款金融级分布式关系数据库，具有数据强一致、高可用、高性能、在线扩展、高度兼容 SQL 标准和主流关系数据库、低成本等特点，但是其学习成本…
+- `official/tutorials/Oracle_to_DolphinDB.md` — **从 Oracle 迁移到 DolphinDB** — Oracle 是一个广泛使用的关系型数据库管理系统，它支持 ACID 事务处理，具有强大的安全性和可靠性，因此被广泛应用于各种企业级应用程序。但是，随着数据规模…
+- `official/tutorials/Practical_Factor_Analysis_Modeling.md` — **Alphalens 在 DolphinDB 中的应用：因子分析建模实践** — 多因子投研一直都是量化投资领域当中的重要基石，Alphalens 和 DolphinDB，作为知名的单因子分析框架和基于高性能时序数据库的时序计算平台，无疑是备…
+- `official/tutorials/Python_Celery.md` — **因子计算平台构建** — 因子挖掘是量化金融研究和交易的核心工作。传统的开发流程中，通常使用 Python 从关系型数据库（如 SqlServer, Oracle 等）读取数据，在 Py…
+- `official/tutorials/Python_HDF5_vs_DolphinDB.md` — **Python + HDF5 因子计算与 DolphinDB 一体化因子计算方案对比** — 在量化交易中基于金融市场的 L1/L2 的报价和交易高频数据来进行高频因子计算是非常常见的投研需求。目前国内全市场十年的 L2 历史数据约为 20 ~ 50T，…
+- `official/tutorials/SQLServer_to_DolphinDB.md` — **从 SQL Server 迁移到 DolphinDB** — 作为传统的事务型数据库，SQL Server 有着出色的读写性能，但当面对高吞吐量数据写入以及海量的数据分析等场景时，却无法满足需求。即使数据量较小，能满足数据…
+- `official/tutorials/Startup.md` — **启动脚本** — DolphinDB 从1.0版本开始，提供启动脚本功能。在启动脚本中，用户可以指定每次DolphinDB启动都需要自动执行的任务，譬如初始化流数据，定义共享变量…
+- `official/tutorials/StreamEngineParser.md` — **流数据引擎解析器** — 流数据引擎解析器（StreamEngineParser）的主要功能是自动构建计算流水线，以及在流批一体计算场景中，将批计算因子翻译成流计算解决方案。以下内容将详…
+- `official/tutorials/Virbration_Monitor_Fault_Diagnose.md` — **云边协同：DolphinDB 构建一体化振动监控与故障诊断解决方案** — 随着物联网时代的发展，边缘设备的数量急剧膨胀，对边缘设备的数据管理、分析成为难题。在许多应用场景中，特别是需要实时数据处理和反馈的场合，传统的云计算模型往往面临…
+- `official/tutorials/about_tutorials.md` — **教程** — DolphinDB 是一种高性能的分布式数据库和分析计算平台，它支持海量数据的存储、管理和分析。DolphinDB
+- `official/tutorials/add_Column.md` — **动态增加字段和计算指标** — 工业物联网采集的数据和金融交易数据具有相同的特点：频率高、维度多、数据一旦生成就不会改变、数据量庞大，并且工业物联网数据采集的维度和实时计算的指标会随着业务扩展…
+- `official/tutorials/amd_best_prac.md` — **amdQuote 插件最佳实践指南** — 华锐 AMD 高速行情传输平台是华锐技术推出的行情分发平台，行情消费者可以通过华锐高速行情转码 API (AMA) 对接 AMD，接收转码行情。为了对接该平台，…
+- `official/tutorials/api_performance.md` — **API性能基准测试报告** — DolphinDB是一款高性能分布式时序数据库，属于列式关系型数据库，由C++编写，具有内置的并行和分布式计算框架，可用于处理实时数据和海量历史数据。
+- `official/tutorials/appendices_market_replay_bp.md` — **搭建行情回放服务的最佳实践** — 一个量化策略在生产（交易）环境中运行时，实时数据的处理通常是由事件驱动的。为确保研发和生产使用同一套代码，通常在研发阶段需将历史数据，严格按照事件发生的时间顺序…
+- `official/tutorials/arrow_plugin_usage.md` — **高效数据交互 Arrow 插件使用教程** — Apache Arrow 是一种跨语言的内存数据交换格式，旨在为用户提供高效的数据结构，以实现在不同的数据处理系统之间共享数据而无需进行复制。它由 Apache…
+- `official/tutorials/async_replication.md` — **集群间异步复制** — 异步复制是进行集群间数据同步的一种方式。在金融交易、物联网、互联网/移动互联网等应用场景中，复杂的业务对数据一致性和可靠性提出了极高的要求。与同步复制相比，异步…
+- `official/tutorials/backtest_introduction_usage.md` — **融资融券策略回测使用说明及回测案例** — 融资融券是一种利用杠杆放大投资收益的交易方式，它给投资者提供了更多的资金和交易机会。在量化投资中，融资融券业务被广泛应用于多种策略和操作中。包括杠杆交易、对冲策…
+- `official/tutorials/backtest_volatility_timing_vertical_spread.md` — **回测应用：期权中高频波动率择时价差策略回测** — 教程难度
+- `official/tutorials/backtesting_using_MatchingEngineSimulator.md` — **在 C++ 使用模拟撮合引擎插件实现自定义的高性能回测** — DolphinDB 的高性能行情回放与模拟撮合引擎插件，为量化交易者提供了低延迟、高吞吐量的策略验证解决方案。对于已构建 C++
+- `official/tutorials/backup-restore-new.md` — **数据备份以及恢复 （1.30.20/2.00.8及之后版本）** — 本文适用于 DolphinDB 如下版本：
+- `official/tutorials/backup_restore_before_208.md` — **数据备份以及恢复 （1.30.20/2.00.8以前版本）** — DolphinDB 提供了一系列函数，用于数据备份与恢复。数据备份和恢复时均以表的分区为单位。
+- `official/tutorials/behavioral_profiling_of_driving_habits.md` — **使用 DolphinDB 进行汽车用户驾驶习惯行为画像分析** — 近年来，新能源汽车行业的迅速发展推动了汽车智能化的趋势。新能源汽车上配备了成千上万的传感器，这些传感器采集了大量的行车数据被用于车辆运行状况的监控与分析。但另一…
+- `official/tutorials/best_practice_for_factor_calculation.md` — **因子计算最佳实践** — 因子挖掘是量化交易的基础。除传统的基本面因子外，从中高频行情数据中挖掘有价值的因子，并进一步建模和回测以构建交易系统，是一个量化团队的必经之路。金融或者量化金融…
+- `official/tutorials/best_practice_for_mdl.md` — **MDL 行情插件最佳实践指南** — 通联数据依托于金融大数据，结合人工智能技术为投资者提供个性化、智能化、专业化投资服务。而 MDL 是通联数据提供的高频行情数据服务，DolphinDB 提供了能…
+- `official/tutorials/best_practice_for_storage_compute_separation.md` — **存算分离最佳实践教程** — 存算分离架构是一种现代数据处理设计理念，旨在通过将计算和存储资源分离，提高系统的灵活性和性能。自 3.00.2 版本起，DolphinDB
+- `official/tutorials/best_practices_for_log_monitoring.md` — **日志监控在 DolphinDB 中的最佳实践** — 随着大数据应用复杂度提升，高效的日志监控成为保障系统稳定性的关键。DolphinDB 作为高性能时序数据库，其高可用集群的运维需实时日志分析支持。本文基于
+- `official/tutorials/best_practices_for_multi_factor.md` — **中高频多因子库存储最佳实践** — 因子挖掘是量化交易的基础。随着量化交易竞争的加剧，量化投资团队需要处理大量因子。在许多情况下，因子数据量甚至会远远超过高频的行情数据量。以5,000只股票10,…
+- `official/tutorials/best_practices_for_partitioned_storage.md` — **存储金融数据的分区方案最佳实践** — 对数据库进行合理的分区可以显著降低系统响应延迟，提高数据吞吐量。合理的分区设计需要综合考虑数据分布的特征、查询和计算的典型场景、数据更新的频率等方方面面。
+- `official/tutorials/best_price_selection.md` — **实时选取外汇行情多价源最优价** — 在外汇交易中，存在多个价源。多个价源之间，同一时刻的报价可能存在差异。在多个价源之间，实时选取最优价格具有重要意义，它有助于投资者获得更有利的交易执行价，降低交…
+- `official/tutorials/brinson.md` — **基于 DolphinDB 的 Brinson 绩效归因模型实践** — 在绩效归因中，Brinson 模型用于对股票型和混合型基金进行实证研究。Brinson 模型基于持仓数据，将基金的超额收益归于资产配置和标的选择两部分。并且有多…
+- `official/tutorials/cachedtable.md` — **利用缓存表快速实现 MySQL 库间信息同步** — 近年来，受益于云计算、大数据和人工智能等技术的快速发展，物联网、金融等企业的平台支撑系统进入新阶段，需要高吞吐量的数据写入和海量数据的分析能力共存的大数据平台。…
+- `official/tutorials/campisi.md` — **基于 DolphinDB 的 Campisi 绩效归因模型实践** — 债券型基金是我国公募基金的重要组成部分，其中纯债型基金的收益和波动主要源于债券型资产。绩效归因可以帮助我们进一步明确基金的收益来源，对于债券基金，Campisi…
+- `official/tutorials/clear_cache.md` — **数据库缓存清理机制** — 数据库缓存在提升数据库性能和响应速度方面起着至关重要的作用。然而，不必要的缓存可能会占用过多的内存资源，从而影响系统效率。本文将介绍如何高效清理 Dolphin…
+- `official/tutorials/cloud_deployment_with_terraform.md` — **使用 Terraform 在云上部署 DolphinDB** — 本教程将介绍如何通过 Terraform 快速地在 AWS 部署 DolphinDB 单节点和高可用集群。
+- `official/tutorials/cluster_monitor.md` — **集群运维监控** — 在读写、查询等高并发场景中，了解资源的使用情况能快速定位性能的瓶颈所在。本教程提供对多（或单）服务器及 DolphinDB 高可用集群（或单节点）资源的监控、告…
+- `official/tutorials/cluster_scaleout_perf_test.md` — **集群水平扩展性能测试** — DolphinDB是一款高性能的分布式时序数据库，提供了分布式的存储和计算引擎，可以高效的满足金融和物联网等众多领域海量时序数据库的存储和计算用途。根据数据库排…
+- `official/tutorials/cross_environment_synchronization.md` — **DolphinDB 跨环境数据动态同步方案** — 随着高频交易与历史行情数据的规模急剧膨胀，企业数据总量已进入爆发式增长阶段。作为这类核心时序数据的承载平台，DolphinDB 面临着从单节点迁移到新集群、定期…
+- `official/tutorials/csap.md` — **CSAP 因子指标库** — CSAP 因子（Cross-Sectional Asset Pricing
+- `official/tutorials/cta.md` — **外汇中高频 CTA 风控策略回测案例** — 在汇率波动日益频繁、企业与机构对风险管理要求不断提高的背景下，外汇交易策略已成为资产配置与对冲操作的重要工具。其中，CTA
+- `official/tutorials/cta_strategy_implementation_and_backtesting.md` — **CEP 引擎应用：股票中高频 CTA 策略实现与并行回测** — 面向读者
+- `official/tutorials/curve_surface_builder.md` — **FICC 曲线/曲面构建** — 构建收益率曲线和期权波动率曲面是金融工程和定量分析的核心环节。它确保了定价的精确性、一致性，并为后续的风险管理和交易决策提供了坚实的基础。一个微小的曲线构建误差…
+- `official/tutorials/daily_stock_portfolio_backtest.md` — **股票组合管理日频回测案例** — 在量化投资中，组合回测是评估投资策略稳定性与收益风险特征的核心环节。无论是指数增强策略、基金定投组合，还是机构资产管理中的模型组合，策略绩效都取决于在不同市场阶…
+- `official/tutorials/dashboard_tutorial.md` — **数据面板** — 数据面板（亦称为 Dashboard）是一个强大的数据可视化和分析工具，旨在帮助用户更好地理解和利用数据。
+- `official/tutorials/data_ETL.md` — **利用 DolphinDB 高效清洗数据** — ETL (Extraction-Transformation-Loading) 是商业智能、数据仓库以及数据挖掘的核心。随着数据量越来越庞大，不可避免会产生残缺…
+- `official/tutorials/data_import_details.md` — **数据导入最容易忽略的十个细节** — 数据导入是使用 DolphinDB 的重要一环。无论是从磁盘文件（如 csv 文件、txt 文件等）导入数据，还是使用插件从其他来源导入，如果忽略了一些操作细节…
+- `official/tutorials/data_interface_for_redash.md` — **Redash 连接 DolphinDB 数据源** — Redash 是一款开源的 BI 工具，提供了基于 Web 的数据库查询和数据可视化功能。DolphinDB 支持 HTTP 协议的 POST 和 GET 接口…
+- `official/tutorials/data_replay.md` — **数据回放** — 一个量化策略在用于实际交易时，处理实时数据的程序通常为事件驱动。而研发量化策略时，需要使用历史数据进行回测，这时的程序通常不是事件驱动。因此同一个策略需要编写两…
+- `official/tutorials/data_sync_among_clusters.md` — **集群间数据库同步** — DolphinDB 提供以下方式实现不同集群间 DFS 数据库的同步：
+- `official/tutorials/database.md` — **分区数据库设计和操作** — 对数据库进行分区可以显著降低系统响应延迟，提高数据吞吐量。具体来说，分区有以下主要好处。
+- `official/tutorials/database_and_table_creation_details.md` — **建库建表最容易忽略的十个细节** — 使用 DolphinDB 创建数据库和表时，人们通常对分区列、分区类型和排序列的选择并不十分清晰。如果不加注意，可能导致查询速度变慢、数据丢失或插入错误等问题。…
+- `official/tutorials/database_and_table_creation_wizard.md` — **DolphinDB Web 界面库表创建指南** — 时序数据适用于现代社会的各类应用场景分析。无论是物联网场景的数据采集还是金融场景的交易分析，时序数据无处不在，因此，时序数据库的重要程度与日俱增。时序数据库会利…
+- `official/tutorials/datax_writer.md` — **基于 DataX 的 DolphinDB 数据导入工具** — DataX-dolphindbwriter 插件是解决用户将不同数据来源的数据同步到 DolphinDB 的场景而开发的，这些数据的特征是改动很少，并且数据分散…
+- `official/tutorials/ddb_airflow.md` — **DolphinDB 与 Python AirFlow 最佳实践** — DolphinDB 作为一款高性能时序数据库，其在实际生产环境中常有数据的清洗、装换以及加载等需求，而对于该如何结构化管理好 ETL 作业，Airflow 提供…
+- `official/tutorials/ddb_comparison_rules_of_time_types.md` — **DolphinDB 时间类型比较规则** — 在数据库中，时间是一种常见的数据类型。在处理时间数据时，比较操作是非常常见的需求。然而，在不同的场景下，对时间类型数据进行比较时应用的规则不同。本文将从 Dol…
+- `official/tutorials/ddb_sql_cases.md` — **SQL 编写案例** — 本教程重点介绍了一些常见场景下的 SQL 编写案例。介绍如何正确编写 SQL 语句来提升脚本运行性能，通过优化前后性能对比，来说明DolphinDB SQL脚本…
+- `official/tutorials/ddb_str_app_iot.md` — **实时检测传感器状态变化** — 工业物联网领域，能否对从传感器采集到的包括湿度、温度、压力、液位、流速等多方面的海量数据进行快速的实时处理，对各种工业智能制造应用至关重要。DolphinDB …
+- `official/tutorials/ddb_str_app_iot_2.md` — **实时检测传感器状态变化** — 工业物联网领域，能否对从传感器采集到的包括湿度、温度、压力、液位、流速等多方面的海量数据进行快速的实时处理，对各种工业智能制造应用至关重要。DolphinDB …
+- `official/tutorials/ddb_telegraf_grafana.md` — **实现设备指标的采集监控和展示** — 基于原始数据采集的可视化监控是企业确保设备正常运行和安全生产的重要措施。本文详细介绍了如何从 DolphinDB 出发，借助 Telegraf 对设备进行原始数…
+- `official/tutorials/debezium_kafka_real_time_synchronization_of_oracle_11g_data.md` — **Debezium + Kafka 实时同步 Oracle 11g 数据到 DolphinDB 运维手册** — 教程难度
+- `official/tutorials/displaying_the_dolphindb_k-line_with_klinechart.md` — **使用 KLineChart 展示 DolphinDB K 线** — KLineChart 是一款开源的简单易用，适用场景丰富的 Web 前端金融图表，可以用于渲染金融 K 线图，它基于 html5 canvas 构建，零依赖压缩…
+- `official/tutorials/docker-compose_high_cluster.md` — **基于 Docker-Compose 部署 DolphinDB** — Docker Compose 项目是 Docker 官方的开源项目，负责实现对 Docker 容器集群的快速编排。
+- `official/tutorials/docker_single_deployment.md` — **基于 Docker 部署 DolphinDB** — Docker 只是轻量化的资源隔离，DolphinDB 部署在 Docker 环境和非 Docker 环境下的运行性能差异不明显，可根据业务需求选择合适的运行环…
+- `official/tutorials/dolphindb_tensor_libtorch_tutorial.md` — **DolphinDB Tensor 及 LibTorch 模型推理插件使用教程** — 在 TensorFlow, PyTorch 等现代机器学习库中，类似于多维数组的张量（Tensor） 被视作核心的数据结构，是处理数据的基本单位。Tensor
+- `official/tutorials/dolphindb_update.md` — **分布式表数据更新原理和性能** — DolphinDB 从 1.30.6 版本开始支持更新分布式表数据。更新操作支持事务，具备事务 ACID 的特性，且通过 MVCC 实现快照隔离级别。Dolph…
+- `official/tutorials/dolphinscheduler_integration.md` — **DolphinDB 与 DolphinScheduler 的集成** — DolphinDB 是一款高性能时序数据库。DolphinDB 集成了功能强大的编程语言和高容量高速度的批流一体数据分析系统，
+- `official/tutorials/e6_97_a0_e6_a0_87_e9_a2_9810.md` — **登录管理**
+- `official/tutorials/earthquake_prediction_ddb_ml.md` — **基于波形数据的地震预测** — 在地震波形数据异常检测场景中，通常需要使用多种工具和方法来提高检测精度和鲁棒性。其中，FilterPicker 是一种常用的基于模板匹配的异常检测工具，可以实现…
+- `official/tutorials/earthquake_prediction_ddb_ml_2.md` — **基于波形数据的地震预测** — 在地震波形数据异常检测场景中，通常需要使用多种工具和方法来提高检测精度和鲁棒性。其中，FilterPicker 是一种常用的基于模板匹配的异常检测工具，可以实现…
+- `official/tutorials/edge_to_cloud.md` — **DolphinDB 实现边到云的实时数据汇聚** — 边端传感器的广泛应用使得边端设备与云端之间的实时数据同步成为确保系统高效运行和支持智能决策的关键环节。通过实时数据同步，边端设备能够迅速将现场采集到的大量数据传…
+- `official/tutorials/effective-log-storage-and-retrieval.md` — **基于 Fluent Bit 与 DolphinDB TextDB 的实时日志采集存储与高效检索实践** — 随着大数据应用复杂度提升，高效的日志采集和存储成为保障系统稳定性的关键。DolphinDB 作为高性能时序数据库，其高可用集群的运维需实时日志分析支持。本文基于…
+- `official/tutorials/efficient_power_trading_solutions.md` — **当电力市场碰上量化技术，如何构建高效电力交易解决方案？** — 在数字化浪潮的推动下，物联网技术正重塑着各领域，电力交易市场亦不例外。作为能源市场的关键一环，电力交易的效率和透明度对于保障能源系统的稳定运行和可持续发展具有重…
+- `official/tutorials/empyrical.md` — **风险和绩效计算（Empyrical）指标库** — Empyrical 库是一个由 Quantopian 开发的开源 Python
+- `official/tutorials/exchdata_exchange_historical_stock_data_auto_import_module_tutorial.md` — **ExchData 交易所历史股票数据自动化导入功能模块使用教程** — 在部署完 DolphinDB 后，需要将历史股票数据批量导入数据库，再进行数据查询、计算和分析等操作。为便于用户快速导入交易所 Level-2 历史行情数据，D…
+- `official/tutorials/factor_attribution_analysis.md` — **基于 DolphinDB 的因子归因分析** — 在金融市场中，任何一只股票在同一时点都暴露于多种不同的因素之下，它们之间的共同作用形成了股票价格的波动。随着量化方法与大数据技术的广泛应用，越来越多的投资者采用…
+- `official/tutorials/factor_evaluation_framework.md` — **基于 DolphinDB 构建高性能因子评价框架** — 在投资领域，因子是解释收益与资产定价的核心，追踪有效因子是获取超额收益的关键。而因子评价则是系统化评估因子的统计显著性与信息有效性的关键流程。本文基于 Dolp…
+- `official/tutorials/faultAnalysis.md` — **DolphinDB 历史数据回放功能应用：物联网设备故障分析** — 工业物联网场景中，故障分析是一个关键环节。设备发生故障时，需快速定位原因。实时采集的流式数据和操作日志记录了设备当前的运行状态，如何根据这些数据快速定位故障发生…
+- `official/tutorials/financial_mock_data_generation_module.md` — **金融 Mock 数据生成模块** — 测试 DolphinDB 数据库性能时，往往需要快速写入一些测试数据。为方便用户快速完成简单的基准性能测试，金融 Mock 数据生成模块覆盖了常用的金融数据集，…
+- `official/tutorials/forecast_taxi_trip_dura.md` — **出租车行程时间预测** — DolphinDB 集高性能时序数据库与全面的分析功能为一体，可用于海量结构化数据的存储、查询、分析、实时计算等，在工业物联网场景中应用广泛。本文以纽约出租车行…
+- `official/tutorials/forecast_taxi_trip_dura_2.md` — **出租车行程时间预测** — DolphinDB 集高性能时序数据库与全面的分析功能为一体，可用于海量结构化数据的存储、查询、分析、实时计算等，在工业物联网场景中应用广泛。本文以纽约出租车行…
+- `official/tutorials/func_progr_cases.md` — **函数化编程案例** — DolphinDB 支持函数化编程：函数对象可以作为高阶函数的参数。这提高了代码表达能力，简化了代码，复杂的任务可以通过一行或几行代码完成。
+- `official/tutorials/function_mapping_py.md` — **Python 到 DolphinDB 的函数映射** — 本篇介绍 Python 部分模块到 DolphinDB 函数库的不完全映射。
+- `official/tutorials/fund_factor_contrasted_by_py.md` — **计算基金日频因子** — 根据某个基金每日的净值数据计算得到的因子称作“基金日频因子”。基金日频因子能反映出基金的近况，是衡量基金收益、波动、风险等的重要指标。随着数据规模与日俱增，对大…
+- `official/tutorials/futures_minute_frequency_cta_strategy_backtest_example.md` — **期货分钟频 CTA 策略回测案例** — CTA 策略在现代金融市场中扮演着重要角色，通过技术分析和趋势跟踪，其能够帮助用户捕捉市场动向，实现风险对冲和利润最大化。在中高频交易中，CTA
+- `official/tutorials/general_computing.md` — **通用计算** — DolphinDB database不仅可以分布式地存储数据，而且对分布式计算有良好支持。在DolphinDB中，用户可以用系统提供的通用分布式计算框架，通过脚…
+- `official/tutorials/generate_large_scale_statistics_with_summary.md` — **使用 summary 函数生成大规模数据统计信息** — 对数据集深入分析前，可以通过 summary 函数快速了解数值型列的概括信息，例如，平均值、标准差、最小值、最大值和百分位数，这有助于初步了解数据的分布情况和特…
+- `official/tutorials/getting_started_with_cep_engine.md` — **CEP 引擎入门：初级高频量价因子策略的实现** — 提示：
+- `official/tutorials/gplearn.md` — **Shark GPLearn 快速上手** — 在金融领域，gplearn 经常被用于利用历史数据挖掘出合适的因子来指导股票/期货的买卖决策。然而，当前的 gplearn 面临着一些挑战：
+- `official/tutorials/gray_scale_upgrade_ha.md` — **高可用集群的灰度升级** — 用传统方式升级集群版本，通常需要先把全部节点关闭，然后一次性把整个集群全部节点的版本升级为新版本。升级时，业务必须中断。灰度升级是指可以按节点逐一进行版本升级的…
+- `official/tutorials/guide_to_obtaining_stack_traces.md` — **DolphinDB API 卡住获取栈信息指南** — 在通过 DolphinDB 的各类 API 进行程序开发时，可能遭遇应用程序无响应（卡死）的情况。这类问题可能源于网络连接的意外中断、 DolphinDB 服务…
+- `official/tutorials/haProxy_best_practices.md` — **使用 HAProxy 实现负载均衡** — HAProxy 是一款基于 C 语言开发的开源软件，用于提供高可用性、负载均衡和基于 TCP（第四层）和 HTTP（第七层）应用的代理服务，是一种免费、快速、可…
+- `official/tutorials/haStreaming.md` — **流数据高可用** — DolphinDB支持流数据的发布、订阅、预处理、实时内存计算、复杂指标的滚动窗口计算等，既能处理分析实时数据，也能对历史数据进行计算分析，帮助用户利用、发挥这…
+- `official/tutorials/ha_cluster_deployment.md` — **高可用集群部署与升级** — DolphinDB 集群包括四种类型节点：控制节点（controller）、代理节点（agent）、数据节点（datanode）和计算节点（compute no…
+- `official/tutorials/ha_mvcc_table.md` — **高可用 MVCC 与普通 MVCC 的性能基准测试** — 分别对高可用 MVCC 表和 MVCC 表进行批量写入测试。测试单线程和多线程并发写入性能。
+- `official/tutorials/ha_mvcc_table_guide.md` — **DolphinDB 高可用 MVCC 表使用指南** — 高可用 MVCC 表是DolphinDB基于 Raft 共识协议构建的高可用多版本并发控制（MVCC）表，旨在为关键业务提供强一致性与服务高可用的数据存储解决方…
+- `official/tutorials/hf_factor_streaming.md` — **实时计算高频因子** — DolphinDB 是一款高性能分布式时序数据库。与传统的关系数据库和常见的时序数据库不同，DolphinDB 不仅提供了高速存取时序数据的基本功能，而且内置了…
+- `official/tutorials/hf_factor_streaming_2.md` — **实时计算高频因子** — DolphinDB 是一款高性能分布式时序数据库。与传统的关系数据库和常见的时序数据库不同，DolphinDB 不仅提供了高速存取时序数据的基本功能，而且内置了…
+- `official/tutorials/hf_to_lf_factor.md` — **高频行情低频化因子库使用教程** — 目前，在量化投资研究领域，因子挖掘与应用正不断向更高频、更精细的数据层级深入。经典的因子库，如 国泰君安 191 Alpha 因子库 和
+- `official/tutorials/high_freq_data_storage_and_analysis.md` — **工业试验平台高频数据的存储和处理分析** — DolphinDB 作为集成了高容量高速度流数据分析系统和强大编程语言的一站式解决方案，旨在为用户提供快速存储、检索、分析和计算庞大的结构化数据服务。本文将提供…
+- `official/tutorials/how_to_handle_crash.md` — **节点宕机** — 在使用 DolphinDB 时，有时客户端会抛出异常信息：Connection refused。此时，Linux 操作系统上使用 ps 命令查看，会发现 Dol…
+- `official/tutorials/httpclient_msg_case.md` — **利用 HttpClient 插件整合外部消息** — DolphinDB 支持通过动态加载用 C++ 编写的插件程序，通过执行 DolphinDB 脚本函数，来调用插件程序的自定义函数，实现自定义功能扩展。
+- `official/tutorials/hybrid_programming_paradigms.md` — **多范式编程** — 开发大数据应用，不仅需要一个能支撑海量数据的分布式数据库，一个能高效利用多核多节点的分布式计算框架，更需要一门能与分布式数据库和分布式计算有机融合，高性能易扩展…
+- `official/tutorials/in_memory_table.md` — **DolphinDB 内存表详解** — 内存表不仅可以直接用于存储数据，实现高速数据读写，而且可以缓存计算引擎的中间结果，加速计算过程。本教程主要介绍DolphinDB 内存表的分类、使用场景以及在数…
+- `official/tutorials/insight_plugin.md` — **DolphinDB INSIGHT 行情插件最佳实践指南** — INSIGHT 是华泰证券依托大数据存储、实时分析等领域的技术积累，整合接入国内多家交易所高频行情数据，为投资者提供集行情接入、推送、回测、计算及分析等功能于一…
+- `official/tutorials/insight_plugin_orderbook_engine_application.md` — **实时合成自定义频订单簿快照：DolphinDB INSIGHT 行情插件与订单簿引擎应用** — 教程难度
+- `official/tutorials/instrument_and_mktdata.md` — **DolphinDB 面向金融交易与定价的统一数据模型** — 近年来，随着人民币国际化进程加快以及中国金融市场与国际市场不断接轨，投资者对各类金融产品的需求显著上升。在交易类型日益丰富、交易规模持续增长的背景下，金融机构面…
+- `official/tutorials/interface_development.md` — **DolphinDB 数据访问接口开发教程** — 教程难度
+- `official/tutorials/iot_anomaly_detection.md` — **传感器数据异常检测** — DolphinDB 提供了流数据表（stream table）和流计算引擎用于实时数据处理，包括物联网中传感器数据的异常检测。内置的异常检测引擎（Anomaly…
+- `official/tutorials/iot_anomaly_detection_2.md` — **传感器数据异常检测** — DolphinDB 提供了流数据表（stream table）和流计算引擎用于实时数据处理，包括物联网中传感器数据的异常检测。内置的异常检测引擎（Anomaly…
+- `official/tutorials/iot_demo.md` — **DolphinDB 在工业物联网的应用** — 工业物联网的数据采集有着频率高、设备多、维度高的特点，数据量非常大，对系统的吞吐量有很高的要求。同时工业物联网往往需要系统能够实时处理数据，对系统预警，监控，甚…
+- `official/tutorials/iot_demo_2.md` — **DolphinDB 在工业物联网的应用** — 工业物联网的数据采集有着频率高、设备多、维度高的特点，数据量非常大，对系统的吞吐量有很高的要求。同时工业物联网往往需要系统能够实时处理数据，对系统预警，监控，甚…
+- `official/tutorials/iot_examples.md` — **物联网应用范例** — 本教程介绍物联网领域 DolphinDB 用户在安装部署、分布式数据库设计、数据写入和查询、流计算和高可用测试等过程中的常见问题、相应的解决方案与注意事项，以帮…
+- `official/tutorials/iot_multisource_fusion_query.md` — **基于外部表的物联网多源数据融合与联合查询实践** — 在工业制造、化工、能源电力等物联网核心应用场景中，由于信息化建设起步早、迭代周期长，长期以来沉淀了多类型信息化系统及异构数据库架构，形成了“数据孤岛”现象——不…
+- `official/tutorials/iot_query_case.md` — **物联网时序数据查询案例** — 物联网（Internet of Things，简称 IoT）是指通过各种信息传感、通信和 IT
+- `official/tutorials/jit.md` — **即时编译（JIT）** — DolphinDB 从 1.01 版本开始支持 JIT，本篇教程将结合实际例子介绍 JIT 的使用和注意事项。
+- `official/tutorials/job_management_tutorial.md` — **作业管理** — 作业（job）是 DolphinDB 中最基本的执行单位，可以简单理解为一段 DolphinDB 脚本代码在系统中的一次执行。作业根据阻塞与否可分为同步作业和异…
+- `official/tutorials/job_management_tutorial_2.md` — **作业管理** — 作业（job）是 DolphinDB 中最基本的执行单位，可以简单理解为一段 DolphinDB 脚本代码在系统中的一次执行。作业根据阻塞与否可分为同步作业和异…
+- `official/tutorials/k.md` — **基于快照行情的股票和基金 K 线合成** — 教程难度
+- `official/tutorials/k8s_deployment.md` — **基于 K8S 部署 DolphinDB** — Kubernetes（简称 K8S）是一个开源的容器集群管理系统，可以实现容器集群的自动化部署、自动扩缩容、维护等功能。DolphinDB Operator 和…
+- `official/tutorials/k8s_deployment_in_AWS.md` — **基于 AWS 部署 DolphinDB** — DolphinDB MGR 是部署于 Kubernetes 上的 DolphinDB 集群自动运维系统，提供包括部署、升级、扩缩容、配置变更的 DolphinD…
+- `official/tutorials/k8s_deployment_in_Aliyun.md` — **基于阿里云 K8S 部署 DolphinDB** — 阿里云容器服务 Kubernetes 版（Alibaba Cloud Container Service for Kubernetes，简称 ACK）是全球首批…
+- `official/tutorials/k_line_calculation%20.md` — **基于期货快照行情数据计算合约 K 线以及主连行情** — 由于不同期货品种的交易时间存在差异，且不同期货合约的活跃度各不相同，因此基于期货快照行情数据合成分钟K线的计算方法在时间对齐上需要进行不同的处理。
+- `official/tutorials/kafka_mqtt.md` — **DolphinDB 可视化数据采集平台** — 数据采集平台的核心在于实现自动化与高效化。它可整合来自网站、数据库、传感器和日志等多个数据源的数据，完成清洗、转换与集中存储。通过替代繁琐的人工操作，平台可有效…
+- `official/tutorials/kdb_to_dolphindb.md` — **从 kdb+ 迁移到 DolphinDB** — kdb+ 以程序体积小、代码简洁、运行速度快而闻名。它是美国华尔街各大金融机构20多年来处理大规模时序数据的首选系统，通常用于高频交易，非常适用于高速存储、分析…
+- `official/tutorials/knn_iot.md` — **物联网实时数据异常率预警** — 数据异常率预警在工业安全生产中是一项重要工作，对于监控生产过程的稳定性，保障生产数据的有效性，维护生产设备的可靠性具有重要意义。随着大数据技术在生产领域的深入应…
+- `official/tutorials/knn_iot_2.md` — **物联网实时数据异常率预警** — 数据异常率预警在工业安全生产中是一项重要工作，对于监控生产过程的稳定性，保障生产数据的有效性，维护生产设备的可靠性具有重要意义。随着大数据技术在生产领域的深入应…
+- `official/tutorials/l2_snapshot_factor_calc.md` — **快速搭建 Level-2 快照数据流批一体因子计算平台最佳实践** — 因子挖掘是量化交易的基础。近年来，Python 是很多研究员进行数据分析和因子挖掘的主流工具。但是通过 Python 挖掘的有效因子在投产时，通常需要由 QUA…
+- `official/tutorials/l2_snapshot_factor_calc_2.md` — **快速搭建 Level-2 快照数据流批一体因子计算平台最佳实践** — 因子挖掘是量化交易的基础。近年来，Python 是很多研究员进行数据分析和因子挖掘的主流工具。但是通过 Python 挖掘的有效因子在投产时，通常需要由 QUA…
+- `official/tutorials/l2_stk_data_proc.md` — **处理 Level-2 行情数据实例** — Level-2 高频行情数据包含大量有价值的信息，利用这些数据生成交易信号和获取收益已经成为量化研究中的一种主流策略。作为一个高性能时序数据库，DolphinD…
+- `official/tutorials/l2_stk_data_proc_2.md` — **处理 Level-2 行情数据实例** — Level-2 高频行情数据包含大量有价值的信息，利用这些数据生成交易信号和获取收益已经成为量化研究中的一种主流策略。作为一个高性能时序数据库，DolphinD…
+- `official/tutorials/log_analysis_tool_user_manual.md` — **DolphinDB 日志分析工具使用手册** — 当 DolphinDB 出现问题、亟需深入日志排查时，诸多繁琐操作容易影响排查效率。用户不仅需要手动定位问题时段对应的日志文件与关键片段，还需跨多个节点审查同时…
+- `official/tutorials/log_searcher.md` — **DolphinDB 聚合日志搜索工具使用手册** — DolphinDB 提供了聚合日志搜索工具模块 LogSearcher 来实现方便地读取和保存集群各个节点的日志。在向 DolphinDB 技术支持反馈问题时，…
+- `official/tutorials/machine_learning.md` — **机器学习** — DolphinDB实现了一系列常用的机器学习算法，例如最小二乘回归、随机森林、K-平均等，使用户能够方便地完成回归、分类、聚类等任务。这篇教程会通过具体的例子，…
+- `official/tutorials/macro_var_based_metaprogramming.md` — **基于 SQL 的元编程** — 元编程（Metaprogramming）指在程序运行时操作或者创建程序的一种编程技术，简而言之就是使用代码编写代码。通过元编程将原本静态的代码通过动态的脚本生成…
+- `official/tutorials/market_condition_adjustments.md` — **股票复权因子和复权行情计算** — 量化交易中，经常需要对股票历史行情进行复权处理，以消除分红、送股、拆股等权息事件对股价走势的影响。本教程面向已掌握 DolphinDB
+- `official/tutorials/matching_engine_simulator.md` — **模拟撮合引擎使用教程** — 在中高频策略中，我们常常会遇到这样的情况：一些在回测中表现良好的策略，一旦应用于实际交易，效果就不如预期。其中一个非常重要的原因是低估了交易成本。为了更准确地模…
+- `official/tutorials/matrix.md` — **矩阵运算** — 在处理面板数据时，矩阵运算相对于表运算而言，速度更快，效率更高。DolphinDB 针对矩阵运算场景为用户提供了丰富且便捷的内置函数，其中部分矩阵运算采用 Op…
+- `official/tutorials/memory_management.md` — **内存管理** — DolphinDB 是一款支持多用户多任务并发操作的高性能分布式时序数据库软件（distributed time-series database）。针对大数据的…
+- `official/tutorials/meta_programming.md` — **基于函数的元编程应用** — DolphinDB 支持使用元编程来动态创建表达式，包括函数调用的表达式与 SQL 查询表达式等。DolphinDB 中有3种方法实现元编程，本文将展开说明如何…
+- `official/tutorials/metacode_derived_features.md` — **开发股票波动率预测模型的 676 个输入特征** — 随着算力的提升和机器学习与深度学习的普及，在进行数据建模时往往会采用批量生成衍生特征的方法来丰富数据集的特征，如：对原有的 10 维特征都采用 max, min…
+- `official/tutorials/metacode_derived_features_2.md` — **开发股票波动率预测模型的 676 个输入特征** — 随着算力的提升和机器学习与深度学习的普及，在进行数据建模时往往会采用批量生成衍生特征的方法来丰富数据集的特征，如：对原有的 10 维特征都采用 max, min…
+- `official/tutorials/migrate_data_from_Postgre_and_Greenplum_to_DolphinDB.md` — **从 Postgre/Greenplum 迁移到 DolphinDB** — PostgreSQL 是一种开源的关系型数据库管理系统（DBMS），是最广泛使用的开源数据库之一。它允许用户通过添加自定义函数、数据类型和索引等方式扩展其功能，…
+- `official/tutorials/ml_volatility.md` — **金融实时实际波动率预测** — 波动率是衡量价格在给定时间内上下波动的程度。在股指期货实时交易的场景中，如果能够快速、准确地预测未来一段时间的波动率，对交易者及时采取有效的风险防范和监控手段具…
+- `official/tutorials/ml_volatility_2.md` — **金融实时实际波动率预测** — 波动率是衡量价格在给定时间内上下波动的程度。在股指期货实时交易的场景中，如果能够快速、准确地预测未来一段时间的波动率，对交易者及时采取有效的风险防范和监控手段具…
+- `official/tutorials/module_code_versioning_and_rights_management.md` — **DolphinDB 脚本工程化管理：模块代码版本与权限管理** — 在 DolphinDB 脚本开发过程中，为了提升代码复用性和组织性，我们可以创建可复用的模块来封装自定义函数。这些模块允许我们按照目录树结构将大量函数进行有序分…
+- `official/tutorials/module_development_guide.md` — **模块开发指南** — 在使用 DolphinDB
+- `official/tutorials/module_doc_writing_guide.md` — **模块文档编写指南** — 在市场发布模块时需要提供对应的模块使用文档，以便用户更好地了解和使用模块。本文介绍如何编写 DolphinDB 模块的使用文档，提升文档编写效率和审核通过率。
+- `official/tutorials/module_testing_guide.md` — **模块测试指南** — 第三方模块的测试文件应包含测试要点文档和回归测试代码：
+- `official/tutorials/monte_carlo_simulation.md` — **CPU-GPU 异构计算平台 Shark 应用：蒙特卡罗模拟定价** — 近年来，随着摩尔定律逐渐逼近极限，处理器单核性能的提升速度显著放缓。与此同时，大数据与人工智能技术的迅速发展带来了计算需求的爆炸式增长。为应对这一挑战，采用 G…
+- `official/tutorials/multi_asset_backtest.md` — **多资产回测使用说明及示例** — 在金融市场中，涵盖多种资产的投资策略早已成为主流实践。无论是跨市场套利、大类资产配置，还是套期保值与波动率管理，投资组合往往需要同时运用股票、期货、期权等多种工…
+- `official/tutorials/multi_factor_risk_model.md` — **基于 DolphinDB 的多因子风险模型实践** — 2018 年 MSCI 发布了中国 A 股全市场股票模型（即 CNE6
+- `official/tutorials/multi_machine_cluster_deployment.md` — **多服务器集群部署与升级** — DolphinDB 集群包括四种类型节点：控制节点（controller）、代理节点（agent）、数据节点（datanode）和计算节点（compute no…
+- `official/tutorials/new_users_finance.md` — **新用户入门指南（金融篇）** — 金融行业因其业务的多样性和复杂性，每日产生包括交易记录、市场数据、客户信息等在内的海量数据。随着交易员对策略和数据分析需求的不断增长，数据的存储和分析对交易系统…
+- `official/tutorials/nginx_dolphindb.md` — **通过 Nginx 反向代理 DolphinDB 集群节点** — 本教程详细介绍如何通过 Nginx 实现 DolphinDB 服务器集群的反向代理，支持 WebSocket（适用于浏览器和 VSCode 客户端）和 TCP（…
+- `official/tutorials/node_red_tutorial_iot.md` — **使用 Node-RED 构建 DolphinDB 低代码平台** — 为了进一步简化 DolphinDB 的使用方式，我们在 Node-RED 上构建了一个 DolphinDB 低代码平台。通过可视化编程工具，我们将 Dolphi…
+- `official/tutorials/node_startup_exception.md` — **节点启动异常** — DolphinDB 节点启动失败时，最明显的现象是启动节点后，对应的 web 界面无法访问，如果是集群在 web
+- `official/tutorials/node_startup_process_and_questions.md` — **节点启动流程简析与常见问题** — DolphinDB 的重启是运维工作的重要部分，在启动节点时可能会遇到一些问题，例如启动太慢、启动失败等。本教程以 DolphinDB v2.00.11 版本为…
+- `official/tutorials/non-standard_permission_management.md` — **非标权限管理** — DolphinDB 提供的用户权限管理功能管控的最小粒度是表级别，无法设置小于表粒度的数据访问权限管控，如限制用户仅能访问表中某些行或某些列的数据。为了满足客户…
+- `official/tutorials/oauth.md` — **单点登录使用说明** — OAuth 是单点登录（SSO）的一种实现方式。目前 DolphinDB 已支持其三种鉴权方式：Authentication Code（授权码模式，支持
+- `official/tutorials/oltp_in-memory_storage_engine_non-embedded_version_tutorials.md` — **OLTP 内存存储引擎（非嵌入式版）使用教程** — 在一些数据库应用场景中，例如金融行业的交易系统，其主要工作负载来源于对关系表的高频度、高并发的更新和查询操作。这样的应用场景要求数据的读写和计算能够具有低延迟、…
+- `official/tutorials/oom_settlement.md` — **Out of Memory** — Out of Memory，简称 OOM，代表内存耗尽的一种异常状态。OOM 的表现形式千差万别，可能是服务异常终止，亦或是系统性能急剧下降。这一现象背后的根本…
+- `official/tutorials/oom_settlement_2.md` — **Out of Memory** — Out of Memory，简称 OOM，代表内存耗尽的一种异常状态。OOM 的表现形式千差万别，可能是服务异常终止，亦或是系统性能急剧下降。这一现象背后的根本…
+- `official/tutorials/orca_finance.md` — **Orca 声明式 DStream API 应用：实时计算日累计逐单资金流** — 流计算一直是 DolphinDB 产品的核心功能之一。借助功能丰富的流计算引擎和高性能的内置算子，DolphinDB
+- `official/tutorials/orca_finance_position.md` — **Orca 声明式 DStream API 应用：账户持仓损益实时监控** — 在日益复杂的金融市场中，投资者需要及时了解所持投资组合的盈亏变化情况，以调整投资策略，规避风险。本文主要介绍如何利用 DolphinDB 的 Orca 声明式 …
+- `official/tutorials/orderBookSnapshotEngine.md` — **基于逐笔数据合成高频 Orderbook：DolphinDB Orderbook 引擎** — Orderbook 是交易市场上买卖双方正在报价的不同价格的列表。Orderbook 快照反应了特定时刻市场上的交易意图，比如交易活跃的证券标的往往有着密集的
+- `official/tutorials/order_splitting_with_cep.md` — **CEP 引擎应用：算法拆单调度系统实现-基础篇** — 教程难度
+- `official/tutorials/order_splitting_with_cep_advanced.md` — **CEP 引擎应用：算法拆单调度系统实现-进阶篇** — 教程难度
+- `official/tutorials/panel_data.md` — **面板数据处理** — 时间序列数据、截面数据和面板数据是金融领域中常见的数据组织方式。面板数据包含了时间序列和横截面两个维度。在 Python 中，通常可以用 pandas 的 Da…
+- `official/tutorials/partitioned_in_memory_table.md` — **内存数据表** — DolphinDB 的内存数据表可以是非分区的，也可以是分区的。除了组合分区以外的所有分区方式都适用于内存数据表。使用分区内存表进行运算能充分发挥多核 CPU …
+- `official/tutorials/perf_opti_glibc.md` — **基于 Glibc 升级的性能优化案例** — 在高并发查询、查询需要涉及很多个分区的情况下，低版本的 glibc（低于 2.23）会严重影响查询性能。需要升级 glibc 解决该问题优化性能。我们撰写了本文…
+- `official/tutorials/pickle_comparison.md` — **金融市场高频数据的有效管理** — 金融市场L1/L2的报价和交易数据是量化交易研究非常重要的数据。国内全市场L1/L2的历史数据约为20~50T，每日新增的数据量约为20~50G。传统的关系数据…
+- `official/tutorials/pip_ddb.md` — **PIP 降采样算法** — 在真实的业务场景中，时间序列数据具有以下特点：
+- `official/tutorials/prep_linux_for_deploy.md` — **Linux 系统部署准备** — 本文主要介绍在新服务器部署 DolphinDB 时需要使用哪些系统配置，以及如何选择 DolphinDB 部署方式以符合业务需求。合适的系统配置可以提高 Dol…
+- `official/tutorials/pricing_functions.md` — **FICC 与 Equity 定价函数** — 金融产品的定价是金融工程的语言和核心。​
+- `official/tutorials/probabilistic_and_statistical_analysis.md` — **DolphinDB 教程：概率统计分析** — 在金融和物联网等领域，概率统计与分析扮演着至关重要的角色。DolphinDB 作为一款强大的时序数据库，提供了一系列内置的概率统计与分析函数，能够满足用户的各种…
+- `official/tutorials/prometheus_and_ruleEngine_integration.md` — **集成 Prometheus 与 DolphinDB 规则引擎，构建敏捷监控解决方案** — 随着云原生、微服务和容器化架构在企业级应用中的广泛落地，系统规模和复杂度持续提升，监控对象已从单一基础设施扩展至应用、业务层面。Prometheus
+- `official/tutorials/promethues2.md` — **使用 Prometheus 监控告警** — DolphinDB 提供了三种方式进行性能监控：
+- `official/tutorials/public_fund_basic_analysis.md` — **公募基金历史数据基础分析教程** — 近年来，国内的公募基金处于高速发展阶段，对于基金数据的分析需求也越来越多。本教程以公募基金公开市场数据和历史净值数据的基础分析作为案例，介绍一些关于基金数据的基…
+- `official/tutorials/quant_finance_examples.md` — **量化金融范例** — 建议使用DolphinDB GUI编写DolphinDB脚本。请在DolphinDB官网下载DolphinDB GUI。关于如何使用DolphinDB GUI，…
+- `official/tutorials/random_vibr_sig_analysis.md` — **随机振动信号分析解决方案** — 随机振动会发生在工业物联网的各个场景中，包括产线机组设备的运行、运输设备的移动、试验仪器的运行等等。通过分析采集到的振动信号可以预估设备的疲劳年限、及时知晓设备…
+- `official/tutorials/random_vibr_sig_analysis_2.md` — **随机振动信号分析解决方案** — 随机振动会发生在工业物联网的各个场景中，包括产线机组设备的运行、运输设备的移动、试验仪器的运行等等。通过分析采集到的振动信号可以预估设备的疲劳年限、及时知晓设备…
+- `official/tutorials/reactive_state_engine.md` — **响应式状态引擎** — 量化金融的研究和实盘中，越来越多的机构需要根据高频的行情数据（L1/L2以及逐笔委托数据）来计算量价因子，每只股票的每一条新数据的注入都会更新该只股票的所有因子…
+- `official/tutorials/redis_plugin_tutorial.md` — **Redis 插件使用教程** — DolphinDB 是一个高性能的分布式数据库。通过 Redis 插件，DolphinDB 用户可以轻松地与 Redis 数据库进行交互。用户不仅可以从 Dol…
+- `official/tutorials/redoLog_cacheEngine.md` — **redo log 和 cache engine** — 这篇教程重点介绍了 DolphinDB 中的 redo log 和 cache engine 机制以及其配置对整体性能的影响。
+- `official/tutorials/rt_stk_price_inc_calc.md` — **实时计算涨幅榜** — 在股票交易市场，涨幅是一个基础的量价指标，可以衡量资金对个股的拉升力度，是监控主力异动的重要指标。通过关注涨幅，可以了解到资金青睐哪些个股，市场关注哪些板块。
+- `official/tutorials/rt_stk_price_inc_calc_2.md` — **实时计算涨幅榜** — 在股票交易市场，涨幅是一个基础的量价指标，可以衡量资金对个股的拉升力度，是监控主力异动的重要指标。通过关注涨幅，可以了解到资金青睐哪些个股，市场关注哪些板块。
+- `official/tutorials/scale_out_cluster.md` — **集群扩容** — 本教程讲述如何水平扩展一个 DolphinDB 集群，以增强其数据容量及计算能力。
+- `official/tutorials/scheduledJob.md` — **定时作业** — DolphinDB 定时作业（scheduled job）功能，实现系统在规定时间以指定频率自动执行作业。该功能广泛应用于数据库定时计算分析（如每日休市后分钟级…
+- `official/tutorials/scheduledJob_2.md` — **定时作业** — DolphinDB 定时作业（scheduled job）功能，实现系统在规定时间以指定频率自动执行作业。该功能广泛应用于数据库定时计算分析（如每日休市后分钟级…
+- `official/tutorials/service_deployment_and_migration.md` — **高可用服务部署与迁移** — 在业务发展初期，资源有限的情况下，为了提高系统的可用性，我们会搭建一个伪高可用环境。伪高可用集群的特点在于其控制节点的元数据文件虽然有多副本，但存在多副本在同一…
+- `official/tutorials/shark_gplearn_application.md` — **CPU-GPU 异构计算平台 Shark 应用：GPLearn 自动因子挖掘** — 因子挖掘是通过分析大量数据，识别影响资产价格变动的关键因素的过程。传统的因子挖掘方法主要基于经济理论与投资经验，难以有效表达复杂的非线性关系。随着数据集的丰富以…
+- `official/tutorials/shark_graph.md` — **Shark 计算图说明及雪球期权定价案例** — 近年来，随着摩尔定律逐渐逼近极限，处理器单核性能的提升速度开始放缓。然而，在大数据与人工智能等技术迅猛发展的推动下，计算需求却呈现出爆炸式增长。为应对这一趋势，…
+- `official/tutorials/single_machine_cluster_deploy.md` — **单服务器集群部署与升级** — DolphinDB 集群包括四种类型节点：控制节点（controller），代理节点（agent），数据节点（datanode）和计算节点（compute no…
+- `official/tutorials/socp_usage_case.md` — **最优化函数 socp 的使用及转化案例** — 在金融量化领域，最优化函数能够根据最大化或最小化特定目标（如利润、收益、风险），有效解决各种复杂的决策问题，包括投资组合优化、风险管理以及资产和衍生品定价等。为…
+- `official/tutorials/soft_delete.md` — **软删除** — 为满足近来用户对某些场景下删除性能的更高要求，我们在 2.00.11 版本的 DolphinDB Server 中特别支持了软删除的功能。本文作为该功能的使用教…
+- `official/tutorials/sql_performance_optimization_wap_di_rv.md` — **深度不平衡、买卖压力指标、波动率计算** — 在金融行业的数据分析工作中，数据预处理及特征工程的质量往往决定了数学模型的实际效果。某些金融指标涉及原始大量数据中高维多列的复杂运算，这将耗费大量的计算资源和开…
+- `official/tutorials/standalone_server.md` — **单节点部署与升级** — 本教程用于单节点的部署、升级、过期 License 升级，并对常见问题做出解答，便于用户快速上手 DolphinDB。包含以下主题：
+- `official/tutorials/stateful_stream_operators.md` — **使用 DolphinDB Class 来开发流计算状态算子** — 随着实时数据流处理需求的不断增长，高效、可扩展的流计算框架变得愈发重要。DolphinDB 作为一款高性能分布式时间序列数据库，不仅在数据存储和查询上表现出色，…
+- `official/tutorials/std_sql_ddb.md` — **SQL 标准化** — 为了提升用户体验，降低用户学习成本和脚本迁移复杂度，自 1.30.17 / 2.00.5 版本开始，DolphinDB 逐步支持了标准化 SQL 的书写方法；并…
+- `official/tutorials/stock_backtest.md` — **股票中低频投资组合回测案例实现** — 在量化交易中，中低频交易策略因其相对稳健的收益特性和较低的技术门槛，受到广大投资者的青睐。中低频策略通常基于日频或分钟级别的数据，通过分析市场趋势、估值指标、风…
+- `official/tutorials/stock_market_replay.md` — **股票行情回放** — 一个量化策略在生产（交易）环境中运行时，实时数据的处理通常是由事件驱动的。为确保研发和生产使用同一套代码，通常在研发阶段需将历史数据，严格按照事件发生的时间顺序…
+- `official/tutorials/stock_market_replay_2.md` — **股票行情回放** — 一个量化策略在生产（交易）环境中运行时，实时数据的处理通常是由事件驱动的。为确保研发和生产使用同一套代码，通常在研发阶段需将历史数据，严格按照事件发生的时间顺序…
+- `official/tutorials/stockdata_csv_import_demo.md` — **国内股票行情数据导入实例** — DolphinDB提供了详细的文本数据加载教程，以帮助用户导入数据。本文是以此为基础的一个实践案例，对每只股票每天一个csv文件的导入场景，提供了一个高性能的解…
+- `official/tutorials/str_comp_fin_quant.md` — **金融因子流式实现** — DolphinDB 是一款高性能分布式时序数据库。与传统的关系数据库和常见的时序数据库不同，DolphinDB 不仅提供了高速存取时序数据的基本功能，而且内置了…
+- `official/tutorials/str_comp_fin_quant_2.md` — **金融因子流式实现** — DolphinDB 是一款高性能分布式时序数据库。与传统的关系数据库和常见的时序数据库不同，DolphinDB 不仅提供了高速存取时序数据的基本功能，而且内置了…
+- `official/tutorials/stream_computing_in_futures_trading.md` — **DolphinDB 流计算在商品期货交易的应用：持仓信息指标定制化设计与扩展** — 在 CTP 接口体系中，OnRspQryInvestorPosition 和 OnRtnTrade
+- `official/tutorials/stream_processing_volatility_fitting.md` — **DolphinDB 流计算在商品期货交易的应用：波动率计算与拟合** — 在期货期权市场中，隐含波动率具有重要的意义，因为它有助于投资者和交易员更好地理解和管理风险，并为决策提供重要参考。高波动率通常意味着市场价格波动较大，风险较高。…
+- `official/tutorials/streaming-real-time-correlation-processing.md` — **多数据源流式实时关联处理** — 在进行数据分析时经常需要对多个不同的数据源进行关联操作，因此在各类数据库的 SQL 语言中均包含了丰富的 join 语句，以支持批计算中的多种关联操作。Dolp…
+- `official/tutorials/streaming-real-time-correlation-processing_2.md` — **多数据源流式实时关联处理** — 在进行数据分析时经常需要对多个不同的数据源进行关联操作，因此在各类数据库的 SQL 语言中均包含了丰富的 join 语句，以支持批计算中的多种关联操作。Dolp…
+- `official/tutorials/streaming_IOPV.md` — **基金份额参考价值 IOPV 计算** — Indicative Optimized Portfolio Value (IOPV) 全称为基金份额参考净值，是由交易所计算的 ETF 实时单位净值的近似值，…
+- `official/tutorials/streaming_IOPV_2.md` — **基金份额参考价值 IOPV 计算** — Indicative Optimized Portfolio Value (IOPV) 全称为基金份额参考净值，是由交易所计算的 ETF 实时单位净值的近似值，…
+- `official/tutorials/streaming_auto_sub.md` — **节点启动时的流计算自动订阅** — DolphinDB 内置的流数据框架支持流数据的发布、订阅、预处理、实时内存计算、复杂指标的滚动窗口计算等，是一个运行高效、使用便捷的流数据处理框架。
+- `official/tutorials/streaming_auto_sub_2.md` — **节点启动时的流计算自动订阅** — DolphinDB 内置的流数据框架支持流数据的发布、订阅、预处理、实时内存计算、复杂指标的滚动窗口计算等，是一个运行高效、使用便捷的流数据处理框架。
+- `official/tutorials/streaming_capital_flow_daily.md` — **实时计算日累计逐单资金流** — 在股票交易市场，资金流是一个重要的量价指标。资金流指标按照是否对交易订单号进行合并计算，可以分为逐笔资金流和逐单资金流；按照统计时间，可以分为分钟资金流和日累计…
+- `official/tutorials/streaming_capital_flow_daily_2.md` — **实时计算日累计逐单资金流** — 在股票交易市场，资金流是一个重要的量价指标。资金流指标按照是否对交易订单号进行合并计算，可以分为逐笔资金流和逐单资金流；按照统计时间，可以分为分钟资金流和日累计…
+- `official/tutorials/streaming_capital_flow_order_by_order.md` — **实时计算分钟资金流** — DolphinDB 内置的流数据框架支持流数据的发布，订阅，预处理，实时内存计算，复杂指标的滚动窗口计算、滑动窗口计算、累计窗口计算等，是一个运行高效、使用便捷…
+- `official/tutorials/streaming_capital_flow_order_by_order_2.md` — **实时计算分钟资金流** — DolphinDB 内置的流数据框架支持流数据的发布，订阅，预处理，实时内存计算，复杂指标的滚动窗口计算、滑动窗口计算、累计窗口计算等，是一个运行高效、使用便捷…
+- `official/tutorials/streaming_engine_anomaly_alerts.md` — **引擎级联监测门禁异常状态** — 物联网的发展为智能安防和自动化监控带来了更多便利，与此同时，新型城镇建设、智慧城市与智慧社区的发展也为门禁管理等安防问题智能化提出了更高的要求。在智能化发展的背…
+- `official/tutorials/streaming_engine_anomaly_alerts_2.md` — **引擎级联监测门禁异常状态** — 物联网的发展为智能安防和自动化监控带来了更多便利，与此同时，新型城镇建设、智慧城市与智慧社区的发展也为门禁管理等安防问题智能化提出了更高的要求。在智能化发展的背…
+- `official/tutorials/streaming_timer.md` — **流计算时延统计与性能优化** — 在实时计算中，端到端的响应延迟是衡量计算性能时最重要的指标。DolphinDB 内置的流数据框架支持流数据的发布与订阅、流式增量计算、实时关联等，用户能够快速实…
+- `official/tutorials/streaming_tutorial.md` — **流数据功能应用** — 实时流处理是指将业务系统产生的持续增长的动态数据进行实时的收集、清洗、统计、入库，并对结果进行实时的展示。在金融交易、物联网、互联网/移动互联网等应用场景中，复…
+- `official/tutorials/textdb.md` — **使用 TextDB 高效存储与检索资讯数据** — 在信息爆炸的时代，如何高效地管理和检索资讯数据成为了每个数据分析师面临的重要挑战。DolphinDB
+- `official/tutorials/the_ten_most_overlooked_details_of_programming.md` — **编程最容易忽略的十个细节** — 在 DolphinDB 中，无论是数据导入、数据分析还是流计算，编程都是关键的基础。而在编程中，想要更高效更优雅地写脚本，并避免一些常见问题，则需要注意一些细节…
+- `official/tutorials/thread_intro.md` — **线程简介** — 基于 DolphinDB server 最新版 2.00.X，从任务管理、存储引擎、流数据、集群管理、高可用几个方面简单介绍 DolphinDB 在运行中可能使…
+- `official/tutorials/thread_intro_2.md` — **线程简介** — 基于 DolphinDB server 最新版 2.00.X，从任务管理、存储引擎、流数据、集群管理、高可用几个方面简单介绍 DolphinDB 在运行中可能使…
+- `official/tutorials/threading_model.md` — **线程模型** — DolphinDB的线程模型较为复杂，写入与查询分布式表都可能需要多个类型的线程。通过了解 SQL 查询的全过程，帮助我们了解 DolphinDB 的线程模型，…
+- `official/tutorials/timezone.md` — **时区处理** — 本教程介绍了在DolphinDB中存储与导入时间数据时需要注意的时区问题。
+- `official/tutorials/tsdb_engine.md` — **TSDB 存储引擎简介** — 本文简介 DolphinDB 在 2.0 版本中新推出的 TSDB 存储引擎、其适用场景以及与 OLAP 存储引擎的特点差异。
+- `official/tutorials/tsdb_explained.md` — **TSDB 存储引擎详解** — - 如果需要进行引擎间的迁移或希望了解 OLAP 引擎和 TSDB 引擎的区别，推荐阅读第 1 章。
+- `official/tutorials/tu_modules.md` — **模块** — 在使用 DolphinDB
+- `official/tutorials/udaf.md` — **自定义聚合函数** — 分布式时序数据库 DolphinDB 具有很好的扩展性。用户可以使用内置的脚本语言或者 C++ 插件来编写自定义函数（UDF）和自定义聚合函数（UDAF）。
+- `official/tutorials/unit_testing.md` — **DolphinDB 单元测试教程** — 单元测试是对软件中的最小可测试单元（如函数或方法）进行检查和验证。DolphinDB 提供了简单易用的单元测试框架，主要目的是在代码发布之前进行自动化的回归测试…
+- `official/tutorials/usage_guidelines.md` — **DolphinDB 使用须知** — DolphinDB 脚本语言兼容 SQL-92 标准的常用语法和关键字，并提供了大量内置函数。同时，它在设计上区别于 SQL 和 Python 等脚本语言。对于…
+- `official/tutorials/user_level_resource_tracking.md` — **用户级别的资源跟踪详解** — DolphinDB 自 2.00.11 版本开始引入了用户级别的资源跟踪功能，涵盖了对数据节点资源利用和用户操作的监控。自 2.00.13/3.00.1 版本起…
+- `official/tutorials/vanna.md` — **构建基于 DolphinDB 和 Vanna 的自然语言数据库交互系统** — Vanna 是一个结合了​​检索增强生成（RAG, Retrieval-Augmented Generation）​和​交互式数据库查询​的 AI agent
+- `official/tutorials/volatility_prediction.md` — **DolphinDB 在深度学习中应用：股票实时波动率预测** — 深度学习作为机器学习的一个分支，利用多层神经网络从数据中自动提取特征，尤其在处理复杂数据（如图像、文本和时间序列数据）方面表现出色。在金融领域，深度学习特别适合…
+- `official/tutorials/waveform_data_storage.md` — **地震波形数据存储解决方案** — 波形数据的存储与实时流处理是地震预警、地震速报、地震烈度速报、震源机制解等数字地震台网综合处理系统的前提，合理的存储方案与高效的实时流处理架构能极大地节约存储成…
+- `official/tutorials/waveform_data_storage_2.md` — **地震波形数据存储解决方案** — 波形数据的存储与实时流处理是地震预警、地震速报、地震烈度速报、震源机制解等数字地震台网综合处理系统的前提，合理的存储方案与高效的实时流处理架构能极大地节约存储成…
+- `official/tutorials/web_chart_integration.md` — **使用 chart 组件展示数据** — 数据图表前端组件在物联网和实时监控的场景有非常广的应用，当前比较流行的有 Echarts、HighCharts 等组件。本文主要讲解如何利用 DolphinDB…
+- `official/tutorials/window_cal.md` — **窗口计算** — 在时序处理中经常需要使用窗口计算。DolphinDB 提供了强大的窗口计算函数，既可以处理数据表(使用 SQL 语句)，又可处理矩阵，在流式计算中亦可使用。第2…
+- `official/tutorials/xtp.md` — **DolphinDB XTP 插件最佳实践** — XTP 是中泰证券推出的高性能交易平台，专为专业投资者提供高速行情及交易系统，旨在提供优质便捷的市场接入通道。目前支持股票、基金、ETF、债券、期权等多个市场，…
+- `official/tutorials/zabbix_cluster_monitoring.md` — **基于 Zabbix 的 DolphinDB 集群运维监控** — 在高并发的读写场景中，了解资源使用情况对于快速定位性能问题至关重要。作为一种企业级分布式开源监控解决方案，Zabbix 在各行各业都得到广泛应用。本教程提供 Z…
+
+### rn — 版本说明（34 篇）
+
+- `official/rn/compact_report_3_00_2.md` — **3.00.2** — 在创建流数据日级时间序列引擎 (createDailyTimeSeriesEngine) 时：
+- `official/rn/compact_report_3_00_3.md` — **3.00.3** — - 修改函数 elasticNetCV, lassoCV,
+- `official/rn/compact_report_3_00_4.md` — **3.00.4** — - 对 FICC 系列函数（
+- `official/rn/compact_report_3_00_5.md` — **3.00.5** — - 系统初始化脚本文件 dolphindb.dos 中新增了 covarp 及其对应的系列函数。升级 server
+- `official/rn/compat1.md` — **一级兼容性标准** — 一级兼容性标准要求 DolphinDB Server 基本满足向后兼容的要求，以确保旧版本的数据和脚本能够在新版本环境下成功运行。但允许服务器删除部分声明 de…
+- `official/rn/compat2.md` — **二级兼容性标准** — 二级兼容性标准实现全面向后兼容。要求 DolphinDB Server 满足一级兼容性标准，且在此基础上，兼容旧版本的全部函数和脚本；实现插件和 SDK 的代码…
+- `official/rn/compat3.md` — **三级兼容性标准** — 三级兼容性标准在二级兼容性标准的基础上，实现插件和 SDK 的二进制兼容。
+- `official/rn/compat4.md` — **四级兼容性标准** — 四级兼容性标准在三级兼容性标准的基础上，要求新版本能够有条件回退到旧版本，并支持滚动升级，即 DolphinDB 集群可以逐一按节点进行升级，一个节点更新版本并…
+- `official/rn/compat5.md` — **五级兼容性标准** — 五级兼容性标准是 DolphinDB 服务器的最高等级的兼容性标准，支持滚动升级，支持无条件回退到旧版本。
+- `official/rn/compat_def.md` — **版本兼容性说明** — 本节对 DolphinDB 版本兼容性等级标准进行了定义和说明，用户可以参考各兼容性等级的要求，快速了解版本升级的潜在风险。为满足升级安全，DolphinDB …
+- `official/rn/compat_lv.md` — **版本兼容性等级约定** — - DolphinDB 版本分稳定版、最新版和 Beta 版。通常经历 5-10 个小版本的迭代后，Beta 版升级成最新版，最新版升级成稳定版。
+- `official/rn/compat_report_3_00_0.md` — **3.00.0** — 使用当前版本需要升级 dolphindb.dos 文件为最新版本。
+- `official/rn/compat_report_3_00_1.md` — **3.00.1** — - 在当前版本中，由于 SQL DELETE 和 INSERT INTO 语句的持久化协议发生变化，在函数视图或定时作业等需要持久化函数的功能中使用
+- `official/rn/plugin/3_00_0.md` — **3.00.00** — - connect 新增参数
+- `official/rn/plugin/3_00_1.md` — **3.00.1** — - 新增支持订阅北交所股转快照数据。（3.00.1.6）
+- `official/rn/plugin/3_00_2.md` — **3.00.2** — 首次发布，用于对 AMD 历史行情数据进行分析与建模。（3.00.2.10）
+- `official/rn/plugin/3_00_3.md` — **3.00.3** — - 支持 amdQuote 4.5.5 版本的 SDK。（3.00.3.8）
+- `official/rn/plugin/3_00_4.md` — **3.00.4** — - 依赖库更新：（3.00.4）
+- `official/rn/plugin/3_00_5.md` — **3.00.5** — 首次发布，支持从 CSMAR 获取以下行情数据并写入 DolphinDB 流数据表。（3.00.5.3）
+- `official/rn/rn_gui.md` — **GUI** — Notice：
+- `official/rn/rn_vscode.md` — **VS Code 插件** — 新功能
+- `official/rn/rn_web.md` — **Web 集群管理器** — - 功能面板中新增会话管理模块。
+- `official/rn/security.md` — **安全公告**
+- `official/rn/server/3_00_0.md` — **3.00.0** — 版本号： 3.00.0     二级兼容
+- `official/rn/server/3_00_1.md` — **3.00.1** — 注：
+- `official/rn/server/3_00_2.md` — **3.00.2** — 注：
+- `official/rn/server/3_00_3.md` — **3.00.3** — 注：
+- `official/rn/server/3_00_4.md` — **3.00.4** — 注：
+- `official/rn/server/3_00_5.md` — **3.00.5** — 注：
+- `official/rn/server/api.md` — **API 和连接器**
+- `official/rn/server/datax_dolphindbreader_0.md` — **DataX-dolphindbreader** — - 新增支持自动切分多任务。特别地，支持在配置 querySql 时自动切分多任务。（1.30.22.3）
+- `official/rn/server/datax_writer.md` — **DataX-dolphindbwriter** — - 新增配置参数 writeTimeout，支持设置任务执行的超时时间。（1.30.22.4）
+- `official/rn/server/grafana.md` — **Grafana 数据源插件** — DolphinDB 提供两种 Grafana 数据源插件：dolphindb-datasource 和
+- `official/rn/server/third_party_rn.md` — **第三方工具**
+
+### tools — 工具（9 篇）
+
+- `official/tools/backend_grafana.md` — **DolphinDB Datasource Next** — DolphinDB 特别提供了 dolphindb-datasource-next 数据源插件。该插件使用 Go 语言编写，运行在 Grafana 后端，支持用…
+- `official/tools/datax_reader.md` — **基于 DataX 的 DolphinDB 数据读取工具** — DataX 是在阿里巴巴集团内被广泛使用的离线数据同步工具/平台，实现包括 MySQL、Oracle、SqlServer、PostgreSQL、HDFS、Hiv…
+- `official/tools/dbeaver.md` — **使用 DBEaver 连接 DolphinDB** — 在日常的数据开发、分析和数据库运维中，一款优秀的 IDE 能够极大地提升工作效率。DBEaver 是一款由 Java
+- `official/tools/grafana.md` — **DolphinDB Grafana DataSource Plugin** — DolphinDB 提供了使用前端连接数据库的 dolphindb-datasource 数据源插件。该插件使用 WebSocket 进行通信，支持用户在 Gr…
+- `official/tools/grafana_2.md` — **DolphinDB Grafana DataSource Plugin** — DolphinDB 提供了使用前端连接数据库的 dolphindb-datasource 数据源插件。该插件使用 WebSocket 进行通信，支持用户在 Gr…
+- `official/tools/grafana_overview.md` — **Grafana 数据源插件** — Grafana 是一个开源的数据可视化 Web 应用程序，常用于动态展示时序数据、支持多种数据源等。用户可通过配置连接的数据源、编写查询脚本，进而实现在浏览器中…
+- `official/tools/power_bi.md` — **使用 Power BI 连接 DolphinDB** — Power BI 是软件服务、应用和连接器的集合，它们协同工作以将相关数据来源转换为连贯的、视觉逼真的交互式见解。使用 Power
+- `official/tools/sqltools.md` — **DolphinDB SQLTools 扩展使用指南** — SQLTools 是一款轻量级的 Visual Studio Code 数据库管理扩展，通过插件驱动架构支持 MySQL、PostgreSQL、SQLite、O…
+- `official/tools/superset.md` — **Superset 可视化分析市场行情** — Superset 是一个由 Apache 软件基金会维护的开源数据可视化和数据探索工具。它可以帮助用户快速构建交互式数据仪表盘，并且支持丰富的图表类型。Dolp…
+
+### modules — 模块库（9 篇）
+
+- `official/modules/MarketHoliday/mkt_calendar.md` — **交易日历** — 交易日历是数据分析经常用到的工具，可以帮助快速获取对应交易所的交易日及进行相应的日期计算。DolphinDB 自 2.00.9/1.30.21 版本开始，提供交…
+- `official/modules/easyNSQ/easynsq.md` — **easyNSQ 实时行情数据接入功能模块** — 为了实时获取 level-2 行情数据，DolphinDB 对接恒生 NSQ 极速行情服务软件，开发了能够获取上海和深圳市场行情数据的 NSQ 插件。安装好插件…
+- `official/modules/easyNSQ/easynsq_2.md` — **easyNSQ 实时行情数据接入功能模块** — 为了实时获取 level-2 行情数据，DolphinDB 对接恒生 NSQ 极速行情服务软件，开发了能够获取上海和深圳市场行情数据的 NSQ 插件。安装好插件…
+- `official/modules/easyTLDataImport/easytl_data_import.md` — **easyTLDataImport 通联历史数据自动化导入功能模块** — 在部署完 DolphinDB 后，需要将历史数据批量导入数据库，再进行数据查询、计算和分析等操作。为便于用户快速导入通联历史 Level-2 行情数据，Dolp…
+- `official/modules/gtja191Alpha/191alpha.md` — **国泰君安 191 Alpha 因子库** — 国泰君安 191 Alpha 因子 来源于国泰君安 2017 年 6 月份公布的研报《基于短周期价量特征的多因子选股体系——数量化专题之九十三》，属于短周期价量…
+- `official/modules/mytt/mytt.md` — **MyTT 指标库** — MyTT(My麦语言 T通达信 T同花顺)是一个简单易用的Python库，它将通达信、同花顺、文华麦语言等指标公式最简化移植到了Python中，实现的常见指标包…
+- `official/modules/ops/ops.md` — **ops 运维函数库** — 进行数据库运维时，存在一些常见需求，例如取消集群中未完成的作业、查看数据库磁盘占用情况、关闭不活跃会话等。V1.30.19/V2.00.7 之前版本的 serv…
+- `official/modules/ta/ta.md` — **技术分析（Technical Analysis）指标库** — TA-Lib 是一个 Python 库，封装了用 C 语言实现的金融交易技术分析的诸多常用指标。为了方便用户在 DolphinDB 中计算这些技术指标，我们使用…
+- `official/modules/wq101alpha/wq101alpha.md` — **WorldQuant 101 Alpha 因子指标库** — 挖掘和计算 alpha 因子在量化金融领域有着重要的意义。在著名论文 101 Formulaic Alphas 中，作者给出了世界顶级量化对冲基金 WorldQ…
+
+### omc — OMC（3 篇）
+
+- `official/omc/omc_connection_lost_guidelines.md` — **无法连接服务器** — 无法连接至 DolphinDB 最常见的原因是网络故障、连接数不足。
+- `official/omc/omc_server_hang_guidelines.md` — **系统卡死** — 集群卡住无响应通常出现在以下两种情景：
+- `official/omc/omc_slow_io_guidelines.md` — **查询/写入慢** — 查询或者写入慢的原因多样，可以按照配置情况，查询/写入情况，库表设计，系统负载这几个角度去定位。
+
+### _root — 顶层零散文档（1 篇）
+
+- `official/third_party.md` — **第三方工具** — DolphinDB 通过与各类第三方工具无缝集成，提高其数据管理和系统运维能力。本节将介绍 DolphinDB 支持的第三方工具以及它们的安装使用方法。
