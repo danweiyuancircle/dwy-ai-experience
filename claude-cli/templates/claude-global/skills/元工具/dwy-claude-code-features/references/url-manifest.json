@@ -1,0 +1,68 @@
+{
+  "$schema": "internal",
+  "skill_name": "dwy-claude-code-features",
+  "fetched_at": "2026-05-19",
+  "authoritative_source": "code.claude.com",
+  "language": "zh-CN",
+  "notes": "所有 URL 已用 WebFetch 验证（2026-05-19）。每个 references/*.md 在 frontmatter 也保留对应 source_url + fetched_at。",
+  "categories": {
+    "A": {
+      "title": "Slash Commands（已合并到 skills）",
+      "reference_file": "references/slash-commands.md",
+      "primary": "https://code.claude.com/docs/zh-CN/skills",
+      "secondary": [
+        "https://code.claude.com/docs/zh-CN/commands"
+      ]
+    },
+    "B": {
+      "title": "Memory / CLAUDE.md / Rules",
+      "reference_file": "references/memory-rules.md",
+      "primary": "https://code.claude.com/docs/zh-CN/memory",
+      "secondary": [
+        "https://code.claude.com/docs/zh-CN/best-practices",
+        "https://code.claude.com/docs/zh-CN/claude-directory"
+      ]
+    },
+    "C": {
+      "title": "Skills",
+      "reference_file": "references/skills.md",
+      "primary": "https://code.claude.com/docs/zh-CN/skills",
+      "secondary": [
+        "https://code.claude.com/docs/zh-CN/plugins",
+        "https://code.claude.com/docs/zh-CN/plugins-reference"
+      ]
+    },
+    "D": {
+      "title": "Subagents",
+      "reference_file": "references/subagents.md",
+      "primary": "https://code.claude.com/docs/zh-CN/sub-agents",
+      "secondary": [
+        "https://code.claude.com/docs/zh-CN/agent-sdk/subagents",
+        "https://code.claude.com/docs/zh-CN/agent-view",
+        "https://code.claude.com/docs/zh-CN/agent-teams"
+      ]
+    },
+    "E": {
+      "title": "Settings / Permissions / Hooks（横向）",
+      "reference_file": "references/settings-permissions-hooks.md",
+      "primary": "https://code.claude.com/docs/zh-CN/settings",
+      "secondary": [
+        "https://code.claude.com/docs/zh-CN/permissions",
+        "https://code.claude.com/docs/zh-CN/permission-modes",
+        "https://code.claude.com/docs/zh-CN/hooks",
+        "https://code.claude.com/docs/zh-CN/hooks-guide",
+        "https://code.claude.com/docs/zh-CN/env-vars",
+        "https://code.claude.com/docs/zh-CN/cli-reference"
+      ]
+    }
+  },
+  "cross_references": {
+    "comparison_matrix": "references/comparison-matrix.md",
+    "lint_checklist": "references/lint-checklist.md"
+  },
+  "refresh_policy": {
+    "warn_after_days": 90,
+    "force_refresh_after_days": 180,
+    "refresh_command": "python3 scripts/refresh_docs.py"
+  }
+}
