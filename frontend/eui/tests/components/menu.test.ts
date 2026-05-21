@@ -37,20 +37,16 @@ describe('EMenu', () => {
     expect(wrapper.text()).toContain('Settings')
   })
 
-  it('applies collapsed width class when collapsed prop is true', () => {
-    const wrapper = mount(EMenu, {
+  it('fills container width regardless of collapsed (容器控宽,避免双层宽度动画闪烁)', () => {
+    const collapsedNav = mount(EMenu, {
       props: { items: baseItems, collapsed: true },
-    })
-    const nav = wrapper.find('nav')
-    expect(nav.classes()).toContain('w-14')
-  })
+    }).find('nav')
+    expect(collapsedNav.classes()).toContain('w-full')
 
-  it('applies default width class when not collapsed', () => {
-    const wrapper = mount(EMenu, {
+    const expandedNav = mount(EMenu, {
       props: { items: baseItems, collapsed: false },
-    })
-    const nav = wrapper.find('nav')
-    expect(nav.classes()).toContain('w-56')
+    }).find('nav')
+    expect(expandedNav.classes()).toContain('w-full')
   })
 
   it('marks disabled items with disabled attribute', () => {

@@ -86,9 +86,7 @@ function hasChildren(item: MenuItem): boolean {
   <nav
     data-slot="menu"
     :class="cn(
-      'flex flex-col gap-1',
-      collapsed ? 'w-14' : 'w-56',
-      'transition-[width] duration-200',
+      'flex w-full flex-col gap-1',
       props.class,
     )"
   >
@@ -112,7 +110,7 @@ function hasChildren(item: MenuItem): boolean {
             v-if="item.icon"
             class="size-4 shrink-0"
           />
-          <span class="flex-1 text-left">{{ item.label }}</span>
+          <span class="flex-1 truncate text-left">{{ item.label }}</span>
           <ChevronDown
             :class="cn(
               'size-4 shrink-0 transition-transform duration-200',
@@ -167,7 +165,7 @@ function hasChildren(item: MenuItem): boolean {
           v-if="item.icon"
           class="size-4 shrink-0"
         />
-        <span v-if="!collapsed" class="flex-1 text-left">{{ item.label }}</span>
+        <span v-if="!collapsed" class="flex-1 truncate text-left">{{ item.label }}</span>
       </button>
     </template>
   </nav>
