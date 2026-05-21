@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.2.1
+
+### Patch Changes
+
+- **EMenu**: 修复侧边菜单折叠/展开时文字"闪一下"的问题。内层 `<nav>` 改为 `w-full` 跟随父容器宽度（移除自带的 `transition-[width]` 与写死的 `w-14`/`w-56`），消除与 `EAdminLayout` 侧栏的双层宽度动画及宽度错位；菜单项文字加 `truncate`，避免展开动画期间换行回流。现由父容器单层宽度动画 + `overflow-hidden` 形成平滑的幕布式展开
+
 ## 2.1.0
 
 ### Minor Changes

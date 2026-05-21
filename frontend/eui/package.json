@@ -1,6 +1,6 @@
 {
   "name": "@dwydev/eui",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "type": "module",
   "description": "Vue 3 component library — shadcn-vue visuals + Element Plus API + Tailwind CSS 4",
   "license": "MIT",
