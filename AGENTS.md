@@ -104,7 +104,7 @@ Tag format: `@dwydev/eui@1.3.0`, `create-dwy@0.6.0`, etc.
 
 - No build step (`build:cli` is a no-op).
 - Commands: `dwy create [name]`, `dwy claude sync` (sync skills/rules/commands/hooks to project `.claude/`; `dwy claude sync md` syncs CLAUDE.md to global `~/.claude/`), `dwy codex sync`.
-- `dwy codex sync` converts Claude templates to OpenAI Codex format: rules → `AGENTS.md` (`<!-- DWY-RULES -->` managed block, supports update/delete while preserving user content), skills → `.agents/skills/` (flattened), hooks → `.codex/hooks/` + `.codex/hooks.json` (Codex script reads stdin JSON). Codex hook source lives in `templates/codex-global/`.
+- `dwy codex sync` converts Claude templates to OpenAI Codex format: rules → `AGENTS.md` (`<!-- DWY-RULES -->` managed block, supports update/delete while preserving user content), skills → `.agents/skills/` (flattened), hooks → `.codex/hooks/` + `.codex/hooks.json` (Codex script reads stdin JSON). Codex hook source lives in `templates/codex-global/`. `dwy codex sync md` copies CLAUDE.md to global `~/.codex/AGENTS.md`.
 - Templates cached in `~/.dwy/cache/dwy/`, pulled from Gitee.
 
 ## Workflow Conventions

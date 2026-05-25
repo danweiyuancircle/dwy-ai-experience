@@ -22,8 +22,9 @@ Examples:
   $ dwy claude sync -i             重新交互式选择
   $ dwy claude sync --dry-run      预演同步，不写入文件
   $ dwy claude sync md             仅同步 CLAUDE.md 到 ~/.claude/
-  $ dwy codex sync                 同步配置到 Codex（AGENTS.md / .agents/skills / .codex）
+  $ dwy codex sync                 同步配置到项目（AGENTS.md / .agents/skills / .codex）
   $ dwy codex sync -i              重新交互式选择
+  $ dwy codex sync md              仅同步 CLAUDE.md 到 ~/.codex/AGENTS.md
 `)
 
 program
@@ -60,7 +61,7 @@ const codexCmd = program
 
 codexCmd
   .command('sync [target]')
-  .description('同步配置到项目（rules→AGENTS.md / skills→.agents/skills / hooks→.codex）')
+  .description('同步配置到项目（rules→AGENTS.md / skills→.agents/skills / hooks→.codex；target=md 时仅同步 CLAUDE.md 到 ~/.codex/AGENTS.md）')
   .option('-i, --reselect', '忽略已选缓存，重新交互式选择（已选项默认勾选）')
   .option('--dry-run', '预演模式，不实际写入文件')
   .action((target, opts) => syncCodex({ target, ...opts }))
@@ -69,6 +70,7 @@ Examples:
   $ dwy codex sync                基于已选覆盖同步
   $ dwy codex sync -i             重新交互式选择
   $ dwy codex sync --dry-run      预演，不写入文件
+  $ dwy codex sync md             仅同步 CLAUDE.md 到 ~/.codex/AGENTS.md
 `)
 
 program.parse()

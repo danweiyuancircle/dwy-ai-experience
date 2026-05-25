@@ -1,5 +1,6 @@
 import fs from 'fs-extra'
 import path from 'path'
+import os from 'os'
 import inquirer from 'inquirer'
 import { chalk } from './utils.js'
 import { groupedCheckbox } from './prompts/grouped-checkbox.js'
@@ -253,10 +254,9 @@ async function interactiveSelect(scans, existing) {
 // ---------- 入口 ----------
 
 /**
- * 入口：`dwy codex sync`
- *   rules  → 项目根 AGENTS.md（DWY-RULES 托管块）
- *   skills → 项目 .agents/skills/<name>/
- *   hooks  → 项目 .codex/hooks/ + .codex/hooks.json
+ * 入口：`dwy codex sync [target]`
+ *   target=undefined  同步到项目：rules→AGENTS.md / skills→.agents/skills / hooks→.codex
+ *   target='md'       仅同步 CLAUDE.md → 全局 ~/.codex/AGENTS.md
  */
 export async function syncCodex({ target, reselect = false, dryRun = false } = {}) {
   const claudeGlobal = await resolveSourceDir()
@@ -264,8 +264,26 @@ export async function syncCodex({ target, reselect = false, dryRun = false } = {
     console.error(chalk.red('Error: claude-global templates not found in repo'))
     process.exit(1)
   }
+
+  if (target === 'md') {
+    const src = path.join(claudeGlobal, 'CLAUDE.md')
+    if (!await fs.pathExists(src)) {
+      console.log(chalk.yellow('CLAUDE.md not found in templates, nothing to sync.'))
+      return
+    }
+    const dest = path.join(os.homedir(), '.codex', 'AGENTS.md')
+    console.log(chalk.blue(`\nSyncing CLAUDE.md → ${dest}...\n`))
+    if (!dryRun) {
+      await fs.ensureDir(path.dirname(dest))
+      await fs.copy(src, dest, { overwrite: true })
+    }
+    logAction(dryRun, dest)
+    console.log(chalk.blue(`\n${dryRun ? 'Dry-run complete.' : 'Done.'}`))
+    return
+  }
+
   if (target !== undefined) {
-    console.error(chalk.red(`Error: unknown sync target "${target}". codex sync 不接受参数`))
+    console.error(chalk.red(`Error: unknown sync target "${target}". Supported: (none) | md`))
     process.exit(2)
   }
 
