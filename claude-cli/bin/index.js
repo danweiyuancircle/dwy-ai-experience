@@ -6,6 +6,7 @@ import { dirname, resolve } from 'path'
 import { program } from 'commander'
 import { createProject } from '../src/create.js'
 import { syncClaude } from '../src/sync.js'
+import { syncCodex } from '../src/sync-codex.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'))
@@ -21,6 +22,8 @@ Examples:
   $ dwy claude sync -i             重新交互式选择
   $ dwy claude sync --dry-run      预演同步，不写入文件
   $ dwy claude sync md             仅同步 CLAUDE.md 到 ~/.claude/
+  $ dwy codex sync                 同步配置到 Codex（AGENTS.md / .agents/skills / .codex）
+  $ dwy codex sync -i              重新交互式选择
 `)
 
 program
@@ -49,6 +52,23 @@ Examples:
   $ dwy claude sync -i             重新交互式选择
   $ dwy claude sync --dry-run      预演，不写入文件
   $ dwy claude sync md             仅同步 CLAUDE.md 到 ~/.claude/
+`)
+
+const codexCmd = program
+  .command('codex')
+  .description('OpenAI Codex 配置管理')
+
+codexCmd
+  .command('sync [target]')
+  .description('同步配置到项目（rules→AGENTS.md / skills→.agents/skills / hooks→.codex）')
+  .option('-i, --reselect', '忽略已选缓存，重新交互式选择（已选项默认勾选）')
+  .option('--dry-run', '预演模式，不实际写入文件')
+  .action((target, opts) => syncCodex({ target, ...opts }))
+  .addHelpText('after', `
+Examples:
+  $ dwy codex sync                基于已选覆盖同步
+  $ dwy codex sync -i             重新交互式选择
+  $ dwy codex sync --dry-run      预演，不写入文件
 `)
 
 program.parse()

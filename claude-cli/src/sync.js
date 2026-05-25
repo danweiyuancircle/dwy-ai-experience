@@ -23,11 +23,11 @@ const COPY_EXCLUDE_PATTERNS = [
   /\.pyc$/,
 ]
 
-function copyFilter(src) {
+export function copyFilter(src) {
   return !COPY_EXCLUDE_PATTERNS.some(re => re.test(src))
 }
 
-function extractDescription(content) {
+export function extractDescription(content) {
   const match = content.match(/^---\s*\n([\s\S]*?)\n---/)
   if (!match) return ''
   const lines = match[1].split('\n')
@@ -53,7 +53,7 @@ function extractDescription(content) {
   return ''
 }
 
-async function scanSkills(sourceDir) {
+export async function scanSkills(sourceDir) {
   const skillsDir = path.join(sourceDir, 'skills')
   if (!await fs.pathExists(skillsDir)) return []
 
@@ -79,7 +79,7 @@ async function scanSkills(sourceDir) {
   return skills.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-async function scanRules(sourceDir) {
+export async function scanRules(sourceDir) {
   const rulesDir = path.join(sourceDir, 'rules')
   if (!await fs.pathExists(rulesDir)) return []
 
@@ -120,7 +120,7 @@ async function scanCommands(sourceDir) {
     .sort((a, b) => a.name.localeCompare(b.name))
 }
 
-async function scanHooks(sourceDir) {
+export async function scanHooks(sourceDir) {
   const hooksDir = path.join(sourceDir, 'hooks')
   if (!await fs.pathExists(hooksDir)) return []
 
@@ -142,7 +142,7 @@ async function scanHooks(sourceDir) {
   return hooks.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-async function scanExisting(projectTargetDir, typePlural) {
+export async function scanExisting(projectTargetDir, typePlural) {
   const dir = path.join(projectTargetDir, typePlural)
   if (!await fs.pathExists(dir)) return new Set()
   const entries = await fs.readdir(dir)
@@ -218,7 +218,7 @@ async function interactiveSelect(scans, existing) {
   }
 }
 
-function logAction(dryRun, label, color = 'green', prefix = '✓') {
+export function logAction(dryRun, label, color = 'green', prefix = '✓') {
   console.log(chalk[color](`  ${dryRun ? '[dry-run] ' : prefix + ' '}${label}`))
 }
 
@@ -335,7 +335,7 @@ async function syncClaudeMd(sourceDir, targetDir, dryRun) {
   return 1
 }
 
-async function resolveSourceDir() {
+export async function resolveSourceDir() {
   const localTemplate = path.join(process.cwd(), 'claude-cli', 'templates', 'claude-global')
   if (await fs.pathExists(localTemplate)) {
     console.log(chalk.gray('Using local templates from current project...'))
