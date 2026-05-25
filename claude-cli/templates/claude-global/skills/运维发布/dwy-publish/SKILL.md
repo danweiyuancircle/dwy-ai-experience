@@ -63,11 +63,13 @@ description: "发布版本：测试 → bump → changelog → build → publish
 
 ### 2. Bump Version
 
-根据 Release 配置中的版本文件路径，直接编辑 version 字段。
+**版本级别（major/minor/patch）该怎么定** —— 不确定时用 `dwy-semver` skill 决策，它给出该升哪一位 + 具体新版本号（含 0.x 阶段、预发布、归零规则）。
+
+根据 Release 配置中的版本文件路径，直接编辑 version 字段。新版本号用 `dwy-semver` 的 `scripts/bump.py` 算，避免手算归零出错：
 
 ```bash
-# 读取当前版本（根据配置的版本文件）
-# 计算新版本：patch=x.y.z+1, minor=x.y+1.0, major=x+1.0.0
+python3 <dwy-semver>/scripts/bump.py <当前版本> <major|minor|patch>
+# 如 1.2.3 minor -> 1.3.0
 ```
 
 不使用 `npm version`（避免自动 commit）。Python 项目编辑 `pyproject.toml` 中的 `version` 字段。
