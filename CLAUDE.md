@@ -93,8 +93,8 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 项目脚手架 + Claude 配置同步工具，命令行 `dwy`。
 
 - **`dwy create [name]`**: 交互式创建项目，Handlebars 模板引擎，模板在 `templates/project/{template}/`
-- **`dwy sync claude`**: 从 `templates/claude-global/` 同步全局 ~/.claude/ 配置（settings.json 智能合并）
-- **`dwy sync project-claude`**: 同步项目级 .claude/ 配置
+- **`dwy claude sync`**: 从 `templates/claude-global/` 同步 skills/rules/commands/hooks 到项目 `.claude/`（settings.json 智能合并）；`dwy claude sync md` 仅同步 CLAUDE.md 到全局 ~/.claude/
+- **`dwy codex sync`**: 把 Claude 模板转成 OpenAI Codex 格式同步到项目：rules→`AGENTS.md`（`<!-- DWY-RULES -->` 托管块，支持更新/删除且保留用户内容）、skills→`.agents/skills/`（拍平分类）、hooks→`.codex/hooks/` + `.codex/hooks.json`（Codex 版脚本读 stdin JSON）。Codex hooks 源在 `templates/codex-global/`
 - 模板缓存在 `~/.dwy/cache/dwy/`，从 Gitee 拉取 dwy-shared 仓库
 
 ### frontend/playground/
