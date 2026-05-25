@@ -51,14 +51,31 @@ ps -eo user,pid,%cpu,%mem,cmd --sort=-%mem 2>/dev/null \
   | grep -v grep | head -20
 
 echo ""
-echo "--- 应用健康检查端点 (常见路径自测) ---"
+echo "--- 应用健康检查端点 (经本地 nginx 回环 + --resolve, 避免 hairpin NAT) ---"
 NGINX_DUMP=$(sudo -n nginx -T 2>/dev/null || nginx -T 2>/dev/null || true)
-DOMAINS=$(echo "$NGINX_DUMP" | awk '/server_name/ {for(i=2;i<=NF;i++) print $i}' | tr -d ';' | sort -u | grep -v "^_$" | head -3)
+# 只取真实 server_name 指令行(行首仅空白 + 关键字), 去行内注释, 拆多域名, 过滤 _ / 通配 / 空 / 非法 token
+# 旧实现用 awk '/server_name/' 会误匹配注释行里的 server_name 文字, 产出 _) 1. :80 等垃圾域名
+DOMAINS=$(echo "$NGINX_DUMP" \
+  | grep -E '^[[:space:]]*server_name[[:space:]]' \
+  | sed -E 's/#.*$//; s/^[[:space:]]*server_name[[:space:]]+//; s/;.*$//' \
+  | tr ' ' '\n' \
+  | grep -E '^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$' \
+  | grep -v '^_$' \
+  | sort -u | head -5)
 [[ -z "$DOMAINS" ]] && DOMAINS="localhost"
+# 是否启用 https(443 在监听); 公网域名从本机直连会触发 hairpin NAT 返回 000,
+# 用 --resolve 把域名钉到回环, 既走本地 nginx 又匹配 SNI 证书, 才是白盒正解
+HAS_HTTPS=$( (ss -tln 2>/dev/null || netstat -tln 2>/dev/null) | grep -qE ':443[[:space:]]' && echo yes || echo no )
 for D in $DOMAINS; do
-  for path in "/health" "/api/health" "/healthz" "/_health" "/status"; do
-    code=$(curl -k -sS -o /dev/null -w "%{http_code}" --max-time 3 "https://$D$path" 2>/dev/null || echo "000")
-    [[ "$code" != "404" && "$code" != "000" ]] && printf "  https://%s%s -> %s\n" "$D" "$path" "$code"
+  for path in "/api/health" "/health" "/healthz" "/_health" "/status"; do
+    if [[ "$HAS_HTTPS" == "yes" ]]; then
+      code=$(curl -k -sS -o /dev/null -w "%{http_code}" --max-time 3 --resolve "$D:443:127.0.0.1" "https://$D$path" 2>/dev/null || echo "000")
+      scheme="https"
+    else
+      code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 3 --resolve "$D:80:127.0.0.1" "http://$D$path" 2>/dev/null || echo "000")
+      scheme="http"
+    fi
+    [[ "$code" != "404" && "$code" != "000" ]] && printf "  %s://%s%s -> %s\n" "$scheme" "$D" "$path" "$code"
   done
 done
 
