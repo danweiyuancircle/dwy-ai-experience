@@ -1,12 +1,16 @@
 {
   "name": "create-dwy",
-  "version": "0.13.1",
+  "version": "0.13.2",
   "description": "项目脚手架与 Claude Code 配置同步工具",
   "type": "module",
   "bin": {
     "dwy": "./bin/index.js"
   },
+  "scripts": {
+    "test": "node --test tests/*.test.js"
+  },
   "files": [
+    "CHANGELOG.md",
     "bin",
     "src",
     "templates"

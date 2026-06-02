@@ -103,7 +103,7 @@ export async function scanRules(sourceDir) {
   return rules.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-async function scanCommands(sourceDir) {
+export async function scanCommands(sourceDir) {
   const commandsDir = path.join(sourceDir, 'commands')
   if (!await fs.pathExists(commandsDir)) return []
 
@@ -163,7 +163,7 @@ async function promptSelection(items, label, defaultNames) {
  * 交互式选择：每步可回退到上一步，最后总览支持任意类别重选。
  * 返回 { skills, rules, commands, hooks } 或 null（取消）。
  */
-async function interactiveSelect(scans, existing) {
+export async function interactiveSelect(scans, existing) {
   const sel = {}
 
   // 第一轮：顺序遍历，每步给导航
@@ -350,8 +350,16 @@ export async function resolveSourceDir() {
  *   target=undefined  同步项目 .claude/（不动全局 CLAUDE.md）
  *   target='md'       仅同步 CLAUDE.md → 全局 ~/.claude/
  */
-export async function syncClaude({ target, reselect = false, dryRun = false } = {}) {
-  const sourceDir = await resolveSourceDir()
+export async function syncClaude({
+  target,
+  reselect = false,
+  dryRun = false,
+  sourceDir: sourceDirOverride,
+  projectDir,
+  selected: selectedOverride,
+  skipInitPrompt = false,
+} = {}) {
+  const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
     console.error(chalk.red('Error: claude-global templates not found in repo'))
     process.exit(1)
@@ -373,13 +381,14 @@ export async function syncClaude({ target, reselect = false, dryRun = false } = 
   }
 
   console.log(chalk.blue('\nScanning available Claude configuration...\n'))
-  const projectTargetDir = path.join(process.cwd(), '.claude')
+  const projectRoot = projectDir || process.cwd()
+  const projectTargetDir = path.join(projectRoot, '.claude')
 
-  if (!await fs.pathExists(projectTargetDir)) {
+  if (!selectedOverride && !skipInitPrompt && !await fs.pathExists(projectTargetDir)) {
     const { shouldCreate } = await inquirer.prompt([{
       type: 'confirm',
       name: 'shouldCreate',
-      message: `当前目录 ${chalk.yellow(process.cwd())} 未找到 .claude 目录，是否在此创建？`,
+      message: `当前目录 ${chalk.yellow(projectRoot)} 未找到 .claude 目录，是否在此创建？`,
       default: false,
     }])
     if (!shouldCreate) {
@@ -406,7 +415,15 @@ export async function syncClaude({ target, reselect = false, dryRun = false } = 
 
   let selected
 
-  if (!reselect && hasAnyExisting) {
+  if (selectedOverride) {
+    const selectedNames = key => new Set((selectedOverride[key] || []).map(item => item.name))
+    selected = {
+      skills: scans.skills.filter(item => selectedNames('skills').has(item.name)),
+      rules: scans.rules.filter(item => selectedNames('rules').has(item.name)),
+      commands: scans.commands.filter(item => selectedNames('commands').has(item.name)),
+      hooks: scans.hooks.filter(item => selectedNames('hooks').has(item.name)),
+    }
+  } else if (!reselect && hasAnyExisting) {
     // 缓存模式：模板 ∩ 已选
     selected = {
       skills: scans.skills.filter(s => existing.skills.has(s.name)),
