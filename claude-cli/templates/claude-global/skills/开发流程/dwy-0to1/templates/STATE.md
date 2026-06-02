@@ -33,11 +33,14 @@ target_platform: none       # Step3 选定后改: ios | android | desktop | web 
 <!-- 每步定下的、后续步骤要用的决策都记在这里 -->
 - 真需求结论：<Step1，做 / 不做 / 调整方向>
 - 差异化打法：<Step1>
+- 核心能力/最大技术风险：<Step1，最该被 Step2 验证的技术核心>
+- 硬约束：<Step1/2，合规/PII/实时性/规模水位 → 约束选型；无则写 无>
 - 技术方案：<Step2 选定的库/方案>
 - 是否实测：<Step3，是(端=xxx) / 否>
 - 端：<Step3 选定：ios|android|desktop|web|none>
 - 产品定位：<Step4>
 - 定价策略：<Step4>
+- 全局数据模型/架构骨架：<Step8，核心实体+关系+架构方向>
 - 选定版本：<Step8，可多个，如 v1+v2>
 
 ## 版本开发进度（Step 9）

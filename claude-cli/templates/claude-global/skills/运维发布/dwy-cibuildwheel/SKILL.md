@@ -1,11 +1,13 @@
 ---
 name: dwy-cibuildwheel
-description: "Python Cython SDK 用 GitHub Actions + cibuildwheel 跨平台 build wheel 并通过 PyPI Trusted Publisher (OIDC) 发布到 PyPI 的避坑指南。涵盖 PEP 639 license / cibuildwheel 版本 tag / YAML 冒号转义 / {package} 占位符 / 跨平台 shell 引号 / manylinux 镜像 / 测试阶段 binary 强制 / GitHub runner image 退役（macos-13 已死）等 8 类高频坑。触发条件：编辑或新建 .github/workflows/*.yml 含 cibuildwheel、pyproject.toml 含 Cython、用户说'发 PyPI'/'build wheel'/'cibuildwheel'/'跨平台打包'/'wheel build 失败'/'macos runner 一直 queued'/'发版到 PyPI' 时。"
+description: "用 GitHub Actions + cibuildwheel 把【含 C 扩展 / Cython / .so 编译产物】的 Python 包跨平台 build wheel（linux/macos/windows × x86_64/arm64）并通过 PyPI Trusted Publisher (OIDC) 发布到 PyPI 的避坑指南。仅适用于需要编译 .so 的包；纯 Python 包发 PyPI 不需要本 skill（走 dwy-publish + dwy-sdk-spec）。涵盖 PEP 639 license / cibuildwheel 版本 tag / YAML 冒号转义 / {package} 占位符 / 跨平台 shell 引号 / manylinux 镜像 / 测试阶段 binary 强制 / GitHub runner image 退役（macos-13 已死）等 8 类高频坑。触发条件：编辑或新建含 cibuildwheel 的 .github/workflows/*.yml、pyproject.toml 含 Cython / ext_modules、用户说 'cibuildwheel' / 'build wheel' / '跨平台 wheel' / '.so 跨平台打包' / 'wheel build 失败' / 'macos runner 一直 queued'，或要把含 C 扩展的 Python 包发 PyPI 时。"
 ---
 
 # dwy-cibuildwheel — Python Cython SDK 跨平台 PyPI 发布避坑
 
 适用场景：含 Cython 编译扩展的 Python 包、跨平台 wheel 分发（linux x86_64/aarch64 + macos x86_64/arm64 + windows AMD64）、GitHub Actions + cibuildwheel + PyPI Trusted Publisher OIDC 发版。
+
+> 定位：本 skill 只解决「含 C 扩展的包怎么用 GitHub Actions 跨平台打 wheel 发 PyPI」的 CI 避坑。通用发版流程（测试 / bump / changelog / tag）走 `dwy-publish`；发布前接口脱敏 / 源码泄露 / 产物审计走 `dwy-sdk-spec`；纯 Python 包不需要本 skill。
 
 **实战来源**：quant-sdk (quantzone) 0.4.0 首发到 PyPI 过程中暴露的 8 类坑，全部沉淀于此。
 

@@ -32,7 +32,7 @@ description: 端到端「0→1 产品孵化」编排器。用户丢一个产品�
 
 1. **委托调用单点 skill**：用 Skill 工具调对应 `dwy-*`，在调用指令里带「**流水线模式**」+ 前序产物路径 + 落盘路径（见路由表）。被调 skill 负责本步的工作、完成前自检（先验证再声称）、并**自己跑领域门**（`AskUserQuestion` 把产物摆给用户问 通过/改/换方向）。
 2. **过门**：被调 skill 的门**用户点头**了，这步才算过。用户要改 → 让 skill 迭代重做再摆，**没点头不进下一步、更不许写生产代码**。
-3. **记账（编排器独占）**：门过了，**编排器立刻更新 `docs/0to1/STATE.md`**——这步状态改 `done`、gate 列填 `✅ <date>`、产物路径、按 `templates/STATE.md`「关键决策」清单填本步定下的决策（Step1 真需求结论/差异化、Step2 技术方案、Step3 是否实测/端、Step4 定位/定价、Step8 选定版本）、`current_step` 指向下一步、写一句「下一步」。被调 skill **不碰 STATE**，记账只由编排器做，这是一次原子 checkpoint。
+3. **记账（编排器独占）**：门过了，**编排器立刻更新 `docs/0to1/STATE.md`**——这步状态改 `done`、gate 列填 `✅ <date>`、产物路径、按 `templates/STATE.md`「关键决策」清单填本步定下的决策（Step1 真需求结论/差异化/核心能力/硬约束、Step2 技术方案、Step3 是否实测/端、Step4 定位/定价、Step8 选定版本/全局架构骨架）、`current_step` 指向下一步、写一句「下一步」。被调 skill **不碰 STATE**，记账只由编排器做，这是一次原子 checkpoint。
 
 红线：**绝不跳步、绝不跳门、绝不在用户确认前写生产代码。**
 
@@ -45,7 +45,7 @@ description: 端到端「0→1 产品孵化」编排器。用户丢一个产品�
 | 1 | 需求 & 市场分析 | `dwy-market-analysis` | 无前序 → `docs/0to1/01-market.md` | 01-market.md |
 | 2 | 技术可行性 | `dwy-tech-feasibility` | 读 `01-market.md` → `docs/0to1/02-tech-feasibility.md` | 02-tech-feasibility.md |
 | 3 | 实测（可选） | `dwy-spike` | 读 `02-tech-feasibility.md` → 代码 `docs/0to1/spike/`、结论 `docs/0to1/03-spike-result.md` | 03-spike-result.md + spike/ |
-| 4 | 粗 PRD | `dwy-prd-coarse` | 读 `01-market.md` → `docs/0to1/04-prd-coarse.md` | 04-prd-coarse.md |
+| 4 | 粗 PRD | `dwy-prd-coarse` | 读 `01-market.md` + `02-tech-feasibility.md`（+ 存在时 `03-spike-result.md`） → `docs/0to1/04-prd-coarse.md` | 04-prd-coarse.md |
 | 5 | 低保真原型 | `dwy-prototype`（`phase=lowfi`） | 读 `04-prd-coarse.md` → `docs/0to1/prototype-lowfi/` | prototype-lowfi/index.html |
 | 6 | 高保真原型 | `dwy-prototype`（`phase=hifi`） | 读 `04-prd-coarse.md` + `prototype-lowfi/` → `docs/0to1/prototype-hifi/` | prototype-hifi/ |
 | 7 | 细 PRD | `dwy-prd-detailed` | 读 `04-prd-coarse.md` + `prototype-hifi/` → `docs/0to1/05-prd-detailed.md` | 05-prd-detailed.md |
@@ -58,7 +58,7 @@ description: 端到端「0→1 产品孵化」编排器。用户丢一个产品�
 
 **Step 5/6 同一个 skill 两道门**：`dwy-prototype` 在低保真（`phase=lowfi`）、高保真（`phase=hifi`）各调一次、各卡一道门，目的不同（验流程 vs 做底稿），别合并。
 
-**Step 9 循环**：对 STATE「选定版本」里的每个版本依次调 `dwy-tdd-dev` 走完，编排器更新「版本开发进度」表；全部版本完，Step 9 标 `done`，给交付报告。
+**Step 9 循环**：对 STATE「选定版本」里的每个版本依次调 `dwy-tdd-dev` 走完，编排器更新「版本开发进度」表；全部版本完，Step 9 标 `done`，给交付报告。每版完成的 commit 由 `dwy-tdd-dev` 走 `dwy-git-commit` 规范（敏感扫描 + 格式 + 禁 AI 署名），不裸 commit。
 
 ## 产物目录（项目内 docs/0to1/）
 
@@ -85,7 +85,8 @@ docs/0to1/
 - **编排器只编排、不实现**：各步的「怎么做」在对应 `dwy-*` skill 里，本文件只管顺序、门、STATE。被调 skill 不碰 STATE，记账只由编排器做。
 - **spike 是丢弃式**（Step 3）：实测代码隔离在 `docs/0to1/spike/`，只为验证核心流程跑不跑得通。开发期（Step 9）**只继承结论，不继承 spike 代码**——TDD 铁律是没失败测试不写生产代码，spike 不算。
 - **两个原型卡不同门**：低保真（Step 5）验流程方向、高保真（Step 6）做细 PRD 底稿，目的不同别合并。**例外**：单页小工具可合并成一轮；CLI / 后端 / 库类**无 GUI** 产品，原型步降级为「终端会话 mock / API 契约示例」或直接跳过（在 STATE 标 `skipped(无GUI)`）。详见 `dwy-prototype` 的降级表。
-- **自包含 + 可增强**：本编排器只依赖同系列 `dwy-*` skill，不依赖 gstack / superpowers 插件。Step 9 的 `dwy-tdd-dev` 若检测到项目装了 `/code-review` 命令或 `dwy-dev-qa` skill，可委托给它们做增强审查。
+- **自包含 + 可增强**：本编排器只依赖同系列 `dwy-*` skill，不依赖 gstack / superpowers 插件。Step 9 的 `dwy-tdd-dev` 已内置 spec/code 双审 + 版本级 code-review，等价覆盖 `dwy-dev-qa` 核心；需要更全面的系统级 QA 时才额外委托 `dwy-dev-qa` 或 `/code-review`，避免重复审查。
+- **流水线边界**：交付止于「可运行代码 + 交付报告」。**上线 / 部署 / 市场验证是流水线边界外的人工动作**——Step1「真需求结论」的真正验证靠上线后人工度量。要再迭代就重进本 skill：方向变回 Step 1、产品调整回 Step 4、只加版本回 Step 8。
 - **不跳步、不跳门、不提前写代码**（见「门规则」）。
 
 ## 文件结构
