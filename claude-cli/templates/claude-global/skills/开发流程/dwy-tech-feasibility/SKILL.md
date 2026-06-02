@@ -1,6 +1,6 @@
 ---
 name: dwy-tech-feasibility
-description: 技术可行性与选型调研：为产品核心能力找 1-3 个成熟开源方案做对比，给推荐 + 是否需要实测建议，绝不手撸已有轮子。涉及以下场景使用此 skill（即使没点名 'dwy-tech-feasibility'）：用户说『这个功能用什么技术实现』『帮我做技术选型/可行性分析』『有没有现成的库做 X』『这个能力技术上可行吗』。WebSearch 找方案 + 四项对比表（能力覆盖/成熟度/适配度/坑）+ 敢下判断的推荐。区分：本 skill 是选型可行性调研（纸面对比）；要真写代码跑通用 dwy-spike；要推荐整套项目技术栈用 dwy-tech-stack；完整 0→1 流水线用 dwy-incubator。
+description: 技术可行性与选型调研：为产品核心能力找 1-3 个成熟开源方案做对比，给推荐 + 是否需要实测建议，绝不手撸已有轮子。涉及以下场景使用此 skill（即使没点名 'dwy-tech-feasibility'）：用户说『这个功能用什么技术实现』『帮我做技术选型/可行性分析』『有没有现成的库做 X』『这个能力技术上可行吗』。WebSearch 找方案 + 四项对比表（能力覆盖/成熟度/适配度/坑）+ 敢下判断的推荐。区分：本 skill 是选型可行性调研（纸面对比）；要真写代码跑通用 dwy-spike；要推荐整套项目技术栈用 dwy-tech-stack；完整 0→1 流水线用 dwy-0to1。
 ---
 
 # dwy-tech-feasibility · 技术可行性
@@ -12,7 +12,7 @@ description: 技术可行性与选型调研：为产品核心能力找 1-3 个�
 上下文自适应，两种调用方式：
 
 - **单独调用（默认）**：用户直接问某能力怎么实现 / 选什么技术。从用户描述的能力起步；产物落 `./tech-feasibility.md` 或用户指定位置；**不读写 STATE.md、不依赖 `docs/0to1/`**。做完跑下方「门」即结束。
-- **流水线调用**：`dwy-incubator` 调用，指令含「流水线模式」+ 前序产物路径（市场分析）+ 落盘路径（如 `docs/0to1/02-tech-feasibility.md`）。按指令读前序、写指定路径；**STATE 记账由 dwy-incubator 负责，本 skill 不碰 STATE.md**。
+- **流水线调用**：`dwy-0to1` 调用，指令含「流水线模式」+ 前序产物路径（市场分析）+ 落盘路径（如 `docs/0to1/02-tech-feasibility.md`）。按指令读前序、写指定路径；**STATE 记账由 dwy-0to1 负责，本 skill 不碰 STATE.md**。
 
 ## 输入（核心能力从哪来）
 

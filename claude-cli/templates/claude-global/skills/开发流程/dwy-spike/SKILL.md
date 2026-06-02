@@ -1,6 +1,6 @@
 ---
 name: dwy-spike
-description: 丢弃式技术验证（spike/POC）：写最简代码只验核心流程跑不跑得通，让用户真机测，只产结论不留代码。涉及以下场景使用此 skill（即使没点名 'dwy-spike'）：用户说『先写个 demo 验证下这个技术行不行』『做个 POC/spike 试试』『这个第三方 API/算法/性能能不能满足』『真机跑跑看能不能通』。代码隔离丢弃，产出实测结论（可行/不可行/换方案）。区分：本 skill 真写代码实测；只做纸面选型对比用 dwy-tech-feasibility；正式 TDD 开发落地用 dwy-tdd-dev；完整 0→1 流水线用 dwy-incubator。
+description: 丢弃式技术验证（spike/POC）：写最简代码只验核心流程跑不跑得通，让用户真机测，只产结论不留代码。涉及以下场景使用此 skill（即使没点名 'dwy-spike'）：用户说『先写个 demo 验证下这个技术行不行』『做个 POC/spike 试试』『这个第三方 API/算法/性能能不能满足』『真机跑跑看能不能通』。代码隔离丢弃，产出实测结论（可行/不可行/换方案）。区分：本 skill 真写代码实测；只做纸面选型对比用 dwy-tech-feasibility；正式 TDD 开发落地用 dwy-tdd-dev；完整 0→1 流水线用 dwy-0to1。
 ---
 
 # dwy-spike · 丢弃式技术实测
@@ -12,7 +12,7 @@ description: 丢弃式技术验证（spike/POC）：写最简代码只验核心�
 上下文自适应，两种调用方式：
 
 - **单独调用（默认）**：用户直接让你验证某技术行不行。从用户描述的技术风险点起步；spike 代码放 `./spike/`、结论落 `./spike-result.md`（或用户指定）；**不读写 STATE.md、不依赖 `docs/0to1/`**。做完跑下方「门」即结束。
-- **流水线调用**：`dwy-incubator` 调用，指令含「流水线模式」+ 前序产物路径（技术可行性）+ 落盘路径（代码 `docs/0to1/spike/`、结论 `docs/0to1/03-spike-result.md`）。**STATE 记账（含 target_platform 记录）由 dwy-incubator 负责，本 skill 不碰 STATE.md**。
+- **流水线调用**：`dwy-0to1` 调用，指令含「流水线模式」+ 前序产物路径（技术可行性）+ 落盘路径（代码 `docs/0to1/spike/`、结论 `docs/0to1/03-spike-result.md`）。**STATE 记账（含 target_platform 记录）由 dwy-0to1 负责，本 skill 不碰 STATE.md**。
 
 ## 输入（验什么）
 

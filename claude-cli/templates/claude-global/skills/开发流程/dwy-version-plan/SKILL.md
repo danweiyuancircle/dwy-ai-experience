@@ -1,6 +1,6 @@
 ---
 name: dwy-version-plan
-description: 产品版本规划：基于细 PRD 把产品切成可交付版本（v1 最小闭环 → v2 → v3…），每版写包含功能、依赖、可验证的验收标准，按价值增量切不按技术层切。涉及以下场景使用此 skill（即使没点名 'dwy-version-plan'）：用户说『帮我规划版本/迭代』『这个产品先做哪些功能、怎么分版本』『切个 v1 最小可用版本』『排个版本路线』。区分：本 skill 切版本+定验收；具体某版本的 TDD 实现用 dwy-tdd-dev；完整 0→1 流水线用 dwy-incubator。
+description: 产品版本规划：基于细 PRD 把产品切成可交付版本（v1 最小闭环 → v2 → v3…），每版写包含功能、依赖、可验证的验收标准，按价值增量切不按技术层切。涉及以下场景使用此 skill（即使没点名 'dwy-version-plan'）：用户说『帮我规划版本/迭代』『这个产品先做哪些功能、怎么分版本』『切个 v1 最小可用版本』『排个版本路线』。区分：本 skill 切版本+定验收；具体某版本的 TDD 实现用 dwy-tdd-dev；完整 0→1 流水线用 dwy-0to1。
 ---
 
 # dwy-version-plan · 版本规划
@@ -12,7 +12,7 @@ description: 产品版本规划：基于细 PRD 把产品切成可交付版本�
 上下文自适应，两种调用方式：
 
 - **单独调用（默认）**：用户直接让你规划版本。从用户给的 PRD/功能清单或描述起步；产物落 `./version-plan.md` 或用户指定位置；**不读写 STATE.md、不依赖 `docs/0to1/`**。做完跑下方「门」即结束。
-- **流水线调用**：`dwy-incubator` 调用，指令含「流水线模式」+ 前序产物路径（细 PRD）+ 落盘路径（如 `docs/0to1/06-version-plan.md`）。**STATE 记账（含选定版本、版本进度表）由 dwy-incubator 负责，本 skill 不碰 STATE.md**。
+- **流水线调用**：`dwy-0to1` 调用，指令含「流水线模式」+ 前序产物路径（细 PRD）+ 落盘路径（如 `docs/0to1/06-version-plan.md`）。**STATE 记账（含选定版本、版本进度表）由 dwy-0to1 负责，本 skill 不碰 STATE.md**。
 
 ## 输入（切版本的依据）
 

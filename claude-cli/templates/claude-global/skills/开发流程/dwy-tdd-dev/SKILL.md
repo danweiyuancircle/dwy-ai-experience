@@ -1,6 +1,6 @@
 ---
 name: dwy-tdd-dev
-description: 按 TDD 把一个版本/功能落地成代码：写实施计划（bite-size Task）→ 红-绿-重构 → 每个 Task 两阶段审查（spec + code）→ 版本级 code-review 修到全绿 → 完成前验证。涉及以下场景使用此 skill（即使没点名 'dwy-tdd-dev'）：用户说『用 TDD 帮我实现这个』『按测试驱动开发这个功能/版本』『写实施计划再开发』『把这版做出来』。铁律：没失败测试不写生产代码。区分：本 skill 是开发实现；开发完的质量保障流程用 dwy-dev-qa；完整 0→1 流水线用 dwy-incubator。
+description: 按 TDD 把一个版本/功能落地成代码：写实施计划（bite-size Task）→ 红-绿-重构 → 每个 Task 两阶段审查（spec + code）→ 版本级 code-review 修到全绿 → 完成前验证。涉及以下场景使用此 skill（即使没点名 'dwy-tdd-dev'）：用户说『用 TDD 帮我实现这个』『按测试驱动开发这个功能/版本』『写实施计划再开发』『把这版做出来』。铁律：没失败测试不写生产代码。区分：本 skill 是开发实现；开发完的质量保障流程用 dwy-dev-qa；完整 0→1 流水线用 dwy-0to1。
 ---
 
 # dwy-tdd-dev · 逐版本 TDD 开发
@@ -14,7 +14,7 @@ description: 按 TDD 把一个版本/功能落地成代码：写实施计划（b
 上下文自适应，两种调用方式：
 
 - **单独调用（默认）**：用户直接让你按 TDD 实现某功能/版本。从用户描述或指定的需求文档起步；实施计划落 `./plans/<slug>.md` 或用户指定位置，代码进项目源码；**不读写 STATE.md、不依赖 `docs/0to1/`**。一个版本走完跑下方「完成前验证」并给交付报告。
-- **流水线调用**：`dwy-incubator` 调用，指令含「流水线模式」+ 前序产物路径（版本规划 + 细 PRD）+ 实施计划落盘路径（如 `docs/0to1/plans/vN-<slug>.md`）+ 本次要做哪几个版本。**STATE 的版本进度记账由 dwy-incubator 负责，本 skill 不碰 STATE.md**。
+- **流水线调用**：`dwy-0to1` 调用，指令含「流水线模式」+ 前序产物路径（版本规划 + 细 PRD）+ 实施计划落盘路径（如 `docs/0to1/plans/vN-<slug>.md`）+ 本次要做哪几个版本。**STATE 的版本进度记账由 dwy-0to1 负责，本 skill 不碰 STATE.md**。
 
 ## 输入
 
