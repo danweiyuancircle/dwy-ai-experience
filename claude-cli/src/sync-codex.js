@@ -54,7 +54,7 @@ async function ruleToSection(ruleItem) {
   return [marker, title, scopeLine, body].filter(Boolean).join('\n\n')
 }
 
-function parseManagedRuleNames(content) {
+export function parseManagedRuleNames(content) {
   const block = content.match(BLOCK_RE)
   if (!block) return new Set()
   const names = new Set()
@@ -94,7 +94,7 @@ async function syncRulesToAgentsMd(selectedRules, proj, dryRun) {
 
 // ---------- skills → .agents/skills/ ----------
 
-async function scanExistingCodexSkills(proj) {
+export async function scanExistingCodexSkills(proj) {
   const dir = path.join(proj, '.agents', 'skills')
   if (!await fs.pathExists(dir)) return new Set()
   const entries = await fs.readdir(dir, { withFileTypes: true })
@@ -129,7 +129,7 @@ async function removeUnselectedFlat(subdir, existingNames, selectedNames, templa
 
 // ---------- hooks → .codex/ ----------
 
-async function scanExistingCodexHooks(proj) {
+export async function scanExistingCodexHooks(proj) {
   const dir = path.join(proj, '.codex', 'hooks')
   if (!await fs.pathExists(dir)) return new Set()
   const entries = await fs.readdir(dir)
@@ -258,8 +258,16 @@ async function interactiveSelect(scans, existing) {
  *   target=undefined  同步到项目：rules→AGENTS.md / skills→.agents/skills / hooks→.codex
  *   target='md'       仅同步 CLAUDE.md → 全局 ~/.codex/AGENTS.md
  */
-export async function syncCodex({ target, reselect = false, dryRun = false } = {}) {
-  const claudeGlobal = await resolveSourceDir()
+export async function syncCodex({
+  target,
+  reselect = false,
+  dryRun = false,
+  sourceDir: sourceDirOverride,
+  projectDir,
+  selected: selectedOverride,
+  skipInitPrompt = false,
+} = {}) {
+  const claudeGlobal = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(claudeGlobal)) {
     console.error(chalk.red('Error: claude-global templates not found in repo'))
     process.exit(1)
@@ -289,7 +297,7 @@ export async function syncCodex({ target, reselect = false, dryRun = false } = {
 
   const codexGlobal = path.join(claudeGlobal, '..', 'codex-global')
   const hooksJsonSrc = path.join(codexGlobal, 'hooks.json')
-  const proj = process.cwd()
+  const proj = projectDir || process.cwd()
 
   console.log(chalk.blue('\nScanning available config for Codex...\n'))
 
@@ -309,7 +317,11 @@ export async function syncCodex({ target, reselect = false, dryRun = false } = {
   }
   const hasAnyExisting = existing.skills.size + existing.rules.size + existing.hooks.size > 0
 
-  if (!hasAnyExisting && !await fs.pathExists(path.join(proj, '.codex')) && !await fs.pathExists(path.join(proj, '.agents'))) {
+  if (!selectedOverride
+      && !skipInitPrompt
+      && !hasAnyExisting
+      && !await fs.pathExists(path.join(proj, '.codex'))
+      && !await fs.pathExists(path.join(proj, '.agents'))) {
     const { ok } = await inquirer.prompt([{
       type: 'confirm',
       name: 'ok',
@@ -323,7 +335,14 @@ export async function syncCodex({ target, reselect = false, dryRun = false } = {
   }
 
   let selected
-  if (!reselect && hasAnyExisting) {
+  if (selectedOverride) {
+    const selectedNames = key => new Set((selectedOverride[key] || []).map(item => item.name))
+    selected = {
+      skills: scans.skills.filter(item => selectedNames('skills').has(item.name)),
+      rules: scans.rules.filter(item => selectedNames('rules').has(item.name)),
+      hooks: scans.hooks.filter(item => selectedNames('hooks').has(item.name)),
+    }
+  } else if (!reselect && hasAnyExisting) {
     selected = {
       skills: scans.skills.filter(s => existing.skills.has(s.name)),
       rules: scans.rules.filter(r => existing.rules.has(r.name)),
