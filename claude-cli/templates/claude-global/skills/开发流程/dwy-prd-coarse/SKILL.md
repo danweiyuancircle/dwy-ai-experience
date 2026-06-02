@@ -1,6 +1,6 @@
 ---
 name: dwy-prd-coarse
-description: 粗粒度产品定义（功能级 PRD）：协作对话敲定产品定位、哲学、目标人群、定价、核心功能详述、非目标，不下到页面级。涉及以下场景使用此 skill（即使没点名 'dwy-prd-coarse'）：用户说『帮我写个 PRD/产品文档』『定义下这个产品』『梳理产品定位和核心功能』『这个产品怎么定价/给谁用』。brainstorming 逐块谈定，产出粗 PRD。区分：本 skill 是功能级总纲（定位/功能/非目标）；要细到页面级元素/文案/状态/输入校验用 dwy-prd-detailed；完整 0→1 流水线用 dwy-incubator。
+description: 粗粒度产品定义（功能级 PRD）：协作对话敲定产品定位、哲学、目标人群、定价、核心功能详述、非目标，不下到页面级。涉及以下场景使用此 skill（即使没点名 'dwy-prd-coarse'）：用户说『帮我写个 PRD/产品文档』『定义下这个产品』『梳理产品定位和核心功能』『这个产品怎么定价/给谁用』。brainstorming 逐块谈定，产出粗 PRD。区分：本 skill 是功能级总纲（定位/功能/非目标）；要细到页面级元素/文案/状态/输入校验用 dwy-prd-detailed；完整 0→1 流水线用 dwy-0to1。
 ---
 
 # dwy-prd-coarse · 粗 PRD
@@ -12,7 +12,7 @@ description: 粗粒度产品定义（功能级 PRD）：协作对话敲定产品
 上下文自适应，两种调用方式：
 
 - **单独调用（默认）**：用户直接让你写/梳理产品 PRD。从用户描述起步；产物落 `./prd-coarse.md` 或用户指定位置；**不读写 STATE.md、不依赖 `docs/0to1/`**。做完跑下方「门」即结束。
-- **流水线调用**：`dwy-incubator` 调用，指令含「流水线模式」+ 前序产物路径（市场分析）+ 落盘路径（如 `docs/0to1/04-prd-coarse.md`）。**STATE 记账由 dwy-incubator 负责，本 skill 不碰 STATE.md**。
+- **流水线调用**：`dwy-0to1` 调用，指令含「流水线模式」+ 前序产物路径（市场分析）+ 落盘路径（如 `docs/0to1/04-prd-coarse.md`）。**STATE 记账由 dwy-0to1 负责，本 skill 不碰 STATE.md**。
 
 ## 输入（定位/定价的依据）
 

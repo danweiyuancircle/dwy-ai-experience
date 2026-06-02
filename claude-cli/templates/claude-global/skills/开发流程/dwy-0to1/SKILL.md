@@ -1,9 +1,9 @@
 ---
-name: dwy-incubator
-description: 端到端「0→1 产品孵化」编排器。用户丢一个产品想法进来，按九步带门流水线**逐步编排调用**同系列单点 skill：dwy-market-analysis（需求/市场）→ dwy-tech-feasibility（技术可行性）→（可选）dwy-spike（真机实测）→ dwy-prd-coarse（粗 PRD）→ dwy-prototype（低保真+高保真原型）→ dwy-prd-detailed（细 PRD）→ dwy-version-plan（版本规划）→ dwy-tdd-dev（逐版本 TDD 开发），每步卡用户确认门、产物落盘 docs/0to1/、用 STATE.md 做唯一真相源支持断点续传。涉及以下场景**必须**使用此 skill（即使用户没点名 'dwy-incubator'）：用户说『我想做个 X』『帮我把这个想法做成产品』『从 0 到 1 做个 XX』『帮我孵化这个想法』，或丢一个产品概念让我判断值不值得做、怎么落地；用户说『继续做 X』『接着上次的产品』『孵化进度到哪了』时读 STATE 续传/汇报。只想单独做其中一步（只画原型、只写 PRD、只做市场分析等），直接用对应的 dwy-* 单点 skill，不必走整条流水线。核心纪律——每步卡门等用户确认才进下一步，绝不跳步、绝不未确认就写代码，所有产物落盘 docs/0to1/ 以支持断点续传。
+name: dwy-0to1
+description: 端到端「0→1 产品孵化」编排器。用户丢一个产品想法进来，按九步带门流水线**逐步编排调用**同系列单点 skill：dwy-market-analysis（需求/市场）→ dwy-tech-feasibility（技术可行性）→（可选）dwy-spike（真机实测）→ dwy-prd-coarse（粗 PRD）→ dwy-prototype（低保真+高保真原型）→ dwy-prd-detailed（细 PRD）→ dwy-version-plan（版本规划）→ dwy-tdd-dev（逐版本 TDD 开发），每步卡用户确认门、产物落盘 docs/0to1/、用 STATE.md 做唯一真相源支持断点续传。涉及以下场景**必须**使用此 skill（即使用户没点名 'dwy-0to1'）：用户说『我想做个 X』『帮我把这个想法做成产品』『从 0 到 1 做个 XX』『帮我孵化这个想法』，或丢一个产品概念让我判断值不值得做、怎么落地；用户说『继续做 X』『接着上次的产品』『孵化进度到哪了』时读 STATE 续传/汇报。只想单独做其中一步（只画原型、只写 PRD、只做市场分析等），直接用对应的 dwy-* 单点 skill，不必走整条流水线。核心纪律——每步卡门等用户确认才进下一步，绝不跳步、绝不未确认就写代码，所有产物落盘 docs/0to1/ 以支持断点续传。
 ---
 
-# dwy-incubator（编排器）
+# dwy-0to1（编排器）
 
 把一个产品想法，按九步带门的流水线推到逐版本 TDD 开发落地。本 skill 是**编排器**：自己不实现各步细节，而是按顺序**委托调用**同系列单点 skill，并独占 STATE 真相源、统一卡门、管跨步顺序。每步落盘 `docs/0to1/`，可中断、可断点续传——这次聊到粗 PRD，下次进来从粗 PRD 接着聊。
 
@@ -91,7 +91,7 @@ docs/0to1/
 ## 文件结构
 
 ```
-.claude/skills/dwy-incubator/
+.claude/skills/dwy-0to1/
 ├── SKILL.md                       ← 本文件（编排骨架 + STATE 协议 + 门规则 + 路由）
 └── templates/
     └── STATE.md                   ← 状态文件模板（编排器独占）
