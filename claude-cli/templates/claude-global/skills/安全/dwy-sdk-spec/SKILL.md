@@ -1,18 +1,20 @@
 ---
 name: dwy-sdk-spec
-description: "SDK 接口规范与发布安全检查。检查 SDK 接口注释是否泄露后端实现（内网域名、数据库表名、Redis key、内部服务名、员工邮箱、JIRA 链接、SQL 语句），检查商业版 Python SDK 是否用 Cython 编译成 .so 隐藏源码，检查商业版 JS SDK 是否用 tsup/rollup minify + files 白名单，检查 PyPI/npm 发布产物是否含 .py 源文件 / .map source map / .env / .npmrc / tsbuildinfo / __pycache__ 等隐藏泄露文件。跨项目复用：首次进入新项目用 AskUserQuestion 问商业版还是开源版，缓存到 ~/.config/dwy-sdk-spec/projects.json，下次自动按规则检查。涉及以下任何场景必须使用此 skill：用户说「检查 SDK」「SDK 发版前检查」「SDK 注释脱敏」「SDK 接口规范」「准备发 PyPI」「准备发 npm」「商业版 SDK 打包」「Cython 编译 .so」「打包前体检」「.gitignore 漏了什么」「npm pack 看看包里有什么」「发布前安全检查」「SDK 源码泄露检查」「重设 SDK 版本类型」。"
+description: "通用 SDK 发布前安全检查——任何 SDK 对外发布（PyPI / npm / 私有源 / 直接交付，渠道不限）前都应先过这一关。查三类风险：①接口注释是否泄露后端实现（内网域名、数据库表名、Redis key、内部服务名、员工邮箱、JIRA 链接、SQL 语句）；②商业版 SDK 源码是否被保护（Python 用 Cython 编译 .so、JS 用 tsup/rollup minify + files 白名单）；③发布产物是否夹带隐藏敏感文件（.py 源码 / .map source map / .env / .npmrc / tsbuildinfo / __pycache__ 等）。跨项目复用：首次进入新项目用 AskUserQuestion 问商业版还是开源版，缓存到 ~/.config/dwy-sdk-spec/projects.json，下次自动按规则检查。涉及以下任何场景必须使用此 skill：用户说「检查 SDK」「SDK 发版前检查」「SDK 注释脱敏」「SDK 接口规范」「发布前安全检查」「SDK 源码泄露检查」「商业版 SDK 打包」「Cython 编译 .so」「打包前体检」「.gitignore 漏了什么」「npm pack 看看包里有什么」「重设 SDK 版本类型」，或准备把 SDK 发到 PyPI / npm / 任意渠道时。"
 ---
 
 # dwy-sdk-spec — SDK 接口规范与发布安全检查
 
 防三类风险：接口注释泄露后端实现 / 商业版 SDK 源码被还原 / 发布产物夹带隐藏敏感文件。
 
+**适用范围**：任何 SDK 对外发布前的通用安全闸门，与发布渠道无关——PyPI / npm / 私有源 / 直接打包交付都先过这一关。发 PyPI 只是其中一种渠道，不是触发前提。检查通过后，通用发版流程（测试 / bump / changelog / tag / publish）走 `dwy-publish`；含 C 扩展需跨平台 wheel 的走 `dwy-cibuildwheel`。
+
 ## 何时触发
 
 下列任何场景**必须**用此 skill，不要直接 `npm publish` / `python -m build` / `twine upload`：
 
 - 用户说「检查 SDK」「SDK 发版前检查」「SDK 接口规范」
-- 用户说「准备发 PyPI / npm」「发布前体检」「打包前检查」
+- 用户说「准备发布 SDK」（PyPI / npm / 私有源等任意渠道）「发布前体检」「打包前检查」
 - 用户说「SDK 注释脱敏」「SDK 源码泄露检查」「.gitignore 漏了什么」
 - 用户说「商业版 SDK 打包」「Cython 编译 .so」「npm 包混淆」
 - 用户说「npm pack 看看包里有什么」「dist 目录看一下」

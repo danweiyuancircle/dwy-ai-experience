@@ -46,6 +46,14 @@ description: "发布版本：测试 → bump → changelog → build → publish
 - 工具：changelogen
 ```
 
+## 发版前置检查（按项目类型）
+
+正式发版前，先按项目类型过对应的前置 skill：
+
+- **SDK 类项目（对外发布的库 / SDK，不限 PyPI / npm / 私有源）** → 先用 `dwy-sdk-spec` 做发布安全检查（接口注释脱敏、商业版源码保护、发布产物审计），通过后再发版。
+- **含 C 扩展 / Cython / .so、需跨平台 wheel** → 用 `dwy-cibuildwheel` 配 GitHub Actions + cibuildwheel 打跨平台 wheel 发 PyPI（此时下方第 4、6 步的 build / publish 由 CI workflow 承担）。
+- **版本号该升哪一位拿不准** → 用 `dwy-semver` 决策（见下方第 2 步）。
+
 ## 发版前确认
 
 询问用户：
