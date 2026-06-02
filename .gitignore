@@ -28,3 +28,4 @@ build/
 backend/uv.lock
 .playwright-mcp/
 .pentest-results/
+.gstack/
