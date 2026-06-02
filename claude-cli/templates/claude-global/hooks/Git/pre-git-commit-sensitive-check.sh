@@ -12,33 +12,26 @@ printf '%s' "$CMD" | grep -q 'git commit' || exit 0
 STAGED=$(git diff --cached --diff-filter=ACMR --name-only 2>/dev/null)
 [ -z "$STAGED" ] && exit 0
 
-# 敏感数据匹配模式
+# 敏感数据匹配模式（赋值/上下文形式，避免类名/变量名裸词误报）
 PATTERNS=(
-    # 密码/密钥
-    'password'
-    'passwd'
-    'secret'
-    'api[_-]?key'
-    'access[_-]?token'
-    'private[_-]?key'
-    'auth[_-]?token'
-    'client[_-]?secret'
-    'bearer'
+    # 口令/密钥/令牌赋值（词 + :或= + 引号值；PairingSecret / clientSecret 等标识符不命中）
+    "(password|passwd)[[:space:]]*[:=][[:space:]]*[\"'][^\"']{4,}"
+    "secret[[:space:]]*[:=][[:space:]]*[\"'][^\"']{8,}"
+    "api[_-]?key[[:space:]]*[:=][[:space:]]*[\"'][^\"']{8,}"
+    "(access|auth)[_-]?token[[:space:]]*[:=][[:space:]]*[\"'][^\"']{8,}"
+    "client[_-]?secret[[:space:]]*[:=][[:space:]]*[\"'][^\"']{8,}"
+    "[Bb]earer[[:space:]]+[a-zA-Z0-9._-]{20,}"
 
-    # 数据库连接串
-    'jdbc:'
-    'mysql://'
-    'postgres://'
-    'mongodb://'
-    'redis://'
+    # 含凭证的连接串（scheme://user:pass@host）
+    "://[a-zA-Z0-9_.-]+:[^@[:space:]/]{3,}@"
 
-    # 私钥文件
-    '-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY'
+    # 私钥文件块
+    "-----BEGIN (RSA |EC |DSA |OPENSSH )?PRIVATE KEY"
 
-    # 平台 Token
-    'sk-[a-zA-Z0-9]{20,}'        # OpenAI
-    'ghp_[a-zA-Z0-9]{36}'        # GitHub
-    'AKIA[0-9A-Z]{16}'           # AWS
+    # 平台 Token（格式高特异，裸匹配）
+    "sk-[a-zA-Z0-9]{20,}"        # OpenAI
+    "ghp_[a-zA-Z0-9]{36}"        # GitHub
+    "AKIA[0-9A-Z]{16}"           # AWS
 )
 
 # 拼接为正则
