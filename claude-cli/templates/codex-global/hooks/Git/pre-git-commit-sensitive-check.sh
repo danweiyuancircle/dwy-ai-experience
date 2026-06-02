@@ -1,7 +1,7 @@
 #!/bin/bash
 # Codex PreToolUse Hook
 # 在 git commit 前检查暂存文件中是否包含敏感数据
-# 与 Claude 版差异：Codex 通过 stdin 传 JSON，从 .tool_input.command 取命令（非 $TOOL_INPUT）
+# Codex 与 Claude Code 同样通过 stdin 传 JSON，从 .tool_input.command 取命令
 
 # 从 stdin 读 JSON 并取出待执行命令
 CMD=$(python3 -c 'import sys,json; print(json.load(sys.stdin).get("tool_input",{}).get("command",""))')

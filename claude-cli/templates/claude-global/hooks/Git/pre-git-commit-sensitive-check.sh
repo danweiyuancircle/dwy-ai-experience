@@ -2,8 +2,11 @@
 # Claude Code PreToolUse Hook
 # 在 git commit 前检查暂存文件中是否包含敏感数据
 
+# 从 stdin 读 JSON 并取出待执行命令（Claude Code 与 Codex 同样通过 stdin 传 .tool_input.command）
+CMD=$(python3 -c 'import sys,json; print(json.load(sys.stdin).get("tool_input",{}).get("command",""))')
+
 # 只拦截 git commit 命令
-echo "$TOOL_INPUT" | grep -q 'git commit' || exit 0
+printf '%s' "$CMD" | grep -q 'git commit' || exit 0
 
 # 获取暂存文件列表
 STAGED=$(git diff --cached --diff-filter=ACMR --name-only 2>/dev/null)
