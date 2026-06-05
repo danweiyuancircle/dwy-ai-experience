@@ -8,6 +8,11 @@
             "type": "command",
             "command": "bash \"$(git rev-parse --show-toplevel)\"/.codex/hooks/pre-git-commit-sensitive-check.sh",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "bash \"$(git rev-parse --show-toplevel)\"/.codex/hooks/pre-git-commit-backtick-check.sh",
+            "timeout": 30
           }
         ]
       }
