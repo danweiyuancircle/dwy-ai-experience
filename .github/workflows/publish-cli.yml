@@ -1,0 +1,41 @@
+name: Publish CLI to npm
+
+# 打 create-dwy@x.y.z tag 时发布 create-dwy 到 npm，使用 OIDC Trusted Publishing（免 NPM_TOKEN）
+on:
+  push:
+    tags:
+      - 'create-dwy@*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write   # OIDC Trusted Publishing 必需
+    defaults:
+      run:
+        working-directory: claude-cli
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+
+      # OIDC Trusted Publishing 需要 npm >= 11.5.1
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - name: Verify tag matches package version
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION="${GITHUB_REF_NAME#create-dwy@}"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::tag version ($TAG_VERSION) != package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "publishing create-dwy@$PKG_VERSION"
+
+      - name: Publish
+        run: npm publish --access public
