@@ -1,93 +1,100 @@
 # dwy-ai-experience
 
-[中文](#中文) | [English](#english)
+> dwy-ai-experience 是一个 AI 工程化实践仓库，聚合前端组件、CLI 脚手架与后端服务模板。
 
-## 中文
-
-[查看 English 版](#english)
-
-`dwy-ai-experience` 是一个面向 AI 工具链的实践仓库，聚合前端组件库、CLI 脚手架、后端服务模板与发布流程规范。
-
-## 关于本仓库
-
-- 前端能力：`frontend/eui`、`frontend/ekit`
-- 工具能力：`claude-cli`（代码规范、模板、规则与 hooks 同步）
-- 后端能力：`backend`（FastAPI 服务）
+[English](./README.en.md)
 
 ## 目录
 
-- [backend](./backend)
-- [claude-cli](./claude-cli)
-- [frontend/eui](./frontend/eui)
-- [frontend/ekit](./frontend/ekit)
+- [项目简介](#项目简介)
+- [仓库结构](#仓库结构)
+- [claude-cli 主要能力](#claude-cli-主要能力)
+- [快速开始](#快速开始)
+- [开发与构建](#开发与构建)
+- [发布与版本管理](#发布与版本管理)
+- [贡献指南](#贡献指南)
+- [许可证](#许可证)
 
-## 主要能力
+## 项目简介
 
-- 统一代码与发布规则（AGENTS/CLAUDE/rules）
-- CLI 版本与模板同步（`create-dwy`）
-- GitHub Action 发布链路：npm 与 PyPI 使用 OIDC
-- iOS / Android 全面屏适配约束规则收敛
+`dwy-ai-experience` 面向 AI 工具链场景，整合了以下能力：
 
-## 使用方式
+- 前端组件与工具库：`frontend/eui`、`frontend/ekit`
+- 通用脚手架与同步能力：`claude-cli`
+- 后端服务：`backend`（FastAPI）
 
-### 创建项目
+## 仓库结构
+
+- `/backend`：后端服务与运行时
+- `/frontend/eui`：Vue 组件库
+- `/frontend/ekit`：Vue 工具库
+- `/frontend/playground`：组件展示与文档站
+- `/claude-cli`：脚手架与规则模板同步工具
+
+## claude-cli 主要能力
+
+`claude-cli` 是仓库的核心协作入口，面向团队标准化开发流程：
+
+- 项目模板生成
+  - `dwy create <project-name>`：创建标准项目结构
+- 规则与技能同步
+  - `dwy sync`：同步已选目录到本地开发约定
+  - `dwy claude sync`：同步技能/规则到 `.claude/`
+  - `dwy claude sync md`：同步仓库 `CLAUDE.md` 到全局
+  - `dwy codex sync`：转换并同步到 `.agents/` 与 `.codex/hooks/`
+- 发布流程约束
+  - 统一 npm/pypi 发布规范，支持 GitHub Action OIDC 发布
+- 平台与适配规范
+  - 提供 iOS / Android 全面屏适配、图标规范、注释规范等通用约束
+
+## 快速开始
+
+### 安装
 
 ```bash
-npx create-dwy <project-name>
+cd claude-cli
+pnpm install
 ```
 
-### 开发
+### 使用示例
 
 ```bash
-cd frontend/eui && pnpm install
-cd frontend/ekit && pnpm install
+# 创建项目
+npx create-dwy your-project
+
+# 同步全局约定
+dwy sync
+dwy claude sync
+
+dwy codex sync
+```
+
+## 开发与构建
+
+```bash
+cd frontend/eui && pnpm install && pnpm build
+cd frontend/ekit && pnpm install && pnpm build
 cd backend && uv sync
 ```
 
-## 发布说明
+## 发布与版本管理
 
-- CLI 发布触发：推送 `create-dwy@x.y.z` tag
-- 发布方式：GitHub Actions（OIDC），并自动创建 GitHub Release
+### CLI
+
+- tag 规则：推送 `create-dwy@x.y.z` tag 后触发发布
+- 发布链路：GitHub Actions，使用 OIDC（无 `NPM_TOKEN` / `UV_PUBLISH_TOKEN`）
+- 发布产物：自动发布 npm 并同步 GitHub Release
+
+### 组件与工具包
+
+- eui 与 ekit 使用统一构建与发布流程
+
+## 贡献指南
+
+- 遵循仓库现有约定与 `AGENTS.md`
+- 修改请分包提交并注明变更范围
+- 若更新公共规则模板，请同步 `claude-cli/templates/` 对应目录
 
 ## 许可证
 
 MIT
-
-## English
-
-<details>
-<summary>Expand English</summary>
-
-`dwy-ai-experience` is an AI engineering repository that centralizes frontend libraries, CLI tooling, backend templates, and release workflows.
-
-### About this repository
-
-- Frontend packages: `frontend/eui`, `frontend/ekit`
-- CLI tooling: `claude-cli` (sync rules, templates, and hooks)
-- Backend: `backend` (FastAPI)
-
-### Repository structure
-
-- [backend](./backend)
-- [claude-cli](./claude-cli)
-- [frontend/eui](./frontend/eui)
-- [frontend/ekit](./frontend/ekit)
-
-### Highlights
-
-- Unified project conventions (AGENTS/CLAUDE/rules)
-- Project scaffolding and rules sync (`create-dwy`)
-- GitHub Action releases for npm/PyPI with OIDC
-- Standardized full-screen adaptation guidance for iOS/Android
-
-### Getting started
-
-```bash
-npx create-dwy <project-name>
-```
-
-### License
-
-MIT
-
-</details>
