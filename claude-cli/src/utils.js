@@ -9,7 +9,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const PACKAGE_ROOT = path.resolve(__dirname, '..')
 export const CACHE_DIR = path.join(process.env.HOME, '.dwy', 'cache')
-export const DWY_REPO_URL = 'https://gitee.com/snailyuanyuan/dwy-shared.git'
+export const DWY_REPO_URL = 'https://github.com/danweiyuancircle/dwy-shared.git'
 
 export async function ensureRepoCache() {
   await fs.ensureDir(CACHE_DIR)
