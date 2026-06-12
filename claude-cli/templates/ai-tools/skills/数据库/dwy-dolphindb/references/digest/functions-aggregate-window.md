@@ -145,9 +145,9 @@ context by date
 
 ## 下钻原文
 
-- 函数分类总表：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/funcs_by_topics.md`
-- 高阶函数总结：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/ho_funcs/ho_funcs.md`
-- m\* 系列：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/m/` 下 mavg.md / msum.md / mstd.md / mcorr.md ...
-- 累计：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/c/` 下 cum*.md
-- 高阶细则：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/ho_funcs/` 下 contextby.md / moving.md / rolling.md / window.md / each.md / groupby.md / cross.md / byRow.md / byColumn.md / talib.md / tmoving.md / twindow.md
-- SQL 子句：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/progr/sql/` 下 groupby.md / contextBy.md / cgroupby.md / pivotBy.md
+- 函数分类总表：`../official/funcs/funcs_by_topics.md`
+- 高阶函数总结：`../official/funcs/ho_funcs/ho_funcs.md`
+- m\* 系列：`../official/funcs/m/` 下 mavg.md / msum.md / mstd.md / mcorr.md ...
+- 累计：`../official/funcs/c/` 下 cum*.md
+- 高阶细则：`../official/funcs/ho_funcs/` 下 contextby.md / moving.md / rolling.md / window.md / each.md / groupby.md / cross.md / byRow.md / byColumn.md / talib.md / tmoving.md / twindow.md
+- SQL 子句：`../official/progr/sql/` 下 groupby.md / contextBy.md / cgroupby.md / pivotBy.md

@@ -1,0 +1,16 @@
+[
+  {
+    "name": "pre-git-commit-sensitive-check.sh",
+    "event": "PreToolUse",
+    "matcher": "Bash",
+    "platforms": ["claude", "codex"],
+    "timeout": 30
+  },
+  {
+    "name": "pre-git-commit-backtick-check.sh",
+    "event": "PreToolUse",
+    "matcher": "Bash",
+    "platforms": ["claude", "codex"],
+    "timeout": 30
+  }
+]
