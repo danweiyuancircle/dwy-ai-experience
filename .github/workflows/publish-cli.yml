@@ -47,6 +47,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.verify.outputs.release_name }}
+          draft: false
           generate_release_notes: true
           body: |
             ## ${{ steps.verify.outputs.release_name }}
