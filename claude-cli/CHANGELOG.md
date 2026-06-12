@@ -1,5 +1,11 @@
 # create-dwy
 
+## 0.13.5
+
+### Patch Changes
+
+- 默认模板仓库源改为 GitHub：`DWY_REPO_URL` 从 `https://gitee.com/snailyuanyuan/dwy-shared.git` 切换为 `https://github.com/danweiyuancircle/dwy-shared.git`，确保 `dwy` CLI 同步链路只跟踪 GitHub。
+
 ## 0.13.4
 
 ### Patch Changes
