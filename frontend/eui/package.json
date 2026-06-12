@@ -5,6 +5,10 @@
   "description": "Vue 3 component library — shadcn-vue visuals + Element Plus API + Tailwind CSS 4",
   "license": "MIT",
   "author": "dwydev",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danweiyuancircle/dwy-ai-experience.git"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
