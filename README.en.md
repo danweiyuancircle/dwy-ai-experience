@@ -1,10 +1,17 @@
-# dwy-ai-experience
-
-![dwy-ai-experience header](./.github/assets/readme-header.png)
-
-> Personal AI engineering repository by dwy, focused on tooling, scaffolding, rules sync, and release automation.
-
-[中文](./README.md)
+<div align="center">
+  <h1>dwy-ai-experience</h1>
+  <p><strong>Personal AI engineering repository by dwy</strong></p>
+  <p>Focused on AI tooling, project scaffolding, rules sync, and release automation</p>
+  <p>
+    <a href="./README.md">中文</a>
+  </p>
+  <p>
+    <img src="https://img.shields.io/github/actions/workflow/status/danweiyuancircle/dwy-ai-experience/publish-cli.yml?label=Build%20%26%20Release%20CLI" alt="Build and Release CLI" />
+    <img src="https://img.shields.io/npm/v/create-dwy?label=create-dwy" alt="create-dwy version" />
+    <img src="https://img.shields.io/github/license/danweiyuancircle/dwy-ai-experience" alt="license" />
+    <img src="https://img.shields.io/badge/platform-Claude%20%2F%20Codex-blue" alt="platform" />
+  </p>
+</div>
 
 ## Overview
 
@@ -14,10 +21,12 @@
 - `frontend/*`: UI libraries, utility libraries, and playground
 - `backend`: FastAPI backend foundation and service templates
 
+The focus of this repository is not a single package. It is a reusable toolchain that standardizes project bootstrap, AI coding constraints, shared rules, and release workflow.
+
 ## Highlights
 
 - Unified project bootstrap, rules distribution, skill sync, and hooks sync
-- Supports both Claude and Codex local collaboration setup
+- Supports both `Claude` and `Codex` local collaboration setup
 - npm / PyPI release flow standardized through GitHub Actions OIDC
 - Shared engineering rules for mobile full-screen adaptation, icon libraries, and code annotation
 
