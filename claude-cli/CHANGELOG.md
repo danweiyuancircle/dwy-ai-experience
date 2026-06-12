@@ -1,5 +1,11 @@
 # create-dwy
 
+## 0.13.6
+
+### Patch Changes
+
+- 调整 CLI 发布工作流，GitHub Actions 在 npm 发布完成后自动创建对应的 GitHub Release，版本展示统一为 `create-dwy@x.y.z`。
+
 ## 0.13.5
 
 ### Patch Changes
