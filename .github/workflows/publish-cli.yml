@@ -46,10 +46,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: dwy-ai-experience ${{ steps.verify.outputs.release_name }}
+          name: ${{ steps.verify.outputs.release_name }}
           generate_release_notes: true
           body: |
-            ## dwy-ai-experience
+            ## ${{ steps.verify.outputs.release_name }}
 
             This release is created automatically by GitHub Actions with OIDC.
             本次发布由 GitHub Actions 与 OIDC 自动创建。
