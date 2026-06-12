@@ -23,6 +23,12 @@ build/
 
 # Local Claude Code settings
 .claude/settings.local.json
+claude-cli/.agents/
+claude-cli/.claude/
+claude-cli/.codex/
+claude-cli/.cursor/
+claude-cli/.opencode/
+claude-cli/AGENTS.md
 
 # uv lock (library should not lock dependencies)
 backend/uv.lock

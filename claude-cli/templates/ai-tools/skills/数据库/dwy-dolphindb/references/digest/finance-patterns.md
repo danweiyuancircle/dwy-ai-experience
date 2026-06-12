@@ -172,10 +172,10 @@ MarketHoliday::businessDaysBetween(2024.01.01, 2024.12.31, "CN")  // 全年交�
 
 ## 9. 下钻原文
 
-- `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/tutorials/new_users_finance.md` — 金融入门完整教程
-- `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/tutorials/OHLC.md` + `OHLC_2.md` — K 线合成专题
-- `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/tutorials/DolphinDB_TopN.md` — TopN 优化
-- `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/tutorials/Practical_Factor_Analysis_Modeling.md` — Alphalens 因子分析
-- `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/backtest/backtest_intro.md` — 回测引擎概述
-- `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/b/bar.md` — bar 函数
-- `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/d/dailyAlignedBar.md` — 对齐交易时段分组
+- `../official/tutorials/new_users_finance.md` — 金融入门完整教程
+- `../official/tutorials/OHLC.md` + `OHLC_2.md` — K 线合成专题
+- `../official/tutorials/DolphinDB_TopN.md` — TopN 优化
+- `../official/tutorials/Practical_Factor_Analysis_Modeling.md` — Alphalens 因子分析
+- `../official/backtest/backtest_intro.md` — 回测引擎概述
+- `../official/funcs/b/bar.md` — bar 函数
+- `../official/funcs/d/dailyAlignedBar.md` — 对齐交易时段分组

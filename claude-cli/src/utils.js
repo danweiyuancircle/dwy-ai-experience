@@ -1,48 +1,12 @@
 import fs from 'fs-extra'
 import path from 'path'
 import Handlebars from 'handlebars'
-import { simpleGit } from 'simple-git'
 import chalk from 'chalk'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const PACKAGE_ROOT = path.resolve(__dirname, '..')
-export const CACHE_DIR = path.join(process.env.HOME, '.dwy', 'cache')
-export const DWY_REPO_URL = 'https://github.com/danweiyuancircle/dwy-ai-experience.git'
-
-export async function needsRepoReclone(git, repoUrl) {
-  const remotes = await git.getRemotes(true)
-  const origin = remotes.find(remote => remote.name === 'origin')
-  if (!origin) return true
-
-  const fetchUrl = origin.refs?.fetch
-  const pushUrl = origin.refs?.push
-  return fetchUrl !== repoUrl || pushUrl !== repoUrl
-}
-
-export async function ensureRepoCache() {
-  await fs.ensureDir(CACHE_DIR)
-  const repoDir = path.join(CACHE_DIR, 'dwy')
-
-  if (await fs.pathExists(path.join(repoDir, '.git'))) {
-    const git = simpleGit(repoDir)
-    if (await needsRepoReclone(git, DWY_REPO_URL)) {
-      console.log(chalk.gray('Cached templates point to another repo, recreating cache...'))
-      await fs.remove(repoDir)
-      console.log(chalk.gray('Cloning template repo...'))
-      await simpleGit().clone(DWY_REPO_URL, repoDir)
-    } else {
-      console.log(chalk.gray('Pulling latest templates...'))
-      await git.pull()
-    }
-  } else {
-    console.log(chalk.gray('Cloning template repo...'))
-    await simpleGit().clone(DWY_REPO_URL, repoDir)
-  }
-
-  return repoDir
-}
 
 export async function renderTemplate(templateDir, destDir, context) {
   const entries = await fs.readdir(templateDir, { withFileTypes: true })

@@ -1,7 +1,7 @@
 {
   "name": "create-dwy",
-  "version": "0.13.8",
-  "description": "项目脚手架与 Claude Code 配置同步工具",
+  "version": "0.14.0",
+  "description": "项目脚手架与多平台 AI 配置同步工具",
   "type": "module",
   "bin": {
     "dwy": "./bin/index.js"
@@ -28,13 +28,10 @@
   "license": "MIT",
   "author": "dwydev",
   "dependencies": {
-    "@inquirer/core": "^10.0.0",
-    "commander": "^12.0.0",
-    "inquirer": "^9.0.0",
+    "@clack/prompts": "^1.5.1",
     "handlebars": "^4.7.0",
     "fs-extra": "^11.0.0",
-    "chalk": "^5.0.0",
-    "simple-git": "^3.0.0"
+    "chalk": "^5.0.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",

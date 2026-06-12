@@ -1,5 +1,15 @@
 # create-dwy
 
+## 0.14.0
+
+### Minor Changes
+
+- CLI 重构为单一交互式入口，移除旧的命令式 `create` / `sync` / `claude` / `codex` 流程。
+- 模板源统一收敛到 `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/ai-tools`，随 CLI 包一起发布，不再运行时拉取远端模板仓库。
+- 新增多平台适配层：支持 `Claude Code`、`Codex`、`Cursor`、`OpenCode` 的 rules / skills / commands / hooks 同步。
+- 基准规范文件 `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/ai-tools/CLAUDE.md` 现在会按平台分别同步到 `.claude/CLAUDE.md`、根 `AGENTS.md`、`.cursor/rules/00-dwy-global.mdc`。
+- 平台未选中时会清理 dwy 托管内容，同时保留用户自定义文件、用户自定义 hook 配置和 `AGENTS.md` 非托管内容。
+
 ## 0.13.8
 
 ### Patch Changes

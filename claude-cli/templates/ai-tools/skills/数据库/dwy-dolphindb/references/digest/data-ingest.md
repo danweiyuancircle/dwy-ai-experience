@@ -135,8 +135,8 @@ appender.append(df)   # 单批 ≤ 500K 行
 
 ## 下钻原文
 
-- 导入方法总览：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/db_distr_comp/db_oper/data_import_method.md`
-- loadTextEx 全参 / transform / sortColumns 示例：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/l/loadTextEx.md`
-- loadText / schema / arrayMarker / 批量小文件：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/l/loadText.md`
-- textChunkDS + mr 大文件切片：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/funcs/t/textChunkDS.md`
-- Python API 追加（tableAppender / PartitionedTableAppender）：`/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/claude-global/skills/数据库/dwy-dolphindb/references/official/pydoc/BasicOperations/table_append.md`
+- 导入方法总览：`../official/db_distr_comp/db_oper/data_import_method.md`
+- loadTextEx 全参 / transform / sortColumns 示例：`../official/funcs/l/loadTextEx.md`
+- loadText / schema / arrayMarker / 批量小文件：`../official/funcs/l/loadText.md`
+- textChunkDS + mr 大文件切片：`../official/funcs/t/textChunkDS.md`
+- Python API 追加（tableAppender / PartitionedTableAppender）：`../official/pydoc/BasicOperations/table_append.md`
