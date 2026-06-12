@@ -1,75 +1,83 @@
 # dwy-ai-experience
 
-> dwy-ai-experience 是一个 AI 工程化实践仓库，聚合前端组件、CLI 脚手架与后端服务模板。
+![dwy-ai-experience header](./.github/assets/readme-header.png)
+
+> dwy 的个人 AI 仓库，聚焦 AI 工具链、项目脚手架、规则同步与工程化发布流程。
 
 [English](./README.en.md)
 
-## 目录
+## Overview
 
-- [项目简介](#项目简介)
-- [仓库结构](#仓库结构)
-- [claude-cli 主要能力](#claude-cli-主要能力)
-- [快速开始](#快速开始)
-- [开发与构建](#开发与构建)
-- [发布与版本管理](#发布与版本管理)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
+`dwy-ai-experience` 是一个围绕 AI 开发体验搭建的 monorepo，当前主要覆盖三类能力：
 
-## 项目简介
+- `claude-cli`：项目脚手架、规则模板、Claude/Codex 同步入口
+- `frontend/*`：前端组件库、工具库与演示站
+- `backend`：FastAPI 后端基础设施与服务模板
 
-`dwy-ai-experience` 面向 AI 工具链场景，整合了以下能力：
+## Highlights
 
-- 前端组件与工具库：`frontend/eui`、`frontend/ekit`
-- 通用脚手架与同步能力：`claude-cli`
-- 后端服务：`backend`（FastAPI）
+- 统一项目初始化、规则分发、技能同步与 hooks 同步
+- 支持 `Claude` 与 `Codex` 两套本地协作配置落地
+- npm / PyPI 发布流程收敛到 GitHub Actions OIDC
+- 通用工程规则内置移动端全面屏、图标库、注释规范等约束
 
-## 仓库结构
+## Claude CLI
 
-- `/backend`：后端服务与运行时
-- `/frontend/eui`：Vue 组件库
-- `/frontend/ekit`：Vue 工具库
-- `/frontend/playground`：组件展示与文档站
-- `/claude-cli`：脚手架与规则模板同步工具
+`claude-cli` 是这个仓库最核心的模块，目标不是只做“创建项目”，而是把团队协作规范直接写进工具链。
 
-## claude-cli 主要能力
+### Core Commands
 
-`claude-cli` 是仓库的核心协作入口，面向团队标准化开发流程：
+- `dwy create <project-name>`
+  - 创建标准项目模板
+- `dwy sync`
+  - 同步选中的共享约定到当前项目
+- `dwy claude sync`
+  - 同步技能、规则、命令与 hooks 到项目 `.claude/`
+- `dwy claude sync md`
+  - 同步仓库 `CLAUDE.md` 到全局配置
+- `dwy codex sync`
+  - 将 Claude 模板转换并同步到 `.agents/`、`.codex/hooks/`、`AGENTS.md`
 
-- 项目模板生成
-  - `dwy create <project-name>`：创建标准项目结构
-- 规则与技能同步
-  - `dwy sync`：同步已选目录到本地开发约定
-  - `dwy claude sync`：同步技能/规则到 `.claude/`
-  - `dwy claude sync md`：同步仓库 `CLAUDE.md` 到全局
-  - `dwy codex sync`：转换并同步到 `.agents/` 与 `.codex/hooks/`
-- 发布流程约束
-  - 统一 npm/pypi 发布规范，支持 GitHub Action OIDC 发布
-- 平台与适配规范
-  - 提供 iOS / Android 全面屏适配、图标规范、注释规范等通用约束
+### What It Solves
 
-## 快速开始
+- 让新项目快速继承统一目录结构与基础工程配置
+- 让团队规则不再依赖口头约定或复制粘贴
+- 让 Claude Code / Codex 的项目级配置可持续同步
+- 让发布流程逐步收敛到可审计的 GitHub Actions
 
-### 安装
+## Repository Structure
+
+- `/claude-cli`
+  - `create-dwy` CLI、本地同步逻辑、模板与规则源
+- `/frontend/eui`
+  - Vue 组件库
+- `/frontend/ekit`
+  - Vue 工具库
+- `/frontend/playground`
+  - 组件演示与文档站
+- `/backend`
+  - FastAPI 基础设施与后端模板
+
+## Quick Start
+
+### Install CLI Dependencies
 
 ```bash
 cd claude-cli
 pnpm install
 ```
 
-### 使用示例
+### Create And Sync
 
 ```bash
-# 创建项目
 npx create-dwy your-project
 
-# 同步全局约定
 dwy sync
 dwy claude sync
-
 dwy codex sync
 ```
 
-## 开发与构建
+## Development
 
 ```bash
 cd frontend/eui && pnpm install && pnpm build
@@ -77,24 +85,24 @@ cd frontend/ekit && pnpm install && pnpm build
 cd backend && uv sync
 ```
 
-## 发布与版本管理
+## Release
 
 ### CLI
 
-- tag 规则：推送 `create-dwy@x.y.z` tag 后触发发布
-- 发布链路：GitHub Actions，使用 OIDC（无 `NPM_TOKEN` / `UV_PUBLISH_TOKEN`）
-- 发布产物：自动发布 npm 并同步 GitHub Release
+- tag 规则：`create-dwy@x.y.z`
+- 发布方式：GitHub Actions + OIDC
+- 发布结果：自动发布 npm，并自动创建 GitHub Release
 
-### 组件与工具包
+### Libraries
 
-- eui 与 ekit 使用统一构建与发布流程
+- `eui` 与 `ekit` 使用统一的构建与发布流程
 
-## 贡献指南
+## Contributing
 
-- 遵循仓库现有约定与 `AGENTS.md`
-- 修改请分包提交并注明变更范围
-- 若更新公共规则模板，请同步 `claude-cli/templates/` 对应目录
+- 遵循仓库内 [`AGENTS.md`](./AGENTS.md) 与对应模板约定
+- 跨包改动尽量拆分提交，保持变更边界清晰
+- 如果修改共享模板或规则，同步更新 `claude-cli/templates/`
 
-## 许可证
+## License
 
 MIT
