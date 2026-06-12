@@ -23,6 +23,32 @@
 
 The focus of this repository is not a single package. It is a reusable toolchain that standardizes project bootstrap, AI coding constraints, shared rules, and release workflow.
 
+## Core Packages
+
+### `@dwydev/eui`
+
+Vue 3 component library built with shadcn UI visual style, Element UI-style API usage, Tailwind CSS 4, and Reka UI, designed for admin panels, dashboards, business forms, and internal tools.
+
+```bash
+npm install @dwydev/eui
+```
+
+### `dwyeapi`
+
+Infrastructure library for FastAPI projects, covering config, exceptions, database, security, cache, pagination, logging, and other shared backend capabilities.
+
+```bash
+pip install dwyeapi
+```
+
+### `@dwydev/ekit`
+
+Vue 3 utility library that provides hooks, request wrappers, time utilities, download helpers, cookies, querystring handling, and other shared project utilities.
+
+```bash
+npm install @dwydev/ekit
+```
+
 ## Highlights
 
 - Unified project bootstrap, rules distribution, skill sync, and hooks sync

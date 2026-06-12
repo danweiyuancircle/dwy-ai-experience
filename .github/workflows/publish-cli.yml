@@ -38,6 +38,15 @@ jobs:
           fi
           echo "publishing create-dwy@$PKG_VERSION"
           echo "release_name=create-dwy@$PKG_VERSION" >> "$GITHUB_OUTPUT"
+          echo "package_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build release notes
+        run: |
+          python3 ../.github/scripts/extract_changelog_section.py \
+            CHANGELOG.md \
+            "${{ steps.verify.outputs.package_version }}" \
+            "${{ steps.verify.outputs.release_name }}" \
+            > ../.github/release-body-cli.md
 
       - name: Publish
         run: npm publish --access public
@@ -48,9 +57,4 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.verify.outputs.release_name }}
           draft: false
-          generate_release_notes: true
-          body: |
-            ## ${{ steps.verify.outputs.release_name }}
-
-            This release is created automatically by GitHub Actions with OIDC.
-            本次发布由 GitHub Actions 与 OIDC 自动创建。
+          body_path: .github/release-body-cli.md

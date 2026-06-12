@@ -23,6 +23,32 @@
 
 这个仓库的重点不是单个包，而是把团队协作规范、项目初始化方式、AI 编码约束和发布流程统一收敛到一套可复用工具链。
 
+## 核心包
+
+### `@dwydev/eui`
+
+基于 shadcn UI 样式、Element UI 写法、Tailwind CSS 4 和 Reka UI 的 Vue 3 组件库，面向中后台、管理台、业务表单和内部工具。
+
+```bash
+npm install @dwydev/eui
+```
+
+### `dwyeapi`
+
+面向 FastAPI 项目的基础设施库，提供配置、异常、数据库、安全、缓存、分页、日志等后端通用能力。
+
+```bash
+pip install dwyeapi
+```
+
+### `@dwydev/ekit`
+
+Vue 3 工具库，提供 hooks、请求封装、时间处理、下载、cookie、querystring 等项目常用工具能力。
+
+```bash
+npm install @dwydev/ekit
+```
+
 ## 主要特性
 
 - 统一项目初始化、规则分发、技能同步与 hooks 同步
