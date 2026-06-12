@@ -67,6 +67,53 @@ The focus of this repository is not a single package. It is a reusable toolchain
 - `/backend`
   - FastAPI infrastructure and backend templates
 
+## Libraries
+
+### `@dwydev/eui`
+
+Vue 3 component library built with shadcn UI visual style, Element UI-style API usage, Tailwind CSS 4, and Reka UI.
+
+- Core components: buttons, inputs, popovers, menus, tables, calendars
+- Style and API: shadcn UI styling + Element UI usage pattern
+- Foundation: Tailwind CSS 4 + Reka UI
+- Typical use cases: admin panels, dashboards, internal tools, business forms
+
+```bash
+npm install @dwydev/eui
+```
+
+### `@dwydev/ekit`
+
+Vue 3 utility library that provides common hooks, request wrappers, time utilities, download helpers, cookies, and other shared project utilities.
+
+- Common hooks and helper functions
+- Request-layer plugin chain
+- File download, cookies, querystring, and related utilities
+
+```bash
+npm install @dwydev/ekit
+```
+
+### `dwyeapi`
+
+FastAPI infrastructure library for backend projects, covering config, exceptions, database, security, cache, pagination, and logging.
+
+- Config management with `pydantic-settings`
+- Database support with `SQLAlchemy asyncio`
+- Security utilities: JWT and password hashing
+- Infrastructure: Redis, pagination, logging, unified exception handling
+
+```bash
+pip install dwyeapi
+```
+
+For task queue or email extras:
+
+```bash
+pip install "dwyeapi[tasks]"
+pip install "dwyeapi[email]"
+```
+
 ## Quick Start
 
 ### Install CLI Dependencies

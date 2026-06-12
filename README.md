@@ -67,6 +67,53 @@
 - `/backend`
   - FastAPI 基础设施与后端模板
 
+## Libraries
+
+### `@dwydev/eui`
+
+Vue 3 组件库，定位是基于 shadcn UI 的样式、Element UI 的写法，结合 Tailwind CSS 4 和 Reka UI，提供可直接复用的业务组件能力。
+
+- 组件基础：按钮、输入框、弹层、菜单、表格、日历等
+- 风格与交互：shadcn UI 样式 + Element UI API 写法
+- 设计基座：Tailwind CSS 4 + Reka UI
+- 适用场景：中后台、管理台、内部工具、业务表单
+
+```bash
+npm install @dwydev/eui
+```
+
+### `@dwydev/ekit`
+
+Vue 3 工具库，提供项目常用 hooks、请求封装、时间处理、下载与 cookie 等通用能力，目标是减少业务项目重复造轮子。
+
+- 通用 hooks 与辅助函数
+- 请求层插件链封装
+- 文件下载、cookie、querystring 等常用工具
+
+```bash
+npm install @dwydev/ekit
+```
+
+### `dwyeapi`
+
+FastAPI 基础设施库，提供后端项目常用的配置、异常、数据库、安全、缓存、分页、日志等能力。
+
+- 配置管理：基于 `pydantic-settings`
+- 数据库：`SQLAlchemy asyncio`
+- 安全能力：JWT、密码哈希
+- 基础设施：Redis、分页、日志、统一异常处理
+
+```bash
+pip install dwyeapi
+```
+
+如需任务队列或邮件扩展：
+
+```bash
+pip install "dwyeapi[tasks]"
+pip install "dwyeapi[email]"
+```
+
 ## 快速开始
 
 ### 安装 CLI 依赖
