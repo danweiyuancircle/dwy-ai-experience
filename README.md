@@ -1,10 +1,14 @@
 # dwy-ai-experience
 
+[中文](#中文) | [English](#english)
+
 ## 中文
 
-## 关于本仓库
+[查看 English 版](#english)
 
-`dwy-ai-experience` 是一个面向 AI 工具链的实践仓库，聚合前端组件/工具库、CLI 脚手架、后端服务模板与发布流程规范。
+`dwy-ai-experience` 是一个面向 AI 工具链的实践仓库，聚合前端组件库、CLI 脚手架、后端服务模板与发布流程规范。
+
+## 关于本仓库
 
 - 前端能力：`frontend/eui`、`frontend/ekit`
 - 工具能力：`claude-cli`（代码规范、模板、规则与 hooks 同步）
@@ -26,20 +30,17 @@
 
 ## 使用方式
 
-### 创建项目（示例）
+### 创建项目
 
 ```bash
 npx create-dwy <project-name>
 ```
 
-### 运行与开发
+### 开发
 
 ```bash
-# Frontend packages
 cd frontend/eui && pnpm install
 cd frontend/ekit && pnpm install
-
-# Backend
 cd backend && uv sync
 ```
 
@@ -54,34 +55,39 @@ MIT
 
 ## English
 
-## About this repository
+<details>
+<summary>Expand English</summary>
 
-`dwy-ai-experience` is an AI engineering repository that centralizes frontend, CLI, backend, and release-automation components.
+`dwy-ai-experience` is an AI engineering repository that centralizes frontend libraries, CLI tooling, backend templates, and release workflows.
+
+### About this repository
 
 - Frontend packages: `frontend/eui`, `frontend/ekit`
 - CLI tooling: `claude-cli` (sync rules, templates, and hooks)
 - Backend: `backend` (FastAPI)
 
-## Repository structure
+### Repository structure
 
 - [backend](./backend)
 - [claude-cli](./claude-cli)
 - [frontend/eui](./frontend/eui)
 - [frontend/ekit](./frontend/ekit)
 
-## Highlights
+### Highlights
 
 - Unified project conventions (AGENTS/CLAUDE/rules)
 - Project scaffolding and rules sync (`create-dwy`)
 - GitHub Action releases for npm/PyPI with OIDC
 - Standardized full-screen adaptation guidance for iOS/Android
 
-## Getting started
+### Getting started
 
 ```bash
 npx create-dwy <project-name>
 ```
 
-## License
+### License
 
 MIT
+
+</details>
