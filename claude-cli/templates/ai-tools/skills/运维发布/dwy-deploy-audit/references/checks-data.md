@@ -4,7 +4,7 @@
 
 本文件聚焦"数据与凭证安全"维度的检查规则、严重度判定与输出格式。涵盖数据库暴露、环境变量与文件权限、凭证强度审计。
 
-脚本目录简称 `{scripts}` = `~/.claude/skills/dwy-deploy-audit/scripts/`。
+脚本目录简称 `{scripts}` = `../scripts/`。
 
 ---
 

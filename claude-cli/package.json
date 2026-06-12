@@ -1,6 +1,6 @@
 {
   "name": "create-dwy",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "项目脚手架与多平台 AI 配置同步工具",
   "type": "module",
   "bin": {

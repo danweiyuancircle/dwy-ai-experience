@@ -196,7 +196,7 @@ git -C "$REPO_PATH" push origin master
 
 告知用户：
 - ✓ 已 push 到 Gitee
-- 更新 `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/ai-tools/` 后，发布新的 `create-dwy` 版本；其他项目升级 CLI 后即可使用新模板
+- 更新当前仓库的 `templates/ai-tools/` 后，发布新的 `create-dwy` 版本；其他项目升级 CLI 后即可使用新模板
 - 提醒：如果对方 dwy CLI <0.12.0，必须先升级 CLI 才能识别分类目录结构
 
 ## 工作流程 B：dwy CLI 管理

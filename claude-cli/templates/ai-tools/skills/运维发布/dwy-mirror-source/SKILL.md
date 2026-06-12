@@ -7,7 +7,7 @@ description: "国内镜像源加速配置检查与修复：扫描 pip/uv/poetry/
 
 国内开发环境下，pip/npm/Docker 等工具默认境外源会让安装/拉取拖慢数倍甚至失败。本 skill 统一检查所有支持工具的镜像源配置，识别问题并辅助切换到国内加速源。
 
-**脚本目录：** `~/.claude/skills/dwy-mirror-source/scripts/`（以下简称 `{scripts}`）
+**脚本目录：** `./scripts/`（以下简称 `{scripts}`）
 
 ---
 
@@ -25,7 +25,7 @@ description: "国内镜像源加速配置检查与修复：扫描 pip/uv/poetry/
 
 **阿里云**（覆盖最全，BGP 多线，全国质量稳定）。
 
-可通过 `~/.claude/skills/dwy-mirror-source/preference.json` 修改：
+可通过 `./preference.json` 修改：
 
 ```json
 {

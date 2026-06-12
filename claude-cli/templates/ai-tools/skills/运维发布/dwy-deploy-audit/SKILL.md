@@ -17,7 +17,7 @@ description: "部署后线上环境基础安全巡检：远程 SSH 到目标服�
 | 副作用 | 可能触发 IDS、产生大量请求 | 仅 SSH 登录读取配置，零侵入 |
 | 输出 | 漏洞清单 + 复现步骤 | 配置不合规清单 + 修复建议 |
 
-**脚本目录：** `~/.claude/skills/dwy-deploy-audit/scripts/`（以下简称 `{scripts}`）
+**脚本目录：** `./scripts/`（以下简称 `{scripts}`）
 
 **详细检查规则索引：**
 
