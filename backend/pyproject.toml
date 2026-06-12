@@ -37,6 +37,9 @@ dev = [
     "fakeredis>=2.0.0",
 ]
 
+[project.urls]
+Repository = "https://github.com/danweiyuancircle/dwy-ai-experience"
+
 [build-system]
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
