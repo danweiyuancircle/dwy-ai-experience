@@ -28,6 +28,7 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Verify tag matches package version
+        id: verify
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
           TAG_VERSION="${GITHUB_REF_NAME#create-dwy@}"
@@ -36,6 +37,7 @@ jobs:
             exit 1
           fi
           echo "publishing create-dwy@$PKG_VERSION"
+          echo "release_name=create-dwy@$PKG_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Publish
         run: npm publish --access public
@@ -44,5 +46,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
-          name: create-dwy ${{ github.ref_name }}
+          name: dwy-ai-experience ${{ steps.verify.outputs.release_name }}
           generate_release_notes: true
+          body: |
+            ## dwy-ai-experience
+
+            This release is created automatically by GitHub Actions with OIDC.
+            本次发布由 GitHub Actions 与 OIDC 自动创建。
