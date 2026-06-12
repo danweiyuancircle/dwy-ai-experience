@@ -1,5 +1,11 @@
 # @dwydev/ekit
 
+## 0.9.1
+
+### Patch Changes
+
+- 增加 GitHub Actions OIDC 发布链路测试版本，支持通过 `@dwydev/ekit@x.y.z` tag 自动发布到 npm，并同步创建 GitHub Release。
+
 ## 0.8.0
 
 ### Minor Changes
