@@ -50,6 +50,16 @@ jobs:
             exit 1
           fi
           echo "release_name=$PKG_NAME@$PKG_VERSION" >> "$GITHUB_OUTPUT"
+          echo "package_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build release notes
+        working-directory: backend
+        run: |
+          python3 ../.github/scripts/extract_changelog_section.py \
+            CHANGELOG.md \
+            "${{ steps.verify.outputs.package_version }}" \
+            "${{ steps.verify.outputs.release_name }}" \
+            > ../.github/release-body-eapi.md
 
       - name: Build
         working-directory: backend
@@ -66,9 +76,4 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.verify.outputs.release_name }}
           draft: false
-          generate_release_notes: true
-          body: |
-            ## ${{ steps.verify.outputs.release_name }}
-
-            This release is created automatically by GitHub Actions with OIDC.
-            本次发布由 GitHub Actions 与 OIDC 自动创建。
+          body_path: .github/release-body-eapi.md
