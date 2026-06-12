@@ -1,5 +1,11 @@
 # create-dwy
 
+## 0.13.7
+
+### Patch Changes
+
+- `dwy` 同步模板前会先检查本地缓存仓库 `origin` 是否仍指向当前 CLI 目标仓库 `https://github.com/danweiyuancircle/dwy-ai-experience.git`；若不一致，则删除 `/Users/chances/.dwy/cache/dwy` 后重新 clone，避免旧 Gitee 缓存继续被 pull。
+
 ## 0.13.6
 
 ### Patch Changes
