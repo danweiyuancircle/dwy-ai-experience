@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.2.3
+
+### Patch Changes
+
+- GitHub Release 改为只展示当前版本的 changelog 段落，不再附带 full release notes，便于按版本查看真实发布内容。
+
 ## 2.2.2
 
 ### Patch Changes
