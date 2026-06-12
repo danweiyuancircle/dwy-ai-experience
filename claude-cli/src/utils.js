@@ -11,6 +11,18 @@ export const PACKAGE_ROOT = path.resolve(__dirname, '..')
 export const CACHE_DIR = path.join(process.env.HOME, '.dwy', 'cache')
 export const DWY_REPO_URL = 'https://github.com/danweiyuancircle/dwy-shared.git'
 
+export async function ensureRepoOrigin(git, repoUrl) {
+  const remotes = await git.getRemotes(true)
+  const origin = remotes.find(remote => remote.name === 'origin')
+  if (!origin) return
+
+  const fetchUrl = origin.refs?.fetch
+  const pushUrl = origin.refs?.push
+  if (fetchUrl === repoUrl && pushUrl === repoUrl) return
+
+  await git.remote(['set-url', 'origin', repoUrl])
+}
+
 export async function ensureRepoCache() {
   await fs.ensureDir(CACHE_DIR)
   const repoDir = path.join(CACHE_DIR, 'dwy')
@@ -18,6 +30,7 @@ export async function ensureRepoCache() {
   if (await fs.pathExists(path.join(repoDir, '.git'))) {
     console.log(chalk.gray('Pulling latest templates...'))
     const git = simpleGit(repoDir)
+    await ensureRepoOrigin(git, DWY_REPO_URL)
     await git.pull()
   } else {
     console.log(chalk.gray('Cloning template repo...'))
