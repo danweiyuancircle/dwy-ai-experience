@@ -9,18 +9,16 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export const PACKAGE_ROOT = path.resolve(__dirname, '..')
 export const CACHE_DIR = path.join(process.env.HOME, '.dwy', 'cache')
-export const DWY_REPO_URL = 'https://github.com/danweiyuancircle/dwy-shared.git'
+export const DWY_REPO_URL = 'https://github.com/danweiyuancircle/dwy-ai-experience.git'
 
-export async function ensureRepoOrigin(git, repoUrl) {
+export async function needsRepoReclone(git, repoUrl) {
   const remotes = await git.getRemotes(true)
   const origin = remotes.find(remote => remote.name === 'origin')
-  if (!origin) return
+  if (!origin) return true
 
   const fetchUrl = origin.refs?.fetch
   const pushUrl = origin.refs?.push
-  if (fetchUrl === repoUrl && pushUrl === repoUrl) return
-
-  await git.remote(['set-url', 'origin', repoUrl])
+  return fetchUrl !== repoUrl || pushUrl !== repoUrl
 }
 
 export async function ensureRepoCache() {
@@ -28,10 +26,16 @@ export async function ensureRepoCache() {
   const repoDir = path.join(CACHE_DIR, 'dwy')
 
   if (await fs.pathExists(path.join(repoDir, '.git'))) {
-    console.log(chalk.gray('Pulling latest templates...'))
     const git = simpleGit(repoDir)
-    await ensureRepoOrigin(git, DWY_REPO_URL)
-    await git.pull()
+    if (await needsRepoReclone(git, DWY_REPO_URL)) {
+      console.log(chalk.gray('Cached templates point to another repo, recreating cache...'))
+      await fs.remove(repoDir)
+      console.log(chalk.gray('Cloning template repo...'))
+      await simpleGit().clone(DWY_REPO_URL, repoDir)
+    } else {
+      console.log(chalk.gray('Pulling latest templates...'))
+      await git.pull()
+    }
   } else {
     console.log(chalk.gray('Cloning template repo...'))
     await simpleGit().clone(DWY_REPO_URL, repoDir)
