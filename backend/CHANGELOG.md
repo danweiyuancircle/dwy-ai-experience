@@ -1,5 +1,11 @@
 # dwyeapi
 
+## 0.9.2
+
+### Patch Changes
+
+- 增加 GitHub Actions OIDC 发布链路测试版本，支持通过 `dwyeapi@x.y.z` tag 自动发布到 PyPI，并同步创建 GitHub Release。
+
 ## 0.9.0
 
 ### Minor Changes
