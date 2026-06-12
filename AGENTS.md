@@ -16,6 +16,12 @@ Compact instructions for OpenCode sessions working in `dwy-shared`.
 
 **Package manager gotcha**: root `package.json` has a stale `packageManager: yarn@1.22.22` field. The repo actually uses **pnpm** (lockfile is `pnpm-lock.yaml`). Always use `pnpm`, never `yarn`.
 
+### 通用规则（语言无关）
+
+- 所有代码都要有注释。类、接口、私有方法、工具函数与重要参数必须写明用途。每个类顶部需有简短功能说明。
+- 图标默认优先使用成熟且稳定的图标库（如 `lucide-vue-next`、`heroicons`、`@iconify/vue`、`@tabler/icons` 等）。禁止使用 emoji 作为功能性图标或状态标识。
+- 开发 iOS 和 Android 客户端时，默认按全面屏/刘海屏适配处理，优先基于安全区域和自适应布局而非固定边距。
+
 ## Developer Commands
 
 ### One-time setup
