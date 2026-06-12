@@ -21,6 +21,10 @@
     "fastapi",
     "vue"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danweiyuancircle/dwy-ai-experience.git"
+  },
   "license": "MIT",
   "author": "dwydev",
   "dependencies": {
