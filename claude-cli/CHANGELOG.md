@@ -1,5 +1,11 @@
 # create-dwy
 
+## 0.13.8
+
+### Patch Changes
+
+- GitHub Release 改为只展示当前版本的 changelog 段落，不再附带 full release notes，便于按版本查看真实发布内容。
+
 ## 0.13.7
 
 ### Patch Changes
