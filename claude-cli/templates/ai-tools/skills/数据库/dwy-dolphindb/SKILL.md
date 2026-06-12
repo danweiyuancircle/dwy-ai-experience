@@ -137,7 +137,7 @@ s.run("cancelConsoleJob(`xxxx)")                // 同步作业
 文档来自爬取，需要周期刷新。所有命令在 skill 目录下跑：
 
 ```bash
-cd ~/.claude/skills/数据库/dwy-dolphindb     # 或源仓库对应路径
+cd .     # skill 根目录
 
 # 检查文档新鲜度（默认 90 天阈值）
 uv run scripts/check_freshness.py

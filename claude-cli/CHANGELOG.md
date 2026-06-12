@@ -1,5 +1,11 @@
 # create-dwy
 
+## 0.14.1
+
+### Patch Changes
+
+- 修正 `templates/ai-tools/skills` 内多处写死的绝对 skill 路径，统一改为 skill 内相对路径，例如 `./scripts/`、`./references/`、`./preference.json`，避免项目级/插件级安装时路径失效。
+
 ## 0.14.0
 
 ### Minor Changes

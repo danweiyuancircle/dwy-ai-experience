@@ -4,7 +4,7 @@
 
 本文件聚焦"运行时与韧性"维度的检查规则、严重度判定与输出格式。涵盖 Docker 安全、自愈与资源耗尽防护、日志大小与防爆、硬件识别与资源推荐。
 
-脚本目录简称 `{scripts}` = `~/.claude/skills/dwy-deploy-audit/scripts/`。
+脚本目录简称 `{scripts}` = `../scripts/`。
 
 ---
 

@@ -7,9 +7,9 @@ description: "Docker 工程规范检查与镜像版本管理。触发场景：�
 
 涵盖镜像版本选择 + Dockerfile / docker-compose / k8s manifest 工程结构。
 
-**脚本目录：** `~/.claude/skills/dwy-docker/scripts/`（以下简称 `{scripts}`）
+**脚本目录：** `./scripts/`（以下简称 `{scripts}`）
 
-**参考文件：** `~/.claude/skills/dwy-docker/references/`
+**参考文件：** `./references/`
 - `templates.md` — compose / Dockerfile / dev.sh 模板（用户问"怎么写"时读）
 - `version-rules.md` — N-1 minor 选法 + 各类镜像表（选具体版本号时读）
 - `ask-templates.md` — AskUserQuestion 模板（违规需要询问用户时读）

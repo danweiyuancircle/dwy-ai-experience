@@ -4,7 +4,7 @@
 
 本文件聚焦"网络与传输安全"维度的检查规则、严重度判定与输出格式。涵盖 SSH、Nginx、HTTPS 证书、依赖服务连通性。
 
-脚本目录简称 `{scripts}` = `~/.claude/skills/dwy-deploy-audit/scripts/`。
+脚本目录简称 `{scripts}` = `../scripts/`。
 
 ---
 
