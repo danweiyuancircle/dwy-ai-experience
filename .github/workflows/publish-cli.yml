@@ -10,7 +10,7 @@ jobs:
   publish:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write   # OIDC Trusted Publishing 必需
     defaults:
       run:
@@ -39,3 +39,10 @@ jobs:
 
       - name: Publish
         run: npm publish --access public
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: create-dwy ${{ github.ref_name }}
+          generate_release_notes: true
