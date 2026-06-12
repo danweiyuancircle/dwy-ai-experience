@@ -1,29 +1,87 @@
-# dwy-shared
+# dwy-ai-experience
 
 ## 中文
 
-这是一个面向前端与后端协作的多包 monorepo，包含以下能力：
+## 关于本仓库
 
-- 前端组件库与工具库：`frontend/eui`、`frontend/ekit`
-- CLI 脚手架：`claude-cli`
-- 后端服务与运行时：`backend`
+`dwy-ai-experience` 是一个面向 AI 工具链的实践仓库，聚合前端组件/工具库、CLI 脚手架、后端服务模板与发布流程规范。
 
-该仓库默认同步自 `create-dwy` 的规则与模板体系，支持：
+- 前端能力：`frontend/eui`、`frontend/ekit`
+- 工具能力：`claude-cli`（代码规范、模板、规则与 hooks 同步）
+- 后端能力：`backend`（FastAPI 服务）
 
-- 统一的代码规范与模板同步
-- 发布流程（npm / PyPI）使用 GitHub Action OIDC
-- iOS / Android 全面屏适配等前端工程要求
+## 目录
+
+- [backend](./backend)
+- [claude-cli](./claude-cli)
+- [frontend/eui](./frontend/eui)
+- [frontend/ekit](./frontend/ekit)
+
+## 主要能力
+
+- 统一代码与发布规则（AGENTS/CLAUDE/rules）
+- CLI 版本与模板同步（`create-dwy`）
+- GitHub Action 发布链路：npm 与 PyPI 使用 OIDC
+- iOS / Android 全面屏适配约束规则收敛
+
+## 使用方式
+
+### 创建项目（示例）
+
+```bash
+npx create-dwy <project-name>
+```
+
+### 运行与开发
+
+```bash
+# Frontend packages
+cd frontend/eui && pnpm install
+cd frontend/ekit && pnpm install
+
+# Backend
+cd backend && uv sync
+```
+
+## 发布说明
+
+- CLI 发布触发：推送 `create-dwy@x.y.z` tag
+- 发布方式：GitHub Actions（OIDC），并自动创建 GitHub Release
+
+## 许可证
+
+MIT
 
 ## English
 
-This repository is a multi-package monorepo for frontend and backend collaboration. It includes:
+## About this repository
 
-- Frontend libraries: `frontend/eui`, `frontend/ekit`
-- CLI scaffold tool: `claude-cli`
-- Backend service: `backend`
+`dwy-ai-experience` is an AI engineering repository that centralizes frontend, CLI, backend, and release-automation components.
 
-It also provides unified sync and release tooling and supports OIDC-based publishing for npm / PyPI.
+- Frontend packages: `frontend/eui`, `frontend/ekit`
+- CLI tooling: `claude-cli` (sync rules, templates, and hooks)
+- Backend: `backend` (FastAPI)
 
-## 许可证
+## Repository structure
+
+- [backend](./backend)
+- [claude-cli](./claude-cli)
+- [frontend/eui](./frontend/eui)
+- [frontend/ekit](./frontend/ekit)
+
+## Highlights
+
+- Unified project conventions (AGENTS/CLAUDE/rules)
+- Project scaffolding and rules sync (`create-dwy`)
+- GitHub Action releases for npm/PyPI with OIDC
+- Standardized full-screen adaptation guidance for iOS/Android
+
+## Getting started
+
+```bash
+npx create-dwy <project-name>
+```
+
+## License
 
 MIT
