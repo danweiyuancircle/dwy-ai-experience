@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.14.2
+
+### Patch Changes
+
+- 重构 `templates/ai-tools/skills/运维发布/dwy-publish`：主入口只负责识别“应用部署”或“SDK 发版”，再按类型读取独立流程文件。
+- 新增 `references/application-release.md` 与 `references/sdk-release.md`，将应用部署和 SDK 发版流程拆开，避免单文件内混合两套末端流程。
+- `dwy-publish` 主入口改为使用相对路径读取流程文件，避免模板内写死仓库绝对路径。
+
 ## 0.14.1
 
 ### Patch Changes
