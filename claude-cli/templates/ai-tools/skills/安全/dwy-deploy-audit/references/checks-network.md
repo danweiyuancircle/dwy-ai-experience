@@ -49,6 +49,20 @@
 | 暴露的 location | 排查 `/.git`、`/.env`、`/admin` 是否泄漏 | **critical** |
 | Nginx 版本 | 非已知 CVE 版本 | medium |
 
+**Nginx 版本判定补充：**
+
+- 先查官方配置语义：
+  - headers 模块：`https://nginx.org/en/docs/http/ngx_http_headers_module.html`
+  - SSL 模块：`https://nginx.org/en/docs/http/ngx_http_ssl_module.html`
+- 再查版本安全：
+  - 搜索词：`nginx <version> security advisory`、`nginx <version> CVE`
+  - 优先来源：Nginx 官方公告、NVD、CISA KEV
+- 分级规则：
+  - 命中 **CISA KEV** 或存在明确在野利用记录 → **critical**
+  - 命中高危 CVE（建议按 CVSS ≥ 7.0 参考），但未见在野利用 → high
+  - 未命中高危 CVE，但版本明显老旧且缺少后续安全修复依据 → medium
+- 如果只是配置项（如 `ssl_protocols`、`ssl_stapling`、`add_header ... always`）语义不清，不按“版本风险”报，改为引用官方模块文档解释配置风险。
+
 ---
 
 ## 4.4 HTTPS 证书 — `{scripts}/check_https.sh`

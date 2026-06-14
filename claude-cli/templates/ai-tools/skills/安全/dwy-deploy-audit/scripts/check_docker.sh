@@ -11,6 +11,16 @@ fi
 
 echo "--- docker version ---"
 docker version --format '{{.Server.Version}} (client: {{.Client.Version}})' 2>/dev/null || docker --version
+DOCKER_SERVER_VERSION=$(docker version --format '{{.Server.Version}}' 2>/dev/null || docker --version | grep -oE '[0-9]+(\.[0-9]+){1,3}' | head -1)
+echo "docker_server_version_normalized=${DOCKER_SERVER_VERSION:-unknown}"
+echo "official_doc_docker_security=https://docs.docker.com/engine/security/"
+echo "official_doc_docker_remote_access=https://docs.docker.com/engine/daemon/remote-access/"
+echo "official_doc_docker_logging=https://docs.docker.com/engine/logging/configure/"
+echo "official_doc_docker_owasp=https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html"
+if [[ -n "$DOCKER_SERVER_VERSION" ]]; then
+  echo "search_hint_1=docker engine ${DOCKER_SERVER_VERSION} CVE"
+  echo "search_hint_2=docker ${DOCKER_SERVER_VERSION} security advisory"
+fi
 
 echo ""
 echo "--- docker daemon 监听 ---"
