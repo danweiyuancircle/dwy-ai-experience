@@ -34,6 +34,22 @@
 | **daemon `registry-mirrors`**(时区在 PRC 时) | 至少 1 个国内源(daocloud / aliyun / ustc / tsinghua) | high(PRC 无配置)/ info(境外) |
 | **运行容器使用境外 registry**(`gcr.io` `ghcr.io` `k8s.gcr.io` `quay.io` `mcr.microsoft.com` `nvcr.io` `docker.elastic.co`)且时区在 PRC | 改用 `<registry>.m.daocloud.io` 前缀(`registry-mirrors` **不**对它们生效) | high |
 
+**Docker 版本与暴露面判定补充：**
+
+- 官方基础文档：
+  - Engine security：`https://docs.docker.com/engine/security/`
+  - daemon remote access：`https://docs.docker.com/engine/daemon/remote-access/`
+  - logging driver：`https://docs.docker.com/engine/logging/configure/`
+  - OWASP Docker Security Cheat Sheet：`https://cheatsheetseries.owasp.org/cheatsheets/Docker_Security_Cheat_Sheet.html`
+- 版本安全搜索词：
+  - `docker engine <version> CVE`
+  - `docker <version> security advisory`
+- 分级规则：
+  - 命中 **CISA KEV**，或 Docker daemon TCP 端口公网暴露且无充分保护 → **critical**
+  - 命中高危 CVE（建议按 CVSS ≥ 7.0 参考），但当前未见在野利用 → high
+  - 未命中高危 CVE，但版本过旧且缺少持续维护依据 → medium
+- `docker.sock` 挂载、`--privileged`、2375/2376 暴露属于**配置暴露面**，优先按当前表里的配置项分级，不要被“版本没问题”掩盖。
+
 ---
 
 ## 4.8 自愈与资源耗尽防护 — `{scripts}/check_resilience.sh`

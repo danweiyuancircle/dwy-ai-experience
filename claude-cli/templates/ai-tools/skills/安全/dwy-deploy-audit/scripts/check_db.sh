@@ -42,7 +42,19 @@ else
 
   echo ""
   echo "--- PG 版本 & 数据库列表 ---"
-  sudo -n -u postgres psql -tAc "SELECT version()" 2>/dev/null | head -1 || echo "[i] 无法连接 PG"
+  PG_VERSION_RAW=$(sudo -n -u postgres psql -tAc "SELECT version()" 2>/dev/null | head -1 || true)
+  if [[ -n "$PG_VERSION_RAW" ]]; then
+    echo "$PG_VERSION_RAW"
+    PG_VERSION=$(echo "$PG_VERSION_RAW" | grep -oE 'PostgreSQL[[:space:]]+[0-9]+(\.[0-9]+){0,2}' | awk '{print $2}' | head -1)
+    echo "postgresql_version_normalized=${PG_VERSION:-unknown}"
+    echo "official_doc_pg_runtime=https://www.postgresql.org/docs/current/runtime-config-connection.html"
+    if [[ -n "$PG_VERSION" ]]; then
+      echo "search_hint_1=postgresql ${PG_VERSION} CVE"
+      echo "search_hint_2=postgresql ${PG_VERSION} security advisory"
+    fi
+  else
+    echo "[i] 无法连接 PG"
+  fi
   sudo -n -u postgres psql -tAc "SELECT datname FROM pg_database WHERE datistemplate=false" 2>/dev/null || true
 fi
 
@@ -109,7 +121,20 @@ else
 
   echo ""
   echo "--- Redis INFO server (需 auth, 跳过若失败) ---"
-  timeout 3 redis-cli -h 127.0.0.1 INFO server 2>/dev/null | grep -E "redis_version|os|arch_bits" | head -5 || echo "[i] 需要密码或无法连接"
+  REDIS_INFO=$(timeout 3 redis-cli -h 127.0.0.1 INFO server 2>/dev/null || true)
+  if [[ -n "$REDIS_INFO" ]]; then
+    echo "$REDIS_INFO" | grep -E "redis_version|os|arch_bits" | head -5
+    REDIS_VERSION=$(echo "$REDIS_INFO" | sed -n 's/^redis_version://p' | head -1)
+    echo "redis_version_normalized=${REDIS_VERSION:-unknown}"
+    echo "official_doc_redis_security=https://redis.io/docs/latest/operate/oss_and_stack/management/security/"
+    if [[ -n "$REDIS_VERSION" ]]; then
+      echo "search_hint_redis_1=redis ${REDIS_VERSION} CVE"
+      echo "search_hint_redis_2=redis ${REDIS_VERSION} security advisory"
+    fi
+  else
+    echo "[i] 需要密码或无法连接"
+    echo "official_doc_redis_security=https://redis.io/docs/latest/operate/oss_and_stack/management/security/"
+  fi
 fi
 
 echo ""

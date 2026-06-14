@@ -11,6 +11,14 @@ fi
 
 echo "--- nginx version ---"
 nginx -v 2>&1
+NGINX_VERSION=$(nginx -v 2>&1 | sed -n 's#.*nginx/\([^ ]*\).*#\1#p' | head -1)
+echo "nginx_version_normalized=${NGINX_VERSION:-unknown}"
+echo "official_doc_headers=https://nginx.org/en/docs/http/ngx_http_headers_module.html"
+echo "official_doc_ssl=https://nginx.org/en/docs/http/ngx_http_ssl_module.html"
+if [[ -n "$NGINX_VERSION" ]]; then
+  echo "search_hint_1=nginx ${NGINX_VERSION} security advisory"
+  echo "search_hint_2=nginx ${NGINX_VERSION} CVE"
+fi
 
 echo ""
 echo "--- nginx 进程运行用户 ---"

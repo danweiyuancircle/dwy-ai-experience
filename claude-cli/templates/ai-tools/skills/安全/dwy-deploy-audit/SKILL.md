@@ -26,6 +26,7 @@ description: "部署后线上环境基础安全巡检：远程 SSH 到目标服�
 | `references/checks-network.md` | 即将运行 4.1 / 4.2 / 4.4 / 4.7 类检查或解读其输出时 | SSH / Nginx / HTTPS / 依赖服务连通性 |
 | `references/checks-data.md` | 即将运行 4.3 / 4.5 / 4.11 类检查或解读其输出时 | 数据库暴露 / 环境变量 / 凭证强度 |
 | `references/checks-runtime.md` | 即将运行 4.6 / 4.8 / 4.9 / 4.10 类检查或解读其输出时 | Docker / 自愈 / 日志防爆 / 资源推荐 |
+| `references/security-doc-search.md` | 本地 checks 不够判定、需要查官方安全文档、需要按版本追 CVE、或需要把新规则沉淀回 skill 时 | 权威文档检索策略 / 官方来源清单 / 沉淀规则 |
 
 ---
 
@@ -46,12 +47,13 @@ description: "部署后线上环境基础安全巡检：远程 SSH 到目标服�
 1. 收集目标信息  → 确认 SSH 连接、目标服务范围
 2. 连通性测试    → SSH 登录、sudo 权限确认
 3. 基础环境识别  → 系统版本、已部署服务清单
-4. 分类检查      → SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity / Secrets(主 Bash 调用 run_all.sh,12 路并行)
-5. 生成报告      → 按等级聚合,Markdown 格式
-6. 修复建议      → 每条问题给出修复方向(不执行)
+4. 权威文档检索  → 必要时查官方文档 / CVE / OWASP,补足判定依据
+5. 分类检查      → SSH / Nginx / DB / HTTPS / Env / Docker / Services / Resilience / Logs / Capacity / Secrets(主 Bash 调用 run_all.sh,12 路并行)
+6. 生成报告      → 按等级聚合,Markdown 格式
+7. 修复建议      → 每条问题给出修复方向(不执行)
 ```
 
-**共 6 步，按顺序执行。**
+**共 7 步，按顺序执行。**
 
 ---
 
@@ -115,7 +117,44 @@ ssh ${TARGET} "
 
 ---
 
-## Step 4: 分类检查（并行执行）
+## Step 4: 权威文档检索（必要时执行）
+
+当出现以下任一情况，**先读** `references/security-doc-search.md`，再用 WebSearch / 官方站点检索：
+
+1. `references/checks-*.md` 里只有抽象规则，没有给出当前版本依据
+2. audit 输出出现了明确版本号，需要判断是否存在已知高危 CVE
+3. 配置项语义、默认值、版本门槛不确定
+4. 用户明确要求“按官方安全文档”解释
+5. 本次发现适合沉淀回长期规则
+
+### 强制来源顺序
+
+1. 官方产品文档 / 官方 security 页面
+2. 官方 release notes / advisories
+3. CISA KEV / NVD / CVE
+4. OWASP Cheat Sheet
+
+**禁止**把论坛、博客、AI 聚合页当唯一依据。
+
+### 强制检索输出
+
+每次外部检索至少产出 3 个字段：
+
+| 字段 | 说明 |
+|------|------|
+| `source` | 权威来源 URL |
+| `claim` | 从文档得到的明确结论 |
+| `impact` | 这条结论如何影响本次分级 / 判定 / 修复建议 |
+
+### 需要沉淀时怎么做
+
+- 可复用的配置语义 / 检查基线 → 回写对应 `references/checks-*.md`
+- 可复用的检索方法 / 来源入口 → 回写 `references/security-doc-search.md`
+- 单次版本漏洞情报 → 只写进本次报告,不固化成长期规则
+
+---
+
+## Step 5: 分类检查（并行执行）
 
 **主 Claude 直接用 Bash 调用 `run_all.sh`,12 路并行跑完全部检查类目**,把原始输出落到 `/tmp/dwy_audit_<host>.txt`,再由主 Claude `Read` 文件后做分析。
 
@@ -251,7 +290,7 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ---
 
-## Step 5: 生成报告
+## Step 6: 生成报告
 
 报告必须为 Markdown 格式,**核心是"完整检查清单 + 状态可视化"** — 让用户一眼看到"检查了哪些 / 通过哪些 / 失败哪些 / 跳过哪些 / 未覆盖哪些"。
 
@@ -441,7 +480,7 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ---
 
-## Step 6: 修复建议(只输出,不执行)
+## Step 7: 修复建议(只输出,不执行)
 
 **严格禁止：**
 
@@ -455,6 +494,7 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 - 在报告中给出修复命令片段(供用户复制)
 - 解释修复后的影响和验证方法
 - 推荐修复优先级
+- 给出本次实际引用过的权威文档 URL
 
 ---
 

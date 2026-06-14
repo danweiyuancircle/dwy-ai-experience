@@ -35,6 +35,17 @@
 | `rename-command` | 危险命令(FLUSHALL/CONFIG)已重命名 | medium |
 | Redis 版本 | 非已知 CVE 版本 | medium |
 
+**Redis 版本判定补充：**
+
+- 配置语义先看官方安全文档：`https://redis.io/docs/latest/operate/oss_and_stack/management/security/`
+- 版本安全再搜：`redis <version> CVE`、`redis <version> security advisory`
+- 优先来源：Redis 官方、NVD、CISA KEV
+- 分级规则：
+  - Redis 外网暴露 + 命中高危 CVE / KEV → **critical**
+  - Redis 仅内网暴露，但命中高危 CVE → high
+  - 未命中高危 CVE，但版本明显偏旧且无安全维护依据 → medium
+- 如 `bind`、`protected-mode`、公网暴露本身已不合规，按对应配置项分级；不要把“版本风险”和“暴露风险”混成一条。
+
 ---
 
 ## 4.5 环境变量 / 文件权限 — `{scripts}/check_env.sh`
