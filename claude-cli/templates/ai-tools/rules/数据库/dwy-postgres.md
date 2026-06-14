@@ -14,6 +14,8 @@ description: PostgreSQL 安全与配置规范（参数化查询、应用用户�
 |------|------|
 | 参数化查询 | **禁止**字符串拼接 SQL（用 ORM 或 `text(... :param)` 参数绑定） |
 | 应用用户权限 | 只授予 SELECT / INSERT / UPDATE / DELETE，**不给** DROP / CREATE / ALTER / SUPERUSER |
+| 端口暴露 | **禁止**将 `5432` 直接暴露到公网；仅允许 VPC / 内网 / 跳板机访问 |
+| 运行权限 | PostgreSQL 服务进程**禁止**以 `root` 用户运行，必须使用专用低权限系统用户 |
 | 连接池 | `pool_size ≤ 20`，`max_overflow ≤ 10` |
 | SSL 连接 | 生产环境启用 `sslmode=require` |
 | 敏感字段加密 | 身份证号 / 银行卡 / 手机号原文等使用 AES 加密**存储**，不仅展示脱敏 |
@@ -24,6 +26,8 @@ description: PostgreSQL 安全与配置规范（参数化查询、应用用户�
 ## 二、应用专用数据库用户（最小权限）
 
 生产环境**禁止**使用 `postgres` 超级用户跑应用；为每个应用创建独立用户，授权严格限定到 DML。
+
+数据库服务自身也**禁止**由 `root` 直接启动或托管，统一使用 `postgres` 或发行版默认专用系统账号运行。
 
 ```sql
 -- 创建应用专用用户（非超级用户）
@@ -83,6 +87,8 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 | SQL 拼接 | f-string / `%` / 字符串相加构造 SQL | **致命 → STOP** |
 | 应用用户超权 | 应用账号拥有 DROP / CREATE / ALTER / SUPERUSER | **致命 → STOP** |
 | 超级用户跑应用 | 应用以 `postgres` 或其他超级用户身份连接 | **致命 → STOP** |
+| 公网开放 5432 | 安全组 / 防火墙 / LB 允许公网直连 PostgreSQL 端口 | **致命 → STOP** |
+| root 运行数据库 | PostgreSQL 服务进程以 `root` 身份运行 | **致命 → STOP** |
 | 连接池超限 | `pool_size > 20` 或 `max_overflow > 10` | 高 |
 | 无 SSL | 生产环境连接串无 `sslmode=require` | 高 |
 | 敏感字段明文 | 身份证 / 银行卡等明文落库 | 高 |

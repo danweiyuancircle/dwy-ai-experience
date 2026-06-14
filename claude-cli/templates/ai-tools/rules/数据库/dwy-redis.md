@@ -21,15 +21,18 @@ description: Redis 安全与使用规范（必须用 dwyeapi 客户端、密码�
 | 规则 | 说明 |
 |------|------|
 | 认证 | **必须**设置 `requirepass`，无密码 Redis 一律拒绝接入生产 |
-| 绑定地址 | `bind 127.0.0.1` 或内网地址，**禁止** `bind 0.0.0.0` |
+| 绑定地址 | `bind 127.0.0.1` 或内网地址，**禁止** `bind 0.0.0.0`，**禁止**通过安全组 / 防火墙 / LB 直接暴露 `6379` 到公网 |
+| 运行权限 | Redis 进程**禁止**以 `root` 用户运行，必须使用专用低权限用户 |
 | 危险命令 | **禁用**或重命名 `FLUSHALL` / `FLUSHDB` / `CONFIG` / `KEYS` / `DEBUG` |
-| 内存上限 | 设 `maxmemory` 与 `maxmemory-policy`（推荐 `allkeys-lru`），防止 OOM |
+| 内存上限 | Redis 运行**必须**显式设置 `maxmemory` 与 `maxmemory-policy`（推荐 `allkeys-lru`），防止缓存无限膨胀或 OOM |
 | 持久化 | 根据用途选择：缓存可关 AOF；会话 / 黑名单需 AOF everysec |
 
 ```conf
 # redis.conf 关键项示例
 requirepass <strong-password>
 bind 127.0.0.1
+port 6379
+maxclients 10000
 rename-command FLUSHALL ""
 rename-command FLUSHDB ""
 rename-command CONFIG ""
@@ -37,6 +40,12 @@ rename-command KEYS ""
 rename-command DEBUG ""
 maxmemory 256mb
 maxmemory-policy allkeys-lru
+```
+
+```ini
+# systemd/service 示例
+User=redis
+Group=redis
 ```
 
 ---
@@ -79,10 +88,13 @@ await redis.set("myapp:cache:user:uuid:f7e2", json_data, ex=300)
 | 检查项 | 违规模式 | 严重程度 |
 |--------|---------|---------|
 | 绑定 0.0.0.0 | 服务对公网暴露 | **致命 → STOP** |
+| 公网开放 6379 | 安全组 / 防火墙 / LB 允许公网直连 Redis 端口 | **致命 → STOP** |
 | 无密码 | 生产 Redis 未设 `requirepass` | **致命 → STOP** |
+| root 运行 | Redis 进程以 `root` 身份启动 | **致命 → STOP** |
 | 存敏感原文 | 密码 / 身份证 / token 明文存 Redis | **致命 → STOP** |
 | 自建连接池 | 业务代码 `aioredis.from_url(...)`，未走 dwyeapi 缓存模块 | 高 |
 | 危险命令未禁 | `FLUSHALL` / `KEYS` / `CONFIG` 等可在生产执行 | 高 |
+| 未设 `maxmemory` | Redis 未设置缓存最大可用内存或未配置淘汰策略 | **致命 → STOP** |
 | Key 无 TTL | `redis.set()` 没有 `ex` 参数（业务上明确永久存储除外） | 中 |
 | Key 无前缀 | Key 无项目前缀，污染共享 Redis | 中 |
 | Pub/Sub 当队列 | 业务关键消息走 Pub/Sub | 高 |
