@@ -1,145 +1,50 @@
 ---
 name: dwy-publish
-description: "发布版本：测试 → bump → changelog → build → publish → tag。触发条件：用户说'发版'、'发布'、'release'、'bump version' 时。"
+description: "部署应用、发布版本、发布 SDK 的通用发版入口。触发条件：用户说“部署”“发版”“发布”“release”“publish”“bump version”时。先根据仓库上下文判断目标是应用部署还是 SDK 发版，再分别读取对应流程文件执行。"
 ---
 
-# 发布版本流程
+# 发布入口
 
-通用的发版流程框架，项目特定的包名、路径、命令由 CLAUDE.md 的 `## Release` 段落定义。
+通用发布 skill。默认进入本 skill 前，测试已经完成。
 
-## 触发条件
+## 第 0 步：读取仓库发布上下文
 
-用户要求发布包时（"发版"、"发布"、"release"、"bump version"）。
+执行前先从仓库里定位发布相关信息。
 
-## 第 0 步：检查项目 Release 配置
+优先查看这些信息源：
 
-**在执行任何操作前**，检查当前项目的 CLAUDE.md 是否包含 `## Release` 段落：
+- `package.json`、`pyproject.toml`、`Cargo.toml`、`Makefile`、发布脚本
+- `.github/workflows/`、CI 配置、Docker 构建文件
+- `README.md`、发布文档、变更日志
+- 现有 tag 格式、历史 release commit、历史 workflow 运行方式
 
-- **有** → 读取其中的包列表、版本文件路径、测试命令、构建命令、发布命令、依赖顺序等配置，按配置执行
-- **没有** → **停止发版流程**，提醒用户：
+如果仍然无法判断发布方式或版本来源，停止并要求用户明确，不猜命令。
 
-> 「当前项目 CLAUDE.md 未定义 `## Release` 段落，无法执行发版流程。需要我帮你加吗？」
+## 第 1 步：先判断发布类型
 
-参考格式（提供给用户）：
+先确认：
 
-```markdown
-## Release
+1. 发布哪个应用或包
+2. 目标是应用部署还是 SDK 发版
+3. 目标版本号是什么；如果用户没给，判断是 `major` / `minor` / `patch`
 
-### 包列表
+归类规则：
 
-| 包名 | scope | 版本文件 | 测试命令 | 构建命令 | 发布命令 | 验证命令 |
-|------|-------|---------|---------|---------|---------|---------|
-| @scope/pkg-a | pkg-a | packages/a/package.json | cd packages/a && pnpm vitest run | pnpm build:a | pnpm publish:a | npm view @scope/pkg-a version |
+- **应用部署**：目标是某个服务、站点、容器、镜像、二进制或线上环境
+- **SDK 发版**：目标是 npm、PyPI、私有包仓库或对外库版本
 
-### 依赖顺序
+多包场景按仓库已有依赖关系、workspace 拓扑、历史发布顺序执行，不自定顺序。
 
-多包发版时按此顺序执行：pkg-a → pkg-b → pkg-c
+## 第 2 步：读取对应流程文件
 
-### Tag 命名
+- **应用部署**：读取 `references/application-release.md`
+- **SDK 发版**：读取 `references/sdk-release.md`
 
-- 单包：`@scope/pkg-a@1.0.0`
-- 仅一个包时可简化为：`v1.0.0`
+不要把两条流程混在一起执行。先判类型，再只读对应流程文件。
 
-### CHANGELOG
+## 通用约束
 
-- 命令：`pnpm changelog`（可选，无则手写）
-- 工具：changelogen
-```
-
-## 发版前置检查（按项目类型）
-
-正式发版前，先按项目类型过对应的前置 skill：
-
-- **SDK 类项目（对外发布的库 / SDK，不限 PyPI / npm / 私有源）** → 先用 `dwy-sdk-spec` 做发布安全检查（接口注释脱敏、商业版源码保护、发布产物审计），通过后再发版。
-- **含 C 扩展 / Cython / .so、需跨平台 wheel** → 用 `dwy-cibuildwheel` 配 GitHub Actions + cibuildwheel 打跨平台 wheel 发 PyPI（此时下方第 4、6 步的 build / publish 由 CI workflow 承担）。
-- **版本号该升哪一位拿不准** → 用 `dwy-semver` 决策（见下方第 2 步）。
-
-## 发版前确认
-
-询问用户：
-
-1. **发哪个包？**（从 Release 配置的包列表中选，可多选）
-2. **版本号？** patch / minor / major，或指定具体版本号
-
-## 发版流程
-
-### 1. 运行测试
-
-执行 Release 配置中对应包的测试命令。**测试必须全部通过才能继续。**
-
-**有失败 → 停止发版，修复后重新开始。**
-
-### 2. Bump Version
-
-**版本级别（major/minor/patch）该怎么定** —— 不确定时用 `dwy-semver` skill 决策，它给出该升哪一位 + 具体新版本号（含 0.x 阶段、预发布、归零规则）。
-
-根据 Release 配置中的版本文件路径，直接编辑 version 字段。新版本号用 `dwy-semver` 的 `scripts/bump.py` 算，避免手算归零出错：
-
-```bash
-python3 <dwy-semver>/scripts/bump.py <当前版本> <major|minor|patch>
-# 如 1.2.3 minor -> 1.3.0
-```
-
-不使用 `npm version`（避免自动 commit）。Python 项目编辑 `pyproject.toml` 中的 `version` 字段。
-
-### 3. 编写 CHANGELOG
-
-**如果项目有 changelog 自动生成工具**（如 changelogen），执行配置的命令。
-
-**如果没有**，手动编写 CHANGELOG 条目：
-
-1. 查看上个版本 tag 以来的 git log：`git log <last-tag>..HEAD --oneline`
-2. 按变更类型分组（feat / fix / refactor / chore）
-3. 写入项目的 CHANGELOG.md，格式：
-
-```markdown
-## x.y.z
-
-### Minor Changes / Patch Changes
-
-- 变更描述 1
-- 变更描述 2
-```
-
-**CHANGELOG 未写不发版。**
-
-### 4. Build
-
-执行 Release 配置中对应包的构建命令。**构建必须成功才能继续。**
-
-### 5. Commit + Tag
-
-```bash
-# 暂存变更（version + changelog）
-git add <changed-files>
-
-# 提交（遵循 dwy-git-commit）
-git commit -m "chore(<scope>): release v<version>"
-
-# 打 tag（按 Release 配置的命名规则）
-git tag <tag-name>
-
-# 推送
-git push origin <branch> --tags
-```
-
-### 6. Publish
-
-执行 Release 配置中对应包的发布命令。
-
-### 7. 发版后验证
-
-执行 Release 配置中对应包的验证命令，确认新版本已发布。
-
-## 多包同时发版
-
-按 Release 配置中定义的依赖顺序，每个包独立走完 测试 → bump → changelog → build → publish，最后统一 commit + tag + push。
-
-## 禁止事项
-
-- **禁止**跳过测试直接发版
-- **禁止**跳过 build 直接 publish
-- **禁止**忘记打 tag
-- **禁止**publish 失败后不回滚 version 变更
-- **禁止**在 CHANGELOG 未编写时发版
-- **禁止**在无 Release 配置的情况下猜测发版命令
+- 禁止在未读清仓库发布上下文时猜发布命令
+- 禁止测试未完成就进入本发布流程
+- 禁止构建失败后继续发布
+- 禁止发布失败后对当前状态含糊表述
