@@ -1,5 +1,14 @@
 # create-dwy
 
+## 0.14.7
+
+### Patch Changes
+
+- 平台选择交互默认按当前项目本地目录回填：存在 `.claude`、`.codex` / `.agents` / `AGENTS.md`、`.cursor`、`.opencode` 时，自动勾选对应平台；无本地目录时退回默认 `Claude Code + Codex`。
+- 将跨语言通用基础约束并入 `CLAUDE.md`，删除重复的 `rules/Global/dwy-common-code-baseline.md`，减少全局规则分散。
+- 将 Docker 规则从 `rules/Global/dwy-docker.md` 调整到 `rules/Docker/dwy-docker.md`，按技术域归类。
+- 为 Android 与 Flutter 规则补充全面屏、刘海屏、挖孔屏适配约束，统一要求基于安全区域与响应式布局实现。
+
 ## 0.14.6
 
 ### Patch Changes

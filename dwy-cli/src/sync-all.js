@@ -119,7 +119,32 @@ async function shouldInitialize(projectDir, existing) {
   return !isCancel(ok) && ok
 }
 
-async function selectPlatforms() {
+export async function buildPlatformDefaultsFromLocalState(projectDir) {
+  const defaults = []
+
+  if (await fs.pathExists(path.join(projectDir, '.claude'))) {
+    defaults.push('claude')
+  }
+  if (
+    await fs.pathExists(path.join(projectDir, '.codex'))
+    || await fs.pathExists(path.join(projectDir, '.agents'))
+    || await fs.pathExists(path.join(projectDir, 'AGENTS.md'))
+  ) {
+    defaults.push('codex')
+  }
+  if (await fs.pathExists(path.join(projectDir, '.cursor'))) {
+    defaults.push('cursor')
+  }
+  if (await fs.pathExists(path.join(projectDir, '.opencode'))) {
+    defaults.push('opencode')
+  }
+
+  return defaults.length > 0 ? defaults : ['claude', 'codex']
+}
+
+async function selectPlatforms(projectDir) {
+  const initialValues = await buildPlatformDefaultsFromLocalState(projectDir)
+
   console.log(chalk.gray('\n平台能力预览：'))
   console.log(chalk.gray('  Claude Code → rules / skills / commands / hooks'))
   console.log(chalk.gray('  Codex       → rules / skills / hooks'))
@@ -129,7 +154,7 @@ async function selectPlatforms() {
   const result = await multiselect({
     message: '选择要同步的平台',
     options: PLATFORM_OPTIONS,
-    initialValues: ['claude', 'codex'],
+    initialValues,
     required: true,
     maxItems: 6,
   })
@@ -575,7 +600,7 @@ export async function syncAll({
     return
   }
 
-  const selectedPlatforms = selectedPlatformsOverride || await selectPlatforms()
+  const selectedPlatforms = selectedPlatformsOverride || await selectPlatforms(projectDir)
   if (selectedPlatforms === null) {
     console.log(chalk.yellow('\n已取消同步。'))
     return
