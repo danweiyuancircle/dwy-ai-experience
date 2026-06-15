@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.14.6
+
+### Patch Changes
+
+- `dwy` 交互同步时，默认勾选优先读取项目目录下 `/.dwy/sync-state.json` 的上次托管选择结果，减少每次重新勾选 `rules`、`skills`、`commands`、`hooks`。
+- 新增 iOS 适配开发规则 `dwy-ios-layout-adaptation.md`，统一原型基准为 `393×852 pt`，补充 `375 / 393 / 430 pt` 验证矩阵与 Safe Area 约束。
+- 补充 iOS 与 Android 应用图标安全边距规则：iOS 图标源稿使用 `1024x1024` PNG，Android 启动图标源稿使用 `mipmap-xxxhdpi` `192x192`，主体默认预留 `10%` 安全边距。
+
 ## 0.14.5
 
 ### Patch Changes

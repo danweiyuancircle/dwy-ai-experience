@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'fs-extra'
 import os from 'node:os'
 import path from 'node:path'
-import { syncAll } from '../src/sync-all.js'
+import { buildSelectionDefaultsFromSyncState, syncAll } from '../src/sync-all.js'
 
 function buildSelected() {
   return {
@@ -21,6 +21,65 @@ function buildSelected() {
     ],
   }
 }
+
+test('buildSelectionDefaultsFromSyncState prefers stored sync state selections', () => {
+  const existing = {
+    skills: new Set(['existing-skill']),
+    rules: new Set(['existing-rule.md']),
+    commands: new Set(['existing-command.md']),
+    hooks: new Set(['existing-hook.sh']),
+  }
+
+  const syncState = {
+    version: 1,
+    platforms: {
+      claude: {
+        skills: ['state-skill'],
+        rules: ['state-rule.md'],
+        commands: ['state-command.md'],
+        hooks: ['state-hook.sh'],
+      },
+      codex: {
+        skills: ['state-skill', 'codex-skill'],
+        rules: ['codex-rule.md'],
+        hooks: ['codex-hook.sh'],
+      },
+      cursor: {
+        rules: ['cursor-rule.md'],
+      },
+      opencode: {
+        skills: ['opencode-skill'],
+        commands: ['opencode-command.md'],
+      },
+    },
+  }
+
+  const defaults = buildSelectionDefaultsFromSyncState(existing, syncState)
+
+  assert.deepEqual([...defaults.skills].sort(), ['codex-skill', 'opencode-skill', 'state-skill'])
+  assert.deepEqual([...defaults.rules].sort(), ['codex-rule.md', 'cursor-rule.md', 'state-rule.md'])
+  assert.deepEqual([...defaults.commands].sort(), ['opencode-command.md', 'state-command.md'])
+  assert.deepEqual([...defaults.hooks].sort(), ['codex-hook.sh', 'state-hook.sh'])
+})
+
+test('buildSelectionDefaultsFromSyncState falls back to existing scan when sync state is empty', () => {
+  const existing = {
+    skills: new Set(['existing-skill']),
+    rules: new Set(['existing-rule.md']),
+    commands: new Set(['existing-command.md']),
+    hooks: new Set(['existing-hook.sh']),
+  }
+
+  const defaults = buildSelectionDefaultsFromSyncState(existing, {
+    version: 1,
+    platforms: {},
+  })
+
+  assert.deepEqual([...defaults.skills], ['existing-skill'])
+  assert.deepEqual([...defaults.rules], ['existing-rule.md'])
+  assert.deepEqual([...defaults.commands], ['existing-command.md'])
+  assert.deepEqual([...defaults.hooks], ['existing-hook.sh'])
+})
 
 test('syncAll mirrors one selected configuration to Claude Code and Codex', async t => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-sync-all-'))
