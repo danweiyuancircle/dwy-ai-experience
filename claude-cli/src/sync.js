@@ -322,8 +322,16 @@ async function copyHooks(items, targetDir) {
   const hooksTargetDir = path.join(targetDir, 'hooks')
   await fs.ensureDir(hooksTargetDir)
   for (const hook of items) {
+    if (!await fs.pathExists(hook.sourcePath)) {
+      logAction(`hooks/${hook.name}`, 'yellow', '!')
+      continue
+    }
     const dest = path.join(hooksTargetDir, hook.name)
     await fs.copy(hook.sourcePath, dest, { overwrite: true, filter: copyFilter })
+    if (!await fs.pathExists(dest)) {
+      logAction(`hooks/${hook.name}`, 'yellow', '!')
+      continue
+    }
     await fs.chmod(dest, 0o755)
     logAction(`hooks/${hook.name}`)
   }
@@ -481,6 +489,20 @@ export async function syncClaude({
     commands: await scanCommands(sourceDir),
     hooks: await scanHooks(sourceDir),
   }
+  const availableHooks = []
+  for (const hook of scans.hooks) {
+    if (await fs.pathExists(hook.sourcePath)) {
+      availableHooks.push(hook)
+    }
+  }
+  if (availableHooks.length < scans.hooks.length) {
+    const missing = scans.hooks
+      .filter(h => !availableHooks.includes(h))
+      .map(h => h.name)
+      .join('、')
+    logAction(`hooks skipped: ${missing}`, 'yellow', '!')
+  }
+  scans.hooks = availableHooks
   console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.rules.length} rules, ${scans.commands.length} commands, ${scans.hooks.length} hooks\n`))
 
   const existing = {

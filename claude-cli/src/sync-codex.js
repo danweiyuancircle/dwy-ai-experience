@@ -172,8 +172,16 @@ async function copyCodexHooks(hooks, proj) {
   const dir = path.join(proj, '.codex', 'hooks')
   await fs.ensureDir(dir)
   for (const h of hooks) {
+    if (!await fs.pathExists(h.sourcePath)) {
+      logAction(`.codex/hooks/${h.name}`, 'yellow', '!')
+      continue
+    }
     const dest = path.join(dir, h.name)
     await fs.copy(h.sourcePath, dest, { overwrite: true, filter: copyFilter })
+    if (!await fs.pathExists(dest)) {
+      logAction(`.codex/hooks/${h.name}`, 'yellow', '!')
+      continue
+    }
     await fs.chmod(dest, 0o755)
     logAction(`.codex/hooks/${h.name}`)
   }
