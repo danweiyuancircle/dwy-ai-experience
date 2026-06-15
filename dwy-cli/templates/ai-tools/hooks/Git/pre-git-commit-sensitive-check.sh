@@ -37,8 +37,16 @@ PATTERNS=(
 # 拼接为正则
 REGEX=$(IFS='|'; echo "${PATTERNS[*]}")
 
-# 扫描暂存内容
-RESULT=$(git diff --cached -U0 2>/dev/null | grep -inE "$REGEX" 2>/dev/null)
+# 只扫「新增行」(+ 开头，排除 +++ 文件头)，删除的代码不可能是正在引入的凭证。
+# 跳过文档/规则类文件(.md/.mdc/规则/hook 本身)——它们写的是「如何检测凭证」的模式说明，非真凭证。
+SCAN_FILES=$(printf '%s\n' "$STAGED" | grep -viE '\.(md|mdc|txt)$|rules/|/hooks/|sensitive-check')
+RESULT=""
+for f in $SCAN_FILES; do
+    HIT=$(git diff --cached -U0 -- "$f" 2>/dev/null \
+        | grep -E '^\+' | grep -vE '^\+\+\+' \
+        | grep -inE "$REGEX" 2>/dev/null)
+    [ -n "$HIT" ] && RESULT="${RESULT}${f}:\n${HIT}\n"
+done
 
 if [ -n "$RESULT" ]; then
     echo "========================================"

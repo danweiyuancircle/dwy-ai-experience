@@ -136,7 +136,7 @@ unzip -l dist/*.whl | grep -E '_.*\.py$' && echo "FAIL: source leaked" || echo "
 | wheel 里有 `.py` 源 | `exclude-package-data` 没匹配到 / MANIFEST.in 缺 global-exclude | 同时配 setup 配置 + MANIFEST.in |
 | 装完后 `ImportError: cannot import name '_engine'` | `__init__.py` 用了 `from . import _engine` 但 .so 命名空间不对 | 确保 `.so` 文件在包内，名字与 import 路径一致 |
 | `pip install -e .` 后 import 慢 | 开发模式没编译 .so，跑了 .py | 开发用 `python setup.py build_ext --inplace` 触发编译 |
-| 跨平台 wheel（manylinux / macOS） | 单平台编译产物只能装到对应平台 | 用 `cibuildwheel`（项目已有 dwy-cibuildwheel skill） |
+| 跨平台 wheel（manylinux / macOS） | 单平台编译产物只能装到对应平台 | 用 `cibuildwheel`（项目已有 dwy-github-action-publish skill） |
 
 ## 参考 dwy-shared 内已有 SDK
 

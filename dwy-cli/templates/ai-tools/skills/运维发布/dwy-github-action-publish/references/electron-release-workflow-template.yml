@@ -1,0 +1,100 @@
+# Electron 多平台打包 + GitHub Release workflow 模板
+#
+# 来源参考:
+#   - /Users/chances/WebstormProjects/aya/.github/workflows/release.yml
+#   - /Users/chances/WebstormProjects/aya/script/pack.mjs
+#
+# 使用前按项目实际情况替换:
+#   1. node-version
+#   2. 包管理器安装命令(npm ci / pnpm install --frozen-lockfile)
+#   3. build / pack 命令
+#   4. Linux 系统依赖
+#   5. 签名 / 公证 secrets
+#   6. artifact path 和文件命名
+
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15-intel
+            platform: mac-x64
+            packArgs: ""
+          - os: macos-latest
+            platform: mac-arm64
+            packArgs: "-- --arm64"
+          - os: windows-latest
+            platform: win
+            packArgs: ""
+          - os: ubuntu-latest
+            platform: linux
+            packArgs: "-- --linux"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Linux packaging dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo rm -f /etc/apt/sources.list.d/azure-cli.list /etc/apt/sources.list.d/microsoft-prod.list
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Package
+        run: npm run pack ${{ matrix.packArgs }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          path: |
+            release/**/*.dmg
+            release/**/*.exe
+            release/**/*.AppImage
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List release files
+        run: find artifacts -type f
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
+          draft: false

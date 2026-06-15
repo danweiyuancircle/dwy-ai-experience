@@ -7,7 +7,7 @@ description: "通用 SDK 发布前安全检查——任何 SDK 对外发布（Py
 
 防三类风险：接口注释泄露后端实现 / 商业版 SDK 源码被还原 / 发布产物夹带隐藏敏感文件。
 
-**适用范围**：任何 SDK 对外发布前的通用安全闸门，与发布渠道无关——PyPI / npm / 私有源 / 直接打包交付都先过这一关。发 PyPI 只是其中一种渠道，不是触发前提。检查通过后，通用发版流程（测试 / bump / changelog / tag / publish）走 `dwy-publish`；含 C 扩展需跨平台 wheel 的走 `dwy-cibuildwheel`。
+**适用范围**：任何 SDK 对外发布前的通用安全闸门，与发布渠道无关——PyPI / npm / 私有源 / 直接打包交付都先过这一关。发 PyPI 只是其中一种渠道，不是触发前提。检查通过后，通用发版流程（测试 / bump / changelog / tag / publish）走 `dwy-publish`；含 C 扩展需跨平台 wheel 的走 `dwy-github-action-publish`。
 
 ## 何时触发
 
