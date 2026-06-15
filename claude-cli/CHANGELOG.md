@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.14.4
+
+### Patch Changes
+
+- 将 iOS 规则 `dwy-swift-style.md` 重命名为 `dwy-swift-core.md`，并重构为精简版规范。
+- 新增规则级配置收口约束，要求可配置项统一在 `AppConfig` 管理。
+- 加强国际化规则：默认要求中文/英文支持，统一 `localizationBundle + loc() + LocalizationManager + AppLanguage` 实施要点。
+
 ## 0.14.3
 
 ### Patch Changes
