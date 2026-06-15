@@ -101,12 +101,13 @@ async function syncCursorBaselineRule(sourceDir, projectDir) {
   return 1
 }
 
-async function removeUnselectedCursorRules(existingNames, selectedNames, projectDir) {
+async function removeUnselectedCursorRules(existingNames, selectedNames, managedNames, projectDir) {
   const rulesDir = path.join(projectDir, '.cursor', 'rules')
   let removedCount = 0
 
   for (const name of existingNames) {
     if (selectedNames.has(name)) continue
+    if (!managedNames.has(name)) continue
     await fs.remove(path.join(rulesDir, name))
     logAction(`.cursor/rules/${name}`, 'red', '×')
     removedCount++
@@ -115,7 +116,7 @@ async function removeUnselectedCursorRules(existingNames, selectedNames, project
   return removedCount
 }
 
-async function scanExistingCursorRules(projectDir) {
+export async function scanExistingCursorRules(projectDir) {
   const rulesDir = path.join(projectDir, '.cursor', 'rules')
   if (!await fs.pathExists(rulesDir)) return new Set()
   const entries = await fs.readdir(rulesDir, { withFileTypes: true })
@@ -131,6 +132,7 @@ export async function syncCursor({
   sourceDir: sourceDirOverride,
   projectDir,
   selected,
+  staleRemovals = {},
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
@@ -148,6 +150,11 @@ export async function syncCursor({
   const syncedSelection = scans.rules.filter(rule => selectedRuleNames.has(rule.name))
   const existingRules = await scanExistingCursorRules(proj)
   const nextRuleNames = new Set(syncedSelection.map(rule => toCursorRuleName(rule.name)))
+  const managedRuleNames = new Set([
+    ...scans.rules.map(rule => toCursorRuleName(rule.name)),
+    ...[...(staleRemovals.rules || new Set())].map(ruleName => toCursorRuleName(ruleName)),
+    BASELINE_RULE_NAME,
+  ])
 
   let syncedCount = 0
   let removedCount = 0
@@ -155,7 +162,7 @@ export async function syncCursor({
   syncedCount += await syncCursorBaselineRule(sourceDir, proj)
   syncedCount += await syncCursorRules(syncedSelection, proj)
   nextRuleNames.add(BASELINE_RULE_NAME)
-  removedCount += await removeUnselectedCursorRules(existingRules, nextRuleNames, proj)
+  removedCount += await removeUnselectedCursorRules(existingRules, nextRuleNames, managedRuleNames, proj)
 
   console.log(chalk.blue(`\nDone! ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
   console.log(chalk.gray(`  Rules → ${path.join(proj, '.cursor', 'rules')}`))
