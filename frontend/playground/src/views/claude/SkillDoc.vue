@@ -6,7 +6,7 @@ import DocPage from '../../components/DocPage.vue'
 const route = useRoute()
 const name = computed(() => route.params.name as string)
 
-const skillFiles = import.meta.glob('/../../claude-cli/templates/claude-global/skills/*/SKILL.md', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>
+const skillFiles = import.meta.glob('/../../dwy-cli/templates/claude-global/skills/*/SKILL.md', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>
 
 const skills = computed(() => {
   const map: Record<string, string> = {}

@@ -9,10 +9,10 @@ Compact instructions for OpenCode sessions working in `dwy-shared`.
 | `frontend/eui/` | pnpm | `@dwydev/eui` | Vue 3 component library (~95 components) |
 | `frontend/ekit/` | pnpm | `@dwydev/ekit` | Vue 3 utility library |
 | `frontend/playground/` | pnpm | — | Docs portal (Vite SPA) |
-| `claude-cli/` | pnpm | `create-dwy` | CLI scaffold + Claude config sync |
+| `dwy-cli/` | pnpm | `create-dwy` | CLI scaffold + Claude config sync |
 | `backend/` | uv | `dwyeapi` | FastAPI infrastructure (Python 3.11+) |
 
-`pnpm-workspace.yaml` only covers `frontend/*` and `claude-cli`. Python backend is managed separately by uv and **not** in the pnpm workspace.
+`pnpm-workspace.yaml` only covers `frontend/*` and `dwy-cli`. Python backend is managed separately by uv and **not** in the pnpm workspace.
 
 **Package manager gotcha**: root `package.json` has a stale `packageManager: yarn@1.22.22` field. The repo actually uses **pnpm** (lockfile is `pnpm-lock.yaml`). Always use `pnpm`, never `yarn`.
 
@@ -111,7 +111,7 @@ Tag format: `@dwydev/eui@1.3.0`, `create-dwy@0.6.0`, etc.
 - No build step (`build:cli` is a no-op).
 - Commands: `dwy create [name]`, `dwy sync` (sync one selection to Claude Code and Codex), `dwy claude sync` (sync skills/rules/commands/hooks to project `.claude/`; `dwy claude sync md` syncs CLAUDE.md to global `~/.claude/`), `dwy codex sync`.
 - `dwy codex sync` converts Claude templates to OpenAI Codex format: rules → `AGENTS.md` (`<!-- DWY-RULES -->` managed block, supports update/delete while preserving user content), skills → `.agents/skills/` (flattened), hooks → `.codex/hooks/` + `.codex/hooks.json` (Codex script reads stdin JSON). Codex hook source lives in `templates/codex-global/`. `dwy codex sync md` copies CLAUDE.md to global `~/.codex/AGENTS.md`.
-- Templates cached in `~/.dwy/cache/dwy/`, pulled from Gitee.
+- Templates are bundled with the `create-dwy` package under `dwy-cli/templates`; `dwy` 运行时不再读取或刷新外部缓存仓库。
 
 ## Workflow Conventions
 
@@ -135,14 +135,14 @@ Never skip tests for base-library changes. Never let `TEST_CASES.md` drift from 
 
 ### Documentation sync constraints
 
-When these docs change, sync to the claude-cli template paths:
+When these docs change, sync to the dwy-cli template paths:
 
 | Source | Target sync path |
 |--------|------------------|
-| `docs/eui-integration-guide.md` | `claude-cli/templates/claude-global/skills/dwy-eui/references/eui-integration-guide.md` |
-| `docs/eui-design-guide.md` | `claude-cli/templates/claude-global/skills/dwy-eui/references/eui-design-guide.md` |
-| `docs/eui-landing-design-guide.md` | `claude-cli/templates/claude-global/skills/dwy-eui/references/eui-landing-design-guide.md` |
-| `docs/tasks-integration-guide.md` | `claude-cli/templates/claude-global/skills/dwy-eapi/references/tasks-integration-guide.md` |
+| `docs/eui-integration-guide.md` | `dwy-cli/templates/claude-global/skills/dwy-eui/references/eui-integration-guide.md` |
+| `docs/eui-design-guide.md` | `dwy-cli/templates/claude-global/skills/dwy-eui/references/eui-design-guide.md` |
+| `docs/eui-landing-design-guide.md` | `dwy-cli/templates/claude-global/skills/dwy-eui/references/eui-landing-design-guide.md` |
+| `docs/tasks-integration-guide.md` | `dwy-cli/templates/claude-global/skills/dwy-eapi/references/tasks-integration-guide.md` |
 
 Playground imports `docs/eui-integration-guide.md` via `?raw`; it does **not** need a separate copy.
 
@@ -161,8 +161,8 @@ Playground imports `docs/eui-integration-guide.md` via `?raw`; it does **not** n
 - ekit test files: `frontend/ekit/tests/{module}/{module}.test.ts`
 - eapi test files: `backend/tests/test_{module}.py`
 - eui theme CSS: `frontend/eui/src/theme/` (tokens.css, dark.css, index.css)
-- CLI templates: `claude-cli/templates/project/{template}/`
-- Global claude skills: `claude-cli/templates/claude-global/skills/`
+- CLI templates: `dwy-cli/templates/project/{template}/`
+- Global claude skills: `dwy-cli/templates/claude-global/skills/`
 
 ## CLAUDE.md
 

@@ -86,7 +86,7 @@ managed CLAUDE.md
 
 ## dwy 项目当前状态
 
-`claude-cli/templates/claude-global/rules/` 下文件通过 `dwy sync claude` 同步到 `~/.claude/rules/`，所有项目生效。
+`dwy-cli/templates/claude-global/rules/` 下文件通过 `dwy sync claude` 同步到 `~/.claude/rules/`，所有项目生效。
 
 - 无 `paths`：`dwy-tdd-development.md`、`dwy-db-migration.md` 等 → 每次启动注入
 - 有 `paths`：`dwy-python-backend.md` (`**/*.py`)、`dwy-vue-core.md` (Vue 相关) 等 → 读对应文件时注入
