@@ -97,6 +97,8 @@ res/drawable/
 #### mipmap / 9-patch / 模块前缀
 
 - **mipmap 只放启动图标**(`ic_launcher` 系列),其余图片一律放 `drawable` —— mipmap 会跨密度保留资源,普通图放 mipmap 白白增大包体
+- 应用图标设计稿只提供 `mipmap-xxxhdpi` 目录下的 `192x192` 启动图标源图,其余密度版本交给系统或构建流程派生。
+- 图标主体必须预留至少 `10%` 安全边距,避免启动器缩放、遮罩或厂商裁切时贴边缺角。
 - **9-patch 图保留 `.9` 后缀**:`bg_chat_bubble.9.png`
 - **模块前缀(可选)**:多模块 / 大型项目推荐资源加业务模块前缀,便于检索、避免跨模块重名 —— `user_activity_login.xml`、id `user_tv_name`;单模块 / 老项目可省略,保持本规范其余示例的无前缀写法
 
