@@ -8,6 +8,14 @@ paths:
 
 # Flutter + Dart 基础风格规范
 
+## 全面屏 / 刘海屏适配
+
+- Flutter 应用默认按 iOS 与 Android 全面屏、刘海屏、挖孔屏适配实现,不要依赖固定上下左右边距硬编码页面内容区。
+- 优先使用 `SafeArea`、`MediaQuery.padding`、`MediaQuery.viewPadding`、`MediaQuery.viewInsets` 与响应式布局约束处理状态栏、底部手势区、键盘遮挡。
+- 页面主体、底部操作栏、表单输入区、弹层内容必须显式处理安全区域,避免被刘海、Home Indicator、导航栏或软键盘遮挡。
+- 全屏背景、沉浸式插画、遮罩层可以铺满屏幕,但前景可交互内容默认留在安全区域内。
+- 禁止写死 iOS 状态栏高度、Android 导航栏高度或机型刘海尺寸,统一通过系统安全区域与 inset 信息计算。
+
 ## 一、项目结构
 
 ### 1.1 标准目录

@@ -3,7 +3,11 @@ import assert from 'node:assert/strict'
 import fs from 'fs-extra'
 import os from 'node:os'
 import path from 'node:path'
-import { buildSelectionDefaultsFromSyncState, syncAll } from '../src/sync-all.js'
+import {
+  buildPlatformDefaultsFromLocalState,
+  buildSelectionDefaultsFromSyncState,
+  syncAll,
+} from '../src/sync-all.js'
 
 function buildSelected() {
   return {
@@ -79,6 +83,30 @@ test('buildSelectionDefaultsFromSyncState falls back to existing scan when sync 
   assert.deepEqual([...defaults.rules], ['existing-rule.md'])
   assert.deepEqual([...defaults.commands], ['existing-command.md'])
   assert.deepEqual([...defaults.hooks], ['existing-hook.sh'])
+})
+
+test('buildPlatformDefaultsFromLocalState selects platforms by existing local config dirs', async t => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-platform-defaults-'))
+  t.after(() => fs.remove(tempDir))
+
+  await fs.ensureDir(path.join(tempDir, '.claude'))
+  await fs.ensureDir(path.join(tempDir, '.codex'))
+  await fs.ensureDir(path.join(tempDir, '.agents'))
+  await fs.ensureDir(path.join(tempDir, '.cursor', 'rules'))
+  await fs.ensureDir(path.join(tempDir, '.opencode'))
+
+  const defaults = await buildPlatformDefaultsFromLocalState(tempDir)
+
+  assert.deepEqual(defaults.sort(), ['claude', 'codex', 'cursor', 'opencode'])
+})
+
+test('buildPlatformDefaultsFromLocalState falls back to claude and codex when no local dirs exist', async t => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-platform-defaults-empty-'))
+  t.after(() => fs.remove(tempDir))
+
+  const defaults = await buildPlatformDefaultsFromLocalState(tempDir)
+
+  assert.deepEqual(defaults, ['claude', 'codex'])
 })
 
 test('syncAll mirrors one selected configuration to Claude Code and Codex', async t => {
