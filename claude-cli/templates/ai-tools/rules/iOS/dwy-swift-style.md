@@ -72,17 +72,24 @@ withAnimation(.spring(response: 0.5, dampingFraction: 0.75)) { isBusy = true }
 
 ## 6. 图标：矢量图，禁止 emoji
 
-UI 图标**一律 SF Symbols 矢量图**（`Image(systemName:)`），任何视图、文案、注释都**禁止 emoji**：
+UI 图标优先使用 **SF Symbols 矢量图**（`Image(systemName:)`）。系统无对应符号时，改用**成熟第三方 SVG 图标**（如已集成并维护良好的 icon 套件），禁止自行手绘或临时 PNG/emoji。
 
 ```swift
-// 好：SF Symbols 矢量图标
+// 优先：系统 SF Symbols
 Image(systemName: "checkmark")
     .font(.system(size: 11, weight: .bold))
     .foregroundStyle(.white)
 
+// 次选：成熟第三方矢量图标组件或资源
+Image("icon_checkmark")
+    .resizable()
+    .frame(width: 12, height: 12)
+
 // 禁止：emoji 当图标
 Text("✅")   // 不允许
 ```
+
+任何视图、文案、注释都**禁止 emoji**。
 
 ## 7. 颜色 / 字体 / 动效 token 化
 

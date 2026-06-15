@@ -58,7 +58,7 @@ description: 端到端「0→1 产品孵化」编排器。用户丢一个产品�
 
 **Step 5/6 同一个 skill 两道门**：`dwy-prototype` 在低保真（`phase=lowfi`）、高保真（`phase=hifi`）各调一次、各卡一道门，目的不同（验流程 vs 做底稿），别合并。
 
-**Step 9 循环**：对 STATE「选定版本」里的每个版本依次调 `dwy-tdd-dev` 走完，编排器更新「版本开发进度」表；全部版本完，Step 9 标 `done`，给交付报告。每版完成的 commit 由 `dwy-tdd-dev` 走 `dwy-git-commit` 规范（敏感扫描 + 格式 + 禁 AI 署名），不裸 commit。
+**Step 9 循环**：对 STATE「选定版本」里的每个版本依次调 `dwy-tdd-dev` 走完，编排器更新「版本开发进度」表；全部版本完，Step 9 标 `done`，给交付报告。每版完成的 commit 由 `dwy-tdd-dev` 按 Git 提交规范执行（敏感扫描 + 格式 + 禁 AI 署名），不裸 commit。
 
 ## 产物目录（项目内 docs/0to1/）
 
