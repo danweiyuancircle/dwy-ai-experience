@@ -17,7 +17,7 @@
 
 `dwy-ai-experience` 是一个围绕 AI 开发体验搭建的 monorepo，当前主要覆盖三类能力：
 
-- `claude-cli`：项目脚手架、规则模板、Claude/Codex 同步入口
+- `dwy-cli`：项目脚手架、规则模板、Claude/Codex 同步入口
 - `frontend/*`：前端组件库、工具库与演示站
 - `backend`：FastAPI 后端基础设施与服务模板
 
@@ -58,7 +58,7 @@ npm install @dwydev/ekit
 
 ## Claude CLI
 
-`claude-cli` 是这个仓库最核心的模块，目标不是只做“创建项目”，而是把团队协作规范直接写进工具链。
+`dwy-cli` 是这个仓库最核心的模块，目标不是只做“创建项目”，而是把团队协作规范直接写进工具链。
 
 ### 核心命令
 
@@ -82,7 +82,7 @@ npm install @dwydev/ekit
 
 ## 仓库结构
 
-- `/claude-cli`
+- `/dwy-cli`
   - `create-dwy` CLI、本地同步逻辑、模板与规则源
 - `/frontend/eui`
   - Vue 组件库
@@ -145,7 +145,7 @@ pip install "dwyeapi[email]"
 ### 安装 CLI 依赖
 
 ```bash
-cd claude-cli
+cd dwy-cli
 pnpm install
 ```
 
@@ -183,7 +183,7 @@ cd backend && uv sync
 
 - 遵循仓库内 [`AGENTS.md`](./AGENTS.md) 与对应模板约定
 - 跨包改动尽量拆分提交，保持变更边界清晰
-- 如果修改共享模板或规则，同步更新 `claude-cli/templates/`
+- 如果修改共享模板或规则，同步更新 `dwy-cli/templates/`
 
 ## License
 

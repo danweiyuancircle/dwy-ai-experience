@@ -87,7 +87,7 @@ dwy sync claude
 
 ### 同步内容
 
-从 dwy-shared 仓库的 \`claude-cli/templates/claude-global/\` 目录同步以下内容：
+从 dwy-shared 仓库的 \`dwy-cli/templates/claude-global/\` 目录同步以下内容：
 
 | 目录/文件 | 说明 | 同步方式 |
 |-----------|------|----------|

@@ -6,7 +6,7 @@ import DocPage from '../../components/DocPage.vue'
 const route = useRoute()
 const name = computed(() => route.params.name as string)
 
-const hookFiles = import.meta.glob('/../../claude-cli/templates/claude-global/hooks/*', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>
+const hookFiles = import.meta.glob('/../../dwy-cli/templates/claude-global/hooks/*', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>
 
 const hooks = computed(() => {
   const map: Record<string, string> = {}

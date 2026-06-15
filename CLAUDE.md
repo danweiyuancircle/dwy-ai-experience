@@ -88,7 +88,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 - **Lint**: Ruff（规则: E, W, F, I, N, UP, B, SIM, RUF），行宽 120
 - **测试**: pytest + pytest-asyncio (asyncio_mode = "auto")
 
-### claude-cli/ — `create-dwy`
+### dwy-cli/ — `create-dwy`
 
 项目脚手架 + Claude 配置同步工具，命令行 `dwy`。
 
@@ -96,7 +96,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 - **`dwy sync`**: 交互式选择一次，同步到 Claude Code 与 Codex；`dwy sync md` 同步 CLAUDE.md 到全局 ~/.claude/ 和 ~/.codex/AGENTS.md
 - **`dwy claude sync`**: 从 `templates/claude-global/` 同步 skills/rules/commands/hooks 到项目 `.claude/`（settings.json 智能合并）；`dwy claude sync md` 仅同步 CLAUDE.md 到全局 ~/.claude/
 - **`dwy codex sync`**: 把 Claude 模板转成 OpenAI Codex 格式同步到项目：rules→`AGENTS.md`（`<!-- DWY-RULES -->` 托管块，支持更新/删除且保留用户内容）、skills→`.agents/skills/`（拍平分类）、hooks→`.codex/hooks/` + `.codex/hooks.json`（Codex 版脚本读 stdin JSON）。Codex hooks 源在 `templates/codex-global/`；`dwy codex sync md` 仅把 CLAUDE.md 整文件同步到全局 ~/.codex/AGENTS.md
-- 模板缓存在 `~/.dwy/cache/dwy/`，从 Gitee 拉取 dwy-shared 仓库
+- 模板随 `create-dwy` 发布包内置于 `dwy-cli/templates/ai-tools`，`dwy` 运行时不再读取或刷新本机模板仓库缓存。
 
 ### frontend/playground/
 
@@ -105,14 +105,14 @@ Monorepo 文档门户，覆盖 EUI 组件 / EKit 工具 / Backend / CLI / Claude
 ## 文档同步约束
 
 - `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件
-- 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-eui/references/eui-integration-guide.md`
+- 该文件变更后，必须同步到 `dwy-cli/templates/claude-global/skills/dwy-eui/references/eui-integration-guide.md`
 - playground 的 `EuiIntegrationDoc.vue` 通过 `?raw` 导入同一文件，无需额外同步
 - `docs/tasks-integration-guide.md` 是 Tasks 集成指南的唯一源文件
-- 该文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-eapi/references/tasks-integration-guide.md`
-- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `claude-cli/templates/claude-global/skills/dwy-eapi/SKILL.md` 中的 tasks 章节
+- 该文件变更后，必须同步到 `dwy-cli/templates/claude-global/skills/dwy-eapi/references/tasks-integration-guide.md`
+- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `dwy-cli/templates/claude-global/skills/dwy-eapi/SKILL.md` 中的 tasks 章节
 - `docs/eui-design-guide.md` 是 EUI 中后台设计规范的唯一源文件
 - `docs/eui-landing-design-guide.md` 是 EUI 落地页设计规范的唯一源文件
-- 以上两个文件变更后，必须同步到 `claude-cli/templates/claude-global/skills/dwy-eui/references/` 对应文件
+- 以上两个文件变更后，必须同步到 `dwy-cli/templates/claude-global/skills/dwy-eui/references/` 对应文件
 
 ## 基础库开发规范
 
@@ -223,7 +223,7 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 | @dwydev/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | pnpm publish:eui | npm view @dwydev/eui version |
 | @dwydev/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | pnpm publish:ekit | npm view @dwydev/ekit version |
 | dwyeapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | source .key && pnpm publish:eapi | pip index versions dwyeapi |
-| create-dwy | cli | claude-cli/package.json | — | — | `git push github create-dwy@x.y.z`（GitHub Actions OIDC 自动发布） | npm view create-dwy version |
+| create-dwy | cli | dwy-cli/package.json | — | — | `git push github create-dwy@x.y.z`（GitHub Actions OIDC 自动发布） | npm view create-dwy version |
 
 ### 依赖顺序
 
@@ -248,9 +248,9 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 
 走 GitHub Actions + npm OIDC Trusted Publishing，**不用 NPM_TOKEN**：
 
-1. 改 `claude-cli/package.json` 的 `version`，commit 推 GitHub
+1. 改 `dwy-cli/package.json` 的 `version`，commit 推 GitHub
 2. 打 tag `create-dwy@x.y.z`（版本号须与 package.json 一致，否则 CI 校验失败）
 3. `git push github create-dwy@x.y.z` → 触发 `.github/workflows/publish-cli.yml` 自动发布
 
-- GitHub remote 名为 `github`（origin 是 Gitee，推 Gitee 不触发 CI）
+- GitHub remote 名为 `github`（origin 可为 Gitee，推 Gitee 不触发 CI；`dwy` 命令本身不依赖 `origin` 内容）
 - npm 侧已绑定 Trusted Publisher：`danweiyuancircle/dwy-shared` + `publish-cli.yml`

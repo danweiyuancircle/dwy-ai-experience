@@ -69,7 +69,7 @@
 |---------|------|
 | EUI 组件 demo | 手写 Vue 交互示例（现有代码不变） |
 | Core / Backend 文档 | 构建时 `import.meta.glob` 读取对应 SKILL.md，运行时 markdown-it 渲染 |
-| Claude Code (skills/rules/hooks) | 构建时 glob 读取 `claude-cli/templates/claude-global/` 下 .md 文件渲染 |
+| Claude Code (skills/rules/hooks) | 构建时 glob 读取 `dwy-cli/templates/claude-global/` 下 .md 文件渲染 |
 | CLI 说明 | 手写 Vue 页面 |
 
 ## 全局搜索

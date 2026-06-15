@@ -17,7 +17,7 @@
 
 `dwy-ai-experience` is a monorepo built around AI development workflows. It currently brings together three major areas:
 
-- `claude-cli`: scaffolding, rule templates, and Claude/Codex sync entrypoint
+- `dwy-cli`: scaffolding, rule templates, and Claude/Codex sync entrypoint
 - `frontend/*`: UI libraries, utility libraries, and playground
 - `backend`: FastAPI backend foundation and service templates
 
@@ -58,7 +58,7 @@ npm install @dwydev/ekit
 
 ## Claude CLI
 
-`claude-cli` is the core module in this repository. It does more than scaffolding: it turns team conventions into executable tooling.
+`dwy-cli` is the core module in this repository. It does more than scaffolding: it turns team conventions into executable tooling.
 
 ### Core Commands
 
@@ -82,7 +82,7 @@ npm install @dwydev/ekit
 
 ## Repository Structure
 
-- `/claude-cli`
+- `/dwy-cli`
   - `create-dwy` CLI, sync logic, templates, and rule sources
 - `/frontend/eui`
   - Vue component library
@@ -145,7 +145,7 @@ pip install "dwyeapi[email]"
 ### Install CLI Dependencies
 
 ```bash
-cd claude-cli
+cd dwy-cli
 pnpm install
 ```
 
@@ -183,7 +183,7 @@ cd backend && uv sync
 
 - Follow repository conventions in [`AGENTS.md`](./AGENTS.md)
 - Keep cross-package changes scoped and explicit
-- If you update shared templates or rules, sync `claude-cli/templates/` as well
+- If you update shared templates or rules, sync `dwy-cli/templates/` as well
 
 ## License
 
