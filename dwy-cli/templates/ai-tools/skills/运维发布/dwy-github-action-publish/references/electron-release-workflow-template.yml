@@ -1,8 +1,6 @@
 # Electron 多平台打包 + GitHub Release workflow 模板
 #
-# 来源参考:
-#   - /Users/chances/WebstormProjects/aya/.github/workflows/release.yml
-#   - /Users/chances/WebstormProjects/aya/script/pack.mjs
+# 来源参考: 某 Electron 桌面应用多平台打包实战 (release.yml + pack.mjs)
 #
 # 使用前按项目实际情况替换:
 #   1. node-version

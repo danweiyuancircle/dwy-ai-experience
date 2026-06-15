@@ -12,7 +12,7 @@ description: "GitHub Actions 打包分发避坑指南。先判断场景，再读
 实战来源：
 
 - Python wheel：quant-sdk 0.4.0 首发 PyPI 的 cibuildwheel 踩坑。
-- Electron：`/Users/chances/WebstormProjects/aya/.github/workflows/release.yml`、`/Users/chances/WebstormProjects/aya/.github/workflows/build.yml`、`/Users/chances/WebstormProjects/aya/script/pack.mjs` 的多平台打包配置。
+- Electron：某 Electron 桌面应用多平台打包（release.yml + build.yml + pack.mjs）实战配置。
 
 ---
 
@@ -202,9 +202,6 @@ matrix:
 参考配置：
 
 - `./references/electron-release-workflow-template.yml`
-- `/Users/chances/WebstormProjects/aya/.github/workflows/release.yml`
-- `/Users/chances/WebstormProjects/aya/.github/workflows/build.yml`
-- `/Users/chances/WebstormProjects/aya/script/pack.mjs`
 
 ### Electron 必查配置
 
@@ -229,95 +226,7 @@ rg -n "electron|electron-builder|electron-forge|pack|dist|dmg|AppImage|nsis|appx
 
 ### Electron 推荐 workflow 形态
 
-模板：复制 `./references/electron-release-workflow-template.yml` 到目标项目 `.github/workflows/release.yml`，再按项目实际包管理器、打包脚本、签名策略调整。
-
-```yaml
-name: Build and Release
-
-on:
-  push:
-    tags:
-      - 'v*'
-
-permissions:
-  contents: write
-
-jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-15-intel
-            platform: mac-x64
-            packArgs: ''
-          - os: macos-latest
-            platform: mac-arm64
-            packArgs: '-- --arm64'
-          - os: windows-latest
-            platform: win
-            packArgs: ''
-          - os: ubuntu-latest
-            platform: linux
-            packArgs: '-- --linux'
-
-    runs-on: ${{ matrix.os }}
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install Linux packaging dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo rm -f /etc/apt/sources.list.d/azure-cli.list /etc/apt/sources.list.d/microsoft-prod.list
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends -y icnsutils graphicsmagick xz-utils
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build
-        run: npm run build
-
-      - name: Package
-        run: npm run pack ${{ matrix.packArgs }}
-        env:
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ matrix.platform }}
-          path: |
-            release/**/*.dmg
-            release/**/*.exe
-            release/**/*.AppImage
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-          merge-multiple: true
-
-      - name: List release files
-        run: find artifacts -type f
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          files: artifacts/**/*
-          generate_release_notes: true
-          draft: false
-```
+模板：复制 `./references/electron-release-workflow-template.yml` 到目标项目 `.github/workflows/release.yml`，再按项目实际包管理器、打包脚本、签名策略调整。完整 workflow 见该模板，下方高频坑解释各关键配置的原因。
 
 ### Electron 多平台高频坑
 
