@@ -1,6 +1,6 @@
 # Python Cython SDK 跨平台 wheel + PyPI Trusted Publisher 发版 workflow 模板
 #
-# 已内置 dwy-cibuildwheel skill 7 个避坑修复，开箱即用。
+# 已内置 dwy-github-action-publish skill Python wheel 场景 8 个避坑修复，开箱即用。
 # 复制到项目 .github/workflows/release.yml，只改两处：
 #   1. package-dir: <PACKAGE_DIR>      —— 实际 SDK 子目录（monorepo 必填，单包仓库填 . 或省略）
 #   2. CIBW_BUILD                      —— 按需调整 Python 版本枚举
@@ -42,7 +42,7 @@ jobs:
         include:
           - { os: ubuntu-latest,    archs: x86_64 }
           - { os: ubuntu-24.04-arm, archs: aarch64 }
-          # 坑 8: macos-13 已于 2025-12-04 退休,用 macos-15-intel(真 Intel runner)替代
+          # 坑 8: macos-13 已退休,用 macos-15-intel(真 Intel runner)替代
           # 如果不需要 x86_64 wheel,删掉下一行,Intel Mac 用户走 Rosetta 跑 arm64 wheel
           - { os: macos-15-intel,   archs: x86_64 }
           - { os: macos-14,         archs: arm64 }
@@ -66,7 +66,7 @@ jobs:
           CIBW_MUSLLINUX_X86_64_IMAGE: musllinux_1_2
           CIBW_MUSLLINUX_AARCH64_IMAGE: musllinux_1_2
           CIBW_TEST_REQUIRES: pytest pytest-asyncio respx
-          # 坑 3 + 坑 7: 整行加双引号避免 YAML 冒号歧义；强制 binary 防止源码 build 链
+          # 坑 3 + 坑 7: 整行加双引号避免 YAML 冒号歧义; 强制 binary 防止源码 build 链
           CIBW_BEFORE_TEST: "pip install --only-binary=:all: pyarrow pandas"
           # 坑 4 + 坑 5: monorepo 用 {package} 而非 {project}；外单内双跨平台兼容
           CIBW_TEST_COMMAND: 'pytest {package}/tests -v -k "not requires_server"'
