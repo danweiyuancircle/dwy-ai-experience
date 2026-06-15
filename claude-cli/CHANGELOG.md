@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.14.3
+
+### Patch Changes
+
+- 完善 Git 提交相关规范与模板文档，统一提交规则与 AI 署名治理说明。
+- 优化 iOS 规则中图标策略，优先 SF Symbols，缺省使用成熟第三方 SVG 方案。
+- 强化 `dwy-tdd-dev` 与 `dwy-0to1` 流程文档内的提交规范引用方式。
+
 ## 0.14.2
 
 ### Patch Changes
