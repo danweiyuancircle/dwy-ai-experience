@@ -12,7 +12,7 @@ importers:
         specifier: ^0.6.2
         version: 0.6.2
 
-  claude-cli:
+  dwy-cli:
     dependencies:
       '@clack/prompts':
         specifier: ^1.5.1

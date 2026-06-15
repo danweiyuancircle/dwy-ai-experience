@@ -40,7 +40,7 @@ skill 与 dwy-shared 仓库深度绑定但**不硬编码路径**。每次执行�
 CONFIG="$HOME/.config/dwy-shared/repo.json"
 if [ -f "$CONFIG" ]; then
   REPO_PATH=$(jq -r .repo_path "$CONFIG" 2>/dev/null)
-  if [ -n "$REPO_PATH" ] && [ -d "$REPO_PATH/.git" ] && [ -d "$REPO_PATH/claude-cli/templates/ai-tools" ]; then
+  if [ -n "$REPO_PATH" ] && [ -d "$REPO_PATH/.git" ] && [ -d "$REPO_PATH/dwy-cli/templates/ai-tools" ]; then
     echo "OK: $REPO_PATH"
   else
     echo "INVALID"
@@ -69,7 +69,7 @@ fi
    - `test -d "$PATH"` 路径存在
    - `test -d "$PATH/.git"` 是 git 仓库
    - `git -C "$PATH" remote -v | grep -q dwy-shared` remote 指向 dwy-shared
-   - `test -d "$PATH/claude-cli/templates/ai-tools"` 含特征目录
+   - `test -d "$PATH/dwy-cli/templates/ai-tools"` 含特征目录
 4. 全部通过 → 写缓存：
 
    ```bash
@@ -114,7 +114,7 @@ fi
 ### 步骤 3：读现有分类 + 准备推荐上下文
 
 ```bash
-TYPE_DIR="$REPO_PATH/claude-cli/templates/ai-tools/<type>"
+TYPE_DIR="$REPO_PATH/dwy-cli/templates/ai-tools/<type>"
 for cat in "$TYPE_DIR"/*/; do
   echo "=== $(basename "$cat") ==="
   # 读分类下第一个样例的 description 行（前 100 字）
@@ -141,7 +141,7 @@ done
 ### 步骤 6：执行文件操作
 
 ```bash
-TARGET_DIR="$REPO_PATH/claude-cli/templates/ai-tools/<type>/<category>"
+TARGET_DIR="$REPO_PATH/dwy-cli/templates/ai-tools/<type>/<category>"
 mkdir -p "$TARGET_DIR"
 
 # 源在仓库外：cp

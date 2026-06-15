@@ -60,6 +60,32 @@ export function parseManagedRuleNames(content) {
   return names
 }
 
+export function parseManagedRuleSections(content) {
+  const block = content.match(BLOCK_RE)
+  if (!block) return new Map()
+
+  const sections = new Map()
+  const blockContent = block[0]
+  const markerRe = /<!-- dwy-rule:\s*(.+?)\s*-->/g
+  const markers = []
+  let match
+  while ((match = markerRe.exec(blockContent))) {
+    markers.push({
+      name: match[1],
+      index: match.index,
+    })
+  }
+
+  const blockEndIndex = blockContent.lastIndexOf(BLOCK_END)
+  for (let i = 0; i < markers.length; i++) {
+    const start = markers[i].index
+    const end = i + 1 < markers.length ? markers[i + 1].index : blockEndIndex
+    sections.set(markers[i].name, blockContent.slice(start, end).trim())
+  }
+
+  return sections
+}
+
 function upsertManagedBlock(content, blockBody) {
   if (!blockBody.trim()) {
     if (!BLOCK_RE.test(content)) return content
@@ -86,12 +112,21 @@ function upsertBaselineBlock(content, baselineBody) {
   return base ? `${block}\n\n${base}` : `${block}\n`
 }
 
-export async function syncProjectAgentsMd(sourceDir, projectDir, selectedRules) {
+export async function syncProjectAgentsMd(sourceDir, projectDir, selectedRules, {
+  preservedRuleNames = new Set(),
+} = {}) {
   const dest = path.join(projectDir, 'AGENTS.md')
   const current = await fs.pathExists(dest) ? await fs.readFile(dest, 'utf-8') : ''
   const baselineBody = await readBaselineDoc(sourceDir)
+  const selectedRuleNames = new Set(selectedRules.map(rule => rule.name))
+  const existingSections = parseManagedRuleSections(current)
   const sections = []
   for (const rule of selectedRules) sections.push(await ruleToSection(rule))
+  for (const ruleName of preservedRuleNames) {
+    if (selectedRuleNames.has(ruleName)) continue
+    const existingSection = existingSections.get(ruleName)
+    if (existingSection) sections.push(existingSection)
+  }
   const blockBody = sections.join('\n\n---\n\n')
 
   const withBaseline = upsertBaselineBlock(current, baselineBody)
@@ -286,6 +321,8 @@ export async function syncCodex({
   sourceDir: sourceDirOverride,
   projectDir,
   selected,
+  staleRemovals = {},
+  preserveMissingRules = new Set(),
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
@@ -324,12 +361,20 @@ export async function syncCodex({
   let removedCount = 0
 
   syncedCount += await copySkillsFlat(syncedSelection.skills, proj)
-  syncedCount += await syncProjectAgentsMd(sourceDir, proj, syncedSelection.rules)
+  syncedCount += await syncProjectAgentsMd(sourceDir, proj, syncedSelection.rules, {
+    preservedRuleNames: preserveMissingRules,
+  })
   syncedCount += await copyCodexHooks(syncedSelection.hooks, proj)
   syncedCount += await syncCodexHooksJson(sourceDir, proj, selectedHookNames)
 
-  const skillTemplateNames = new Set(scans.skills.map(s => s.name))
-  const hookTemplateNames = new Set(scans.hooks.map(h => h.name))
+  const skillTemplateNames = new Set([
+    ...scans.skills.map(s => s.name),
+    ...(staleRemovals.skills || new Set()),
+  ])
+  const hookTemplateNames = new Set([
+    ...scans.hooks.map(h => h.name),
+    ...(staleRemovals.hooks || new Set()),
+  ])
   removedCount += await removeUnselectedFlat(['.agents', 'skills'], existing.skills, new Set(syncedSelection.skills.map(s => s.name)), skillTemplateNames, proj)
   removedCount += await removeUnselectedFlat(['.codex', 'hooks'], existing.hooks, selectedHookNames, hookTemplateNames, proj)
 

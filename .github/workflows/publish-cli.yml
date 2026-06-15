@@ -14,7 +14,7 @@ jobs:
       id-token: write   # OIDC Trusted Publishing 必需
     defaults:
       run:
-        working-directory: claude-cli
+        working-directory: dwy-cli
     steps:
       - uses: actions/checkout@v4
 

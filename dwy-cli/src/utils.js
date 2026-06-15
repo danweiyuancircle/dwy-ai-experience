@@ -1,12 +1,32 @@
 import fs from 'fs-extra'
+import os from 'node:os'
 import path from 'path'
 import Handlebars from 'handlebars'
 import chalk from 'chalk'
+import { execFile } from 'node:child_process'
+import { promisify } from 'node:util'
 import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const execFileAsync = promisify(execFile)
 
 export const PACKAGE_ROOT = path.resolve(__dirname, '..')
+export const DEFAULT_TEMPLATE_REPO_URL = process.env.DWY_REPO_URL || 'https://github.com/danweiyuancircle/dwy-ai-experience.git'
+
+export function getDwyHomeDir() {
+  return process.env.DWY_HOME || path.join(os.homedir(), '.dwy')
+}
+
+export async function runGit(args, options = {}) {
+  try {
+    const { stdout } = await execFileAsync('git', args, options)
+    return stdout.trim()
+  } catch (error) {
+    const stderr = error.stderr?.trim()
+    const details = stderr ? `: ${stderr}` : ''
+    throw new Error(`git ${args.join(' ')} failed${details}`)
+  }
+}
 
 export async function renderTemplate(templateDir, destDir, context) {
   const entries = await fs.readdir(templateDir, { withFileTypes: true })

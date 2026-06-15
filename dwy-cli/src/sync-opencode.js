@@ -46,6 +46,8 @@ export async function syncOpenCode({
   sourceDir: sourceDirOverride,
   projectDir,
   selected,
+  staleRemovals = {},
+  preserveMissingRules = new Set(),
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
@@ -80,7 +82,9 @@ export async function syncOpenCode({
   let removedCount = 0
 
   const agentsPath = path.join(proj, 'AGENTS.md')
-  syncedCount += await syncProjectAgentsMd(sourceDir, proj, syncedSelection.rules)
+  syncedCount += await syncProjectAgentsMd(sourceDir, proj, syncedSelection.rules, {
+    preservedRuleNames: preserveMissingRules,
+  })
 
   syncedCount += await copyItemsTo(openCodeDir, 'skills', syncedSelection.skills)
   syncedCount += await copyItemsTo(openCodeDir, 'commands', syncedSelection.commands)
@@ -89,14 +93,20 @@ export async function syncOpenCode({
     'skills',
     existing.skills,
     new Set(syncedSelection.skills.map(item => item.name)),
-    new Set(scans.skills.map(item => item.name)),
+    new Set([
+      ...scans.skills.map(item => item.name),
+      ...(staleRemovals.skills || new Set()),
+    ]),
     proj,
   )
   removedCount += await removeUnselected(
     'commands',
     existing.commands,
     new Set(syncedSelection.commands.map(item => item.name)),
-    new Set(scans.commands.map(item => item.name)),
+    new Set([
+      ...scans.commands.map(item => item.name),
+      ...(staleRemovals.commands || new Set()),
+    ]),
     proj,
   )
 

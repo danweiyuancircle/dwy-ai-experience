@@ -22,7 +22,7 @@ import {
   scanExistingCodexSkills,
   syncCodex,
 } from './sync-codex.js'
-import { syncCursor } from './sync-cursor.js'
+import { scanExistingCursorRules, syncCursor } from './sync-cursor.js'
 import { syncOpenCode } from './sync-opencode.js'
 
 const PLATFORM_OPTIONS = [
@@ -33,6 +33,25 @@ const PLATFORM_OPTIONS = [
 ]
 
 const CURSOR_BASELINE_RULE_NAME = '00-dwy-global.mdc'
+const SYNC_STATE_PATH = ['.dwy', 'sync-state.json']
+const PLATFORM_SYNC_TYPES = {
+  claude: ['skills', 'rules', 'commands', 'hooks'],
+  codex: ['skills', 'rules', 'hooks'],
+  cursor: ['rules'],
+  opencode: ['skills', 'rules', 'commands'],
+}
+const PLATFORM_LABELS = {
+  claude: 'Claude Code',
+  codex: 'Codex',
+  cursor: 'Cursor',
+  opencode: 'OpenCode',
+}
+const TYPE_LABELS = {
+  skills: 'skills',
+  rules: 'rules',
+  commands: 'commands',
+  hooks: 'hooks',
+}
 
 function unionSets(...sets) {
   return new Set(sets.flatMap(set => [...set]))
@@ -109,6 +128,172 @@ function buildCursorBaselineContent(baseline) {
     baseline.trim(),
     '',
   ].join('\n')
+}
+
+function createEmptyPlatformState() {
+  return {
+    skills: [],
+    rules: [],
+    commands: [],
+    hooks: [],
+  }
+}
+
+async function loadSyncState(projectDir) {
+  const statePath = path.join(projectDir, ...SYNC_STATE_PATH)
+  if (!await fs.pathExists(statePath)) {
+    return {
+      version: 1,
+      platforms: {},
+    }
+  }
+
+  const state = await fs.readJson(statePath)
+  return {
+    version: 1,
+    platforms: state.platforms || {},
+  }
+}
+
+async function saveSyncState(projectDir, state) {
+  const statePath = path.join(projectDir, ...SYNC_STATE_PATH)
+  await fs.ensureDir(path.dirname(statePath))
+  await fs.writeJson(statePath, state, { spaces: 2 })
+}
+
+function getCurrentTemplateNames(scans) {
+  return {
+    skills: new Set(scans.skills.map(item => item.name)),
+    rules: new Set(scans.rules.map(item => item.name)),
+    commands: new Set(scans.commands.map(item => item.name)),
+    hooks: new Set(scans.hooks.map(item => item.name)),
+  }
+}
+
+async function collectCurrentManagedNames(projectDir) {
+  const claudeDir = path.join(projectDir, '.claude')
+  const openCodeDir = path.join(projectDir, '.opencode')
+  const agentsMdPath = path.join(projectDir, 'AGENTS.md')
+  const agentsMdContent = await fs.pathExists(agentsMdPath) ? await fs.readFile(agentsMdPath, 'utf-8') : ''
+
+  return {
+    claude: {
+      skills: await scanExisting(claudeDir, 'skills'),
+      rules: await scanExisting(claudeDir, 'rules'),
+      commands: await scanExisting(claudeDir, 'commands'),
+      hooks: await scanExisting(claudeDir, 'hooks'),
+    },
+    codex: {
+      skills: await scanExistingCodexSkills(projectDir),
+      rules: parseManagedRuleNames(agentsMdContent),
+      hooks: await scanExistingCodexHooks(projectDir),
+    },
+    cursor: {
+      rules: await scanExistingCursorRules(projectDir),
+    },
+    opencode: {
+      skills: await scanExisting(openCodeDir, 'skills'),
+      rules: parseManagedRuleNames(agentsMdContent),
+      commands: await scanExisting(openCodeDir, 'commands'),
+    },
+  }
+}
+
+function normalizeRemovalInput(removals = {}) {
+  const normalized = {}
+  for (const [platform, types] of Object.entries(removals)) {
+    normalized[platform] = {}
+    for (const [type, names] of Object.entries(types || {})) {
+      normalized[platform][type] = new Set(Array.isArray(names) ? names : [...names])
+    }
+  }
+  return normalized
+}
+
+function createEmptyRemovalState() {
+  return Object.fromEntries(
+    Object.keys(PLATFORM_SYNC_TYPES).map(platform => [platform, {}]),
+  )
+}
+
+async function collectStaleEntries(projectDir, scans, syncState, selectedPlatforms) {
+  const currentTemplateNames = getCurrentTemplateNames(scans)
+  const currentManaged = await collectCurrentManagedNames(projectDir)
+  const staleEntries = createEmptyRemovalState()
+
+  for (const platform of selectedPlatforms) {
+    const previous = syncState.platforms?.[platform] || {}
+    const platformManaged = currentManaged[platform] || {}
+
+    for (const type of PLATFORM_SYNC_TYPES[platform] || []) {
+      const previousNames = previous[type] || []
+      const currentNames = currentTemplateNames[type] || new Set()
+      const managedNames = platformManaged[type] || new Set()
+      const staleNames = []
+
+      for (const name of previousNames) {
+        if (currentNames.has(name)) continue
+        if (type === 'rules' && platform === 'cursor') {
+          if (!managedNames.has(buildCursorRuleName(name))) continue
+        } else if (!managedNames.has(name)) {
+          continue
+        }
+        staleNames.push(name)
+      }
+
+      if (staleNames.length > 0) staleEntries[platform][type] = staleNames.sort((a, b) => a.localeCompare(b, 'zh'))
+    }
+  }
+
+  return staleEntries
+}
+
+async function promptStaleRemovals(staleEntries) {
+  const approvals = createEmptyRemovalState()
+
+  for (const platform of Object.keys(PLATFORM_SYNC_TYPES)) {
+    for (const type of PLATFORM_SYNC_TYPES[platform]) {
+      const names = staleEntries[platform]?.[type] || []
+      if (names.length === 0) continue
+
+      console.log(chalk.yellow(`\n检测到 ${PLATFORM_LABELS[platform]} 已同步但模板仓库已移除的 ${TYPE_LABELS[type]}：`))
+      for (const name of names) {
+        console.log(chalk.gray(`  - ${name}`))
+      }
+
+      const selected = await multiselect({
+        message: `选择要删除的 ${PLATFORM_LABELS[platform]} ${TYPE_LABELS[type]}`,
+        options: names.map(name => ({ value: name, label: name })),
+        initialValues: names,
+        required: false,
+      })
+      if (isCancel(selected)) return null
+      approvals[platform][type] = new Set(selected)
+    }
+  }
+
+  return approvals
+}
+
+function getPreservedStaleNames(staleEntries, approvedRemovals, platform, type) {
+  const staleNames = staleEntries[platform]?.[type] || []
+  const approvedNames = approvedRemovals[platform]?.[type] || new Set()
+  return new Set(staleNames.filter(name => !approvedNames.has(name)))
+}
+
+function buildNextPlatformState(selected, staleEntries, approvedRemovals, platform) {
+  const state = createEmptyPlatformState()
+
+  for (const type of PLATFORM_SYNC_TYPES[platform] || []) {
+    const selectedNames = new Set((selected[type] || []).map(item => item.name))
+    for (const name of staleEntries[platform]?.[type] || []) {
+      const approvedNames = approvedRemovals[platform]?.[type] || new Set()
+      if (!approvedNames.has(name)) selectedNames.add(name)
+    }
+    state[type] = [...selectedNames].sort((a, b) => a.localeCompare(b, 'zh'))
+  }
+
+  return state
 }
 
 async function removeManagedItems(targetDir, existingNames, managedNames, labelPrefix) {
@@ -267,7 +452,6 @@ async function cleanupCursorPlatform(projectDir, scans, baseline) {
   )
 
   let removedCount = 0
-  const managedRuleNames = new Set(scans.rules.map(rule => buildCursorRuleName(rule.name)))
   for (const name of existingManagedNames) {
     if (name === CURSOR_BASELINE_RULE_NAME) continue
     await fs.remove(path.join(rulesDir, name))
@@ -316,6 +500,9 @@ async function cleanupOpenCodePlatform(projectDir, scans) {
 export async function syncAll({
   sourceDir: sourceDirOverride,
   projectDir: projectDirOverride,
+  selected: selectedOverride,
+  selectedPlatforms: selectedPlatformsOverride,
+  staleRemovals: staleRemovalsOverride,
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
@@ -346,24 +533,35 @@ export async function syncAll({
   console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.rules.length} rules, ${scans.commands.length} commands, ${scans.hooks.length} hooks\n`))
 
   const existing = await scanCombinedExisting(projectDir)
-  if (!await shouldInitialize(projectDir, existing)) {
+  const skipInitPrompt = !!(selectedOverride || selectedPlatformsOverride)
+  if (!skipInitPrompt && !await shouldInitialize(projectDir, existing)) {
     console.log(chalk.yellow('\n已取消同步。'))
     return
   }
 
   const hasAnyExisting = existing.skills.size + existing.rules.size + existing.commands.size + existing.hooks.size > 0
-  if (!hasAnyExisting) {
+  if (!hasAnyExisting && !selectedOverride) {
     console.log(chalk.gray('首次同步，进入交互式选择...\n'))
   }
 
-  const selected = await interactiveSelect(scans, existing)
+  const selected = selectedOverride || await interactiveSelect(scans, existing)
   if (selected === null) {
     console.log(chalk.yellow('\n已取消同步。'))
     return
   }
 
-  const selectedPlatforms = await selectPlatforms()
+  const selectedPlatforms = selectedPlatformsOverride || await selectPlatforms()
   if (selectedPlatforms === null) {
+    console.log(chalk.yellow('\n已取消同步。'))
+    return
+  }
+
+  const syncState = await loadSyncState(projectDir)
+  const staleEntries = await collectStaleEntries(projectDir, scans, syncState, selectedPlatforms)
+  const approvedStaleRemovals = staleRemovalsOverride
+    ? normalizeRemovalInput(staleRemovalsOverride)
+    : await promptStaleRemovals(staleEntries)
+  if (approvedStaleRemovals === null) {
     console.log(chalk.yellow('\n已取消同步。'))
     return
   }
@@ -377,6 +575,7 @@ export async function syncAll({
       sourceDir,
       projectDir,
       selected,
+      staleRemovals: approvedStaleRemovals.claude,
     })
   }
 
@@ -387,6 +586,8 @@ export async function syncAll({
       sourceDir,
       projectDir,
       selected,
+      staleRemovals: approvedStaleRemovals.codex,
+      preserveMissingRules: getPreservedStaleNames(staleEntries, approvedStaleRemovals, 'codex', 'rules'),
     })
   }
 
@@ -396,6 +597,7 @@ export async function syncAll({
       sourceDir,
       projectDir,
       selected,
+      staleRemovals: approvedStaleRemovals.cursor,
     })
   }
 
@@ -405,6 +607,8 @@ export async function syncAll({
       sourceDir,
       projectDir,
       selected,
+      staleRemovals: approvedStaleRemovals.opencode,
+      preserveMissingRules: getPreservedStaleNames(staleEntries, approvedStaleRemovals, 'opencode', 'rules'),
     })
   }
 
@@ -427,6 +631,15 @@ export async function syncAll({
   if (!selectedPlatforms.includes('opencode')) {
     await cleanupOpenCodePlatform(projectDir, scans)
   }
+
+  for (const platform of Object.keys(PLATFORM_SYNC_TYPES)) {
+    if (selectedPlatforms.includes(platform)) {
+      syncState.platforms[platform] = buildNextPlatformState(selected, staleEntries, approvedStaleRemovals, platform)
+    } else {
+      syncState.platforms[platform] = createEmptyPlatformState()
+    }
+  }
+  await saveSyncState(projectDir, syncState)
 
   if (!syncedAnySupportedPlatform) {
     console.log(chalk.yellow('未选择已接入平台，本次未执行同步。'))

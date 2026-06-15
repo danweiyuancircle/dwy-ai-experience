@@ -183,7 +183,7 @@ description: "调用 dwy create CLI 生成全栈 Vue 3 + FastAPI monorepo 骨架
 | 症状 | 原因 | 解决 |
 |------|------|------|
 | `dwy create` 命令找不到 | create-dwy 未安装或不在 PATH | `pnpm i -g create-dwy` 或在 dwy-shared 仓库 `pnpm link --global` |
-| `dwy create` 报模板找不到 | Gitee 缓存过期或 dwy-shared 未推送最新版 | 删 `~/.dwy/cache/` 重试，确认 Gitee 上 dwy-shared 含 `fullstack-monorepo` 模板 |
+| `dwy create` 报模板找不到 | 当前版本 CLI 未包含对应模板，或用户本机 install 的版本落后 | 升级 `create-dwy` 到最新版本；确认 `dwy --version` 与线上版本一致后重试 |
 | `uv sync` 报 dwyeapi 找不到 | aliyun 镜像未同步 | pyproject 已声明 pypi-org 备 index，确保 uv >=0.4 |
 | `pnpm install` 报 catalog 找不到 | pnpm <10 不支持 catalog | 升级: `npm i -g pnpm@latest` |
 | backend health check 失败 | DATABASE_URL/SECRET_KEY 用了占位值导致启动报错 | 检查 .env 是否已 cp 自 .env.example；查 uvicorn stderr 输出 |

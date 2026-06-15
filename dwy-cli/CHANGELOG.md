@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.14.5
+
+### Patch Changes
+
+- `dwy` 同步模板改回运行时从仓库缓存拉取，默认更新 `~/.dwy/cache/dwy` 后再读取模板，不再依赖 CLI 包内静态模板。
+- 新增项目级同步状态文件 `/.dwy/sync-state.json`，记录各平台上次由 `dwy` 托管的 skills / rules / commands / hooks。
+- 当模板仓库移除已同步项时，再次执行 `dwy` 会罗列缺失项并让用户选择是否删除；未确认删除的旧项会继续保留。
+
 ## 0.14.4
 
 ### Patch Changes
@@ -7,6 +15,7 @@
 - 将 iOS 规则 `dwy-swift-style.md` 重命名为 `dwy-swift-core.md`，并重构为精简版规范。
 - 新增规则级配置收口约束，要求可配置项统一在 `AppConfig` 管理。
 - 加强国际化规则：默认要求中文/英文支持，统一 `localizationBundle + loc() + LocalizationManager + AppLanguage` 实施要点。
+- 模板同步改为仅使用 CLI 内置 `dwy-cli/templates/ai-tools`，不再读取外部缓存目录或按 `origin` 拉取远端模板仓库。
 
 ## 0.14.3
 
@@ -35,9 +44,9 @@
 ### Minor Changes
 
 - CLI 重构为单一交互式入口，移除旧的命令式 `create` / `sync` / `claude` / `codex` 流程。
-- 模板源统一收敛到 `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/ai-tools`，随 CLI 包一起发布，不再运行时拉取远端模板仓库。
+- 模板源统一收敛到 `/Users/chances/WebstormProjects/dwy-shared/dwy-cli/templates/ai-tools`，随 CLI 包一起发布，不再运行时拉取远端模板仓库。
 - 新增多平台适配层：支持 `Claude Code`、`Codex`、`Cursor`、`OpenCode` 的 rules / skills / commands / hooks 同步。
-- 基准规范文件 `/Users/chances/WebstormProjects/dwy-shared/claude-cli/templates/ai-tools/CLAUDE.md` 现在会按平台分别同步到 `.claude/CLAUDE.md`、根 `AGENTS.md`、`.cursor/rules/00-dwy-global.mdc`。
+- 基准规范文件 `/Users/chances/WebstormProjects/dwy-shared/dwy-cli/templates/ai-tools/CLAUDE.md` 现在会按平台分别同步到 `.claude/CLAUDE.md`、根 `AGENTS.md`、`.cursor/rules/00-dwy-global.mdc`。
 - 平台未选中时会清理 dwy 托管内容，同时保留用户自定义文件、用户自定义 hook 配置和 `AGENTS.md` 非托管内容。
 
 ## 0.13.8
