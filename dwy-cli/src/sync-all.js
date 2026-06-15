@@ -57,6 +57,29 @@ function unionSets(...sets) {
   return new Set(sets.flatMap(set => [...set]))
 }
 
+function hasSetItems(setsByType) {
+  return setsByType.skills.size + setsByType.rules.size + setsByType.commands.size + setsByType.hooks.size > 0
+}
+
+export function buildSelectionDefaultsFromSyncState(existing, syncState) {
+  const stateDefaults = {
+    skills: new Set(),
+    rules: new Set(),
+    commands: new Set(),
+    hooks: new Set(),
+  }
+
+  for (const platformState of Object.values(syncState?.platforms || {})) {
+    for (const type of ['skills', 'rules', 'commands', 'hooks']) {
+      for (const name of platformState?.[type] || []) {
+        stateDefaults[type].add(name)
+      }
+    }
+  }
+
+  return hasSetItems(stateDefaults) ? stateDefaults : existing
+}
+
 async function scanCombinedExisting(projectDir) {
   const claudeDir = path.join(projectDir, '.claude')
   const agentsMdPath = path.join(projectDir, 'AGENTS.md')
@@ -80,7 +103,7 @@ async function scanCombinedExisting(projectDir) {
 }
 
 async function shouldInitialize(projectDir, existing) {
-  const hasAnyExisting = existing.skills.size + existing.rules.size + existing.commands.size + existing.hooks.size > 0
+  const hasAnyExisting = hasSetItems(existing)
   if (hasAnyExisting) return true
 
   const hasConfigDir = await fs.pathExists(path.join(projectDir, '.claude'))
@@ -533,18 +556,20 @@ export async function syncAll({
   console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.rules.length} rules, ${scans.commands.length} commands, ${scans.hooks.length} hooks\n`))
 
   const existing = await scanCombinedExisting(projectDir)
+  const syncState = await loadSyncState(projectDir)
+  const selectionDefaults = buildSelectionDefaultsFromSyncState(existing, syncState)
   const skipInitPrompt = !!(selectedOverride || selectedPlatformsOverride)
   if (!skipInitPrompt && !await shouldInitialize(projectDir, existing)) {
     console.log(chalk.yellow('\n已取消同步。'))
     return
   }
 
-  const hasAnyExisting = existing.skills.size + existing.rules.size + existing.commands.size + existing.hooks.size > 0
+  const hasAnyExisting = hasSetItems(existing)
   if (!hasAnyExisting && !selectedOverride) {
     console.log(chalk.gray('首次同步，进入交互式选择...\n'))
   }
 
-  const selected = selectedOverride || await interactiveSelect(scans, existing)
+  const selected = selectedOverride || await interactiveSelect(scans, selectionDefaults)
   if (selected === null) {
     console.log(chalk.yellow('\n已取消同步。'))
     return
@@ -556,7 +581,6 @@ export async function syncAll({
     return
   }
 
-  const syncState = await loadSyncState(projectDir)
   const staleEntries = await collectStaleEntries(projectDir, scans, syncState, selectedPlatforms)
   const approvedStaleRemovals = staleRemovalsOverride
     ? normalizeRemovalInput(staleRemovalsOverride)
