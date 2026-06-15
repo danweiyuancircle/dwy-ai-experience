@@ -52,7 +52,7 @@ description: 按 TDD 把一个版本/功能落地成代码：写实施计划（b
     2. 运行看到失败（给确切命令 + 预期失败输出）
     3. 最小实现（贴实际实现代码）
     4. 运行看到通过（给确切命令 + 预期 PASS）
-    5. commit（优先走 `dwy-git-commit`：敏感扫描 + 规范 message + 禁 AI 署名；该 skill 不在则至少做敏感扫描 + 规范 message，给确切命令）
+    5. commit（按 Git 提交规范：敏感扫描 + 规范 message + 禁 AI 署名；该规范未生效时至少做敏感扫描 + 规范 message，给确切命令）
 
 **禁止占位符**——以下都是计划失败，绝不允许：
 
@@ -140,7 +140,7 @@ version: vN
 | `BLOCKED` | 卡住做不下去 → 补上下文 / 换更强模型 / 拆小 Task / 升级给用户，**别让它原样重试** |
 | `NEEDS_CONTEXT` | 缺信息 → 补齐缺的上下文再继续 |
 
-**两道审查全 ✅、Critical/Important 全修完、且本 Task 已 commit（步骤 5，走 dwy-git-commit），这个 Task 才算完成，进下一个 Task。** commit 是 Task 的硬收尾——别把多个 Task 攒着不提交，漏 commit 等于 Task 没完成。
+**两道审查全 ✅、Critical/Important 全修完、且本 Task 已 commit（按 Git 提交规范），这个 Task 才算完成，进下一个 Task。** commit 是 Task 的硬收尾——别把多个 Task 攒着不提交，漏 commit 等于 Task 没完成。
 
 > **自包含 + 可增强**：上面这套 spec / code 审查逻辑已内嵌，能独立跑。如果检测到项目里有 `/code-review` 命令或 `dwy-dev-qa` skill，Task 级或下面版本级的 code-review 可委托给它们做增强（更全面），没有就用内嵌逻辑。
 
@@ -205,7 +205,7 @@ git diff --stat $BASE_SHA..$HEAD_SHA
 - **禁止没有失败测试就写生产代码**——红-绿-重构铁律，违反就删掉重来。
 - **禁止跳审查**——spec 和 code 两道都要，且 spec 在前 code 在后，顺序不能反。
 - **禁止带未修的 Critical / Important 进下一个 Task 或下一个版本。**
-- **禁止 Task 未 commit 就开下一个 Task**——红-绿-审查全过后必须当场 commit（走 dwy-git-commit），不许把多个 Task 的改动攒到最后一次性提交。
+- **禁止 Task 未 commit 就开下一个 Task**——红-绿-审查全过后必须当场 commit（按 Git 提交规范），不许把多个 Task 的改动攒到最后一次性提交。
 - **禁止没跑验证就声称完成**——「应该过了」不算证据，必须有刚跑的命令输出。
 - **禁止实施计划留占位符**（TODO / 待补充 / 类似 Task N）——每步给实际代码 + 确切命令。
 - **禁止把代码写进 `docs/0to1/`**——只有实施计划进 `plans/`，代码进项目源码。

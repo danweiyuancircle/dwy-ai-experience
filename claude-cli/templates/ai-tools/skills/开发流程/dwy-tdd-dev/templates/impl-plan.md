@@ -67,7 +67,7 @@ export function validateNoteBody(body: string): { ok: boolean; error?: string } 
 Run: `pnpm vitest run tests/validators/note.test.ts`
 Expected: PASS（2 passed），其它测试不受影响
 
-- [ ] **步骤 5：commit（走 `dwy-git-commit`：敏感扫描 + 规范 message + 禁 AI 署名）**
+- [ ] **步骤 5：commit（按 Git 提交规范：敏感扫描 + 规范 message + 禁 AI 署名）**
 
 ```bash
 git add src/validators/note.ts tests/validators/note.test.ts
@@ -107,7 +107,7 @@ Expected: FAIL — <预期失败原因，必须是「功能没实现」>
 Run: `<确切测试命令>`
 Expected: PASS，其它测试不挂、输出无 warning
 
-- [ ] **步骤 5：commit（走 `dwy-git-commit`：敏感扫描 + 规范 message + 禁 AI 署名）**
+- [ ] **步骤 5：commit（按 Git 提交规范：敏感扫描 + 规范 message + 禁 AI 署名）**
 
 ```bash
 git add <文件>
