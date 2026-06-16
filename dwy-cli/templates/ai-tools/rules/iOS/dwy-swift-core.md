@@ -54,6 +54,7 @@ private let motionSpring = Animation.spring(response: 0.5, dampingFraction: 0.75
 
 - 图标优先 `Image(systemName:)`，无符号则用成熟 SVG。
 - iOS 应用图标设计稿只提供一张 `1024x1024` 的 PNG 源图，由系统生成各尺寸适配版本。
+- App Icon 源图必须是直角完整方形，背景填满整张画布，禁止预裁圆角、圆角背景、透明圆角或模拟系统圆角遮罩。
 - 图标主体必须预留至少 `10%` 安全边距，避免系统缩放、圆角遮罩或视觉放大时被切边。
 - 文案禁止 emoji，禁止硬编码，统一 `loc("key")`。
 - 禁止使用 emoji 作为功能说明、状态、提示。
