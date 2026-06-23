@@ -102,6 +102,19 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 
 Monorepo 文档门户，覆盖 EUI 组件 / EKit 工具 / Backend / CLI / Claude Code 五个模块。Vite SPA + Vue Router + markdown-it + Fuse.js 全局搜索。支持 `--host` 局域网访问。
 
+## 缓存与配置存储约定
+
+skill / 工具的本机判断缓存统一存项目内 `<project_root>/.dwy/<业务域>/`，按业务域建子目录，缓存目录统一：
+
+- `<project_root>/.dwy/publish/`  — dwy-publish 发布方式缓存
+- `<project_root>/.dwy/sdk-spec/` — dwy-sdk-spec SDK 版本类型 / 路径缓存
+
+约束：
+
+- 缓存内**不存绝对路径**，存相对项目根的相对路径，随项目走、可改名
+- `.dwy/` 是本机判断缓存，必须加进 `.gitignore`，不入版本库
+- 缓存文件用 JSON，含 `version` + `configured_at`
+
 ## 文档同步约束
 
 - `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件

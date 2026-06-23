@@ -109,4 +109,4 @@ export async function fetchUser(id: string): Promise<UserProfile> { ... }
 - Python：`# sdk-spec: ignore`
 - TS/JS：`// sdk-spec: ignore`
 
-豁免**单行**，不豁免整段。要长期豁免某文件 → 在 `~/.config/dwy-sdk-spec/projects.json` 的对应项目下加 `ignore_files: ["path/to/file.py"]`（未来支持，当前手动用行内豁免）。
+豁免**单行**，不豁免整段。要长期豁免某文件 → 在 `<project_root>/.dwy/sdk-spec/config.json` 加 `ignore_files: ["path/to/file.py"]`（未来支持，当前手动用行内豁免）。
