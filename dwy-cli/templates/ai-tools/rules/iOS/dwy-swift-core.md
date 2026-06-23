@@ -42,6 +42,32 @@ final class TaskListViewModel {}
 - 全屏背景、遮罩、弹层可用 `ignoresSafeArea()`。
 - 禁止使用固定状态栏高度常量。
 
+## 软键盘
+
+- 任何调起系统软键盘的输入控件，必须给用户提供主动关闭键盘的途径，禁止只能靠输入框自身失焦。
+- 至少同时满足以下两种退出方式：
+  - 点击键盘外空白区域收起：根容器加 `.onTapGesture` 把 `@FocusState` 置 `false`。
+  - 滚动视图内滚动时收起：`ScrollView` 加 `.scrollDismissesKeyboard(.interactively)`。
+- 多行输入或无明显空白可点的页面，额外在键盘上方放「完成」按钮收起。
+- 焦点统一用 `@FocusState` 管理，不散落手写 UIKit `resignFirstResponder`。
+
+```swift
+@FocusState private var focused: Bool
+
+ScrollView {
+    TextField(loc("input_placeholder"), text: $text)
+        .focused($focused)
+}
+.scrollDismissesKeyboard(.interactively)
+.onTapGesture { focused = false }
+.toolbar {
+    ToolbarItemGroup(placement: .keyboard) {
+        Spacer()
+        Button(loc("done")) { focused = false }
+    }
+}
+```
+
 ## 动效
 
 - 默认优先 `spring`，用同一组参数避免风格撕裂。
