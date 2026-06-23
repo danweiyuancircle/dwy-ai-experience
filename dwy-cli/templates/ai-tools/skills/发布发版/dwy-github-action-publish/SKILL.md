@@ -1,6 +1,6 @@
 ---
 name: dwy-github-action-publish
-description: "GitHub Actions 打包分发避坑指南。先判断场景，再读取对应配置。场景 1：Python 含 C 扩展 / Cython / .so 的跨平台 wheel，用 cibuildwheel 构建并通过 PyPI Trusted Publisher(OIDC) 发布。场景 2：Electron 桌面应用多平台打包分发，用 electron-builder / electron-forge 在 macOS / Windows / Linux runner 上构建并发布 GitHub Release。覆盖 workflow YAML 解析、runner image 退役、matrix 拆分、跨平台 shell 引号、artifact/release、PyPI OIDC、Electron 签名/公证/Linux 依赖/产物命名等高频坑。触发条件：编辑或新建 .github/workflows/*.yml、用户说 GitHub Actions 打包 / 跨平台打包 / cibuildwheel / wheel build / Electron 打包 / electron-builder / electron-forge / GitHub Release 分发 / runner queued / workflow build 失败。"
+description: "GitHub Actions 打包分发避坑指南。先判断场景，再读取对应配置。场景 1：Python 含 C 扩展 / Cython / .so 的跨平台 wheel，用 cibuildwheel 构建并通过 PyPI Trusted Publisher(OIDC) 发布。场景 2：Electron 桌面应用多平台打包分发，用 electron-builder / electron-forge 在 macOS / Windows / Linux runner 上构建并发布 GitHub Release。覆盖 workflow YAML 解析、runner image 退役、matrix 拆分、跨平台 shell 引号、artifact/release、PyPI OIDC、Electron 签名/公证/Linux 依赖/产物命名等高频坑。触发条件：编辑或新建 .github/workflows/*.yml、用户说 GitHub Actions 打包 / 跨平台打包 / cibuildwheel / wheel build / Electron 打包 / electron-builder / electron-forge / GitHub Release 分发 / runner queued / workflow build 失败。也作为 dwy-publish 发版编排的 GA 打包子能力被主动调用。"
 ---
 
 # dwy-github-action-publish — GitHub Actions 打包分发避坑

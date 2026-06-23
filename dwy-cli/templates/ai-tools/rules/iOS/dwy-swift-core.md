@@ -102,3 +102,11 @@ Text(loc("home_title"))
 
 - 颜色、字号走 token，不用裸值。
 - 时间来源通过注入参数或测试可控入口，不直接散落 `Date()`。
+
+## 打包与版本号
+
+- **build 号用时间戳**：`CFBundleVersion` 每次打包设为 `date +%Y%m%d%H%M`（如 `202606231415`）。时间戳天然唯一递增，满足 TestFlight / App Store「build 号唯一递增」要求，免去人工记号撞号。
+- marketing version `CFBundleShortVersionString`（如 `1.0`）按发布节奏手动改，不随每次打包变。
+- 用 XcodeGen 的工程，`xcodegen generate` 会按 `project.yml` 重写 `Info.plist` 把 build 号覆盖回默认值。顺序必须 **先 `xcodegen generate`、再 `PlistBuddy -c "Set CFBundleVersion <时间戳>"` 设号、最后 archive**，别反。
+- 归档产物放工程内固定目录（如 `build/`）并加 gitignore，不用 `$TMPDIR` 临时目录。
+- changelog 维护在 iOS 端目录下（如 `ios/CHANGELOG.md`），发版前按「新增 / 变更 / 修复」记本次相对上版的用户可感变化。
