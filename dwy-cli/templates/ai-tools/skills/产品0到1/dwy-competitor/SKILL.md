@@ -7,8 +7,8 @@ description: "【dwy·竞品分析】产品 0 到 1 立项阶段。触发场景�
 盘点已有竞品 + 估算市场规模，找出差异化切入点。
 
 ## 输入（从哪读）
-- state.json 的 `confirmed.idea`
-- `.dwy/prod/[项目]/01-立项/想法收敛.md`
+- state.json 的 `confirmed.idea`、`confirmed.exploration`（explore 逼出的具体目标人 Q3、最窄切入 Q4——差异化对着这个人定）
+- `.dwy/prod/[项目]/01-立项/想法收敛.md`、`想法探索.md`
 
 ## 实现
 [包装型] 用全局本地 skill（位于 `~/.dwy/skills/<外部skill名>/`）：
