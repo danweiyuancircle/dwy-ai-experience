@@ -10,18 +10,10 @@ description: "【dwy·想法收敛】产品 0 到 1 立项第一步。触发场�
 - 用户口述的初始想法（首个原子，无上游产出）
 
 ## 实现
-[包装型] 对每个依赖的外部 skill（`brainstorming`）：
-1. 先读本地缓存目录 `.dwy/prod/.cache/skills/<缓存目录名>/`
-2. 命中（目录存在且含 SKILL.md）→ 读其 SKILL.md 执行，需要时一并用同目录 scripts/ 与配套 .md（如 brainstorming 的可视化服务器脚本）
-3. 没命中 → 用 gh 拉**整个 skill 目录**到缓存：
-   - 列文件：`gh api "repos/<repo>/git/trees/<tag>?recursive=1" --jq '.tree[]|select(.type=="blob")|.path' | grep "^<repo内目录>/"`
-   - 逐文件拉并保原样（含脚本，base64 解码）：`gh api "repos/<repo>/contents/<path>?ref=<tag>" --jq '.content' | base64 -d` 写到 `.dwy/prod/.cache/skills/<缓存目录名>/<去掉 repo内目录前缀的相对路径>`，保持子目录结构（如 scripts/）
-   - 更新 manifest.json（local 指向目录 `<缓存目录名>/`、记 repo + release_tag + fetched_at）
-   - 执行
-4. **fetch 失败：直接报错中断，不降级、不用内置能力顶替**
-
-依赖的外部 skill（缓存目录名 → repo / tag / repo内目录）：
-- `brainstorming` → `obra/superpowers` / `v6.0.3` / `skills/brainstorming`
+[包装型] 用全局本地 skill（位于 `~/.dwy/skills/<外部skill名>/`）：
+读其 `SKILL.md`（及同目录 scripts/、配套 .md），按它的方式与用户交互/提问，产出按下方「产出契约」落地。
+- 本 skill 依赖的外部 skill：`brainstorming`（对应 `~/.dwy/skills/brainstorming/`）
+- 若 `~/.dwy/skills/brainstorming/` 不存在：提示用户先跑 `dwy skills install`（或 `dwy claude sync` 会自动装），不要自己用内置能力顶替。
 
 ## 产出契约（硬约束）
 - 落到：`.dwy/prod/[项目]/01-立项/想法收敛.md`

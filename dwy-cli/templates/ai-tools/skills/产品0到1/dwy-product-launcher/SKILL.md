@@ -37,12 +37,13 @@ description: "【dwy·全流程总控】从模糊想法到上线产品的唯一�
 进度以 `state.json` 的 `current_stage` 为准；可从任意阶段断点续跑。
 
 ## 首次初始化（只建根，不建阶段目录）
-新项目首次进入时，**只**做三件最小事：
+新项目首次进入时，**只**做两件最小事：
 - 建项目根目录 `.dwy/prod/[项目]/`（不建 01~04 任何阶段子目录）
 - 初始化 `state.json`
-- 在项目 `.gitignore` 加 `.dwy/prod/.cache/`（**只忽略缓存，产品文档入库**）
 
-**阶段目录渐进式按需建**：`01-立项/` 进立项时才建，`02-需求规划/` 进需求阶段才建……不要一次把四个阶段目录全建出来（那不是渐进式）。state schema、各 skill 的 `confirmed.*` 字段契约、缓存 manifest 格式见 `references/state-and-contract.md`。
+产品产出 `.dwy/prod/[项目]/` 入库，无需改 `.gitignore`（外部 skill 在全局 `~/.dwy/skills/`，不落项目）。若包装型原子 skill 触发时 `~/.dwy/skills/<name>/` 不存在，提示用户先跑 `dwy skills install`。
+
+**阶段目录渐进式按需建**：`01-立项/` 进立项时才建，`02-需求规划/` 进需求阶段才建……不要一次把四个阶段目录全建出来（那不是渐进式）。state schema、各 skill 的 `confirmed.*` 字段契约、外部 skill 全局安装见 `references/state-and-contract.md`。
 
 ## state.json（进度 + 结论）
 落 `.dwy/prod/[项目]/state.json`，含：
