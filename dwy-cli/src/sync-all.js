@@ -29,7 +29,7 @@ import { ensureSkillsInstalled } from './skills-install.js'
 // 产品 0→1 流程里依赖全局外部 skill 的包装型原子 skill。
 // 同步选中其中任一个时，触发全局外部 skill 自检安装。
 const WRAPPER_SKILL_NAMES = new Set([
-  'dwy-ideate', 'dwy-competitor', 'dwy-validate', 'dwy-mvp', 'dwy-prd',
+  'dwy-competitor', 'dwy-validate', 'dwy-mvp', 'dwy-prd',
   'dwy-version', 'dwy-tasks', 'dwy-tdd-dev', 'dwy-acceptance', 'dwy-release',
 ])
 

@@ -7,8 +7,8 @@ description: "【dwy·MVP定义】产品 0 到 1 立项阶段（闸3）。触发
 从想法+验证结果，收敛出第一版 MVP 功能清单。**功能硬上限 ≤7 个**，超出的进后续版本。
 
 ## 输入（从哪读）
-- state.json 的 `confirmed.idea`、`confirmed.validation`、`confirmed.poc`、`confirmed.exploration`（explore 逼出的最窄切入 Q4——MVP 砍 ≤7 直接对着它砍）
-- `.dwy/prod/[项目]/01-立项/想法收敛.md`、`需求市场验证.md`、`技术验证.md`、`想法探索.md`
+- state.json 的 `confirmed.idea`（含 explore 逼出的最窄切入 narrowest_wedge——MVP 砍 ≤7 直接对着它砍）、`confirmed.validation`、`confirmed.poc`
+- `.dwy/prod/[项目]/01-立项/想法收敛.md`、`需求市场验证.md`、`技术验证.md`
 
 ## 实现
 [包装型] 用全局本地 skill（位于 `~/.dwy/skills/<外部skill名>/`）：
