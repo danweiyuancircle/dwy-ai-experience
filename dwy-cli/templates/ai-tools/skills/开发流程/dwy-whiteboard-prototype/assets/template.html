@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- ============================================================
+  白板原型模板 · 复制本文件后只改三处：
+  ① 画布区（.stage 列表）—— 每个状态一个画布，含左手机框 + 右标注栏
+  ② 脚本里的 EDGES —— 声明白板内状态跳转拓扑（画连线）
+  ③ 左侧 .sidenav —— 把当前页设为 .on，其余指向对应白板 html
+  引擎（平移缩放/连线/选中/复位/拖拽防误触）勿改。
+============================================================ -->
+<title>页面名 · 白板（含全状态）</title>
+<style>
+  /* 可改①：配色 — 按产品定位重填下方色值（变量名/结构勿改），默认深色蓝调一套 */
+  :root{
+    --bg:#0A0A0B; --device:#111113; --surface:#18181B; --surface2:#1F1F23; --surface3:#27272B;
+    --ink:#F4F4F5; --sub:#8E8E96; --faint:#5C5C63;
+    --gold:#3B82F6; --goldHi:#60A5FA; --gold2:#2563EB;
+    --red:#FB7185; --green:#34D399; --hairline:rgba(255,255,255,.08);
+    --pro:#F5B85C;                      /* 付费锁牌金色（按需） */
+    --spec-bg:#0d0d0f; --spec-line:#222;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{margin:0;background:#000;font-family:-apple-system,"SF Pro Text","PingFang SC",sans-serif;
+       color:var(--ink);overflow:hidden;user-select:none}   /* 禁选中，拖拽不选画框文字 */
+  input{user-select:text}
+
+  /* ===== 左侧悬浮页面导航（fixed，不随白板移动）===== */
+  .sidenav{position:fixed;left:14px;top:50%;transform:translateY(-50%);z-index:30;
+           display:flex;flex-direction:column;gap:4px;background:rgba(10,11,14,.92);
+           backdrop-filter:blur(12px);border:1px solid var(--spec-line);border-radius:18px;padding:9px}
+  .sidenav .ov{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--sub);
+               padding:7px 12px 7px 8px;font-size:11px;font-weight:600;margin-bottom:3px;
+               border-bottom:1px solid var(--hairline);padding-bottom:9px}
+  .sidenav .ov:hover{color:var(--ink)}
+  .navitem{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--sub);
+           padding:6px 12px 6px 7px;border-radius:12px;transition:background .15s,color .15s;white-space:nowrap}
+  .navitem .nic{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+                font-size:15px;background:var(--surface2);flex-shrink:0}
+  .navitem .nlb{font-size:12.5px;font-weight:600}
+  .navitem .nlb .todo{font-size:9px;color:var(--faint);margin-left:5px;font-weight:500}
+  .navitem.ready{cursor:pointer}
+  .navitem.ready:hover{background:var(--surface2);color:var(--ink)}
+  .navitem.on{background:rgba(59,130,246,.16);color:#fff}
+  .navitem.on .nic{background:linear-gradient(135deg,var(--goldHi),var(--gold));color:#fff}
+  .navitem.todo{opacity:.42;cursor:not-allowed}
+
+  /* ===== 白板视口 ===== */
+  #viewport{position:fixed;inset:0;overflow:hidden;cursor:grab;
+            background:radial-gradient(circle at 1px 1px,rgba(255,255,255,.05) 1px,transparent 0) 0 0/26px 26px,#050506}
+  #viewport.grabbing{cursor:grabbing}
+  #world{position:absolute;top:0;left:0;transform-origin:0 0;will-change:transform}
+  #wires{position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:1}
+  #wires path{fill:none;stroke:rgba(96,165,250,.5);stroke-width:3}
+  #wires path.hot{stroke:#7DB5FF;stroke-width:5;filter:drop-shadow(0 0 4px rgba(96,165,250,.7))}
+  #wires .wlabel{fill:#cfe0ff;font-size:13px;font-weight:600;font-family:-apple-system,"PingFang SC",sans-serif}
+  #wires .wlabel-bg{fill:#10141c;stroke:rgba(96,165,250,.35);stroke-width:1;rx:6}
+
+  .pagehead{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:20;text-align:center;
+            background:rgba(10,11,14,.82);backdrop-filter:blur(12px);border:1px solid var(--spec-line);
+            border-radius:14px;padding:10px 22px}
+  .pagehead h1{font-size:16px;font-weight:800;margin:0;letter-spacing:.3px}
+  .pagehead p{color:var(--sub);font-size:11.5px;line-height:1.5;margin:3px 0 0}
+  .toolbar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:6px;
+           background:rgba(10,11,14,.9);backdrop-filter:blur(12px);border:1px solid var(--spec-line);
+           border-radius:12px;padding:6px}
+  .toolbar button{border:none;background:var(--surface2);color:var(--ink);font-size:13px;font-weight:600;
+                  padding:8px 13px;border-radius:8px;cursor:pointer;transition:background .15s}
+  .toolbar button:hover{background:var(--surface3)}
+  .toolbar .zlabel{display:flex;align-items:center;padding:0 8px;color:var(--sub);font-size:12px;min-width:48px;justify-content:center}
+
+  /* ===== 画布：白板上绝对定位（data-x/data-y）===== */
+  .stage{position:absolute;display:flex;gap:22px;align-items:flex-start;z-index:2}
+  .frame{display:flex;flex-direction:column;gap:10px;flex-shrink:0}
+  /* 编号 = 选中入口（只点它才选中+复位展示），画框本身不响应选中 */
+  .canvas-no{font-size:13px;font-weight:700;color:var(--goldHi);letter-spacing:.3px;cursor:pointer}
+  .canvas-no:hover{color:#fff}
+  .canvas-no .n{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+                border-radius:7px;background:rgba(59,130,246,.16);margin-right:7px;font-size:12px}
+
+  /* 可改②：设备框尺寸 — 按目标端改 width/height（iOS 390×844 / 鸿蒙 vp / iPad / Web 各自比例），默认 320×680 */
+  .phone{width:320px;height:680px;background:var(--bg);border-radius:44px;
+         border:9px solid #1c1c1e;box-shadow:0 24px 60px rgba(0,0,0,.6);position:relative;overflow:hidden;
+         transition:box-shadow .25s,transform .25s}
+  /* 选中：双层光圈 + 微放大，明显区别于按钮自带样式 */
+  .phone.selected{box-shadow:0 0 0 3px #0A0A0B,0 0 0 6px var(--gold),0 0 30px rgba(59,130,246,.6),0 24px 60px rgba(0,0,0,.6);transform:scale(1.015)}
+  .canvas-no.selected{color:#fff}
+  .canvas-no.selected .n{background:var(--gold);color:#fff}
+  .canvas-no.selected::after{content:'当前';margin-left:8px;font-size:10px;font-weight:700;
+                             color:#0A1A33;background:var(--goldHi);padding:2px 7px;border-radius:6px;letter-spacing:.5px}
+  .notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:112px;height:28px;
+         background:#1c1c1e;border-radius:0 0 17px 17px;z-index:50}
+  .screen{position:absolute;inset:0;padding:50px 18px 22px;overflow-y:auto;background:var(--device)}
+  .screen::-webkit-scrollbar{display:none}
+
+  /* ===== 右侧标注栏 ===== */
+  .spec{width:300px;background:var(--spec-bg);border:1px solid var(--spec-line);border-radius:16px;padding:18px 18px 20px;flex-shrink:0}
+  .spec h2{font-size:15px;font-weight:700;margin:0 0 4px;color:var(--ink)}
+  .spec .use{color:var(--sub);font-size:12.5px;line-height:1.55;margin:0 0 16px}
+  .spec .grp{margin-bottom:15px}
+  .spec .grp:last-child{margin-bottom:0}
+  .spec .gt{font-size:11px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--faint);margin:0 0 8px}
+  .spec .gt.ix{color:var(--goldHi)}
+  .spec .gt.bd{color:var(--red)}
+  .spec .gt.pay{color:var(--pro)}
+  .spec ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:7px}
+  .spec li{font-size:12px;line-height:1.5;color:#c9c9cf;display:flex;gap:7px;align-items:flex-start}
+  .spec li .dot{color:var(--faint);flex-shrink:0}
+  .spec li .dot.ix{color:var(--goldHi)}
+  .spec li .dot.bd{color:var(--red)}
+  .spec li .dot.pay{color:var(--pro)}
+  /* 白板内跳转链接（data-go）：点了 select+复位展示 */
+  .jump{color:var(--goldHi);font-weight:600;cursor:pointer;text-decoration:none;border-bottom:1px dashed rgba(96,165,250,.4)}
+  .jump:hover{color:#fff;border-bottom-color:#fff}
+  /* 跨白板跳转链接（href，绿色↗）：交给浏览器切文件 */
+  .xjump{color:var(--green);font-weight:600;text-decoration:none;border-bottom:1px dashed rgba(52,211,153,.45)}
+  .xjump:hover{color:#fff;border-bottom-color:#fff}
+  .xjump::after{content:'↗';font-size:10px;margin-left:2px}
+  .spec code{font-family:ui-monospace,"SF Mono",monospace;font-size:11px;color:var(--goldHi);background:rgba(59,130,246,.1);padding:1px 5px;border-radius:4px}
+
+  /* ===== 画框内常用 UI（按需取用，可自行加）===== */
+  .hdr{display:flex;align-items:center;gap:10px;margin-bottom:18px}
+  .hdr .back{width:32px;height:32px;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--sub);font-size:17px;cursor:pointer}
+  .hdr h1{font-size:18px;font-weight:700;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .sub{color:var(--sub);font-size:13px;line-height:1.5}
+  .faint{color:var(--faint);font-size:12px}
+  .sectiontitle{font-size:12px;color:var(--sub);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin:0 0 10px 2px}
+  .field{width:100%;background:var(--surface);border:1.5px solid var(--hairline);border-radius:12px;padding:11px 14px;color:var(--ink);font-size:14px;outline:none;margin-bottom:12px}
+  .field::placeholder{color:var(--faint)}
+  .btn{width:100%;border:none;border-radius:14px;padding:14px;font-size:15px;font-weight:700;
+       background:linear-gradient(135deg,var(--goldHi),var(--gold),var(--gold2));color:#fff;cursor:pointer;
+       box-shadow:0 8px 20px rgba(59,130,246,.4);transition:transform .15s cubic-bezier(.34,1.2,.64,1);display:flex;align-items:center;justify-content:center;gap:7px}
+  .btn:active{transform:scale(.93)}
+  .btn.ghost{background:transparent;color:var(--gold);box-shadow:none;border:1.5px solid rgba(59,130,246,.4)}
+  .btn.danger{background:linear-gradient(135deg,#FB7185,#E11D48);box-shadow:0 8px 20px rgba(225,29,72,.35)}
+  .btn.mini{padding:11px;font-size:14px;border-radius:11px}
+  .card{background:var(--surface2);border:1px solid var(--hairline);border-radius:14px;padding:15px;margin-bottom:13px}
+  .pill{display:inline-flex;align-items:center;gap:4px;background:rgba(59,130,246,.15);color:var(--gold);font-size:10.5px;font-weight:700;padding:3px 8px;border-radius:7px}
+  .pill.ok{background:rgba(52,211,153,.15);color:var(--green)}
+  .pill.warn{background:rgba(251,113,133,.14);color:var(--red)}
+  .pill.lock{background:linear-gradient(135deg,rgba(245,184,92,.22),rgba(224,153,47,.22));color:var(--pro);border:1px solid rgba(245,184,92,.35)}  /* 付费锁牌 */
+  .note{display:flex;gap:7px;align-items:flex-start;margin-top:10px;color:var(--faint);font-size:11.5px;line-height:1.5}
+  .note .d{color:var(--gold)}
+  .spin{width:42px;height:42px;border:4px solid rgba(59,130,246,.2);border-top-color:var(--gold);border-radius:50%;animation:rot 1s linear infinite;margin:30px auto 18px}
+  @keyframes rot{to{transform:rotate(360deg)}}
+  .centerblk{text-align:center;padding-top:30px}
+  .centerblk h2{font-size:18px;margin:0 0 8px}
+  /* 列表行：单行截断示范（min-width:0 是省略号生效前提）*/
+  .listrow{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--hairline);border-radius:14px;padding:12px;margin-bottom:10px;cursor:pointer}
+  .listrow .ic{width:42px;height:42px;border-radius:11px;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+  .listrow .meta{flex:1;min-width:0}
+  .listrow .meta .n{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .listrow .meta .s{font-size:12px;color:var(--sub);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .listrow .arr{color:var(--faint);font-size:17px;flex-shrink:0}
+  /* 空态 */
+  .empty{text-align:center;padding:70px 20px 40px;color:var(--faint)}
+  .empty .ei{font-size:48px;margin-bottom:16px;opacity:.6}
+  .empty .et{font-size:16px;color:var(--sub);font-weight:600}
+  .empty .ed{font-size:13px;margin-top:8px;line-height:1.6}
+  /* 加载骨架 */
+  .skel{height:64px;border-radius:14px;margin-bottom:10px;background:linear-gradient(90deg,var(--surface2) 25%,var(--surface3) 50%,var(--surface2) 75%);background-size:200% 100%;animation:sh 1.3s infinite}
+  @keyframes sh{to{background-position:-200% 0}}
+</style>
+</head>
+<body>
+
+<div class="pagehead">
+  <h1>页面名 · 全状态白板</h1>
+  <p>一句话页面定位。<span style="color:var(--green)">绿色 ↗</span> = 跨白板跳转</p>
+</div>
+
+<!-- ③ 左侧导航：把当前页设 .on（去掉 href），其余指向对应白板 html；待做的用 .todo + span -->
+<nav class="sidenav">
+  <a class="ov" href="index-spec.html"><span>◳</span>原型总览</a>
+  <a class="navitem on"><span class="nic">📄</span><span class="nlb">本页</span></a>
+  <a class="navitem ready" href="other-spec.html"><span class="nic">📄</span><span class="nlb">其他页</span></a>
+  <span class="navitem todo"><span class="nic">📄</span><span class="nlb">待做页<span class="todo">待做</span></span></span>
+</nav>
+
+<div id="viewport">
+  <div id="world">
+    <svg id="wires"></svg>
+
+<!-- ① 画布区：每个状态一个 .stage。data-id 唯一；data-x/data-y 是白板坐标（列距~760 行距~820）。
+     编号 .canvas-no 的 id 必须等于 data-id（选中靠它）。左 .phone 放 UI，右 .spec 放标注。 -->
+
+<!-- 占位画布 A -->
+<div class="stage" data-id="stateA" data-x="40" data-y="60">
+  <div class="frame">
+    <div class="canvas-no" id="stateA"><span class="n">1</span>状态 A（默认）</div>
+    <div class="phone"><div class="notch"></div>
+      <div class="screen">
+        <div class="hdr"><h1>页面标题</h1></div>
+        <!-- 列表单行截断示范 -->
+        <div class="listrow" data-go="stateB">
+          <div class="ic">📄</div>
+          <div class="meta"><div class="n">某条目超长名字会被省略号截断不撑破布局</div><div class="s">副信息行也截断</div></div>
+          <span class="arr">›</span>
+        </div>
+        <button class="btn" data-go="stateB">主操作 → 状态 B</button>
+      </div>
+    </div>
+  </div>
+  <div class="spec">
+    <h2>状态 A（默认）</h2>
+    <p class="use">一句话说明本状态的职责。</p>
+    <div class="grp"><p class="gt ix">交互跳转</p><ul>
+      <li><span class="dot ix">→</span><span>主操作 → <a class="jump" data-go="stateB">② 状态 B</a></span></li>
+      <li><span class="dot ix">→</span><span>跨白板示例 → <a class="xjump" href="other-spec.html">其他页</a></span></li>
+    </ul></div>
+    <div class="grp"><p class="gt bd">边界处理</p><ul>
+      <li><span class="dot bd">·</span><span>单行长文 → 省略号截断（<code>min-width:0</code>）</span></li>
+      <li><span class="dot bd">·</span><span>空态 / 加载 / 错误 / 禁用 按需补画布</span></li>
+    </ul></div>
+  </div>
+</div>
+
+<!-- 占位画布 B -->
+<div class="stage" data-id="stateB" data-x="820" data-y="60">
+  <div class="frame">
+    <div class="canvas-no" id="stateB"><span class="n">2</span>状态 B</div>
+    <div class="phone"><div class="notch"></div>
+      <div class="screen">
+        <div class="hdr"><div class="back" data-go="stateA">‹</div><h1>状态 B</h1></div>
+        <div class="centerblk"><h2>这里放状态 B 的 UI</h2><p class="sub">返回 ‹ 回状态 A</p></div>
+      </div>
+    </div>
+  </div>
+  <div class="spec">
+    <h2>状态 B</h2>
+    <p class="use">一句话说明。</p>
+    <div class="grp"><p class="gt ix">交互跳转</p><ul>
+      <li><span class="dot ix">→</span><span>返回 ‹ → <a class="jump" data-go="stateA">① 状态 A</a></span></li>
+    </ul></div>
+    <div class="grp"><p class="gt bd">边界处理</p><ul>
+      <li><span class="dot bd">·</span><span>按需填写</span></li>
+    </ul></div>
+  </div>
+</div>
+
+  </div><!-- /#world -->
+</div><!-- /#viewport -->
+
+<div class="toolbar">
+  <button id="btnFit">适应全部</button>
+  <button id="btnReset">复位</button>
+  <button id="btnZoomOut">−</button>
+  <span class="zlabel" id="zlabel">100%</span>
+  <button id="btnZoomIn">+</button>
+</div>
+
+<script>
+  // ② EDGES：白板内状态跳转拓扑，决定画哪些连线。from/to = .stage 的 data-id；label = 触发条件。
+  const EDGES = [
+    {from:'stateA', to:'stateB', label:'主操作'},
+    {from:'stateB', to:'stateA', label:'返回'},
+  ];
+  const START='stateA';   // 初始选中/复位的画布
+
+  /* ===== 以下为白板引擎，勿改 ===== */
+  const viewport=document.getElementById('viewport'), world=document.getElementById('world'), wires=document.getElementById('wires');
+  const stages=[...document.querySelectorAll('.stage')];
+  const byId=id=>document.querySelector(`.stage[data-id="${id}"]`);
+  stages.forEach(s=>{ s.style.left=s.dataset.x+'px'; s.style.top=s.dataset.y+'px'; });
+
+  let scale=1,tx=0,ty=0;
+  const NS='http://www.w3.org/2000/svg';
+  function apply(){ world.style.transform=`translate(${tx}px,${ty}px) scale(${scale})`; document.getElementById('zlabel').textContent=Math.round(scale*100)+'%'; }
+
+  function drawWires(){
+    wires.innerHTML='';
+    let maxX=0,maxY=0; stages.forEach(s=>{ maxX=Math.max(maxX,s.offsetLeft+s.offsetWidth); maxY=Math.max(maxY,s.offsetTop+s.offsetHeight); });
+    wires.setAttribute('width',maxX+200); wires.setAttribute('height',maxY+200);
+    const defs=document.createElementNS(NS,'defs');
+    defs.innerHTML=`<marker id="arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="11" markerHeight="11" orient="auto-start-reverse"><path d="M1,1 L11,6 L1,11 L4,6 z" fill="rgba(96,165,250,.85)"/></marker><marker id="arrowHot" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="13" markerHeight="13" orient="auto-start-reverse"><path d="M1,1 L11,6 L1,11 L4,6 z" fill="#7DB5FF"/></marker>`;
+    wires.appendChild(defs);
+    function edgeAnchor(stage,tX,tY){    // 从画框最近的边进出，连线不被框体盖住
+      const p=stage.querySelector('.phone');
+      const x=stage.offsetLeft+p.offsetLeft,y=stage.offsetTop+p.offsetTop,w=p.offsetWidth,h=p.offsetHeight,cx=x+w/2,cy=y+h/2,dx=tX-cx,dy=tY-cy;
+      if(Math.abs(dx)>=Math.abs(dy)) return dx>=0?{x:x+w,y:cy,side:'r'}:{x:x,y:cy,side:'l'};
+      return dy>=0?{x:cx,y:y+h,side:'b'}:{x:cx,y:y,side:'t'};
+    }
+    EDGES.forEach(e=>{
+      const a=byId(e.from),b=byId(e.to); if(!a||!b)return;
+      const pa=a.querySelector('.phone'),pb=b.querySelector('.phone');
+      const acx=a.offsetLeft+pa.offsetLeft+pa.offsetWidth/2,acy=a.offsetTop+pa.offsetTop+pa.offsetHeight/2;
+      const bcx=b.offsetLeft+pb.offsetLeft+pb.offsetWidth/2,bcy=b.offsetTop+pb.offsetTop+pb.offsetHeight/2;
+      const A=edgeAnchor(a,bcx,bcy),B=edgeAnchor(b,acx,acy),pull=120;
+      const cp=pt=>({x:pt.x+(pt.side==='r'?pull:pt.side==='l'?-pull:0),y:pt.y+(pt.side==='b'?pull:pt.side==='t'?-pull:0)});
+      const c1=cp(A),c2=cp(B);
+      const path=document.createElementNS(NS,'path');
+      path.setAttribute('d',`M${A.x},${A.y} C${c1.x},${c1.y} ${c2.x},${c2.y} ${B.x},${B.y}`);
+      path.setAttribute('marker-end','url(#arrow)'); path.dataset.from=e.from; path.dataset.to=e.to; wires.appendChild(path);
+      const mx=(A.x+B.x)/2,my=(A.y+B.y)/2,tw=e.label.length*13+14;
+      const bg=document.createElementNS(NS,'rect'); bg.setAttribute('class','wlabel-bg'); bg.setAttribute('x',mx-tw/2); bg.setAttribute('y',my-13); bg.setAttribute('width',tw); bg.setAttribute('height',24); bg.setAttribute('rx',6); bg.dataset.from=e.from; bg.dataset.to=e.to; wires.appendChild(bg);
+      const t=document.createElementNS(NS,'text'); t.setAttribute('class','wlabel'); t.setAttribute('x',mx); t.setAttribute('y',my+4); t.setAttribute('text-anchor','middle'); t.textContent=e.label; t.dataset.from=e.from; t.dataset.to=e.to; wires.appendChild(t);
+    });
+  }
+
+  // 选中：高亮画框+标题+「当前」标记 + 相关连线高亮
+  function select(id){
+    document.querySelectorAll('.phone.selected,.canvas-no.selected').forEach(el=>el.classList.remove('selected'));
+    wires.querySelectorAll('path.hot').forEach(p=>{ p.classList.remove('hot'); p.setAttribute('marker-end','url(#arrow)'); });
+    const stage=byId(id); if(!stage)return;
+    stage.querySelector('.canvas-no')?.classList.add('selected'); stage.querySelector('.phone')?.classList.add('selected');
+    wires.querySelectorAll(`path[data-from="${id}"],path[data-to="${id}"]`).forEach(p=>{ p.classList.add('hot'); p.setAttribute('marker-end','url(#arrowHot)'); });
+    return stage;
+  }
+  // 复位展示：缩放到单画布刚好填满 + 居中（不管之前缩放多少都看清）
+  function focusOn(id){
+    const stage=byId(id); if(!stage)return;
+    const NAV=210,pad=70,w=stage.offsetWidth+pad*2,h=stage.offsetHeight+pad*2,availW=viewport.clientWidth-NAV;
+    scale=Math.min(availW/w,viewport.clientHeight/h,2.2);
+    const cx=stage.offsetLeft+stage.offsetWidth/2,cy=stage.offsetTop+stage.offsetHeight/2;
+    tx=NAV+availW/2-cx*scale; ty=viewport.clientHeight/2-cy*scale; apply();
+  }
+
+  let dragging=false,sx=0,sy=0,stx=0,sty=0,moved=false;
+  viewport.addEventListener('pointerdown',e=>{
+    // 可点元素不启动拖拽：否则真实鼠标微小抖动会把点击判成拖拽吞掉（点编号/按钮失效）
+    if(e.target.closest('input,a,[data-go],.canvas-no'))return;
+    dragging=true;moved=false;sx=e.clientX;sy=e.clientY;stx=tx;sty=ty;viewport.classList.add('grabbing');try{viewport.setPointerCapture(e.pointerId)}catch{}
+  });
+  viewport.addEventListener('pointermove',e=>{ if(!dragging)return; const ddx=e.clientX-sx,ddy=e.clientY-sy; if(Math.abs(ddx)+Math.abs(ddy)>4)moved=true; tx=stx+ddx;ty=sty+ddy;apply(); });
+  viewport.addEventListener('pointerup',()=>{ dragging=false;viewport.classList.remove('grabbing'); });
+  viewport.addEventListener('wheel',e=>{ e.preventDefault(); const r=viewport.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,wx=(mx-tx)/scale,wy=(my-ty)/scale,f=e.deltaY<0?1.12:1/1.12; scale=Math.min(2.2,Math.max(.18,scale*f)); tx=mx-wx*scale;ty=my-wy*scale;apply(); },{passive:false});
+  viewport.addEventListener('click',e=>{
+    if(moved)return;
+    if(e.target.closest('a[href]'))return;            // 跨白板链接交给浏览器
+    const go=e.target.closest('[data-go]');           // 画框内按钮 / 标注 jump → 白板内跳转
+    if(go){ const id=go.getAttribute('data-go'); select(id); focusOn(id); return; }
+    const no=e.target.closest('.canvas-no');           // 只点编号才选中（画框不响应）
+    if(no){ select(no.id); focusOn(no.id); }
+  });
+
+  function fitAll(){
+    let minX=1e9,minY=1e9,maxX=0,maxY=0;
+    stages.forEach(s=>{ minX=Math.min(minX,s.offsetLeft);minY=Math.min(minY,s.offsetTop);maxX=Math.max(maxX,s.offsetLeft+s.offsetWidth);maxY=Math.max(maxY,s.offsetTop+s.offsetHeight); });
+    const NAV=210,pad=80,w=maxX-minX+pad*2,h=maxY-minY+pad*2,availW=viewport.clientWidth-NAV;
+    scale=Math.min(availW/w,viewport.clientHeight/h,1);
+    tx=NAV+availW/2-((minX+maxX)/2)*scale; ty=viewport.clientHeight/2-((minY+maxY)/2)*scale; apply();
+  }
+  document.getElementById('btnFit').onclick=fitAll;
+  document.getElementById('btnReset').onclick=()=>{ select(START);focusOn(START); };
+  document.getElementById('btnZoomIn').onclick=()=>{ scale=Math.min(2.2,scale*1.15);apply(); };
+  document.getElementById('btnZoomOut').onclick=()=>{ scale=Math.max(.18,scale/1.15);apply(); };
+
+  drawWires(); select(START); fitAll();
+</script>
+</body>
+</html>
