@@ -7,8 +7,8 @@ description: "【dwy·需求市场验证】产品 0 到 1 总闸门（闸1）。
 验证需求真实存在 + 有市场，给出 pass/fail 结论。**总闸门**：过不了流程直接停，不进后续。
 
 ## 输入（从哪读）
-- state.json 的 `confirmed.idea`、`confirmed.competitors`
-- `.dwy/prod/[项目]/01-立项/想法收敛.md`、`竞品分析.md`
+- state.json 的 `confirmed.idea`、`confirmed.competitors`、`confirmed.exploration`（explore 已定性逼出的需求证据 Q1、现状替代 Q2——本 skill 把它变成定量验证）
+- `.dwy/prod/[项目]/01-立项/想法收敛.md`、`竞品分析.md`、`想法探索.md`
 
 ## 实现
 [包装型] 用全局本地 skill（位于 `~/.dwy/skills/<外部skill名>/`）：

@@ -76,7 +76,7 @@
 
 | 原子 skill | 回写字段 | 下游读取方 |
 |---|---|---|
-| dwy-explore | confirmed.exploration | dwy-ideate |
+| dwy-explore | confirmed.exploration | dwy-ideate（收敛）+ dwy-competitor（Q3/Q4 定位）+ dwy-validate（Q1/Q2 转定量）+ dwy-mvp（Q4 砍范围） |
 | dwy-ideate | confirmed.idea | dwy-competitor |
 | dwy-competitor | confirmed.competitors | dwy-validate |
 | dwy-validate | confirmed.validation | dwy-poc（仅 pass=true 才执行） |
