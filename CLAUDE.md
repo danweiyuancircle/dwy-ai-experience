@@ -31,7 +31,7 @@ cd backend && ruff check src/ && ruff format --check src/
 pnpm build:eui && pnpm publish:eui      # @dwydev/eui → npm
 pnpm build:ekit && pnpm publish:ekit    # @dwydev/ekit → npm
 source .key && pnpm publish:eapi        # dwyeapi → PyPI (uv build && uv publish)
-git push github create-dwy@x.y.z        # create-dwy → npm（GitHub Actions OIDC 自动发布，免 token）
+git push origin create-dwy@x.y.z        # create-dwy → npm（GitHub Actions OIDC 自动发布，免 token）
 ```
 
 ## Architecture
@@ -236,7 +236,7 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 | @dwydev/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | pnpm publish:eui | npm view @dwydev/eui version |
 | @dwydev/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | pnpm publish:ekit | npm view @dwydev/ekit version |
 | dwyeapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | source .key && pnpm publish:eapi | pip index versions dwyeapi |
-| create-dwy | cli | dwy-cli/package.json | — | — | `git push github create-dwy@x.y.z`（GitHub Actions OIDC 自动发布） | npm view create-dwy version |
+| create-dwy | cli | dwy-cli/package.json | — | — | `git push origin create-dwy@x.y.z`（GitHub Actions OIDC 自动发布） | npm view create-dwy version |
 
 ### 依赖顺序
 
@@ -261,9 +261,9 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 
 走 GitHub Actions + npm OIDC Trusted Publishing，**不用 NPM_TOKEN**：
 
-1. 改 `dwy-cli/package.json` 的 `version`，commit 推 GitHub
+1. 改 `dwy-cli/package.json` 的 `version`，commit 推 `origin`
 2. 打 tag `create-dwy@x.y.z`（版本号须与 package.json 一致，否则 CI 校验失败）
-3. `git push github create-dwy@x.y.z` → 触发 `.github/workflows/publish-cli.yml` 自动发布
+3. `git push origin create-dwy@x.y.z` → 触发 `.github/workflows/publish-cli.yml` 自动发布
 
-- GitHub remote 名为 `github`（origin 可为 Gitee，推 Gitee 不触发 CI；`dwy` 命令本身不依赖 `origin` 内容）
-- npm 侧已绑定 Trusted Publisher：`danweiyuancircle/dwy-shared` + `publish-cli.yml`
+- `origin` 即 GitHub 仓库 `danweiyuancircle/dwy-ai-experience`，推 tag 即触发 CI
+- npm 侧已绑定 Trusted Publisher：`danweiyuancircle/dwy-ai-experience` + `publish-cli.yml`
