@@ -1,5 +1,14 @@
 # create-dwy
 
+## 0.15.0
+
+### Minor Changes
+
+- 新增「产品 0→1」三层 skill 体系（总控 `dwy-product-launcher` + 5 个可独立触发的阶段 skill + 13 个产出物级原子 skill）：从模糊想法渐进式推进到上线产品，立项阶段三道闸门（需求市场验证为总闸门 → 技术 POC → MVP≤7），廉价验证在前、昂贵投入在后。
+- 新增 `dwy skills install` 命令：把 pm-skills / superpowers 的外部 skill 安装到全局 `~/.dwy/skills/`（一台机一份、全项目共享），含完整 `scripts/` 与 LICENSE；再次运行即覆盖更新。`dwy claude sync` 选中相关 skill 时自动自检安装。
+- 外部 skill 进全局纯数据目录而非 `.claude/skills/`，避免被工具当 skill 加载、与 `dwy-*` 触发冲突。
+- 改造 `dwy-whiteboard-prototype`：配色按产品定位推荐（保留 `:root` 语义变量结构）、尺寸按目标端推荐、图标不再用 emoji。
+
 ## 0.14.7
 
 ### Patch Changes
