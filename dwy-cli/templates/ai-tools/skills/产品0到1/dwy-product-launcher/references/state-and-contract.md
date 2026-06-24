@@ -35,8 +35,13 @@
   .cache/
     skills/                 # 外部 skill 缓存，gitignore 不入库
       manifest.json
-      pm__<name>.md
-      sp__<name>.md
+      <skill名>/            # 每个外部 skill 一个目录（无 sp/pm 前缀），缓存整目录
+        brainstorming/      # 带配套：SKILL.md + scripts/ + 配套 .md
+          SKILL.md
+          scripts/
+          ...
+        create-prd/         # 只有 SKILL.md
+          SKILL.md
 ```
 
 ## 二、.gitignore 规则（总控初始化项目时写入）
@@ -98,22 +103,24 @@
 
 ## 四、外部 skill 缓存 manifest.json
 
+每个外部 skill 缓存**整个目录**（不止 SKILL.md），key 用 skill 名（无 `pm/` `sp/` 前缀），`local` 指向缓存目录：
+
 ```json
 {
   "version": "1.0",
   "skills": {
-    "pm/competitor-analysis": {
+    "competitor-analysis": {
       "repo": "phuryn/pm-skills",
       "release_tag": "v2.0.0",
       "fetched_at": "2026-06-24",
-      "local": "pm__competitor-analysis.md"
+      "local": "competitor-analysis/"
     }
   }
 }
 ```
 
 当前 stable：pm-skills **v2.0.0** | superpowers **v6.0.3**。
-`dwy-skills-update` 比对最新 stable release（跳过 prerelease/beta/rc/含 `-` 的 tag）更新。
+`dwy-skills-update` 用 gh api 拉**整个 skill 目录**，比对最新 stable release（跳过 prerelease/beta/rc/含 `-` 的 tag）更新。
 
 ## 五、断点续跑
 

@@ -11,14 +11,20 @@ description: "【dwy·需求市场验证】产品 0 到 1 总闸门（闸1）。
 - `.dwy/prod/[项目]/01-立项/想法收敛.md`、`竞品分析.md`
 
 ## 实现
-[包装型]
-1. 先读本地缓存 `.dwy/prod/.cache/skills/pm__market-sizing.md`、`pm__sentiment-analysis.md`、`pm__interview-script.md`
-2. 命中 → 直接读取执行
-3. 没命中 → WebFetch 拉以下链接 → 写入缓存目录 + 更新 manifest.json → 执行
-   - `https://raw.githubusercontent.com/phuryn/pm-skills/v2.0.0/pm-market-research/skills/market-sizing/SKILL.md`
-   - `https://raw.githubusercontent.com/phuryn/pm-skills/v2.0.0/pm-market-research/skills/sentiment-analysis/SKILL.md`
-   - `https://raw.githubusercontent.com/phuryn/pm-skills/v2.0.0/pm-product-discovery/skills/interview-script/SKILL.md`
+[包装型] 对每个依赖的外部 skill（`market-sizing`、`sentiment-analysis`、`interview-script`）：
+1. 先读本地缓存目录 `.dwy/prod/.cache/skills/<缓存目录名>/`
+2. 命中（目录存在且含 SKILL.md）→ 读其 SKILL.md 执行，需要时一并用同目录 scripts/ 与配套 .md（如 brainstorming 的可视化服务器脚本）
+3. 没命中 → 用 gh 拉**整个 skill 目录**到缓存：
+   - 列文件：`gh api "repos/<repo>/git/trees/<tag>?recursive=1" --jq '.tree[]|select(.type=="blob")|.path' | grep "^<repo内目录>/"`
+   - 逐文件拉并保原样（含脚本，base64 解码）：`gh api "repos/<repo>/contents/<path>?ref=<tag>" --jq '.content' | base64 -d` 写到 `.dwy/prod/.cache/skills/<缓存目录名>/<去掉 repo内目录前缀的相对路径>`，保持子目录结构（如 scripts/）
+   - 更新 manifest.json（local 指向目录 `<缓存目录名>/`、记 repo + release_tag + fetched_at）
+   - 执行
 4. **fetch 失败：直接报错中断，不降级、不用内置能力顶替**
+
+依赖的外部 skill（缓存目录名 → repo / tag / repo内目录）：
+- `market-sizing` → `phuryn/pm-skills` / `v2.0.0` / `pm-market-research/skills/market-sizing`
+- `sentiment-analysis` → `phuryn/pm-skills` / `v2.0.0` / `pm-market-research/skills/sentiment-analysis`
+- `interview-script` → `phuryn/pm-skills` / `v2.0.0` / `pm-product-discovery/skills/interview-script`
 
 验证方式三选一：
 - 搜索量/竞品热度（AI 自动）
