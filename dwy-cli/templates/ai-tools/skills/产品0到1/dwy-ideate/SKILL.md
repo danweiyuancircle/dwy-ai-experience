@@ -7,7 +7,8 @@ description: "【dwy·想法收敛】产品 0 到 1 立项第一步。触发场�
 把用户模糊的初始念头，通过苏格拉底式反问发散+收敛，产出一份清晰的产品想法定义。
 
 ## 输入（从哪读）
-- 用户口述的初始想法（首个原子，无上游产出）
+- `state.json` 的 `confirmed.exploration` + `.dwy/prod/[项目]/01-立项/想法探索.md`（dwy-explore 已逼清的方向）
+- 若未经 dwy-explore（用户直接触发本 skill 且想法已清晰）：用户口述的初始想法
 
 ## 实现
 [包装型] 用全局本地 skill（位于 `~/.dwy/skills/<外部skill名>/`）：
