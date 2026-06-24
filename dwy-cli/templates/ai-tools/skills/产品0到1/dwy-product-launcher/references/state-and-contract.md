@@ -10,8 +10,7 @@
 .dwy/prod/
   [项目名]/                  # 产品产出，入库（git 跟踪）
     01-立项/
-      想法探索.md           # dwy-explore：YC 6问逼清方向
-      想法收敛.md
+      想法收敛.md           # dwy-explore：YC 6问逼清 + 收敛成结构化定义
       竞品分析.md
       需求市场验证.md         # 闸1·总闸门
       技术验证.md            # 闸2
@@ -54,8 +53,7 @@
   "current_stage": 1,
   "current_round": "stage1_round1",
   "confirmed": {
-    "exploration": { "mode": "startup | builder", "direction": "...", "pass": true },
-    "idea": {},
+    "idea": { "mode": "startup | builder", "pass": true, "core_problem": "...", "target_user": "...", "value_prop": "...", "key_assumptions": [], "narrowest_wedge": "...", "boundaries": "..." },
     "competitors": {},
     "validation": { "pass": true, "evidence": "...", "method": "..." },
     "poc": { "pass": true, "deadlock": "...", "result": "..." },
@@ -76,8 +74,7 @@
 
 | 原子 skill | 回写字段 | 下游读取方 |
 |---|---|---|
-| dwy-explore | confirmed.exploration | dwy-ideate（收敛）+ dwy-competitor（Q3/Q4 定位）+ dwy-validate（Q1/Q2 转定量）+ dwy-mvp（Q4 砍范围） |
-| dwy-ideate | confirmed.idea | dwy-competitor |
+| dwy-explore | confirmed.idea（逼问理清 + 收敛成结构化定义） | dwy-competitor（target_user/wedge 定位）+ dwy-validate（core_problem/assumptions 转定量）+ dwy-mvp（wedge 砍范围）+ dwy-prd |
 | dwy-competitor | confirmed.competitors | dwy-validate |
 | dwy-validate | confirmed.validation | dwy-poc（仅 pass=true 才执行） |
 | dwy-poc | confirmed.poc | dwy-mvp |
@@ -93,7 +90,7 @@
 
 ## 四、外部 skill 全局安装 `~/.dwy/skills/`
 
-包装型原子 skill（dwy-ideate / dwy-competitor / dwy-validate / dwy-mvp / dwy-prd / dwy-version / dwy-tasks / dwy-tdd-dev / dwy-acceptance / dwy-release）依赖 pm-skills / superpowers 的外部 skill，装在**全局** `~/.dwy/skills/<name>/`：
+包装型原子 skill（dwy-competitor / dwy-validate / dwy-mvp / dwy-prd / dwy-version / dwy-tasks / dwy-tdd-dev / dwy-acceptance / dwy-release）依赖 pm-skills / superpowers 的外部 skill，装在**全局** `~/.dwy/skills/<name>/`：
 
 - 每个外部 skill 是**整个目录**（含 scripts/ 与配套 .md，不止 SKILL.md）
 - 由 cli 命令 `dwy skills install` 安装/更新（clone 两仓库的指定 stable tag → 搬整目录 + LICENSE → 写 `VERSIONS.json`）
