@@ -10,6 +10,7 @@
 .dwy/prod/
   [项目名]/                  # 产品产出，入库（git 跟踪）
     01-立项/
+      想法探索.md           # dwy-explore：YC 6问逼清方向
       想法收敛.md
       竞品分析.md
       需求市场验证.md         # 闸1·总闸门
@@ -53,6 +54,7 @@
   "current_stage": 1,
   "current_round": "stage1_round1",
   "confirmed": {
+    "exploration": { "mode": "startup | builder", "direction": "...", "pass": true },
     "idea": {},
     "competitors": {},
     "validation": { "pass": true, "evidence": "...", "method": "..." },
@@ -74,6 +76,7 @@
 
 | 原子 skill | 回写字段 | 下游读取方 |
 |---|---|---|
+| dwy-explore | confirmed.exploration | dwy-ideate |
 | dwy-ideate | confirmed.idea | dwy-competitor |
 | dwy-competitor | confirmed.competitors | dwy-validate |
 | dwy-validate | confirmed.validation | dwy-poc（仅 pass=true 才执行） |
