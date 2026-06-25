@@ -9,7 +9,7 @@ description: "【dwy·TDD开发】产品 0 到 1 开发阶段。触发场景：�
 ## 输入（从哪读）
 - state.json 的 `confirmed.tasks`、`confirmed.architecture`、`confirmed.dev_progress`
 - `.dwy/prod/[项目]/02-需求规划/开发任务拆解.md`
-- `.dwy/prod/[项目]/03-设计与架构/技术架构.md`、`数据库设计.md`、`接口契约.md`
+- `.dwy/prod/[项目]/04-架构设计/技术架构.md`、`数据库设计.md`、`接口契约.md`
 
 ## 实现
 [包装型] 用全局本地 skill（位于 `~/.dwy/skills/<外部skill名>/`）：

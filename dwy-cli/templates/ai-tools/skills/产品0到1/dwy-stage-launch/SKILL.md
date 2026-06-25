@@ -9,7 +9,7 @@ description: "【dwy·立项阶段】产品 0 到 1 的第一阶段编排。触�
 ## 前置校验（开工前读 state）
 - 读 `.dwy/prod/[项目]/state.json`
 - **先检 `schema_version`**：缺失或低于当前版本 → 按 `dwy-product-launcher/references/state-and-contract.md`「schema 版本与迁移」升级 state 再继续
-- 立项是首阶段，无上游依赖；若 `state.json` 不存在则由本阶段初始化（写 `schema_version = "2"`）
+- 立项是首阶段，无上游依赖；若 `state.json` 不存在则由本阶段初始化（写 `schema_version = "3"`）
 
 ## 编排顺序（带闸门）
 1. **dwy-explore** — 想法探索收敛。用 YC forcing questions 逼清楚做什么、值不值，并收敛成结构化想法定义（产出 `想法收敛.md` + `confirmed.idea`）。想不清楚或明显不值 → 建议停下重想，不硬推；想清楚才进下一步

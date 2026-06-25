@@ -129,7 +129,7 @@ skill / 工具的本机判断缓存统一存项目内 `<project_root>/.dwy/<业�
 
 ## 产品0到1 流程 schema 版本约束（强制）
 
-`产品0到1` 流程（`dwy-cli/templates/ai-tools/skills/产品0到1/`）的 `state.json` 有 `schema_version` 字段（当前 `"2"`），区别于产品版本 `version`（用户 app 的 V1.0/V1.1）。
+`产品0到1` 流程（`dwy-cli/templates/ai-tools/skills/产品0到1/`）的 `state.json` 有 `schema_version` 字段（当前 `"3"`），区别于产品版本 `version`（用户 app 的 V1.0/V1.1）。
 
 - **改 state.json 结构若不向后兼容**（如改字段层级、拆产出目录、改字段语义），**必须 bump `schema_version`**，并在 `dwy-product-launcher/references/state-and-contract.md`「schema 版本与迁移」节追加 `vN → vN+1` 迁移规则（旧规则保留以支持跨版逐级迁移）。
 - 新增可选字段、缺失时可安全默认（如新增 `run_mode` 默认 standard）= **向后兼容，不 bump**。

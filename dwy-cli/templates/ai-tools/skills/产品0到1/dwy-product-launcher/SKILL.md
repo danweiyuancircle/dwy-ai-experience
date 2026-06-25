@@ -39,16 +39,16 @@ description: "【dwy·全流程总控】从模糊想法到上线产品的唯一�
 进度以 `state.json` 的 `current_stage` 为准；可从任意阶段断点续跑。
 
 ## 读 state 先检 schema 版本（老项目升级入口）
-读到**已存在**的 `state.json` 时，**先检 `schema_version`**：缺失或低于当前（`"2"`）→ 按 `references/state-and-contract.md`「七、schema 版本与迁移」执行迁移，迁移后再续跑。这是老用户旧 state 无感升级的入口。
+读到**已存在**的 `state.json` 时，**先检 `schema_version`**：缺失或低于当前（`"3"`）→ 按 `references/state-and-contract.md`「七、schema 版本与迁移」逐级迁移（v1→v2→v3），迁移后再续跑。这是老用户旧 state 无感升级的入口。
 
 ## 首次初始化（只建根，不建阶段目录）
 新项目首次进入时，**只**做两件最小事：
-- 建项目根目录 `.dwy/prod/[项目]/`（不建 01~04 任何阶段子目录）
-- 初始化 `state.json`（写 `schema_version = "2"`）
+- 建项目根目录 `.dwy/prod/[项目]/`（不建 01~05 任何阶段子目录）
+- 初始化 `state.json`（写 `schema_version = "3"`）
 
 产品产出 `.dwy/prod/[项目]/` 入库，无需改 `.gitignore`（外部 skill 在全局 `~/.dwy/skills/`，不落项目）。若包装型原子 skill 触发时 `~/.dwy/skills/<name>/` 不存在，提示用户先跑 `dwy skills install`。
 
-**阶段目录渐进式按需建**：`01-立项/` 进立项时才建，`02-需求规划/` 进需求阶段才建……不要一次把四个阶段目录全建出来（那不是渐进式）。state schema、各 skill 的 `confirmed.*` 字段契约、外部 skill 全局安装见 `references/state-and-contract.md`。
+**阶段目录渐进式按需建**：`01-立项/` 进立项时才建，`02-需求规划/` 进需求阶段才建……不要一次把五个阶段目录全建出来（那不是渐进式）。state schema、各 skill 的 `confirmed.*` 字段契约、外部 skill 全局安装见 `references/state-and-contract.md`。
 
 ## state.json（进度 + 结论）
 落 `.dwy/prod/[项目]/state.json`，含：

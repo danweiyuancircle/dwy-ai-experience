@@ -9,7 +9,7 @@ description: "【dwy·验收测试】产品 0 到 1 上架迭代阶段。触发�
 ## 输入（从哪读）
 - state.json 的 `confirmed.dev_progress`、`confirmed.prd`、`confirmed.architecture`
 - 项目源码 + `.dwy/prod/[项目]/02-需求规划/PRD.md`
-- `.dwy/prod/[项目]/03-设计与架构/接口契约.md`
+- `.dwy/prod/[项目]/04-架构设计/接口契约.md`
 
 ## 实现
 [包装型] 用全局本地 skill（位于 `~/.dwy/skills/<外部skill名>/`）：
@@ -19,6 +19,6 @@ description: "【dwy·验收测试】产品 0 到 1 上架迭代阶段。触发�
 - 若 `~/.dwy/skills/<名>/` 不存在：提示用户先跑 `dwy skills install`（或 `dwy claude sync` 会自动装），不要自己用内置能力顶替。
 
 ## 产出契约（硬约束）
-- 落到：`.dwy/prod/[项目]/04-上线交付/验收报告.md`
+- 落到：`.dwy/prod/[项目]/05-上线交付/验收报告.md`
 - 固定章节：集成/E2E 场景结果 / 兼容性 / 合规与沙盒 / 文档vs代码差距 / 验收结论
 - 回写 state.json：`confirmed.acceptance`（验收结论 / 是否达上线标准）
