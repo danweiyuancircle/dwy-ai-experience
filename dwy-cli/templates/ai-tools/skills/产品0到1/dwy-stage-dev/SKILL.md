@@ -27,7 +27,8 @@ description: "【dwy·TDD开发阶段】产品 0 到 1 的第四阶段编排。�
 - 落地用 Claude Code 原生 Agent 工具并发派发 + worktree
 
 ### 第三步·逐任务验收闭环（防漏需求）
-- 每个任务 done 前，承做 agent 必须**对照该任务在拆解时定的验证标准**（精确命令 + 期望输出）核验通过，才**主动标记** `confirmed.dev_progress.<module>.<task> = done`，并在 `09-开发日志.md` 记一行（任务 / 验证结果 / 关键决策）；未过保持 `todo`，不得跳过
+- 每个任务 done 时，承做 agent 走闭环：**核验**（对照验证标准跑通，未过保持 `todo` 不跳过）→ **标记** `confirmed.dev_progress.<module>.<task> = done` → **记日志**（`09-开发日志.md` 一行：任务/验证结果/关键决策）→ **独立提交**（该任务源码+测试单独 commit，一任务一 commit，并发时各自在 worktree 内提交）
+- worktree 内提交后，编排层按 block 顺序合并各任务分支
 
 ### 第四步·收尾覆盖回查
 - 全部任务 done 后，对照 `开发任务拆解.md` 任务清单 + PRD 页面/功能逐项点检，确认无遗漏任务、无「标 done 实则未实现」
