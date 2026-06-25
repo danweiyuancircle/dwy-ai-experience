@@ -127,6 +127,14 @@ skill / 工具的本机判断缓存统一存项目内 `<project_root>/.dwy/<业�
 - `docs/eui-landing-design-guide.md` 是 EUI 落地页设计规范的唯一源文件
 - 以上两个文件变更后，必须同步到 `dwy-cli/templates/claude-global/skills/dwy-eui/references/` 对应文件
 
+## 产品0到1 流程 schema 版本约束（强制）
+
+`产品0到1` 流程（`dwy-cli/templates/ai-tools/skills/产品0到1/`）的 `state.json` 有 `schema_version` 字段（当前 `"2"`），区别于产品版本 `version`（用户 app 的 V1.0/V1.1）。
+
+- **改 state.json 结构若不向后兼容**（如改字段层级、拆产出目录、改字段语义），**必须 bump `schema_version`**，并在 `dwy-product-launcher/references/state-and-contract.md`「schema 版本与迁移」节追加 `vN → vN+1` 迁移规则（旧规则保留以支持跨版逐级迁移）。
+- 新增可选字段、缺失时可安全默认（如新增 `run_mode` 默认 standard）= **向后兼容，不 bump**。
+- 总控 `dwy-product-launcher` 与五个 `dwy-stage-*` 读 state 时都会先检 `schema_version` 触发迁移，迁移规则单一来源在 state-and-contract.md，不要分散重写。
+
 ## 基础库开发规范
 
 eui、ekit、eapi 三个基础库被多个项目依赖，变更必须严格遵循以下流程：

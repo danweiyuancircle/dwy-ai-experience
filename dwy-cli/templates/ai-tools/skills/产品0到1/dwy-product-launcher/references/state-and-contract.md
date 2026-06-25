@@ -50,6 +50,7 @@
 
 ```json
 {
+  "schema_version": "2",
   "version": "1.0",
   "project_name": "...",
   "current_stage": 1,
@@ -73,6 +74,9 @@
   }
 }
 ```
+
+- `schema_version` — **state 结构版本**，当前 `"2"`，升级破坏性结构时 bump（迁移见第七节）。
+- `version` — **产品版本**（用户 app 的 V1.0/V1.1 迭代号），与 schema_version 无关，别混。
 
 字段名是各 skill 的对外契约，**回写方与读取方必须用同一名字**：
 
@@ -119,3 +123,20 @@
 ## 六、断点续跑
 
 会话中断后，总控读 `state.json` 的 `current_stage` + `current_round`，从中断处续跑。已确认字段不重做。
+
+## 七、schema 版本与迁移（单一来源）
+
+**当前 `schema_version = "2"`。** 缺失或 `< 2` = 老结构，**读 state 的 skill（总控 / 任一 stage）必须先迁移再继续**——这是老用户无感升级的唯一入口。新建项目直接写 `schema_version = "2"`。
+
+### v1 → v2 迁移规则（AI 执行，幂等）
+老 state（无 `schema_version`，或 dev_progress 是平层）按序处理：
+
+1. **dev_progress 平层 → 嵌套**：`{"<module>": "todo|done"}` → `{"<module>": {"_legacy": "todo|done"}}`（旧模块整体视为一个已完成/待办任务占位；本版本新任务在该 module 下追加 `<task>`）
+2. **旧 prototypes/ 原型归档**：`prototypes/` 目录下的旧原型文件 → 移到 `prototypes/wireframe/`，在该目录 `index` 注明「旧版原型（可交互白板），仅历史保留」；旧 `confirmed.prototype` **保留**，但标注「旧版产物，新两轮（线框 → 高保真平面图）可按需重跑」
+3. **补 `confirmed.wireframe`**（若无）= 引用迁移后的 `prototypes/wireframe/`
+4. **补顶层 `run_mode`**（若无）= `"standard"`
+5. **写 `schema_version = "2"`**
+6. 迁移完在 `09-开发日志.md` 记一行（迁移前版本 / 改了什么）
+
+### 未来再升级
+bump `schema_version` + 在本节追加 `vN → vN+1` 规则；**旧规则保留**，以支持跨多版本逐级迁移（v1→v2→v3）。
