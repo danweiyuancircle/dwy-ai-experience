@@ -10,52 +10,6 @@ paths:
 
 ---
 
-## 零、优先使用 `dwyeapi` 基础框架库（强制）
-
-`dwyeapi` 是团队内部 PyPI 基础设施包，已封装后端项目所需的通用能力。**凡是 dwyeapi 已提供的能力，禁止自行实现，也禁止引入其他库重复造轮子。**
-
-### 必须复用 dwyeapi 的能力域
-
-| 能力域 | 内容 |
-|--------|------|
-| 配置管理 | 应用 Settings 基类、运行环境识别（dev / prod） |
-| 异常体系 | 业务异常基类与全局异常处理器注册 |
-| 统一响应 | `{ code, message, data, timestamp }` 包装 |
-| 分页 | 分页查询参数模型与分页响应封装 |
-| 数据库 | ORM 声明式基类、时间戳 Mixin、异步引擎与会话工厂 |
-| 依赖注入 | FastAPI `get_db` 工厂 |
-| 安全 | 密码哈希、JWT 创建与解码 |
-| 缓存 | 共享异步 Redis 客户端 |
-| 时间 | 业务时间统一入口（Asia/Shanghai） |
-| 脱敏 | PII 数据脱敏函数 |
-| 日志 | 全局日志配置与门面 |
-| 健康检查 | 健康检查路由工厂 |
-| 异步任务 | 耗时任务队列与上下文 |
-| 邮件 | 邮件验证码可插拔通道 |
-
-### 查阅方式（关键）
-
-**在编写任何后端代码前，以及调用任何 dwyeapi 提供的 API 之前，必须先用 `Skill` 工具加载 `dwy-eapi` skill 查阅当前最新接口。** 本文件**只规定约束与边界**，**不固化** dwyeapi 的具体模块路径、类名、函数签名、参数 —— 这些会随版本演进，固化在 rules 里会与实际包不同步。
-
-```
-Skill 工具调用：skill="dwy-eapi"
-```
-
-### 强制规则
-
-- 涉及上表任一能力域，**先查 skill 拿到当前 API，再写代码**
-- **禁止**自造异常基类，必须复用 dwyeapi 异常体系
-- **禁止**手写 bcrypt / PyJWT 调用，必须走 dwyeapi 安全模块
-- **禁止**自定义统一响应包装函数，必须用 dwyeapi 响应模块
-- **禁止**自定义分页模型，必须用 dwyeapi 分页模块
-- **禁止**自定义 `DeclarativeBase`，模型必须继承 dwyeapi 提供的基类
-- **禁止**在路由函数中直接创建数据库会话，必须用 dwyeapi 依赖工厂
-- **禁止**自建 Redis 连接池，必须用 dwyeapi 共享客户端
-- **禁止**在业务代码中直接使用 `datetime.now()`，必须用 dwyeapi 时间模块
-- **禁止**自行 `logging.basicConfig`，必须用 dwyeapi 日志模块
-
----
-
 ## 一、项目结构与业务聚合（强制）
 
 ### 核心原则
@@ -103,7 +57,7 @@ app/
 - 测试镜像功能聚合结构：`tests/users/test_router.py` / `tests/users/test_service.py`（详见第九节）
 
 ### 例外
-- 通用基础设施代码（如 dwyeapi 内部）可保持技术层结构
+- 通用基础设施代码（如基础框架库内部）可保持技术层结构
 
 ---
 
@@ -167,11 +121,11 @@ async def create_user(
 
 ### 统一响应格式
 
-所有成功 / 分页 / 错误响应统一走 dwyeapi 响应与异常模块（具体 API 与字段结构查 `dwy-eapi` skill），**禁止**自造响应包装函数，**禁止**在 router 中手动构造 `{"success": true, ...}` 等非标准格式。
+所有成功 / 分页 / 错误响应统一走项目级响应与异常模块，**禁止**自造响应包装函数，**禁止**在 router 中手动构造 `{"success": true, ...}` 等非标准格式。
 
 ### 分页
 
-分页参数模型与响应包装统一走 dwyeapi（具体 API 查 `dwy-eapi` skill），**禁止**自定义。
+分页参数模型与响应包装统一走项目级分页模块，**禁止**自定义。
 
 ---
 
@@ -234,7 +188,7 @@ class UserResponse(UserBase):
 
 - 数据库会话、当前用户、配置等**必须**通过 `Depends()` 注入
 - **禁止**在路由函数中直接创建数据库会话或实例化 service
-- `get_db` 依赖必须用 dwyeapi 提供的工厂生成（具体 API 查 `dwy-eapi` skill）
+- `get_db` 依赖必须用项目级工厂生成，**禁止**每个路由各自创建
 
 ```python
 # 反例：路由中直接创建会话
@@ -258,8 +212,8 @@ async def get_user(
 
 ### 强制规则
 
-- **必须**复用 dwyeapi 异常体系与全局处理器（具体异常类与注册方法查 `dwy-eapi` skill），**禁止**自造异常基类
-- 项目级扩展异常必须继承 dwyeapi 异常基类
+- **必须**复用项目级异常体系与全局处理器，**禁止**自造异常基类
+- 项目级扩展异常必须继承统一异常基类
 - **service 层**抛业务异常，**禁止**抛 `HTTPException`（service 不感知 HTTP）
 - **router 层**不写 `try / except`，由全局 handler 统一处理
 - **禁止**裸 `except:` 或 `except Exception: pass`
@@ -273,7 +227,7 @@ async def get_user(
 ### 强制规则
 
 - 必须使用 **SQLAlchemy 2.0** 声明式映射 + async
-- 模型继承 dwyeapi 提供的声明式基类与时间戳 Mixin（具体类名查 `dwy-eapi` skill），**禁止**自定义 `DeclarativeBase`
+- 模型继承项目级统一声明式基类与时间戳 Mixin，**禁止**每个模型各自定义 `DeclarativeBase`
 - 数据库迁移使用 **Alembic**，**禁止**手动执行 DDL
 - **禁止**在路由层直接写 SQL 查询
 - **禁止**使用 SQLAlchemy 1.x 风格的 `session.query(...)`
@@ -283,7 +237,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import String
 import uuid as uuid_lib
 
-class User(BaseFromDwyeapi, TimestampMixinFromDwyeapi):  # 实际基类名以 skill 为准
+class User(Base, TimestampMixin):  # 项目级统一基类与时间戳 Mixin
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -328,10 +282,10 @@ user = result.scalar_one_or_none()
 
 | 规则 | 说明 |
 |------|------|
-| 存储算法 | **只允许 bcrypt**，必须走 dwyeapi 安全模块，**禁止**手写 bcrypt 调用或使用 MD5 / SHA / 明文 |
+| 存储算法 | **只允许 bcrypt**，必须走项目级统一安全模块，**禁止**散落手写 bcrypt 调用或使用 MD5 / SHA / 明文 |
 | 接口返回 | **永远不返回**密码字段，Response Schema 中不包含 |
 | 密码强度 | **长度 ≥ 8 字符**，且**必须**包含 **大写字母、小写字母、数字、特殊符号** 中的至少 **3 类** |
-| 密码长度上限 | Schema 必须 `max_length=72`（bcrypt 输入硬上限，超过会被静默截断），除非 dwyeapi 已做 SHA-256 预哈希 |
+| 密码长度上限 | Schema 必须 `max_length=72`（bcrypt 输入硬上限，超过会被静默截断），除非安全模块已做 SHA-256 预哈希 |
 | 登录错误 | 返回"用户名或密码错误"，**不区分**是用户名不存在还是密码错误 |
 | 强度校验位置 | Pydantic Schema 层用 `field_validator` 校验复杂度，**禁止**只校长度 |
 
@@ -361,12 +315,12 @@ class UserCreate(BaseModel):
         return v
 ```
 
-> 该 validator 建议下沉到 dwyeapi 提供统一的 `PasswordStr` 类型，避免每个项目重复实现。
+> 该 validator 建议下沉为项目级统一的 `PasswordStr` 类型，避免每个模块重复实现。
 
 ### 7.3 接口认证与授权
 
 - 所有 API **必须** JWT 认证（白名单除外：`/health` / `/auth/login` / `/auth/register`）
-- JWT 创建与解码**必须**走 dwyeapi 安全模块，**禁止**直接调用 PyJWT
+- JWT 创建与解码**必须**走项目级统一安全模块，**禁止**散落直接调用 PyJWT
 - Token 黑名单存 Redis（登出后失效，TTL = 剩余有效期）
 - Secret Key 必须从环境变量读取，**禁止**硬编码
 - Secret Key 长度与生成方式（按字节算，不按字符算）：
@@ -389,7 +343,7 @@ class UserCreate(BaseModel):
 
 - **禁止**直接返回 ORM 对象（可能暴露 password、内部 ID 等）
 - 列表接口**必须**分页，**禁止**返回全量数据
-- PII 字段（手机号 / 邮箱 / 身份证 / 银行卡 / 姓名 / 地址 / IP / 车牌）必须使用 dwyeapi 脱敏函数处理
+- PII 字段（手机号 / 邮箱 / 身份证 / 银行卡 / 姓名 / 地址 / IP / 车牌）必须使用项目级统一脱敏函数处理
 
 ### 7.5 错误处理安全
 
@@ -449,7 +403,7 @@ file_path = Path("/uploads") / safe_name
 
 ### 7.8 审计日志
 
-通过 dwyeapi 日志模块获取审计 logger，记录以下操作：
+通过项目级统一日志模块获取审计 logger，记录以下操作：
 
 | 操作 | 记录内容 |
 |------|---------|
@@ -510,8 +464,7 @@ AI 编写或审查后端代码时，**必须**检查以下违规模式，按严�
 
 | 检查项 | 违规模式 | 严重程度 |
 |--------|---------|---------|
-| 重复造轮子 | 自造异常基类 / 自封装统一响应 / 手写 bcrypt 或 JWT 调用 / 自建 Redis 连接池 等 dwyeapi 已提供能力 | 高 |
-| 未查 skill | 调用 dwyeapi 能力域却未先查 `dwy-eapi` skill 拿当前 API | 高 |
+| 重复造轮子 | 自造异常基类 / 自封装统一响应 / 散落手写 bcrypt 或 JWT 调用 / 自建 Redis 连接池 等本应走项目级统一模块的能力 | 高 |
 | 技术层散落 | 顶级出现 `routers/` / `services/` / `models/` / `schemas/` 等技术层目录把不同功能文件混放，未按功能聚合 | 高 |
 | 测试与源码混放 | 测试文件放在源码目录中（如 `app/users/test_router.py`），未独立到测试目录 | 高 |
 | 密码明文 | `password` 字段出现在 Response Schema | **致命 → STOP** |
@@ -528,5 +481,5 @@ AI 编写或审查后端代码时，**必须**检查以下违规模式，按严�
 | service 抛 HTTPException | service 层直接 `raise HTTPException` | 高 |
 | 路由中开会话 | 路由函数中 `async with session_factory()` | 高 |
 | 旧式查询 | `session.query(...)` 而非 `select(...)` | 高 |
-| `datetime.now()` 直用 | 业务代码直接 `datetime.now()` 而非走 dwyeapi 时间模块 | 高 |
+| `datetime.now()` 直用 | 业务代码直接 `datetime.now()` 而非走项目级统一时间模块 | 高 |
 | 物理删除业务数据 | 对业务数据执行物理删除 | 中 |
