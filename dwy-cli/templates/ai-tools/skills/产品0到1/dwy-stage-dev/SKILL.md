@@ -8,6 +8,7 @@ description: "【dwy·TDD开发阶段】产品 0 到 1 的第四阶段编排。�
 
 ## 前置校验（开工前读 state）
 - 读 `.dwy/prod/[项目]/state.json`
+- **先检 `schema_version`**：缺失或低于当前版本 → 按 `dwy-product-launcher/references/state-and-contract.md`「schema 版本与迁移」升级 state 再继续
 - 上游 `confirmed.prototype` / `confirmed.architecture` / `confirmed.tasks` 缺失（如单独触发本阶段）→ **不报错**，基于已聊上下文 + 现有产出**轻量补齐**够本阶段用的架构/任务拆解结论，写回对应 `confirmed.*` 标注「上下文补齐」。仅当上下文完全不足才提示用户补信息。
 - `run_mode` 缺失 → 默认 `standard`，或按用户当下意图问一次。
 - `auto` 下开发全程自动跑（block 分析 → agent 池 → 逐任务验收 → 覆盖回查）；`standard` 同样自动跑（开发阶段本就无逐模块人工验收），区别仅在准出后是否问「继续上架」。

@@ -8,6 +8,7 @@ description: "【dwy·需求版本阶段】产品 0 到 1 的第二阶段编排�
 
 ## 前置校验（开工前读 state）
 - 读 `.dwy/prod/[项目]/state.json`
+- **先检 `schema_version`**：缺失或低于当前版本 → 按 `dwy-product-launcher/references/state-and-contract.md`「schema 版本与迁移」升级 state 再继续
 - 上游 `confirmed.mvp_features` 缺失（如单独触发本阶段）→ **不报错**，基于已聊上下文 + 现有产出**轻量补齐**一份够用的 MVP 范围，写回 `confirmed.mvp_features` 标注「上下文补齐」。
 - **安全边界**：补的是 MVP 范围，**禁止**凭空标 `confirmed.validation`/`confirmed.poc` 的 `pass=true`——若想做真实立项验证，仍需跑 dwy-stage-launch。
 - `run_mode` 缺失（没跑过 explore）→ 默认 `standard`，或按用户当下意图问一次。

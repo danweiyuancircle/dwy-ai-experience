@@ -8,6 +8,7 @@ description: "【dwy·上架迭代阶段】产品 0 到 1 的第五阶段编排�
 
 ## 前置校验（开工前读 state）
 - 读 `.dwy/prod/[项目]/state.json`
+- **先检 `schema_version`**：缺失或低于当前版本 → 按 `dwy-product-launcher/references/state-and-contract.md`「schema 版本与迁移」升级 state 再继续
 - 上游 `confirmed.dev_progress` 缺失（如单独触发本阶段）→ **不报错**，基于已聊上下文 + 现有源码/产出**轻量补齐**够本阶段用的开发完成结论，写回 `confirmed.dev_progress` 标注「上下文补齐」。仅当上下文完全不足才提示用户补信息。
 - `run_mode` 缺失 → 默认 `standard`，或按用户当下意图问一次。
 
