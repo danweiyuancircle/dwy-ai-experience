@@ -8,7 +8,7 @@ description: "【dwy·上架迭代】产品 0 到 1 上架迭代阶段（终点�
 
 ## 输入（从哪读）
 - state.json 的 `confirmed.acceptance`、`confirmed.prd`、`confirmed.version_plan`
-- `.dwy/prod/[项目]/04-上线交付/验收报告.md`
+- `.dwy/prod/[项目]/05-上线交付/验收报告.md`
 - `.dwy/prod/[项目]/02-需求规划/版本路线图.md`
 
 ## 实现
@@ -19,7 +19,7 @@ description: "【dwy·上架迭代】产品 0 到 1 上架迭代阶段（终点�
 - 若 `~/.dwy/skills/<名>/` 不存在：提示用户先跑 `dwy skills install`（或 `dwy claude sync` 会自动装），不要自己用内置能力顶替。
 
 ## 产出契约（硬约束）
-- 落到：`.dwy/prod/[项目]/04-上线交付/上架物料.md`、`埋点与指标.md`、`下一版迭代规划.md`
+- 落到：`.dwy/prod/[项目]/05-上线交付/上架物料.md`、`埋点与指标.md`、`下一版迭代规划.md`
 - 固定章节：
   - 上架物料.md：发布说明 / GTM 策略 / 渠道文案
   - 埋点与指标.md：北极星指标 / 埋点清单 / 指标看板设计
