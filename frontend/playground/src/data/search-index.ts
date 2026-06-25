@@ -114,10 +114,12 @@ const searchItems: SearchItem[] = [
   { title: 'dwy-redis', module: 'Claude Code', path: '/claude/rules/dwy-redis', content: 'Redis 密码 危险命令 TTL key 前缀 敏感数据 rule' },
   // Claude Code · Rules · Python 后端
   { title: 'dwy-python-core', module: 'Claude Code', path: '/claude/rules/dwy-python-core', content: 'Python 基础风格 类型标注 注释 rule' },
-  { title: 'dwy-python-backend', module: 'Claude Code', path: '/claude/rules/dwy-python-backend', content: 'FastAPI SQLAlchemy 后端安全 dwyeapi 路由 ORM 注入防护 限流 审计 rule' },
+  { title: 'dwy-python-backend', module: 'Claude Code', path: '/claude/rules/dwy-python-backend', content: 'FastAPI SQLAlchemy 后端安全 路由 ORM 注入防护 限流 审计 rule' },
+  { title: 'dwy-python-base-lib', module: 'Claude Code', path: '/claude/rules/dwy-python-base-lib', content: '团队 dwyeapi 基础框架库强制复用 rule' },
   { title: 'dwy-python-testing', module: 'Claude Code', path: '/claude/rules/dwy-python-testing', content: 'Python 测试 pytest fixture rule' },
   // Claude Code · Rules · Vue 前端
   { title: 'dwy-vue-core', module: 'Claude Code', path: '/claude/rules/dwy-vue-core', content: 'Vue 3 基础风格 Composition API setup rule' },
+  { title: 'dwy-vue-base-lib', module: 'Claude Code', path: '/claude/rules/dwy-vue-base-lib', content: '团队 eui/ekit 基础库强制复用 rule' },
   { title: 'dwy-vue-pinia', module: 'Claude Code', path: '/claude/rules/dwy-vue-pinia', content: 'Pinia Setup Store 状态管理 rule' },
   { title: 'dwy-vue-testing', module: 'Claude Code', path: '/claude/rules/dwy-vue-testing', content: 'Vue 测试 Vitest jsdom rule' },
   // Claude Code · Rules · Flutter 移动端
