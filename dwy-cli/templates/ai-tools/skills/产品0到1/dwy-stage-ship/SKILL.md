@@ -8,7 +8,7 @@ description: "【dwy·上架迭代阶段】产品 0 到 1 的第五阶段编排�
 
 ## 前置校验（开工前读 state）
 - 读 `.dwy/prod/[项目]/state.json`
-- 校验上游完整：`confirmed.dev_progress` 必须存在（当前版本全模块测试通过）
+- 校验上游完整：`confirmed.dev_progress` 必须存在（当前版本全任务测试通过、覆盖回查无遗漏）
 - 缺失 → 报错中断，提示先跑 dwy-stage-dev
 
 ## 编排顺序

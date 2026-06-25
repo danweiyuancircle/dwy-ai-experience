@@ -21,7 +21,9 @@
       版本路线图.md
       开发任务拆解.md
     03-设计与架构/
-      prototypes/           # dwy-whiteboard-prototype 白板 HTML
+      prototypes/
+        wireframe/          # dwy-prototype 第一轮：低保真线框初稿（静态 HTML，一页一图）
+        hifi/               # dwy-prototype 第二轮：高保真平面图（静态 HTML，一页一图）
       技术架构.md
       数据库设计.md
       接口契约.md
@@ -61,9 +63,10 @@
     "prd": {},
     "version_plan": {},
     "tasks": {},
+    "wireframe": {},
     "prototype": {},
     "architecture": {},
-    "dev_progress": { "<module>": "todo | done" },
+    "dev_progress": { "<module>": { "<task>": "todo | done" } },
     "acceptance": {},
     "release": {}
   }
@@ -82,7 +85,8 @@
 | dwy-prd | confirmed.prd | dwy-version |
 | dwy-version | confirmed.version_plan | dwy-tasks / dwy-stage-design |
 | dwy-tasks | confirmed.tasks | dwy-stage-dev |
-| dwy-prototype | confirmed.prototype | — |
+| dwy-prototype（第一轮·线框初稿） | confirmed.wireframe | dwy-prototype 第二轮（基于线框升保真） |
+| dwy-prototype（第二轮·高保真平面图） | confirmed.prototype | dwy-architecture（原型定稿后才进架构） |
 | dwy-architecture | confirmed.architecture | dwy-stage-dev |
 | dwy-tdd-dev | confirmed.dev_progress | dwy-stage-ship |
 | dwy-acceptance | confirmed.acceptance | dwy-release |
