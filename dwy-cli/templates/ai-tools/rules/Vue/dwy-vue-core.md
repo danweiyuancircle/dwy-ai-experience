@@ -29,7 +29,7 @@ paths:
 
 ```
 src/
-├── modules/                    # 业务模块根目录
+├── features/                   # 业务功能根目录
 │   ├── users/                  # 用户功能
 │   │   ├── api.ts              # 该业务的 API（用全局 HTTP 客户端）
 │   │   ├── store.ts            # 该业务的 Pinia store
@@ -92,7 +92,7 @@ export default {
 ```vue
 <script setup lang="ts">
 // 1. 类型导入
-import type { UserInfo } from '@/modules/users/types'
+import type { UserInfo } from '@/features/users/types'
 
 // 2. 组件 / 工具导入
 import { ref, computed, onMounted } from 'vue'
@@ -206,7 +206,7 @@ const router = createRouter({
     {
       path: '/dashboard',
       name: 'Dashboard',
-      component: () => import('@/modules/dashboard/views/DashboardView.vue'),
+      component: () => import('@/features/dashboard/views/DashboardView.vue'),
       meta: { requiresAuth: true },
     },
   ],
@@ -271,7 +271,7 @@ export function useList<T>(fetchFn: () => Promise<T[]>) {
 ### 示例
 
 ```typescript
-// modules/users/api.ts —— 该业务的 API
+// features/users/api.ts —— 该业务的 API
 import { request } from '@/core/http'
 import type { UserInfo, UserCreate } from './types'
 
@@ -431,8 +431,8 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 
 // 3. 项目内（@ 别名）
-import { useAuthStore } from '@/modules/users/store'
-import type { UserInfo } from '@/modules/users/types'
+import { useAuthStore } from '@/features/users/store'
+import type { UserInfo } from '@/features/users/types'
 ```
 
 ### 强制规则
