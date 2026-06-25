@@ -8,8 +8,9 @@ description: "【dwy·TDD开发阶段】产品 0 到 1 的第四阶段编排。�
 
 ## 前置校验（开工前读 state）
 - 读 `.dwy/prod/[项目]/state.json`
-- 校验上游完整：`confirmed.prototype` + `confirmed.architecture` + `confirmed.tasks` 必须存在
-- 缺失 → 报错中断，提示先跑 dwy-stage-design
+- 上游 `confirmed.prototype` / `confirmed.architecture` / `confirmed.tasks` 缺失（如单独触发本阶段）→ **不报错**，基于已聊上下文 + 现有产出**轻量补齐**够本阶段用的架构/任务拆解结论，写回对应 `confirmed.*` 标注「上下文补齐」。仅当上下文完全不足才提示用户补信息。
+- `run_mode` 缺失 → 默认 `standard`，或按用户当下意图问一次。
+- `auto` 下开发全程自动跑（block 分析 → agent 池 → 逐任务验收 → 覆盖回查）；`standard` 同样自动跑（开发阶段本就无逐模块人工验收），区别仅在准出后是否问「继续上架」。
 
 ## 编排（block 分析 → agent 池调度）
 
@@ -34,7 +35,10 @@ description: "【dwy·TDD开发阶段】产品 0 到 1 的第四阶段编排。�
 - 全部任务 done 后，对照 `开发任务拆解.md` 任务清单 + PRD 页面/功能逐项点检，确认无遗漏任务、无「标 done 实则未实现」
 - 发现缺口 → 补任务再跑，不直接进 ship
 
+## 自动流转（准出后）
+- 回写 `current_stage = "ship"`，按 `run_mode`：`standard` 问「继续上架迭代 / 停」、`auto` 直接触发 `dwy-stage-ship`。
+
 ## 准出条件（硬约束）
 - 当前版本（V1.0）**全任务测试通过** + 覆盖回查无遗漏
 - `confirmed.dev_progress` 全 done（任务级记录 `<module>.<task>`）
-- 回写 `state.json`：`current_stage = "ship"`
+- 回写 `state.json`：`current_stage = "ship"`，按 run_mode 流转下一阶段

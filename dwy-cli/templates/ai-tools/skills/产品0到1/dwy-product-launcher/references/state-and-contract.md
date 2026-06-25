@@ -54,6 +54,7 @@
   "project_name": "...",
   "current_stage": 1,
   "current_round": "stage1_round1",
+  "run_mode": "standard | auto",
   "confirmed": {
     "idea": { "mode": "startup | builder", "pass": true, "core_problem": "...", "target_user": "...", "value_prop": "...", "key_assumptions": [], "narrowest_wedge": "...", "boundaries": "..." },
     "competitors": {},
@@ -102,6 +103,19 @@
 - 当前 stable：pm-skills **v2.0.0** | superpowers **v6.0.3**（升级改 cli 的 `skills-install.js` 清单 tag）
 - 原子 skill 运行时**只读** `~/.dwy/skills/<name>/`，缺失则提示用户先 `dwy skills install`，不自己拉、不降级
 
-## 五、断点续跑
+## 五、运行模式与流转（run_mode）
+
+`state.json` 顶层 `run_mode`，取值 `standard | auto`，由 `dwy-explore` 在 idea 收敛后问一次写入（区别于 `confirmed.idea.mode` 的 startup/builder **产品类型**，`run_mode` 是**怎么跑**）。总控与每个 `dwy-stage-*` 都读它：
+
+| run_mode | 阶段间 | stage 内门控（原型两轮 / PRD 确认等） | 硬闸门（validate 没人要 / poc 做不出 / 高风险不可逆） |
+|---|---|---|---|
+| `standard` | 每阶段准出后问「继续 / 停」 | 照常问用户 | 停 |
+| `auto` | 不问，自动连跑到底出结果 | 全部 AI 自动决策、不问 | **仍停**（auto 不绕硬闸门） |
+
+**流转规则**：每个 stage 准出 = 回写 `current_stage` + 按 `run_mode` 决定「问后流转」（standard）或「直接触发下一 `dwy-stage-*`」（auto）。总控 `dwy-product-launcher` 与单独触发某 stage **行为一致**，都走这套流转。最后一阶段 ship 无下游，正常结束。
+
+**stage 独立触发 + 上游补齐**：单独触发某 `dwy-stage-*` 时上游 `confirmed.*` 缺失 → 不报错，基于已聊上下文 + 现有产出文件**轻量补齐**够本阶段用的上游结论，写回对应 `confirmed.*` 标注「上下文补齐」。**安全边界**：可补产出文档/范围类（prd/version_plan/tasks/prototype/architecture/mvp_features 范围）；**禁止**凭空标硬闸门 `pass=true`（`validation`/`poc` 只能由 launch 真实跑出）。
+
+## 六、断点续跑
 
 会话中断后，总控读 `state.json` 的 `current_stage` + `current_round`，从中断处续跑。已确认字段不重做。
