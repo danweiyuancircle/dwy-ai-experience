@@ -19,9 +19,16 @@ description: "【dwy·立项阶段】产品 0 到 1 的第一阶段编排。触�
 
 > dwy-explore 与 dwy-validate 分工：explore 定性逼问给**方向**（做什么、给谁、最窄切入），validate 定量验证给**证据**（搜索量/竞品/访谈），不重复。
 
-每道闸门未过 → 立即中断本阶段，回写 state 标记停止原因，不静默跳过。
+每道闸门未过 → 立即中断本阶段，回写 state 标记停止原因，不静默跳过。**硬闸门不受 run_mode 影响**：auto 下闸门未过同样停。
+
+## run_mode 感知
+- `dwy-explore` 末尾问得的 `run_mode` 决定本阶段内的非闸门门控：`standard` 照常问用户、`auto` 自动决策推进。
+- 闸门（validate/poc/mvp）是硬约束，两种模式都按结果停或过。
+
+## 自动流转（准出后）
+- 三闸全过 + 立项确认 → 回写 `current_stage = "prd"`，按 `run_mode` 流转：`standard` 问「继续做需求版本 / 停」、`auto` 直接触发 `dwy-stage-prd`。
 
 ## 准出条件（硬约束）
 - 三闸全过：`confirmed.validation` / `confirmed.poc` / `confirmed.mvp_features` 均写入
-- 用户明确确认立项
-- 回写 `state.json`：`current_stage = "prd"`（进入下一阶段需求版本）
+- 立项确认（standard 问用户；auto 自动判定，但闸门未过仍停）
+- 回写 `state.json`：`current_stage = "prd"`，按 run_mode 流转下一阶段
