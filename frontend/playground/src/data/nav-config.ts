@@ -250,6 +250,7 @@ export const modules: ModuleConfig[] = [
         items: [
           { name: 'dwy-python-core', path: '/claude/rules/dwy-python-core' },
           { name: 'dwy-python-backend', path: '/claude/rules/dwy-python-backend' },
+          { name: 'dwy-python-base-lib', path: '/claude/rules/dwy-python-base-lib' },
           { name: 'dwy-python-testing', path: '/claude/rules/dwy-python-testing' },
         ],
       },
@@ -257,6 +258,7 @@ export const modules: ModuleConfig[] = [
         title: 'Rules · Vue 前端',
         items: [
           { name: 'dwy-vue-core', path: '/claude/rules/dwy-vue-core' },
+          { name: 'dwy-vue-base-lib', path: '/claude/rules/dwy-vue-base-lib' },
           { name: 'dwy-vue-pinia', path: '/claude/rules/dwy-vue-pinia' },
           { name: 'dwy-vue-testing', path: '/claude/rules/dwy-vue-testing' },
         ],
