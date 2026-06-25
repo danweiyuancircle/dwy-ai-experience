@@ -4,19 +4,36 @@ description: "【dwy·TDD开发阶段】产品 0 到 1 的第四阶段编排。�
 ---
 
 ## 职责（单一·编排层）
-调度 TDD 开发原子 skill 按模块循环，不掺产出内容。版本内互不依赖的模块**多模块并发**。
+**任务级 block 分析 + 动态调度**，不掺产出内容。读任务依赖图，无 block 的任务多 Agent 并发、有 block 的串行，逐任务验收推进。
 
 ## 前置校验（开工前读 state）
 - 读 `.dwy/prod/[项目]/state.json`
 - 校验上游完整：`confirmed.prototype` + `confirmed.architecture` + `confirmed.tasks` 必须存在
 - 缺失 → 报错中断，提示先跑 dwy-stage-design
 
-## 编排（按模块循环 + 并发）
-- 按 `confirmed.tasks` 的模块清单逐个调 **dwy-tdd-dev**
-- 互不依赖的模块用多个子 Agent 并发；改同一批文件时各自独立 worktree 防冲突
-- 有依赖的模块按依赖顺序串行
+## 编排（block 分析 → agent 池调度）
+
+### 第一步·block 分析（硬约束，先做）
+调度前**必须先分析每个任务的前后 block 关系**（由任务 Interfaces 推出：`Consumes`=被谁 block、`Produces`=block 谁）。判定铁律：
+- **无 block 的任务 → 多 Agent 并行**
+- **有 block 的任务 → 串行**，被 block 的下游必须等其所有前置 block 任务 done 才能启动
+- 与 `ai-tools/CLAUDE.md`「任务执行前必须先分析 block；无 block 的任务用多 Agent 并行」一致
+
+### 第二步·agent 池调度
+- 按 block 分析结果建 **ready 队列**（所有前置 block 已 done 的任务，即当前无 block 的）
+- 多个子 Agent 并发领取 ready 队列任务，每个 agent 调 **dwy-tdd-dev** 跑单任务 RED→GREEN→REFACTOR
+- 任务 done → 解锁被它 block 的下游 → 下游 block 全清进 ready → 空闲 agent 继续领；任务多时吞吐高
+- **冲突隔离**：改同一批文件的并行任务各自独立 git worktree，完成后按 block 顺序合并；无文件交叠的并行任务无需隔离
+- 落地用 Claude Code 原生 Agent 工具并发派发 + worktree
+
+### 第三步·逐任务验收闭环（防漏需求）
+- 每个任务 done 前，承做 agent 必须**对照该任务在拆解时定的验证标准**（精确命令 + 期望输出）核验通过，才**主动标记** `confirmed.dev_progress.<module>.<task> = done`，并在 `09-开发日志.md` 记一行（任务 / 验证结果 / 关键决策）；未过保持 `todo`，不得跳过
+
+### 第四步·收尾覆盖回查
+- 全部任务 done 后，对照 `开发任务拆解.md` 任务清单 + PRD 页面/功能逐项点检，确认无遗漏任务、无「标 done 实则未实现」
+- 发现缺口 → 补任务再跑，不直接进 ship
 
 ## 准出条件（硬约束）
-- 当前版本（V1.0）**全模块测试通过**
-- `confirmed.dev_progress` 写入（记录已完成模块与测试状态）
+- 当前版本（V1.0）**全任务测试通过** + 覆盖回查无遗漏
+- `confirmed.dev_progress` 全 done（任务级记录 `<module>.<task>`）
 - 回写 `state.json`：`current_stage = "ship"`
