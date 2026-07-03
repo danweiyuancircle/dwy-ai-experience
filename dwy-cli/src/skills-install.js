@@ -29,6 +29,12 @@ const SKILL_SOURCES = {
       'test-scenarios': 'pm-execution/skills/test-scenarios',
       'release-notes': 'pm-execution/skills/release-notes',
       'gtm-strategy': 'pm-go-to-market/skills/gtm-strategy',
+      // 商业分析（dwy-commercial 依赖）：商业模式 / 变现 / 定价 / 创业画布 / 赛道五力
+      'business-model': 'pm-product-strategy/skills/business-model',
+      'monetization-strategy': 'pm-product-strategy/skills/monetization-strategy',
+      'pricing-strategy': 'pm-product-strategy/skills/pricing-strategy',
+      'startup-canvas': 'pm-product-strategy/skills/startup-canvas',
+      'porters-five-forces': 'pm-product-strategy/skills/porters-five-forces',
       'intended-vs-implemented': 'pm-ai-shipping/skills/intended-vs-implemented',
       'north-star-metric': 'pm-marketing-growth/skills/north-star-metric',
     },
