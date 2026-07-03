@@ -13,6 +13,7 @@
       想法收敛.md           # dwy-explore：YC 6问逼清 + 收敛成结构化定义
       竞品分析.md
       需求市场验证.md         # 闸1·总闸门
+      商业分析.md            # 商业闸门·startup 硬闸（builder 跳过）
       技术验证.md            # 闸2
       poc/                  # 最小 POC 代码
       MVP清单.md            # 闸3·≤7
@@ -60,6 +61,7 @@
     "idea": { "mode": "startup | builder", "pass": true, "core_problem": "...", "target_user": "...", "value_prop": "...", "key_assumptions": [], "narrowest_wedge": "...", "boundaries": "..." },
     "competitors": {},
     "validation": { "pass": true, "evidence": "...", "method": "..." },
+    "commercial": { "mode": "startup | builder", "pass": true, "skipped": false, "monetization": "...", "unit_economics": {}, "gtm": "..." },
     "poc": { "pass": true, "deadlock": "...", "result": "..." },
     "mvp_features": [],
     "prd": {},
@@ -84,7 +86,8 @@
 |---|---|---|
 | dwy-explore | confirmed.idea（逼问理清 + 收敛成结构化定义） | dwy-competitor（target_user/wedge 定位）+ dwy-validate（core_problem/assumptions 转定量）+ dwy-mvp（wedge 砍范围）+ dwy-prd |
 | dwy-competitor | confirmed.competitors | dwy-validate |
-| dwy-validate | confirmed.validation | dwy-poc（仅 pass=true 才执行） |
+| dwy-validate | confirmed.validation | dwy-commercial（仅 pass=true 才执行） + dwy-poc |
+| dwy-commercial | confirmed.commercial | dwy-poc（startup 模式仅 pass=true 或 skipped 才执行；builder 跳过） |
 | dwy-poc | confirmed.poc | dwy-mvp |
 | dwy-mvp | confirmed.mvp_features | dwy-stage-prd |
 | dwy-prd | confirmed.prd | dwy-version |
@@ -99,7 +102,7 @@
 
 ## 四、外部 skill 全局安装 `~/.dwy/skills/`
 
-包装型原子 skill（dwy-competitor / dwy-validate / dwy-mvp / dwy-prd / dwy-version / dwy-tasks / dwy-tdd-dev / dwy-acceptance / dwy-release）依赖 pm-skills / superpowers 的外部 skill，装在**全局** `~/.dwy/skills/<name>/`：
+包装型原子 skill（dwy-competitor / dwy-validate / dwy-commercial / dwy-mvp / dwy-prd / dwy-version / dwy-tasks / dwy-tdd-dev / dwy-acceptance / dwy-release）依赖 pm-skills / superpowers 的外部 skill，装在**全局** `~/.dwy/skills/<name>/`：
 
 - 每个外部 skill 是**整个目录**（含 scripts/ 与配套 .md，不止 SKILL.md）
 - 由 cli 命令 `dwy skills install` 安装/更新（clone 两仓库的指定 stable tag → 搬整目录 + LICENSE → 写 `VERSIONS.json`）

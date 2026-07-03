@@ -30,7 +30,7 @@ description: "【dwy·全流程总控】从模糊想法到上线产品的唯一�
 - 用户喊停时，已完成阶段的产出和 state.json 都已落盘，下次可断点续跑
 
 按序的五阶段：
-1. **dwy-stage-launch** — 立项（三闸门：需求验证 → POC → MVP）
+1. **dwy-stage-launch** — 立项（闸门：需求验证 → 商业可行性[startup 硬闸] → POC → MVP）
 2. **dwy-stage-prd** — 需求版本
 3. **dwy-stage-design** — 设计架构
 4. **dwy-stage-dev** — TDD 开发
@@ -54,7 +54,7 @@ description: "【dwy·全流程总控】从模糊想法到上线产品的唯一�
 落 `.dwy/prod/[项目]/state.json`，含：
 - `current_stage` — 当前阶段
 - `current_version` — 当前版本（如 `V1.0`）
-- `confirmed.*` — 各原子的已确认结论引用（idea / competitors / validation / poc / mvp_features / prd / version_plan / tasks / prototype / architecture / dev_progress / acceptance / release）
+- `confirmed.*` — 各原子的已确认结论引用（idea / competitors / validation / commercial / poc / mvp_features / prd / version_plan / tasks / prototype / architecture / dev_progress / acceptance / release）
 - `versions` — 各版本状态（路线图 + 完成情况）
 
 ## 多版本编排逻辑
