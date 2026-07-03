@@ -23,6 +23,8 @@ build/
 
 # Local Claude Code settings
 .claude/settings.local.json
+# dwy 本机缓存（sync-state.json 等同步状态，每机不同，不入库）
+.dwy/
 dwy-cli/.agents/
 dwy-cli/.claude/
 dwy-cli/.codex/
