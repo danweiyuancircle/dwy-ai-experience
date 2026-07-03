@@ -1,6 +1,7 @@
 import fs from 'fs-extra'
 import path from 'path'
 import os from 'node:os'
+import { createHash } from 'node:crypto'
 import { getDwyHomeDir, runGit, chalk } from './utils.js'
 
 function logAction(label) {
@@ -53,6 +54,13 @@ const SKILL_SOURCES = {
   },
 }
 
+// 计算 SKILL_SOURCES 清单的内容指纹，用于检测「cli 加了 skill / 改了 tag」→ 需重装。
+// SKILL_SOURCES 是源码内固定字面量，JSON.stringify 稳定（插入顺序固定）。
+// 取 sha256 前 12 位，足以区分任意清单变更，无碰撞风险。
+function computeManifestHash() {
+  return createHash('sha256').update(JSON.stringify(SKILL_SOURCES)).digest('hex').slice(0, 12)
+}
+
 // 全局外部 skill 安装目录：~/.dwy/skills/
 function getGlobalSkillsDir() {
   return path.join(getDwyHomeDir(), 'skills')
@@ -98,22 +106,49 @@ export async function installSkills() {
       }
     }
 
-    // 写版本清单，供查看与后续更新比对
-    await fs.writeJson(path.join(targetDir, 'VERSIONS.json'), versions, { spaces: 2 })
+    // 写版本清单 + 清单指纹，供查看与后续更新比对。
+    // manifest_hash 变化（cli 加了 skill / 改了 tag）→ 下次 ensureSkillsInstalled 触发重装。
+    await fs.writeJson(
+      path.join(targetDir, 'VERSIONS.json'),
+      { manifest_hash: computeManifestHash(), versions },
+      { spaces: 2 },
+    )
     console.log(chalk.green(`\n✓ 外部 skill 已安装到 ${targetDir}`))
   } finally {
     await fs.remove(tmpRoot)
   }
 }
 
-// 全局 skill 是否已就绪（供 sync 自检：缺则自动装）。
+// 全局 skill 是否已就绪（VERSIONS.json 存在）。
 export async function skillsInstalled() {
   return fs.pathExists(path.join(getGlobalSkillsDir(), 'VERSIONS.json'))
 }
 
+// 确保 ~/.dwy/skills/ 与 cli 当前 SKILL_SOURCES 清单一致：未装 / 清单变更 → 自动重装。
+// hash 一致 → 零开销跳过；失败 → warn 一行不阻塞主流程（离线/网络故障不挡 sync）。
+// 返回 true = 本次执行了安装，false = 跳过。
 export async function ensureSkillsInstalled() {
-  if (await skillsInstalled()) return false
-  console.log(chalk.gray('未检测到全局外部 skill，自动安装...'))
-  await installSkills()
-  return true
+  const versionsFile = path.join(getGlobalSkillsDir(), 'VERSIONS.json')
+  // 已装：读 manifest_hash 比对，一致即跳过，不联网
+  if (await fs.pathExists(versionsFile)) {
+    let stored
+    try {
+      stored = await fs.readJson(versionsFile)
+    } catch {
+      stored = {}
+    }
+    // 兼容老格式（无 manifest_hash）→ 视为不一致，触发一次重装补上指纹
+    if (stored.manifest_hash === computeManifestHash()) return false
+    console.log(chalk.gray('全局外部 skill 清单已更新，重新拉取...'))
+  } else {
+    console.log(chalk.gray('未检测到全局外部 skill，自动安装...'))
+  }
+  try {
+    await installSkills()
+    return true
+  } catch (error) {
+    // 离线/网络故障：不阻塞主流程，下次再来
+    console.log(chalk.yellow(`外部 skill 自动更新失败：${error.message}`))
+    return false
+  }
 }
