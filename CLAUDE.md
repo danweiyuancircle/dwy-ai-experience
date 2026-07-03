@@ -93,9 +93,9 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 项目脚手架 + Claude 配置同步工具，命令行 `dwy`。
 
 - **`dwy create [name]`**: 交互式创建项目，Handlebars 模板引擎，模板在 `templates/project/{template}/`
-- **`dwy sync`**: 交互式选择一次，同步到 Claude Code 与 Codex；`dwy sync md` 同步 CLAUDE.md 到全局 ~/.claude/ 和 ~/.codex/AGENTS.md
-- **`dwy claude sync`**: 从 `templates/claude-global/` 同步 skills/rules/commands/hooks 到项目 `.claude/`（settings.json 智能合并）；`dwy claude sync md` 仅同步 CLAUDE.md 到全局 ~/.claude/
-- **`dwy codex sync`**: 把 Claude 模板转成 OpenAI Codex 格式同步到项目：rules→`AGENTS.md`（`<!-- DWY-RULES -->` 托管块，支持更新/删除且保留用户内容）、skills→`.agents/skills/`（拍平分类）、hooks→`.codex/hooks/` + `.codex/hooks.json`（Codex 版脚本读 stdin JSON）。Codex hooks 源在 `templates/codex-global/`；`dwy codex sync md` 仅把 CLAUDE.md 整文件同步到全局 ~/.codex/AGENTS.md
+- **`dwy`**: 唯一入口，交互式同步——multiselect 选平台（Claude Code / Codex / Cursor / OpenCode）+ 选 rules/skills/commands/hooks，开头自动检测更新全局外部 skill（清单变更才联网，已装且一致零开销）
+- `dwy sync` 为 `dwy` 的别名；`dwy skills install` 为强制刷新全局外部 skill 的兜底命令（日常无需手动，仅离线补装/强制重装时用）
+- 注意：实际代码只有上述入口，不存在 `dwy claude sync` / `dwy codex sync` / `dwy sync md` 等子命令（旧文档的过期描述，平台/类型选择都在 `dwy` 的交互 multiselect 里完成）
 - 模板随 `create-dwy` 发布包内置于 `dwy-cli/templates/ai-tools`，`dwy` 运行时不再读取或刷新本机模板仓库缓存。
 
 ### frontend/playground/

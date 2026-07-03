@@ -15,13 +15,15 @@ function printHelp() {
     `dwy ${pkg.version}`,
     '',
     'Usage:',
-    '  dwy               运行交互式同步',
-    '  dwy sync          运行交互式同步',
-    '  dwy skills install  安装/更新全局外部 skill 到 ~/.dwy/skills/',
+    '  dwy               运行交互式同步（自动更新全局外部 skill）',
     '  dwy --help        显示本说明',
     '  dwy -h            显示本说明',
     '  dwy --version     显示当前版本',
     '  dwy -V            显示当前版本',
+    '',
+    '以下为隐藏命令（向后兼容保留，日常无需手动调用）：',
+    '  dwy sync          同上的别名',
+    '  dwy skills install  强制刷新全局外部 skill',
     '',
   ]
   console.log(lines.join('\n'))

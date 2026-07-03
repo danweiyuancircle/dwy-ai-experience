@@ -26,13 +26,6 @@ import { scanExistingCursorRules, syncCursor } from './sync-cursor.js'
 import { syncOpenCode } from './sync-opencode.js'
 import { ensureSkillsInstalled } from './skills-install.js'
 
-// 产品 0→1 流程里依赖全局外部 skill 的包装型原子 skill。
-// 同步选中其中任一个时，触发全局外部 skill 自检安装。
-const WRAPPER_SKILL_NAMES = new Set([
-  'dwy-competitor', 'dwy-validate', 'dwy-commercial', 'dwy-mvp', 'dwy-prd',
-  'dwy-version', 'dwy-tasks', 'dwy-tdd-dev', 'dwy-acceptance', 'dwy-release',
-])
-
 const PLATFORM_OPTIONS = [
   { value: 'claude', label: 'Claude Code', hint: '支持 rules / skills / commands / hooks' },
   { value: 'codex', label: 'Codex', hint: '支持 rules / skills / hooks' },
@@ -567,6 +560,12 @@ export async function syncAll({
 
   const projectDir = projectDirOverride || process.cwd()
 
+  // 开头无条件自检全局外部 skill：未装 / 清单变更（cli 加了 skill 或改了 tag）则自动更新，
+  // 已装且清单一致则零开销跳过。失败不阻塞 sync（离线/网络故障，下次再来）。
+  // 这样用户跑一次 `dwy` 就把 skill 更新到位，无需另记 `dwy skills install`。
+  console.log(chalk.gray('检查全局外部 skill 更新...'))
+  await ensureSkillsInstalled()
+
   console.log(chalk.blue('\nScanning available Claude Code/Codex configuration...\n'))
   const scans = {
     skills: await scanSkills(sourceDir),
@@ -697,17 +696,6 @@ export async function syncAll({
     }
   }
   await saveSyncState(projectDir, syncState)
-
-  // 产品 0→1 流程的包装型原子 skill 依赖全局外部 skill（~/.dwy/skills/）。
-  // 若本次同步选中了这些 skill 且全局未安装，自动装一次（缺则装、有则跳过）。
-  if (selected.skills?.some((s) => WRAPPER_SKILL_NAMES.has(s.name))) {
-    try {
-      await ensureSkillsInstalled()
-    } catch (error) {
-      console.log(chalk.yellow(`\n外部 skill 自动安装失败：${error.message}`))
-      console.log(chalk.gray('可稍后手动运行 `dwy skills install` 重试。'))
-    }
-  }
 
   if (!syncedAnySupportedPlatform) {
     console.log(chalk.yellow('未选择已接入平台，本次未执行同步。'))
