@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.16.0
+
+### Minor Changes
+
+- `dwy` 开头自动检测更新全局外部 skill：未装 / 清单变更（cli 加了 skill 或改了 tag）才联网重装，已装且清单一致零开销；失败不阻塞 sync。用户无需再另记 `dwy skills install`。
+- 新增 `dwy-commercial` 商业分析 skill（立项阶段 validate 之后、poc 之前）：商业模式 / 变现路径 / 定价 / 单位经济（CAC/LTV/毛利/回本）/ GTM 获客 + 商业可行性结论；startup 模式为硬闸门、builder 模式跳过。包装 pm-skills 的 `business-model` / `monetization-strategy` / `pricing-strategy` / `startup-canvas` / `porters-five-forces` + `gtm-strategy`。
+- `dwy skills install` 降级为隐藏的强制刷新兜底（向后兼容保留，日常无需手动）；`printHelp` 只露 `dwy` 主入口，`dwy sync` 为别名。
+
 ## 0.15.0
 
 ### Minor Changes
