@@ -269,9 +269,13 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 
 走 GitHub Actions + npm OIDC Trusted Publishing，**不用 NPM_TOKEN**：
 
-1. 改 `dwy-cli/package.json` 的 `version`，commit 推 `origin`
-2. 打 tag `create-dwy@x.y.z`（版本号须与 package.json 一致，否则 CI 校验失败）
-3. `git push origin create-dwy@x.y.z` → 触发 `.github/workflows/publish-cli.yml` 自动发布
+1. 改 `dwy-cli/package.json` 的 `version`
+2. **补 `dwy-cli/CHANGELOG.md`**：在文件顶部（上一版本之前）加 `## x.y.z` 段 + `### Minor Changes` / `### Patch Changes` + bullet 列表。CI 的 "Build release notes" 步骤会用 `.github/scripts/extract_changelog_section.py` 抽取该段作为 GitHub Release body，**缺该段 CI 直接失败**（报 `version section not found`）
+3. commit（version + CHANGELOG 一起）推 `origin`
+4. 打 tag `create-dwy@x.y.z`（版本号须与 package.json 一致，否则 CI 校验失败）
+5. `git push origin create-dwy@x.y.z` → 触发 `.github/workflows/publish-cli.yml` 自动发布
+
+> 补救：若已推 tag 后才发现忘改 CHANGELOG，补 CHANGELOG commit → 删远程旧 tag `git push origin :refs/tags/create-dwy@x.y.z` → 本地重打 tag → 重推触发 CI。
 
 - `origin` 即 GitHub 仓库 `danweiyuancircle/dwy-ai-experience`，推 tag 即触发 CI
 - npm 侧已绑定 Trusted Publisher：`danweiyuancircle/dwy-ai-experience` + `publish-cli.yml`
