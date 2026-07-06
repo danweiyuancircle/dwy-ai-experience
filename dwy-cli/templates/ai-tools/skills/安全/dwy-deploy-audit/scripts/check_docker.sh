@@ -43,7 +43,7 @@ docker ps --format "{{.Names}}|{{.Ports}}" 2>/dev/null | while IFS='|' read -r n
 done
 
 echo ""
-echo "--- 镜像 tag 分级检查 (生产期望: 固定到具体 patch, 跑 /dwy-docker-image 选 N-1 minor) ---"
+echo "--- 镜像 tag 分级检查 (生产期望: 固定到具体 patch, 跑 /dwy-docker 选 N-1 minor) ---"
 # 浮动 tag 黑名单 (无版本号或仅描述类的)
 FLOATING_TAGS='^(latest|stable|mainline|edge|current|alpine|slim|bookworm|bullseye|buster|jammy|focal|noble|nightly)$'
 docker ps --format "{{.Names}}|{{.Image}}" 2>/dev/null | while IFS='|' read -r name image; do
@@ -87,7 +87,7 @@ docker ps --format "{{.Names}}|{{.Image}}" 2>/dev/null | while IFS='|' read -r n
   fi
 done
 echo ""
-echo "[i] 修复:对每条 [!!!] / [!!] / [!] 的镜像,跑 /dwy-docker-image 用 query_dockerhub.py 拿 N-1 minor 推荐版本"
+echo "[i] 修复:对每条 [!!!] / [!!] / [!] 的镜像,跑 /dwy-docker 用 query_dockerhub.py 拿 N-1 minor 推荐版本"
 
 echo ""
 echo "--- 容器是否以 root 运行 ---"
@@ -255,5 +255,5 @@ echo ""
 echo "[i] 修复路径:"
 echo "      1. docker.io 加速  → /dwy-mirror-source 自动配 daemon registry-mirrors"
 echo "      2. gcr/ghcr/k8s    → 把 image 改 <registry>.m.daocloud.io 前缀, 见 dwy-mirror-source 镜像替换表"
-echo "      3. 镜像版本不固定  → /dwy-docker-image 选 N-1 minor 重新固定"
+echo "      3. 镜像版本不固定  → /dwy-docker 选 N-1 minor 重新固定"
 REMOTE

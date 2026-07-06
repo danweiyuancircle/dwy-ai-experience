@@ -11,7 +11,7 @@
 ## 4.6 Docker 安全 — `{scripts}/check_docker.sh`
 
 > **跨 skill 联动**:本节发现的镜像版本/镜像源问题,只**报告**不修复。具体修复路径:
-> - 镜像 tag 不固定 / `:latest` / 浮动 tag → 引导用户跑 `/dwy-docker-image`(走 query_dockerhub.py 选 N-1 minor)
+> - 镜像 tag 不固定 / `:latest` / 浮动 tag → 引导用户跑 `/dwy-docker`(走 query_dockerhub.py 选 N-1 minor)
 > - daemon 未配 registry-mirrors / 容器用境外 registry → 引导用户跑 `/dwy-mirror-source`(写阿里云/中科大/daocloud)
 
 | 检查项 | 期望值 | 严重级 |
@@ -107,7 +107,7 @@
 
 ## 4.10 硬件识别与资源推荐 — `{scripts}/check_capacity.sh`
 
-> 脚本只输出 raw（硬件规格 + 当前容器 mem_limit + Postgres/Redis 启动参数 + compose 资源声明）；主 Claude 用下表生成 "推荐 vs 当前" 对比报告。详细推荐规则与配比公式参考 `dwy-docker-image` skill 第二部分。
+> 脚本只输出 raw（硬件规格 + 当前容器 mem_limit + Postgres/Redis 启动参数 + compose 资源声明）；主 Claude 用下表生成 "推荐 vs 当前" 对比报告。详细推荐规则与配比公式参考 `dwy-docker` skill 第二部分。
 
 **容器资源推荐分级表（按宿主总内存）**
 
