@@ -320,7 +320,7 @@ done
 echo ""
 echo "########## 凭证强度汇总 ##########"
 echo "[i] 修复指引:"
-echo "  - WEAK 密码: 立即轮换 + 走 dwy-server-security 规则 (>= 16 字符 + 三类字符)"
+echo "  - WEAK 密码: 立即轮换 (建议 >= 16 字符 + 三类字符的强密码)"
 echo "  - 高敏字段 (JWT/SECRET/AK/SK): >= 32 字符随机串"
 echo "  - 生成命令: openssl rand -base64 24 | tr -d '=+/' | cut -c1-20"
 echo "  - 高敏: openssl rand -hex 32  (生成 64 字符 hex token)"

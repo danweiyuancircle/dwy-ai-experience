@@ -464,7 +464,7 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 根据本次失败项归纳的可执行后续动作:
 
-- 镜像版本不固定 (4.6) → 跑 `/dwy-docker-image` 选 N-1 minor
+- 镜像版本不固定 (4.6) → 跑 `/dwy-docker` 选 N-1 minor
 - daemon 未配 registry-mirrors (4.6) → 跑 `/dwy-mirror-source` 写国内源
 - 容器资源偏离推荐 (4.10) → 改 `docker-compose.prod.yml` 的 mem_limit/maxmemory
 - ...
