@@ -1,5 +1,5 @@
 ---
-description: Docker 通用规则（镜像固定版本、容器内存上限、日志大小限制）
+description: Docker 通用规则（镜像固定版本、容器内存上限、日志大小限制、配置变更重启姿势）
 ---
 
 # Docker 通用规则
@@ -69,3 +69,54 @@ services:
         max-size: "10m"
         max-file: "3"
 ```
+
+## 三、配置变更重启姿势（env_file / environment / .env）
+
+### 根因
+
+`docker compose restart` 只重启**已存在的容器进程**，**不会重读** `env_file` / `environment` / `.env`。env 变量只在**容器创建时**注入容器配置；restart 沿用旧容器的旧环境，新 env 永远进不去。
+
+### 现象（真实踩坑）
+
+预览机改了 `.env` 的 `DOLPHINDB_FACTOR__PORT=18560`，用 `docker compose restart` 加载 → preview 容器一直拿不到新值，因子 provider 静默回退到主库 8848，功能"看起来通了"实际走错库。当时报"已验证"是错的——只验了隧道连通，没验 app 实际配置（`printenv`）。
+
+release 环境没踩坑：deploy-bg 是 build 后 `up -d`，镜像变更触发容器重建，重建时重读了 env_file。
+
+### 强制规则
+
+**改了 env_file / environment / `.env` 后，必须重建容器，不能只 restart：**
+
+```bash
+# 正确：重建容器，重读 env
+docker compose up -d --force-recreate backend
+
+# 或更精准：只重建受影响服务，不动依赖
+docker compose up -d --force-recreate --no-deps backend
+
+# 错误：restart 不重读 env，新配置永远不生效
+docker compose restart backend
+```
+
+### 判断容器是否重建的速查
+
+| 操作 | 容器是否重建 | env 是否重读 |
+|------|------------|------------|
+| `docker compose restart` | 否（仅重启进程） | **否** |
+| `docker compose up -d`（镜像无变化） | 否 | 否 |
+| `docker compose up -d`（镜像有变化） | 是 | 是 |
+| `docker compose up -d --force-recreate` | 是 | 是 |
+| `docker compose up -d --env-file .env.prod`（换了 env 文件） | 是 | 是 |
+
+### 验证清单（改 env 后必跑）
+
+```bash
+# 1. 确认容器内实际生效的 env（不是宿主机的 .env）
+docker compose exec backend printenv | grep DOLPHINDB_FACTOR__
+
+# 2. 不要只验连通性，要验 app 实际读到的配置
+#    连通=隧道通，不代表 app 配置对
+```
+
+### 一句话
+
+> 配置改了别 restart，`up -d --force-recreate`。验证别只看连通，`printenv` 看容器内真值。
