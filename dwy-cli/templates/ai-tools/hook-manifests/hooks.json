@@ -12,5 +12,12 @@
     "matcher": "Bash",
     "platforms": ["claude", "codex"],
     "timeout": 30
+  },
+  {
+    "name": "pre-git-commit-ai-signature-check.sh",
+    "event": "PreToolUse",
+    "matcher": "Bash",
+    "platforms": ["claude", "codex"],
+    "timeout": 30
   }
 ]

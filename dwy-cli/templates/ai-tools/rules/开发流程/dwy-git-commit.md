@@ -135,15 +135,18 @@ Scope 由 AI 根据变更模块与项目语义自行决定，保持与现有提�
 
 ## 8. AI 署名与生成声明治理
 
-commit 的 subject、body、footer、trailer 中禁止出现：
+commit 的 subject、body、footer、trailer 中禁止出现任何形式的 AI 署名或生成声明。AI 应自行判断：凡由 AI 工具（Claude、ChatGPT、GPT、Copilot、Cursor、Gemini、Llama、LLM 等）生成或参与撰写的署名、尾随声明、自动生成标记，均不得写入 commit message。
 
-- `Co-Authored-By: Claude ...`
-- `Generated with Claude Code`
-- `Generated with ...`
-- `Claude`、`ChatGPT`、`GPT`、`Copilot`、`Cursor`、`AI`、`LLM`
-- `noreply@anthropic.com`、`noreply@openai.com`
+包括但不限于：
+
+- `Co-Authored-By: <AI 名称> <noreply@...>`（任何 AI 产品 + 邮箱组合）
+- `Generated with Claude Code` / `Generated with ...`（任何"由 XX 生成"声明）
+- 含 AI 产品名的署名行（Claude、ChatGPT、GPT、Copilot、Cursor、Gemini、LLM 等）
+- AI 平台noreply 邮箱（noreply@anthropic.com、noreply@openai.com 等）
 
 `git commit -m "..."` 不得附带 AI 署名 trailer。
+
+> PreToolUse hook `pre-git-commit-ai-signature-check.sh` 会在 commit message 中检出 Co-Authored-By / Generated with 等 AI 署名模式时硬拦截（exit 2），规则约束 + 工程兜底双保险。
 
 ## 9. 参考示例
 
