@@ -32,4 +32,4 @@ __all__ = [
     "is_prod",
     "logger",
 ]
-__version__ = "0.9.1"
+__version__ = "0.9.4"

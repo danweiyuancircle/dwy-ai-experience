@@ -50,6 +50,26 @@
 
 ---
 
+## 2.1 dt 模块（11 个）
+
+`tests/test_dt.py`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | now 返回 naive | 数据库存储用中国时间,无 tzinfo |
+| 2 | utc_now 返回 aware UTC | utcoffset 为 0 |
+| 3 | today 与 now().date 一致 | |
+| 4 | timestamp 为正 float | |
+| 5 | timedelta re-export | `dt.timedelta(minutes=10)` 等价 stdlib |
+| 6 | timedelta 多参数 | days + hours |
+| 7 | after 为 naive 且在未来 | 约 +5 分钟 |
+| 8 | before 为 naive 且在过去 | 约 -1 小时 |
+| 9 | utc_after 为 aware 且在未来 | 约 +30 分钟 |
+| 10 | utc_before 为 aware 且在过去 | 约 -1 天 |
+| 11 | utc_after 形态可写 JWT exp | aware UTC datetime |
+
+---
+
 ## 3. security 模块（9 个）
 
 `tests/test_security.py`

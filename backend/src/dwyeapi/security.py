@@ -4,7 +4,6 @@
 所有函数保持无状态 — 密钥和算法由调用方以参数显式传入,方便在不同环境或密钥版本之间切换。
 """
 
-from datetime import timedelta
 from typing import Any
 
 import bcrypt
@@ -63,7 +62,8 @@ def create_token(
         编码后的 JWT 字符串。
     """
     to_encode = data.copy()
-    expire = dt.utc_now() + timedelta(minutes=expires_minutes)
+    # JWT exp 必须用 UTC aware;时长与当前时刻统一走 dt
+    expire = dt.utc_after(minutes=expires_minutes)
     to_encode["exp"] = expire
     return jwt.encode(to_encode, secret, algorithm=algorithm)
 

@@ -1,5 +1,12 @@
 # dwyeapi
 
+## 0.9.4
+
+### Patch Changes
+
+- **`dt` 时长与偏移 API** — 新增 `dt.timedelta`（stdlib re-export）、`dt.after` / `dt.before`（业务时区 naive）、`dt.utc_after` / `dt.utc_before`（UTC aware）。业务侧禁止再 `from datetime import timedelta`，统一从 `dwyeapi.dt` 取时长与「当前时刻 ± 偏移」。
+- **`security.create_token`** — 过期时间改为 `dt.utc_after(minutes=...)`，与上述约定对齐。
+
 ## 0.9.3
 
 ### Patch Changes
