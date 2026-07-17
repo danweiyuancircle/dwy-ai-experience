@@ -4,11 +4,14 @@
   "scripts": {
     "build:eui": "pnpm -F @dwydev/eui build",
     "build:ekit": "pnpm -F @dwydev/ekit build",
+    "build:admin-shell": "pnpm -F @dwydev/admin-shell build",
     "build:cli": "echo 'cli has no build step'",
-    "build:frontend": "pnpm -F @dwydev/eui build && pnpm -F @dwydev/ekit build",
+    "build:frontend": "pnpm -F @dwydev/eui build && pnpm -F @dwydev/ekit build && pnpm -F @dwydev/admin-shell build",
     "test:eapi": "cd backend && pytest tests/ -v",
+    "test:admin-shell": "pnpm -F @dwydev/admin-shell test",
     "publish:eui": "pnpm -F @dwydev/eui publish --access public --no-git-checks",
     "publish:ekit": "pnpm -F @dwydev/ekit publish --access public --no-git-checks",
+    "publish:admin-shell": "pnpm -F @dwydev/admin-shell publish --access public --no-git-checks",
     "publish:cli": "pnpm -F create-dwy publish --access public --no-git-checks",
     "publish:eapi": "cd backend && uv build && uv publish",
     "changelog": "changelogen"
