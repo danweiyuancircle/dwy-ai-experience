@@ -49,6 +49,15 @@ Vue 3 工具库，提供 hooks、请求封装、时间处理、下载、cookie�
 npm install @dwydev/ekit
 ```
 
+### `@dwydev/admin-shell`
+
+中后台**扩展站路由框架**（模块菜单 + 路由装配 + AdminShell 布局 + 页头/面包屑）。视觉底座用 eui `EAdminLayout`，**不并入 eui**。
+
+```bash
+npm install @dwydev/admin-shell
+# peers: vue vue-router @dwydev/eui @dwydev/ekit lucide-vue-next
+```
+
 ## 主要特性
 
 - 统一项目初始化、规则分发、技能同步与 hooks 同步
