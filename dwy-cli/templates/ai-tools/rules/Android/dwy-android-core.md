@@ -336,7 +336,7 @@ fun computeDiscount(order: Order): BigDecimal {
 
 ### 2.6 字段 / 属性注释(强制)
 
-公开字段、`data class` 字段、配置常量必须逐个注释。
+公开属性、`data class` 构造参数、配置常量必须逐个注释。**数据实体**除注释外还须遵守 §四「数据实体类封装」:Java 注释写在 **private 字段**上,Kotlin 用 `@property`。
 
 ```kotlin
 /**
@@ -356,6 +356,26 @@ data class User(
 ```
 
 ```java
+/**
+ * 用户信息实体。字段私有,经 getter / setter 访问。
+ */
+public class User {
+    /** 用户 ID,服务端分配,> 0 */
+    private long id;
+    /** 昵称,1-32 字符 */
+    private String name;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    // ... 其余 get/set、toString 见 §四「数据实体类封装」
+}
+
 public final class Constants {
     /** 登录态本地缓存的 SP key,迁移版本时不允许复用此 key,会读到旧数据。 */
     public static final String SP_KEY_LOGIN_TOKEN = "login_token_v2";
@@ -407,7 +427,7 @@ public final class Constants {
 | 有参数 / 返回值 / 异常            | 多行,含 `@param` / `@return` / `@throws`              | ✓   |
 | Activity / Fragment       | 必须注明入口、参数 key、返回结果                                 | ✓   |
 | 回调接口                      | 必须注明触发线程 + 每个参数语义                                  | ✓   |
-| `data class` 字段           | Kotlin `@property`,Java 字段上 `/** */`               | ✓   |
+| `data class` / Java 实体字段  | Kotlin `@property`;Java **private 字段**上 `/** */` + get/set | ✓   |
 | 复杂业务规则                    | 行内注释解释 why + 关联 PRD / 需求号                          | ✓   |
 | 重写方法                      | `@inheritDoc` 或重新写明覆写差异                            | ✓   |
 | Gradle 脚本(Groovy)         | 解释 why:锁版本/exclude 原因、变体用途、自定义 task/方法语义(详见 §2.10) | ✓   |
@@ -533,7 +553,7 @@ public List<Order> findOrders(long userId) {
 
 ### 强制规则
 
-- 公开方法 / 函数参数 ≤ **3 个**,超过则封装为 DTO / `data class`
+- 公开方法 / 函数参数 ≤ **3 个**,超过则封装为 DTO / `data class`(封装出的 DTO **必须**遵守下文「数据实体类封装」)
 - Kotlin 优先**命名参数 + 默认参数**代替方法重载
 - 函数体不超过 **50 行**,超过则拆分
 - 单文件不超过 **500 行**,超过则拆分模块
@@ -634,6 +654,146 @@ if (user == null) {
 for (Order o : orders) {
     o.cancel();
 }
+```
+
+### 数据实体类封装(强制)
+
+**动机**:Java 一旦暴露 `public` 字段,调用方直接依赖字段名与访问方式;后续改为 `private` + getter 会破坏源码 / 二进制兼容。实体从一开始就封装,避免后期改结构成本。Kotlin 编译属性本就是 private 字段 + 访问器,规则与 Java 分写,禁止用 `@JvmField` 退化成 public 字段。
+
+#### 适用范围
+
+| 覆盖 | 不覆盖 |
+| ---- | ------ |
+| Model / Entity / DTO / VO / Bean 及同类数据载体 | Activity / Fragment / Adapter / ViewHolder / Repository / ViewModel 等非数据载体 |
+| 含功能包内私有、`internal` 实体 | `enum`;仅含常量的 `object` / `Constants` 类 |
+| 网络响应体、跨层传递的数据对象 | 纯 UI 状态若仅为页面内部临时结构且不跨层,可豁免(跨层则按实体处理) |
+
+#### 共同要求
+
+1. 字段 / 属性**不得**以 public 字段形式对外暴露(禁止 Java `public` 实例字段、禁止 Kotlin `@JvmField`)
+2. 必须提供读取能力:Java `getXxx()`,Kotlin property 访问器
+3. 必须有有意义的 `toString()`(能区分关键业务字段);禁止依赖 `Object` 默认 `ClassName@hash`
+4. **不强制** `equals` / `hashCode`(集合去重 / Map key 场景由调用方按需补)
+
+---
+
+#### Java 规则
+
+| 项 | 要求 |
+| -- | ---- |
+| 字段 | 必须 `private`;禁止 `public` / 包可见实例字段当实体 API |
+| 访问器 | 提供 `getXxx()` / `setXxx()`;不可变实体可用构造注入 + 仅 getter |
+| toString | `@Override public String toString()`,包含关键业务字段 |
+| 注释 | 类级说明职责;每个 private 字段上 `/** */`(见 §2.6) |
+
+```java
+/**
+ * 用户信息实体。
+ *
+ * <p>字段私有 + getter/setter,避免 public 字段导致后续无法安全改结构。
+ */
+public class User {
+    /** 用户 ID,服务端分配,> 0 */
+    private long id;
+    /** 昵称,1-32 字符 */
+    private String name;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "User{id=" + id + ", name='" + name + "'}";
+    }
+}
+```
+
+```java
+// ❌ public 字段 — 调用方直接 .id,后期改 private 会大面积破坏
+public class User {
+    public long id;
+    public String name;
+}
+
+// ❌ 有 private 字段但缺 toString / 缺访问器
+public class User {
+    private long id;
+    // 无 getId,外部无法读;无 toString,日志只能看到 @hash
+}
+```
+
+---
+
+#### Kotlin 规则
+
+| 项 | 要求 |
+| -- | ---- |
+| 优先写法 | **`data class` + `val`**(编译为 private 字段 + getter;`data class` 自带 `toString`) |
+| 可变字段 | 确需可变用 `var`;仅允许类内改写时用 `private set` |
+| 禁止 | `@JvmField`;Java 风格 public 字段;为 `data class` 再手写冗余 get/set(Java 互操作强制命名除外) |
+| 非 data class | property 或 private 字段 + 访问器,**必须** `override fun toString()` |
+| 注释 | 构造属性用 `@property`,与 §2.6 一致 |
+
+```kotlin
+/**
+ * 用户信息实体。
+ *
+ * @property id 用户 ID,服务端分配,> 0
+ * @property name 昵称,1-32 字符
+ */
+data class User(
+    val id: Long,
+    val name: String,
+)
+// data class 已生成 toString / componentN / copy;JVM 侧字段为 private + getter
+```
+
+```kotlin
+/**
+ * 可编辑的草稿实体。
+ *
+ * 非 data class 时必须手写 toString;title 仅允许类内改写。
+ */
+class Draft {
+    var title: String = ""
+        private set
+
+    /**
+     * 更新草稿标题。
+     *
+     * @param value 新标题,调用方已做长度校验
+     */
+    fun updateTitle(value: String) {
+        title = value
+    }
+
+    override fun toString(): String = "Draft(title=$title)"
+}
+```
+
+```kotlin
+// ❌ @JvmField 把属性暴露成 public 字段,与 Java public 字段同样难改
+class User {
+    @JvmField
+    var id: Long = 0
+}
+
+// ❌ 普通 class 实体无 toString — 日志只有类名@hash
+class User(val id: Long, val name: String)
+// ✅ 改为 data class User(...) 或 override fun toString()
 ```
 
 ### 包组织(按功能聚合)
@@ -761,6 +921,8 @@ val result = calculate(x)
 | 硬编码颜色值 `#FF0000`                                                  | `@color/color_primary`                      |
 | 用户可见文案硬编码                                                         | `@string/...`                               |
 | 单行 `if` / `for` / `while` / `do-while` 无 `{}`(Kotlin 表达式 `if` 除外) | 即使只一行也写 `{}`;详见 §四「控制流大括号」                  |
+| Java 实体 `public` 实例字段                                              | `private` 字段 + `getXxx`/`setXxx` + `toString`            |
+| Kotlin 实体 `@JvmField` / 无 `toString` 的普通 class 实体                 | 优先 `data class` + `val`;或手写访问器 + `toString`          |
 
 
 ## 九、代码自检(写代码时强制执行)
@@ -774,7 +936,7 @@ val result = calculate(x)
 | 2   | 方法 / 函数(不分可见性)有 Javadoc / KDoc,含 `@param` / `@return` / `@throws`;一目了然的简单 getter / setter、测试方法可省                                                                                                                          | ✓        |
 | 3   | Activity / Fragment 类注释包含入口、参数 key、返回结果                                                                                                                                                                                   | ✓        |
 | 4   | 回调接口注明每个参数语义 + 触发线程                                                                                                                                                                                                       | ✓        |
-| 5   | `data class` / 公开字段 / 配置常量逐个 `@property` / 字段注释                                                                                                                                                                           | ✓        |
+| 5   | `data class` 属性 / Java 实体 private 字段 / 配置常量逐个 `@property` 或字段注释                                                                                                                                                         | ✓        |
 | 6   | 复杂业务逻辑有"why"行内注释,关联 PRD / 需求号                                                                                                                                                                                             | ✓        |
 | 7   | 注释全部中文,无中英混用,无敷衍式"获取 / 设置 / 处理"                                                                                                                                                                                           | ✓        |
 | 8   | 注释与代码同步更新,无过时注释                                                                                                                                                                                                           | ✓        |
@@ -791,6 +953,7 @@ val result = calculate(x)
 | 19  | `if` / `else` / `else if` / `for` / `while` / `do-while` 语句即使单行也带 `{}`(Kotlin 表达式 `if` 除外)                                                                                                                                | ✓        |
 | 20  | 新增类按**功能聚合**放对应功能包(`login/` / `order/`),不按 `activities/` / `models/` 分层横切;仅多功能共享才放 `common/`                                                                                                                              | ✓        |
 | 21  | Gradle 脚本(Groovy / kts):锁版本 / `exclude` / 自定义 task / 变体 / 关键魔法值有 why 注释,无复述式、无注释掉的配置块                                                                                                                                     | ✓        |
+| 22  | 数据实体(Model/DTO/VO/Bean 等):Java 字段 `private` + get/set + `toString`;Kotlin 优先 `data class`+`val`(自带 toString),禁止 `@JvmField`,非 data class 必须手写 `toString`                                                                              | ✓        |
 
 
 **不执行自检就提交代码 = 违规。**
