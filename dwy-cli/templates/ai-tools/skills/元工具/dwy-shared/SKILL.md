@@ -153,10 +153,31 @@ git -C "$REPO_PATH" mv <仓库内相对路径> <new-相对路径>
 
 **冲突处理**：目标已存在 → AskUserQuestion 让用户选「覆盖 / 改名 / 取消」。
 
+### 步骤 6.5：bump ai-tools 内部版本 + CHANGELOG（强制）
+
+凡改动 `$REPO_PATH/dwy-cli/templates/ai-tools/` 下任意内容，**必须**同批更新：
+
+| 文件 | 动作 |
+| ---- | ---- |
+| `dwy-cli/templates/ai-tools/VERSION` | 按 `CHANGELOG.md` 内维护约定 bump（MAJOR / MINOR / PATCH） |
+| `dwy-cli/templates/ai-tools/CHANGELOG.md` | 顶部追加 `## x.y.z — YYYY-MM-DD` 段 + Added/Changed/Fixed/Removed |
+
+约定全文见：`$REPO_PATH/dwy-cli/templates/ai-tools/CHANGELOG.md`「维护约定」。
+
+- 新增 skill/rule/hook/command 或新增强制约束 → 至少 **MINOR**
+- 仅修正文案 / 链接 / 不改强制语义 → **PATCH**
+- 破坏同步结构 / 删除广泛依赖项且无迁移 → **MAJOR**
+
+**禁止**只提交模板文件而不改 `VERSION` + `CHANGELOG.md`。
+
 ### 步骤 7：staged + 显示 diff
 
 ```bash
 git -C "$REPO_PATH" add <精准路径>
+# 务必包含 VERSION 与 CHANGELOG
+git -C "$REPO_PATH" add \
+  "$REPO_PATH/dwy-cli/templates/ai-tools/VERSION" \
+  "$REPO_PATH/dwy-cli/templates/ai-tools/CHANGELOG.md"
 git -C "$REPO_PATH" status --short
 git -C "$REPO_PATH" diff --cached --stat
 ```
@@ -170,7 +191,7 @@ git -C "$REPO_PATH" diff --cached --stat
 按项目 `CLAUDE.md` 中 Git Commit Scope 规范：
 - scope: `cli`
 - type: `feat`（新模板）/ `fix`（修复模板）/ `docs`（仅文档）
-- subject: 中文动宾短语 ≤72 字符
+- subject: 中文动宾短语 ≤72 字符；可附 ai-tools 版本号（如 `ai-tools 0.2.0`）
 - **禁** AI 署名 / Co-Authored-By trailer
 
 模板：
