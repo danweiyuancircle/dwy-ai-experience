@@ -157,3 +157,10 @@ paths:
 - **根因**：`switch` 在视图树里每次只保留当前 case 的子树，切 tab 时 SwiftUI **销毁**旧 tab 视图、**重建**新 tab 视图，`@State` 随之重置。它不是缓存容器。
 - **正确做法**：用系统 `TabView(selection:)` + 每页 `.tag(...)`。TabView 保活所有 tab 页，切换只是显隐，状态天然保留。隐藏系统 tab bar（`.toolbar(.hidden, for: .tabBar)`）后用自绘底栏，`selection` 与自绘栏共用同一 `@State`。注意别用 `.tabViewStyle(.page)`（会引入左右滑动切页，与边缘返回手势冲突）。
 - **适用**：iOS 16+ SwiftUI 多 tab 且需保留各 tab 页内状态时。
+
+### Mac（Designed for iPhone/iPad）上 sheet 不继承 Observable environment，弹层即崩
+
+- **现象**：iPhone 真机正常；把 iOS app 装到 macOS（「在 Mac 上使用 iPhone/iPad App」）后，一点「解锁」/付费墙/编辑设备/键盘 sheet 就崩。崩溃报告 `EXC_BREAKPOINT` / `SIGTRAP`，栈顶 `libswiftCore _assertionFailure` → `SwiftUICore EnvironmentValues.subscript.getter` → `SheetBridge.present` / `PresentationHostingController`。应用日志只到 `app 启动`。
+- **根因**：`@Environment(Store.self)` / `@Environment(AppRouter.self)` 在未注入时会 fatal。iPhone 上 sheet 内容通常继承父树的 `.environment(...)`；Mac 上 UIKitMacHelper 走 `PresentationHostingController`，**不把父视图的 Observable environment 传进 sheet**，于是 `PaywallView` 等一 present 就 assertionFailure。
+- **正确做法**：凡 sheet / fullScreenCover 内容里读了 `@Environment(SomeObservable.self)`，在 content 上**显式** `.environment(store)` / `.environment(router)` 重注入，不要依赖继承。嵌套 sheet 同样要再注一次。例：`PaywallView().environment(store)`、`DeviceEditSheet(...).environment(router)`、`KeyboardSheet().environment(router)`。
+- **适用**：iOS 17+ `@Observable` + `.environment(instance)`，且 app 会在 Mac 上以 Designed for iPhone/iPad 运行时。iPhone 上不重注入多数也能跑，但为跨平台一致应一律重注入。

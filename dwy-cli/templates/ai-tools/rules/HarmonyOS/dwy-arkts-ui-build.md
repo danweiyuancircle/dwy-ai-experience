@@ -8,7 +8,13 @@ paths:
 
 # ArkUI / 工程 / 运行时 避坑
 
-`dwy-arkts-strict.md` 管语言语法层；本文件管 **ArkUI 组件、V2 状态管理、资源（图标）、工程构建、运行时容错**。
+| 文件 | 层 |
+|---|---|
+| `dwy-arkts-strict.md` | 语言语法（arkts-no-*） |
+| **本文件** | 组件 API、V2 状态、资源、工程构建、设备/运行时 |
+| `dwy-arkts-ui-design.md` | UI 设计与交互（弹层关闭、加载三态等事前约束） |
+| `dwy-harmony-pitfalls.md` | 四栏踩坑归档 |
+
 均为真机/DevEco 构建实测踩坑（编译期或运行期暴露，命令行 tsc 查不出）。
 
 ## 1. sys.symbol 图标名 ≠ SF Symbols 名，必须查鸿蒙清单逐个映射
@@ -191,3 +197,46 @@ $NODE $HVIGOR --mode module -p module=entry@default -p product=default -p pageTy
 见 `dwy-arkts-strict.md` 第 9 条（cryptoFramework 签名规格 / 公钥 DER 格式 / TCPSocket 局域网）。
 补充：手撸 HTTP/2 的 HPACK 全字面量是否被对端（如 grpc-netty）接受、华为 IAP 需 AGC 后台
 配商品 + 真机华为账号、asset/Preferences 在不同设备的可用性，均真机才能定论。
+
+## 11. assembleHap 未配 signingConfigs → unsigned.hap
+
+- **现象**：`hvigorw assembleHap` 成功但日志 `Will skip sign 'hos_hap'`，产物 `entry-default-unsigned.hap`；真机拒装。
+- **根因**：`build-profile.json5` 的 `signingConfigs` 为空。
+- **正确做法**：DevEco → Project Structure → Signing Configs 自动签名写回工程；**模拟器**可装 unsigned；**真机**必须签名。
+- **适用**：CLI / CI 打包。
+
+## 12. 本地模拟器（HVD）命令行：`-hvd` + hdc `127.0.0.1:5555`
+
+- **现象**：不知如何脱离 IDE 起模拟器、装 HAP。
+- **正确做法**：
+  - 启动：`/Applications/DevEco-Studio.app/Contents/tools/emulator/Emulator -hvd "Pura 90"`（名见 `~/.Huawei/Emulator/deployed/*.ini`）。
+  - 设备：`hdc list targets` → 常见 `127.0.0.1:5555`。
+  - 安装：`hdc -t 127.0.0.1:5555 install entry/.../entry-default-unsigned.hap`。
+  - 启动：`hdc -t 127.0.0.1:5555 shell aa start -a EntryAbility -b <bundleName>`。
+- **适用**：无 GUI / 脚本化调试。
+
+## 13. 模拟器验不了局域网 TCP / mDNS / 设备发现
+
+- **现象**：模拟器里 app 连不上局域网电视、ADB、mDNS 服务。
+- **根因**：HVD 网络多为 NAT，**不是**与电脑同 Wi-Fi 的 peer；模拟器「代理设置」只影响 HTTP 出网，**不能**桥接局域网。
+- **正确做法**：依赖局域网原始 TCP / mDNS 的链路（ADB 5555、插件 28100、无线调试配对）必须 **鸿蒙真机 + 与目标设备同 Wi-Fi**。模拟器只做 UI / 导航 / 无网逻辑。
+- **适用**：任何局域网设备调试类 app。
+
+## 14. ScanKit `generateBarcode` 在模拟器常失败
+
+- **现象**：二维码区域一直 spinner / 空白，业务 payload（如配对码数字）已生成。
+- **根因**：`@kit.ScanKit` 的 `generateBarcode.createBarcode` 在 HVD 或部分镜像不可用。
+- **正确做法**：
+  1. 调用时显式 `backgroundColor` / `pixelMapColor` / `margin`。
+  2. `catch` 后 **纯逻辑矩阵兜底**（自研或库 → `image.createPixelMap` RGBA），保证有图。
+  3. UI：仅生成中 spinner；失败出文案，禁止永久 loading（见 `dwy-arkts-ui-design.md`）。
+- **适用**：任何依赖出码展示的页面。
+
+## 文件职责（与本目录其它规则）
+
+| 文件 | 管什么 |
+|---|---|
+| `dwy-arkts-strict.md` | 语言：禁用语法、arkts-no-* |
+| `dwy-arkts-ui-build.md`（本文件） | 组件 API、状态、资源、构建、运行时/设备坑 |
+| `dwy-arkts-ui-design.md` | **UI 设计规范**（弹层/顶栏/加载态/图标语义，事前约束） |
+| `dwy-harmony-pitfalls.md` | 踩坑四栏归档（现象/根因/做法/适用），新坑先记这里再回写规范 |
