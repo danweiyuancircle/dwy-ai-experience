@@ -52,6 +52,17 @@
 
 ---
 
+## 0.2.0 — 2026-07-23
+
+### Added
+
+- `skills/运维发布/dwy-deploy-first/`：通用「首次部署」skill（分章）
+  - 第 1 章：镜像源强制配置 — apt → 阿里云；uv/pip → 阿里云 PyPI
+  - 禁止默认 `astral.sh/uv/install.sh`；与 `dwy-mirror-source`（本机工具源）、`dwy-docker`（工程规范）边界划清
+  - `references/chapter-01-mirrors.md`：通用 Dockerfile 片段（Debian/Ubuntu/Alpine + uv/pip）
+
+---
+
 ## 0.1.0 — 2026-07-20
 
 ### Added
