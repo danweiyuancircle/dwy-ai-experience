@@ -903,6 +903,51 @@ val result = calculate(x)
 
 ## 八、常见反模式(禁止)
 
+### 字符串空判断(强制)
+
+判断字符串是否为空、是否有有效内容时,**禁止**用 `length()` 比较,必须用语义明确的 `isEmpty()` / `isNotEmpty()`(Kotlin 意图为「非空白」时优先 `isNotBlank()`)。
+
+**强制规则**:
+
+- **禁止** `s.length() > 0`、`s.length() == 0`、`s.length() != 0`、`s.trim().length() > 0` 等 `length` 判空写法
+- **必须**用 `isEmpty()` / `!isEmpty()`(Java) 或 `isEmpty()` / `isNotEmpty()`(Kotlin)
+- 需先去首尾空白再判是否有内容:Java `!s.trim().isEmpty()`;Kotlin `s.trim().isNotEmpty()` 或等价的 `s.isNotBlank()`
+- 可空字符串仍先做 null 判断,再判空:`s != null && !s.trim().isEmpty()`(与 §三可空性一致)
+
+```java
+// ❌ 用 length 判「是否有有效内容」——语义弱、易被误读成「长度阈值」
+public String resolveVideoType() {
+    if (videoType != null && videoType.trim().length() > 0) {
+        return videoType.trim();
+    }
+    if (type != null && type.trim().length() > 0) {
+        return type.trim();
+    }
+    return null;
+}
+
+// ✅ 用 isEmpty 表达「非空」
+public String resolveVideoType() {
+    if (videoType != null && !videoType.trim().isEmpty()) {
+        return videoType.trim();
+    }
+    if (type != null && !type.trim().isEmpty()) {
+        return type.trim();
+    }
+    return null;
+}
+```
+
+```kotlin
+// ❌
+if (videoType != null && videoType.trim().length > 0) { ... }
+
+// ✅
+if (!videoType.isNullOrBlank()) { ... }
+// 或需保留 trim 后的值时:
+val trimmed = videoType?.trim().orEmpty()
+if (trimmed.isNotEmpty()) { ... }
+```
 
 | 反模式                                                               | 正确做法                                        |
 | ----------------------------------------------------------------- | ------------------------------------------- |
@@ -923,6 +968,7 @@ val result = calculate(x)
 | 单行 `if` / `for` / `while` / `do-while` 无 `{}`(Kotlin 表达式 `if` 除外) | 即使只一行也写 `{}`;详见 §四「控制流大括号」                  |
 | Java 实体 `public` 实例字段                                              | `private` 字段 + `getXxx`/`setXxx` + `toString`            |
 | Kotlin 实体 `@JvmField` / 无 `toString` 的普通 class 实体                 | 优先 `data class` + `val`;或手写访问器 + `toString`          |
+| `s.length() > 0` / `s.trim().length() > 0` 等用 length 判空 / 非空       | Java `!s.isEmpty()` / `!s.trim().isEmpty()`;Kotlin `s.isNotEmpty()` / `s.isNotBlank()`;详见本节「字符串空判断」 |
 
 
 ## 九、代码自检(写代码时强制执行)
@@ -954,6 +1000,8 @@ val result = calculate(x)
 | 20  | 新增类按**功能聚合**放对应功能包(`login/` / `order/`),不按 `activities/` / `models/` 分层横切;仅多功能共享才放 `common/`                                                                                                                              | ✓        |
 | 21  | Gradle 脚本(Groovy / kts):锁版本 / `exclude` / 自定义 task / 变体 / 关键魔法值有 why 注释,无复述式、无注释掉的配置块                                                                                                                                     | ✓        |
 | 22  | 数据实体(Model/DTO/VO/Bean 等):Java 字段 `private` + get/set + `toString`;Kotlin 优先 `data class`+`val`(自带 toString),禁止 `@JvmField`,非 data class 必须手写 `toString`                                                                              | ✓        |
+| 23  | 字符串空判断用 `isEmpty` / `isNotEmpty` / `isNotBlank`,禁止 `length() > 0` / `== 0` / `!= 0` 及 `trim().length() > 0` 判空;详见 §八「字符串空判断」                                                                                                      | ✓        |
 
 
 **不执行自检就提交代码 = 违规。**
+
