@@ -1,6 +1,7 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { confirm, isCancel, multiselect } from '@clack/prompts'
+import { confirm, isCancel } from '@clack/prompts'
+import { SEARCH_PLACEHOLDER, searchableMultiselect } from './searchable-select.js'
 import { chalk } from './utils.js'
 import {
   interactiveSelect,
@@ -27,10 +28,10 @@ import { syncOpenCode } from './sync-opencode.js'
 import { ensureSkillsInstalled } from './skills-install.js'
 
 const PLATFORM_OPTIONS = [
-  { value: 'claude', label: 'Claude Code', hint: '支持 rules / skills / commands / hooks' },
-  { value: 'codex', label: 'Codex', hint: '支持 rules / skills / hooks' },
-  { value: 'cursor', label: 'Cursor', hint: '支持 rules' },
-  { value: 'opencode', label: 'OpenCode', hint: '支持 rules / skills / commands' },
+  { value: 'claude', label: 'Claude Code', description: '支持 rules / skills / commands / hooks' },
+  { value: 'codex', label: 'Codex', description: '支持 rules / skills / hooks' },
+  { value: 'cursor', label: 'Cursor', description: '支持 rules' },
+  { value: 'opencode', label: 'OpenCode', description: '支持 rules / skills / commands' },
 ]
 
 const CURSOR_BASELINE_RULE_NAME = '00-dwy-global.mdc'
@@ -152,12 +153,14 @@ async function selectPlatforms(projectDir) {
   console.log(chalk.gray('  Cursor      → rules'))
   console.log(chalk.gray('  OpenCode    → rules / skills / commands\n'))
 
-  const result = await multiselect({
+  // 可搜索多选 + 底部说明区
+  const result = await searchableMultiselect({
     message: '选择要同步的平台',
     options: PLATFORM_OPTIONS,
     initialValues,
     required: true,
     maxItems: 6,
+    placeholder: SEARCH_PLACEHOLDER,
   })
   if (isCancel(result)) return null
   return result
@@ -310,11 +313,12 @@ async function promptStaleRemovals(staleEntries) {
         console.log(chalk.gray(`  - ${name}`))
       }
 
-      const selected = await multiselect({
+      const selected = await searchableMultiselect({
         message: `选择要删除的 ${PLATFORM_LABELS[platform]} ${TYPE_LABELS[type]}`,
         options: names.map(name => ({ value: name, label: name })),
         initialValues: names,
         required: false,
+        placeholder: SEARCH_PLACEHOLDER,
       })
       if (isCancel(selected)) return null
       approvals[platform][type] = new Set(selected)

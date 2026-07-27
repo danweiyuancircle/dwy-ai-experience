@@ -1,6 +1,11 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { groupMultiselect, isCancel, select } from '@clack/prompts'
+import { isCancel } from '@clack/prompts'
+import {
+  SEARCH_PLACEHOLDER,
+  searchableMultiselect,
+  searchableSelect,
+} from './searchable-select.js'
 import { chalk, DEFAULT_TEMPLATE_REPO_URL, getDwyHomeDir, runGit } from './utils.js'
 
 const CATEGORIES = [
@@ -208,44 +213,42 @@ export async function scanExisting(projectTargetDir, typePlural) {
   return new Set(entries.filter(name => name !== '.gitkeep' && name !== '.DS_Store'))
 }
 
-function buildGroupedOptions(items) {
-  const groups = new Map()
-  for (const item of items) {
-    const category = item.category || '其他'
-    const options = groups.get(category) || []
-    const hint = item.description
-      ? item.description.length > 72
-        ? `${item.description.slice(0, 72)}...`
-        : item.description
-      : undefined
-
-    options.push({
-      value: item.name,
-      label: hint ? `${item.name}（${hint}）` : item.name,
+/**
+ * 将扫描项转为可搜索扁平 options。
+ * label 带分类前缀便于筛选；完整 description 进底部公共说明区（不截断塞 hint）。
+ *
+ * @param {Array<{ name: string, category?: string, description?: string }>} items
+ * @returns {Array<{ value: string, label: string, description?: string }>}
+ */
+function buildSearchableOptions(items) {
+  return items
+    .slice()
+    .sort((a, b) => {
+      const catCmp = (a.category || '其他').localeCompare(b.category || '其他', 'zh')
+      if (catCmp !== 0) return catCmp
+      return a.name.localeCompare(b.name, 'zh')
     })
-    groups.set(category, options)
-  }
-
-  return Object.fromEntries(
-    [...groups.entries()]
-      .sort(([a], [b]) => a.localeCompare(b, 'zh'))
-      .map(([category, options]) => [
-        category,
-        options.sort((a, b) => a.label.localeCompare(b.label, 'zh')),
-      ]),
-  )
+    .map(item => {
+      const category = item.category || '其他'
+      return {
+        value: item.name,
+        label: `${category} / ${item.name}`,
+        // 完整描述给底部公共区；搜索也匹配 description
+        description: item.description || undefined,
+      }
+    })
 }
 
 async function promptSelection(items, label, defaultNames) {
   if (items.length === 0) return []
-  const selectedNames = await groupMultiselect({
+  // 可搜索多选 + 底部说明区（聚焦项描述不跟在行尾）
+  const selectedNames = await searchableMultiselect({
     message: `选择 ${label}`,
-    options: buildGroupedOptions(items),
+    options: buildSearchableOptions(items),
     initialValues: [...defaultNames],
     maxItems: 15,
     required: false,
-    groupSpacing: 1,
-    selectableGroups: true,
+    placeholder: SEARCH_PLACEHOLDER,
   })
   if (isCancel(selectedNames)) return null
   const selectedSet = new Set(selectedNames)
@@ -273,7 +276,8 @@ export async function interactiveSelect(scans, existing) {
 
     const nextLabel = CATEGORIES[i + 1].label
     const prevLabel = i > 0 ? CATEGORIES[i - 1].label : null
-    const nav = await select({
+    // 导航步可搜索单选（选项少，交互与多选一致）
+    const nav = await searchableSelect({
       message: `${label} 已选 ${sel[key].length} 项。下一步：`,
       options: [
         { label: `继续选 ${nextLabel}`, value: 'next' },
@@ -281,6 +285,7 @@ export async function interactiveSelect(scans, existing) {
         { label: '取消同步', value: 'cancel' },
       ],
       initialValue: 'next',
+      placeholder: SEARCH_PLACEHOLDER,
     })
     if (isCancel(nav) || nav === 'cancel') return null
     i = nav === 'back' ? i - 1 : i + 1
@@ -292,7 +297,7 @@ export async function interactiveSelect(scans, existing) {
     for (const { key, label } of CATEGORIES) {
       console.log(chalk.gray(`  ${label.padEnd(10)} ${sel[key].length} 项`))
     }
-    const final = await select({
+    const final = await searchableSelect({
       message: '确认提交还是重选？',
       options: [
         { label: '确认提交', value: 'confirm' },
@@ -300,6 +305,7 @@ export async function interactiveSelect(scans, existing) {
         { label: '取消同步', value: 'cancel' },
       ],
       initialValue: 'confirm',
+      placeholder: SEARCH_PLACEHOLDER,
     })
     if (isCancel(final) || final === 'cancel') return null
     if (final === 'confirm') return sel
