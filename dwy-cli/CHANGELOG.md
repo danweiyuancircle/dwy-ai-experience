@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.16.1
+
+### Patch Changes
+
+- 交互同步每一步选项支持关键字搜索（Skills / Rules / Commands / Hooks、平台选择、陈旧项删除、导航与汇总确认）。
+- 选项说明改为列表下方固定「说明」公共区展示当前聚焦项完整描述，不再跟在选项行尾导致截断错乱。
+- 新增 `src/searchable-select.js`（基于 `@clack/core` AutocompletePrompt 自定义 render）；`@clack/prompts` 下限抬至 `^1.7.0`，显式依赖 `@clack/core`。
+
 ## 0.16.0
 
 ### Minor Changes
