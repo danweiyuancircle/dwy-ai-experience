@@ -120,7 +120,7 @@ python3 scripts/bump.py 2.0.0-rc.1 major             # -> 2.0.0  (预发布转�
 ## 与 dwy-publish 的边界
 
 - **dwy-semver**（本 skill）：只回答"该升哪一位、新号是多少"
-- **dwy-publish**：拿到版本号后执行发版流程（测试 → bump 版本文件 → changelog → build → publish → tag）
+- **dwy-publish**：拿到版本号后执行发版流程（测试 → bump 版本文件 → changelog → 安全检查 → **打 tag（版本串与 changelog 标题一致）** → build → publish）
 
 发版时若不确定版本号，先用本 skill 决策，再交给 dwy-publish 落地。
 

@@ -18,8 +18,9 @@
 - `github-action` → 引 `../dwy-github-action-publish`（先过通用检查）
 - `local` → 缓存的本地构建/发布命令
 
-## changelog / 安全检查 / 监控
+## changelog / tag / 安全检查 / 监控
 
 - changelog → `changelog.md`（写 `harmony/CHANGELOG.md`）
+- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致）
 - 安全检查 → `../dwy-sdk-spec`
 - 监控 + 结果 → `monitor-notify.md`

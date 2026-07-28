@@ -20,8 +20,9 @@
 
 **PyPI/npm 未配置 GA 时按 `publish-config.md` 主动推荐 OIDC。**
 
-## changelog / 安全检查 / 监控
+## changelog / tag / 安全检查 / 监控
 
 - changelog → `changelog.md`（单包仓库根目录一份；monorepo 按包目录过滤）
+- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致；monorepo 例：`@dwydev/eui@2.2.3`、`create-dwy@0.16.1`）
 - 安全检查 → `../dwy-sdk-spec`（对外包必查泄露/产物）
 - 监控 + verify → `monitor-notify.md`（包仓库版本查询 / GitHub Release）

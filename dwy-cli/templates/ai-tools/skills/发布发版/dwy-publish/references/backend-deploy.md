@@ -17,7 +17,8 @@
 - `github-action` → 引 `../dwy-github-action-publish`（CI 推荐 OIDC，先过通用检查）
 - `local` → 缓存的本地构建/部署命令（打镜像 / 部署脚本）
 
-## changelog / 监控
+## changelog / tag / 监控
 
 - changelog → `changelog.md`（写 `backend/CHANGELOG.md`）
+- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致）
 - 监控 + verify → `monitor-notify.md`（后端信号：健康检查 / 版本接口 / 运行日志 / 镜像 tag）
