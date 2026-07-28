@@ -21,12 +21,13 @@
 
 按缓存 method 分流：
 - `testflight` → 用项目实际的 TestFlight 上传命令（fastlane lane / Transporter / altool）
-- `cocoapods` / `spm` → 用项目实际的 pod 发布 / git tag 命令（SPM 以 tag 为版本，tag 须等于 `CFBundleShortVersionString`）
+- `cocoapods` / `spm` → 用项目实际的 pod 发布命令（SPM 消费 git tag；tag 走统一 `git-tag.md`，版本串 = changelog = `CFBundleShortVersionString`）
 - `github-action` → 引 `../dwy-github-action-publish`（先过其通用检查）
 - `local` → 缓存的本地命令
 
-## changelog / 安全检查 / 监控
+## changelog / tag / 安全检查 / 监控
 
 - changelog → `changelog.md`（写 `ios/CHANGELOG.md`）
+- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致）
 - 安全检查 → `../dwy-sdk-spec`（SDK 发布尤其要查泄露）
 - 监控 + 结果 → `monitor-notify.md`
