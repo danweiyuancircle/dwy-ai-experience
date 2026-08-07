@@ -1,5 +1,12 @@
 # dwyeapi
 
+## 0.9.5
+
+### Patch Changes
+
+- **TaskCreate 输入限长**：`task_type` 1–50 字符（对齐 ORM），`params` 最多 50 个键，防止超大 body
+- **Email**：`make_email_provider` 校验 `from_email` 必填；`send_code` 改为先发送成功再写 Redis，发送失败不落库
+
 ## 0.9.4
 
 ### Patch Changes

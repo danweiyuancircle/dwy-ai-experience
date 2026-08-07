@@ -63,11 +63,17 @@ class EmailProviderBase(ABC):
         return "".join(secrets.choice("0123456789") for _ in range(self._length))
 
     async def send_code(self, target: str) -> bool:
-        """生成验证码存 Redis 并调用 `_send()` 发送。"""
+        """生成验证码：先发送成功再写入 Redis。
+
+        顺序约束：``_send`` 失败时不落库，避免用户未收到邮件却有可校验码。
+        发送成功后写 Redis；若写库失败则返回 False（邮件已发出属极端边界，业务可重发覆盖）。
+        """
         code = self._generate_code()
+        if not await self._send(target, code):
+            return False
         redis = await self._get_redis()
         await redis.set(f"{CODE_KEY_PREFIX}{target}", code, ex=self._ttl)
-        return await self._send(target, code)
+        return True
 
     async def verify_code(self, target: str, code: str) -> bool:
         """从 Redis 读取存储的验证码比对,成功则删除 key(一次性)。"""

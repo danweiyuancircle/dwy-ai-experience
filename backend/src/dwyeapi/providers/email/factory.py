@@ -64,6 +64,9 @@ def make_email_provider(settings: EmailSettings) -> EmailProvider:
 
         if not settings.resend.api_key:
             raise ValueError("EMAIL__RESEND__API_KEY 未配置")
+        # from_email 启用时必填：缺省会导致 resend 运行时发信失败，尽早在工厂拦截
+        if not settings.resend.from_email:
+            raise ValueError("EMAIL__RESEND__FROM_EMAIL 未配置")
         return ResendEmailProvider(
             api_key=settings.resend.api_key,
             from_email=settings.resend.from_email,

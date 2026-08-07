@@ -143,7 +143,7 @@ curl -X POST http://localhost:8000/tasks \
 
 ```json
 {
-  "code": 200,
+  "code": "SUCCESS",
   "message": "success",
   "data": {
     "id": "task_a1b2c3d4...",
@@ -184,7 +184,7 @@ curl "http://localhost:8000/tasks?task_type=process_data"
 curl -X POST http://localhost:8000/tasks/task_a1b2c3d4.../cancel
 ```
 
-仅 `pending` 和 `running` 状态的任务可取消。已结束的任务返回 400。
+仅 `pending` 和 `running` 状态的任务可取消。已结束的任务抛 `BusinessError`，HTTP **422**（`TASK_ALREADY_FINISHED`）。
 
 ### 自定义路由前缀
 
