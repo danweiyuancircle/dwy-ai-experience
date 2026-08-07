@@ -1,0 +1,73 @@
+name: Publish Admin to npm
+
+on:
+  push:
+    tags:
+      - '@dwydev/admin@*'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - name: Verify tag matches package version
+        id: verify
+        working-directory: frontend/admin
+        run: |
+          PKG_NAME=$(node -p "require('./package.json').name")
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAG_NAME="${GITHUB_REF_NAME%@*}"
+          TAG_VERSION="${GITHUB_REF_NAME##*@}"
+          if [ "$PKG_NAME" != "$TAG_NAME" ]; then
+            echo "::error::tag package ($TAG_NAME) != package.json name ($PKG_NAME)"
+            exit 1
+          fi
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::tag version ($TAG_VERSION) != package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "release_name=$PKG_NAME@$PKG_VERSION" >> "$GITHUB_OUTPUT"
+          echo "package_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build release notes
+        working-directory: frontend/admin
+        run: |
+          python3 ../../.github/scripts/extract_changelog_section.py \
+            CHANGELOG.md \
+            "${{ steps.verify.outputs.package_version }}" \
+            "${{ steps.verify.outputs.release_name }}" \
+            > ../../.github/release-body-admin.md
+
+      # peer 依赖 eui 在 monorepo 内，先保证能 resolve 再打 admin
+      - name: Build
+        run: pnpm --dir frontend/admin build
+
+      - name: Publish
+        working-directory: frontend/admin
+        run: npm publish --access public
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.verify.outputs.release_name }}
+          draft: false
+          body_path: .github/release-body-admin.md
