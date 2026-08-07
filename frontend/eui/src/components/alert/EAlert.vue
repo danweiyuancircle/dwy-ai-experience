@@ -47,7 +47,7 @@ const emit = defineEmits<EAlertEmits>()
     <button
       v-if="closable"
       type="button"
-      class="absolute right-3 top-3 rounded-sm opacity-70 hover:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      class="absolute right-3 top-3 rounded-sm opacity-70 hover:opacity-100 outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
       aria-label="Close alert"
       @click="emit('close')"
     >

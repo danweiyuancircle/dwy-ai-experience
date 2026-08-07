@@ -43,6 +43,26 @@ describe('ERadio', () => {
     expect(emitted![emitted!.length - 1][0]).toBe('b')
   })
 
+  it('preserves number option value type on emit (not coerced to string)', async () => {
+    const numberOptions = [
+      { label: '一', value: 1 },
+      { label: '二', value: 2 },
+    ]
+    const wrapper = mount(ERadio, {
+      props: {
+        options: numberOptions,
+        modelValue: 1,
+        'onUpdate:modelValue': (val: string | number) => wrapper.setProps({ modelValue: val }),
+      },
+    })
+    const items = wrapper.findAll('[data-slot="radio-group-item"]')
+    await items[1].trigger('click')
+    const emitted = wrapper.emitted('update:modelValue')
+    expect(emitted).toBeTruthy()
+    expect(emitted![emitted!.length - 1][0]).toBe(2)
+    expect(typeof emitted![emitted!.length - 1][0]).toBe('number')
+  })
+
   it('disables all items when disabled prop is true', () => {
     const wrapper = mount(ERadio, {
       props: { options: defaultOptions, disabled: true },

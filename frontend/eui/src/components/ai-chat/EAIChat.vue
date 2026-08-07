@@ -122,13 +122,13 @@ watch(() => props.messages, async () => {
         :placeholder="placeholder"
         :disabled="loading"
         rows="1"
-        class="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-9 max-h-32"
+        class="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs transition-[color,box-shadow] placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 min-h-9 max-h-32"
         @keydown="handleKeydown"
       />
       <button
         type="button"
         :disabled="loading || !inputValue.trim()"
-        class="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-xs hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
+        class="inline-flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-xs transition-[color,box-shadow] hover:bg-primary/90 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50"
         @click="handleSend"
       >
         <Send class="size-4" />

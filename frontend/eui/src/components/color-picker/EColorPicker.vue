@@ -104,7 +104,7 @@ function selectPreset(color: string) {
         type="button"
         :disabled="props.disabled"
         :class="cn(
-          'inline-flex items-center gap-2 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+          'inline-flex items-center gap-2 h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-xs transition-[color,box-shadow] hover:bg-accent outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
           props.class,
         )"
       >
@@ -161,7 +161,7 @@ function selectPreset(color: string) {
                 v-for="color in props.presets"
                 :key="color"
                 type="button"
-                class="size-6 rounded border border-input hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-ring"
+                class="size-6 rounded border border-input hover:scale-110 transition-transform outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
                 :style="{ backgroundColor: color }"
                 :title="color"
                 @click="selectPreset(color)"

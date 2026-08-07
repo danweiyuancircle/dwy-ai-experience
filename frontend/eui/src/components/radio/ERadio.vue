@@ -2,7 +2,7 @@
   ERadio 单选框组件
   基于 reka-ui RadioGroup 封装，通过 options 渲染一组选项
   optionType=default 呈现圆点样式，optionType=button 呈现相连的按钮组样式
-  modelValue 统一转换为字符串比较，避免数字/字符串混用时的选中判断问题
+  与 reka 通信时 value 用 string（原语限制）；对外 emit 经 options 还原原始 number/string 类型，对齐 ESelect
 -->
 <script setup lang="ts">
 import { computed } from 'vue'
@@ -21,10 +21,21 @@ const props = withDefaults(defineProps<ERadioProps>(), {
 
 const emit = defineEmits<ERadioEmits>()
 
+/**
+ * reka-ui RadioGroup 只认 string value；对外按 options 还原原始类型，
+ * 避免 number option 被强制成 string 破坏 v-model 类型契约。
+ */
 function onUpdate(value: string | number | bigint | Record<string, any> | null) {
-  const strValue = value != null ? String(value) : ''
-  emit('update:modelValue', strValue)
-  emit('change', strValue)
+  if (value == null) {
+    emit('update:modelValue', '')
+    emit('change', '')
+    return
+  }
+  const strValue = String(value)
+  const found = props.options.find((o) => String(o.value) === strValue)
+  const finalValue = found ? found.value : strValue
+  emit('update:modelValue', finalValue)
+  emit('change', finalValue)
 }
 
 /** 默认圆点模式下的尺寸 class（控制圆点大小、文字、内边距） */

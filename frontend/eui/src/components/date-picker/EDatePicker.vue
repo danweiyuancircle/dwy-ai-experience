@@ -327,8 +327,8 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
         <button
           :disabled="disabled"
           :class="cn(
-            'flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs ring-offset-background',
-            'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+            'flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow]',
+            'outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
             'disabled:cursor-not-allowed disabled:opacity-50',
             !hasValue && 'text-muted-foreground',
             type === 'daterange' && 'min-w-[280px]',
@@ -429,9 +429,9 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
                         :day="weekDate"
                         :month="month.value"
                         :class="cn(
-                          'inline-flex size-8 items-center justify-center rounded-md p-0 text-sm font-normal ring-offset-background transition-colors',
+                          'inline-flex size-8 items-center justify-center rounded-md p-0 text-sm font-normal transition-colors',
                           'hover:bg-accent hover:text-accent-foreground',
-                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          'focus-visible:outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                           'data-[selected]:bg-primary data-[selected]:text-primary-foreground data-[selected]:hover:bg-primary data-[selected]:hover:text-primary-foreground',
                           'data-[today]:bg-accent data-[today]:text-accent-foreground',
                           'data-[outside-view]:text-muted-foreground data-[outside-view]:opacity-50',
@@ -507,9 +507,9 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
                         :day="weekDate"
                         :month="month.value"
                         :class="cn(
-                          'inline-flex size-8 items-center justify-center rounded-md p-0 text-sm font-normal ring-offset-background transition-colors',
+                          'inline-flex size-8 items-center justify-center rounded-md p-0 text-sm font-normal transition-colors',
                           'hover:bg-accent hover:text-accent-foreground',
-                          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                          'focus-visible:outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                           'data-[selected]:opacity-100',
                           'data-[selection-start]:bg-primary data-[selection-start]:text-primary-foreground data-[selection-start]:hover:bg-primary',
                           'data-[selection-end]:bg-primary data-[selection-end]:text-primary-foreground data-[selection-end]:hover:bg-primary',
@@ -568,7 +568,7 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
                       :class="cn(
                         'inline-flex h-8 w-16 items-center justify-center rounded-md text-sm font-normal transition-colors',
                         'hover:bg-accent hover:text-accent-foreground',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                        'focus-visible:outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                         'data-[selected]:bg-primary data-[selected]:text-primary-foreground',
                         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
                         'data-[unavailable]:pointer-events-none data-[unavailable]:text-muted-foreground data-[unavailable]:line-through data-[unavailable]:opacity-50',
@@ -622,7 +622,7 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
                       :class="cn(
                         'inline-flex h-8 w-16 items-center justify-center rounded-md text-sm font-normal transition-colors',
                         'hover:bg-accent hover:text-accent-foreground',
-                        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                        'focus-visible:outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]',
                         'data-[selected]:bg-primary data-[selected]:text-primary-foreground',
                         'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
                         'data-[unavailable]:pointer-events-none data-[unavailable]:text-muted-foreground data-[unavailable]:line-through data-[unavailable]:opacity-50',

@@ -69,7 +69,7 @@ function onUpdate(value: number) {
         data-slot="input"
         :placeholder="placeholder"
         :class="cn(
-          'flex w-full rounded-md border border-input bg-transparent py-1 pr-9 pl-3 text-left shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+          'flex w-full rounded-md border border-input bg-transparent py-1 pr-9 pl-3 text-left shadow-xs transition-[color,box-shadow] placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
           size ? sizeClass[size] : sizeClass.md,
         )"
       />
@@ -115,7 +115,7 @@ function onUpdate(value: number) {
         data-slot="input"
         :placeholder="placeholder"
         :class="cn(
-          'flex w-full rounded-md border border-input bg-transparent py-1 text-center shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50',
+          'flex w-full rounded-md border border-input bg-transparent py-1 text-center shadow-xs transition-[color,box-shadow] placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
           size ? sizeClass[size] : sizeClass.md,
         )"
       />

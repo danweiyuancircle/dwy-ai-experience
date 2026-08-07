@@ -1,5 +1,17 @@
 # @dwydev/eui
 
+## 2.2.4
+
+### Patch Changes
+
+- **ERadio**: 选中 number 型 option 时保留原始 number 类型 emit（对齐 `ESelect`），不再强制 `String()` 破坏 v-model 契约
+- **EHoverCard**: 移除未实现的 `update:open` 空类型契约（组件仍为非受控 Hover）
+- **theme**: `@source` 同步扫描 `src`（monorepo 开发 alias 源码时避免 dist 滞后导致 `rounded-*` 等类缺失）
+- **焦点环统一**：表单触发器与可聚焦控件对齐 `ESelect` / `EInput` 标准——`ring-[3px] ring-ring/50`，去掉 `ring-offset-*`（offset 会让环与边框分离，窄控件上尤其明显）。
+  - 表单触发器：`ECombobox`、`EDatePicker`、`ETimePicker`、`ECascader`、`ETreeSelect`、`EColorPicker`、`ENumberField`
+  - 日历单元格：`EDatePicker` 日/范围/月/年格子
+  - 其它：`ETagsInput` 激活 chip、`EAIChat` 输入区、`EAlert` / `EAlertDialog` / `EAdminLayout` 关闭与切换按钮、`EDialog` / `EDrawer` / `ESheet` 关闭按钮、`EResizableHandle`
+
 ## 2.2.3
 
 ### Patch Changes

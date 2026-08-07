@@ -62,11 +62,15 @@ function onUpdate(val: string | undefined) {
     :filter-function="(list: Option[], term: string) => list.filter(o => o.label.toLowerCase().includes(term.toLowerCase()))"
     @update:model-value="onUpdate"
   >
+    <!--
+      焦点环对齐 ESelect：ring-[3px] + 无 ring-offset，贴合边框；
+      旧写法 ring-offset-2 会让环与边框分离，窄控件上尤其明显。
+    -->
     <ComboboxAnchor
       :class="cn(
-        'flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs ring-offset-background',
+        'border-input flex h-9 w-full items-center justify-between rounded-md border bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow]',
         'placeholder:text-muted-foreground',
-        'focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2',
+        'focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px] focus-within:outline-none',
         'disabled:cursor-not-allowed disabled:opacity-50',
         props.class,
       )"
@@ -74,7 +78,7 @@ function onUpdate(val: string | undefined) {
       <ComboboxInput
         :display-value="() => selectedLabel ?? ''"
         :placeholder="placeholder"
-        class="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+        class="min-w-0 flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
       />
       <ComboboxTrigger class="ml-2 shrink-0 opacity-50">
         <ChevronsUpDown class="size-4" />
