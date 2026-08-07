@@ -11,8 +11,8 @@ export default defineConfig({
       '@dwydev/eui': resolve(__dirname, '../eui/src/index.ts'),
       '@dwydev/ekit': resolve(__dirname, '../ekit/src/index.ts'),
       // 开发期直连源码，免先 build admin
-      '@dwydev/admin/theme': resolve(__dirname, '../admin/src/theme.css'),
-      '@dwydev/admin': resolve(__dirname, '../admin/src/index.ts'),
+      '@dwydev/admin-kit/theme': resolve(__dirname, '../admin/src/theme.css'),
+      '@dwydev/admin-kit': resolve(__dirname, '../admin/src/index.ts'),
       '@': resolve(__dirname, '../eui/src'),
     },
     // 避免 admin 与 playground 各解析一份 vue-router 导致 inject 丢失

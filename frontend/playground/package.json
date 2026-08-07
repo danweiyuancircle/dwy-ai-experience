@@ -7,7 +7,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "@dwydev/admin": "workspace:^",
+    "@dwydev/admin-kit": "workspace:^",
     "@dwydev/ekit": "workspace:^",
     "@dwydev/eui": "workspace:^",
     "@vueuse/core": "^14.2.1",

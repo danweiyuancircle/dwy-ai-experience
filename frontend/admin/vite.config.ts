@@ -1,5 +1,5 @@
 /**
- * @dwydev/admin 库构建
+ * @dwydev/admin-kit 库构建
  * ES + preserveModules + vue + dts；peer 全部 external。
  */
 import { resolve } from 'node:path'

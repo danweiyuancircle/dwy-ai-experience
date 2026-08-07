@@ -1,5 +1,5 @@
 /**
- * @dwydev/admin 类型定义
+ * @dwydev/admin-kit 类型定义
  * 管理系统骨架：模块契约、装配选项、顶栏 chrome 与 RouteMeta 约定。
  * 框架不实现鉴权 / 业务 store，只负责壳布局、通用 chrome 与模块装配。
  */

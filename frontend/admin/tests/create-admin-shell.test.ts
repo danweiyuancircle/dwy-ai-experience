@@ -1,5 +1,5 @@
 /**
- * @dwydev/admin 装配逻辑单测
+ * @dwydev/admin-kit 装配逻辑单测
  */
 import { describe, expect, it } from 'vitest'
 import {

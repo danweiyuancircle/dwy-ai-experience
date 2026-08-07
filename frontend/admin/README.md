@@ -1,4 +1,4 @@
-# @dwydev/admin
+# @dwydev/admin-kit
 
 Vue 3 **通用后台管理系统骨架**。
 
@@ -11,7 +11,7 @@ Vue 3 **通用后台管理系统骨架**。
 ## 安装
 
 ```bash
-pnpm add @dwydev/admin
+pnpm add @dwydev/admin-kit
 # peers
 pnpm add vue vue-router @dwydev/eui @dwydev/ekit lucide-vue-next
 ```
@@ -24,7 +24,7 @@ import {
   defineAdminModule,
   asMenuIcon,
   AdminShell,
-} from '@dwydev/admin'
+} from '@dwydev/admin-kit'
 import { LayoutDashboard, Users } from 'lucide-vue-next'
 
 export const appShell = createAdminShell({

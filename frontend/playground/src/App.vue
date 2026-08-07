@@ -25,7 +25,7 @@ const themes = [
 const activeModuleKey = computed(() => getActiveModuleKey(route.path))
 const currentModule = computed(() => modules.find((m) => m.key === activeModuleKey.value))
 
-/** bare：全屏预览（如 @dwydev/admin），不渲染门户顶栏/侧栏 */
+/** bare：全屏预览（如 @dwydev/admin-kit），不渲染门户顶栏/侧栏 */
 const isBare = computed(() => route.matched.some((r) => r.meta.bare === true))
 
 function switchModule(key: string) {

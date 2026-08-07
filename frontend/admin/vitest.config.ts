@@ -1,5 +1,5 @@
 /**
- * @dwydev/admin 单元测试
+ * @dwydev/admin-kit 单元测试
  */
 import { resolve } from 'node:path'
 import vue from '@vitejs/plugin-vue'

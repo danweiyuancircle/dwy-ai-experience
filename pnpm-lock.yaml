@@ -244,7 +244,7 @@ importers:
 
   frontend/playground:
     dependencies:
-      '@dwydev/admin':
+      '@dwydev/admin-kit':
         specifier: workspace:^
         version: link:../admin
       '@dwydev/ekit':
