@@ -9,13 +9,14 @@ from dwyeapi.exceptions import (
     AppError, NotFoundError, BusinessError, PermissionDeniedError, AuthenticationError,
     register_exception_handlers,
 )
+from dwyeapi import ApiResponse
 \`\`\`
 
 ### 异常层级
 
 | 异常类 | HTTP 状态码 | code | message |
 |--------|-----------|------|---------|
-| AppError(message, code) | — | 自定义 | 自定义 |
+| AppError(message, code) | —（勿直接抛，无专用 handler 会落 500） | 自定义 | 自定义 |
 | NotFoundError(resource) | 404 | \`NOT_FOUND\` | \`{resource}不存在\` |
 | BusinessError(message, code) | 422 | 自定义 | 自定义 |
 | PermissionDeniedError() | 403 | \`PERMISSION_DENIED\` | \`权限不足\` |
@@ -29,13 +30,14 @@ register_exception_handlers(app)
 # 之后在 service 层直接 raise NotFoundError("用户") 即可返回 404
 \`\`\`
 
-响应格式统一为 \`{"code": "ERROR_CODE", "message": "描述"}\`。
+错误响应信封与成功一致：\`{"code": "ERROR_CODE", "message": "...", "data": null, "timestamp": ...}\`。
 
 ### 使用原则
 
 - **service 层**抛业务异常（NotFoundError, BusinessError 等）
 - **router 层**不写 try/except，由 register_exception_handlers 统一处理
 - **禁止**在 service 层抛 HTTPException
+- **禁止**直接抛 \`AppError\` 基类（无专用 handler）
 
 ### 示例
 
@@ -52,7 +54,7 @@ class UserService:
 @router.get("/users/{user_id}")
 async def get_user(user_id: int, service=Depends(get_user_service)):
     user = await service.get_by_id(user_id)
-    return success(data=UserResponse.model_validate(user))
+    return ApiResponse.ok(UserResponse.model_validate(user))
 \`\`\`
 `
 </script>

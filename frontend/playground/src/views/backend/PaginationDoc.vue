@@ -6,6 +6,7 @@ const content = `
 
 \`\`\`python
 from dwyeapi.pagination import PaginationParams, paginate, OffsetLimit
+from dwyeapi import ApiResponse
 \`\`\`
 
 ### PaginationParams
@@ -25,11 +26,13 @@ offset_limit = paginate(params.page, params.page_size)
 stmt = select(User).offset(offset_limit.offset).limit(offset_limit.limit)
 \`\`\`
 
+> 注意：\`paginate()\` 自身不 cap \`page_size\`；走 HTTP 时请用 \`PaginationParams\`（\`le=100\`）。内部直调需自行限制。
+
 ### 完整使用示例
 
 \`\`\`python
 from dwyeapi.pagination import PaginationParams, paginate
-from dwyeapi.response import paginated
+from dwyeapi import ApiResponse
 
 @router.get("/users")
 async def list_users(
@@ -44,7 +47,7 @@ async def list_users(
     count_stmt = select(func.count()).select_from(User)
     total = (await db.execute(count_stmt)).scalar_one()
 
-    return paginated(
+    return ApiResponse.page(
         [UserResponse.model_validate(u) for u in users],
         total,
         params.page,

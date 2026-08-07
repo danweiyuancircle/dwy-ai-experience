@@ -2,14 +2,12 @@
 import DemoBlock from '../components/DemoBlock.vue'
 import ComponentDoc from '../components/ComponentDoc.vue'
 import PropsTable from '../components/PropsTable.vue'
-import EventsTable from '../components/EventsTable.vue'
 import SlotsTable from '../components/SlotsTable.vue'
 
 const tocItems = [
   { id: 'usage', label: '使用场景' },
   { id: 'basic', label: '基础用法' },
   { id: 'props', label: 'Props' },
-  { id: 'events', label: 'Events' },
   { id: 'slots', label: 'Slots' },
 ]
 
@@ -17,10 +15,6 @@ const propsData = [
   { name: 'openDelay', type: 'number', default: '700', description: '鼠标悬停后延迟打开的毫秒数' },
   { name: 'closeDelay', type: 'number', default: '300', description: '鼠标移开后延迟关闭的毫秒数' },
   { name: 'class', type: 'string', description: '自定义内容区域的 CSS 类名' },
-]
-
-const eventsData = [
-  { name: 'update:open', params: '(open: boolean)', description: '悬浮卡片打开/关闭时触发' },
 ]
 
 const slotsData = [
@@ -93,10 +87,6 @@ const slotsData = [
 
     <section id="props">
       <PropsTable :data="propsData" />
-    </section>
-
-    <section id="events">
-      <EventsTable :data="eventsData" />
     </section>
 
     <section id="slots">

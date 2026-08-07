@@ -41,6 +41,8 @@ const propsData = [
   { name: 'maxlength', type: 'number', description: '最大输入字符数' },
   { name: 'showPassword', type: 'boolean', default: 'false', description: '是否显示密码可见切换按钮' },
   { name: 'showWordLimit', type: 'boolean', default: 'false', description: '是否显示字数统计（需配合 maxlength）' },
+  { name: 'name', type: 'string', description: '原生 name 属性' },
+  { name: 'autocomplete', type: 'string', description: '原生 autocomplete 属性' },
   { name: 'class', type: 'string', description: '自定义 CSS 类名' },
 ]
 

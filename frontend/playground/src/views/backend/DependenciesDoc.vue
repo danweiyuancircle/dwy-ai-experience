@@ -6,6 +6,7 @@ const content = `
 
 \`\`\`python
 from dwyeapi.dependencies import create_get_db
+from dwyeapi import ApiResponse
 \`\`\`
 
 ### create_get_db(session_factory)
@@ -44,6 +45,9 @@ get_db = create_get_db(session_factory)
 # routers/user.py
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+from dwyeapi.exceptions import NotFoundError
+from dwyeapi import ApiResponse
 from database import get_db
 
 router = APIRouter(prefix="/users", tags=["users"])
@@ -54,7 +58,7 @@ async def get_user(user_id: int, db: AsyncSession = Depends(get_db)):
     user = result.scalar_one_or_none()
     if not user:
         raise NotFoundError("用户")
-    return success(data=UserResponse.model_validate(user))
+    return ApiResponse.ok(UserResponse.model_validate(user))
 \`\`\`
 
 ### 设计要点

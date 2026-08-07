@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Skeleton · 通用管理系统骨架</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .sidebar {
+      width: 244px;
+      background: #0f172a;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      border-right: 1px solid #1e293b;
+    }
+    .brand {
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      border-bottom: 1px solid #1e293b;
+    }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      flex-shrink: 0;
+    }
+    .brand strong { font-size: 14px; font-weight: 600; }
+    .brand small { display: block; font-size: 10px; color: #64748b; margin-top: 1px; }
+    .nav { flex: 1; overflow: auto; padding: 12px 10px; }
+    .nav-section {
+      font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: #64748b; padding: 12px 10px 6px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      height: 36px; padding: 0 10px; border-radius: 8px;
+      width: 100%; text-align: left; font-size: 13.5px; color: #94a3b8;
+      margin-bottom: 2px;
+    }
+    .nav-item:hover { background: #1e293b; color: #f8fafc; }
+    .nav-item.active { background: #1e293b; color: #fff; box-shadow: inset 0 0 0 1px #334155; }
+    .nav-item .chev { margin-left: auto; opacity: 0.5; }
+    .nav-sub { padding-left: 8px; margin: 2px 0 6px; border-left: 1px solid #1e293b; margin-left: 18px; }
+    .nav-sub .nav-item { height: 32px; font-size: 13px; }
+    .ext-tag {
+      font-size: 9px; letter-spacing: 0.04em; text-transform: uppercase;
+      padding: 1px 5px; border-radius: 4px; background: #164e63; color: #67e8f9;
+      margin-left: auto;
+    }
+    .skeleton-note {
+      margin: 10px; padding: 10px; border-radius: 8px;
+      border: 1px dashed #334155; font-size: 11px; color: #64748b; line-height: 1.5;
+    }
+    .skeleton-note strong { color: #94a3b8; }
+
+    /* Built-in header chrome */
+    .header-tools { display: flex; align-items: center; gap: 4px; }
+    .tool {
+      position: relative;
+      width: 36px; height: 36px; border-radius: 8px;
+      display: grid; place-items: center; color: var(--muted);
+    }
+    .tool:hover, .tool.open { background: var(--accent); color: var(--fg); }
+    .tool .dot {
+      position: absolute; top: 8px; right: 8px;
+      width: 7px; height: 7px; border-radius: 99px;
+      background: #ef4444; border: 1.5px solid #fff;
+    }
+    .user-btn {
+      display: flex; align-items: center; gap: 8px;
+      height: 36px; padding: 0 8px 0 4px; border-radius: 999px;
+      margin-left: 4px;
+    }
+    .user-btn:hover, .user-btn.open { background: var(--accent); }
+    .user-btn .meta { text-align: left; line-height: 1.2; }
+    .user-btn .meta b { display: block; font-size: 13px; font-weight: 600; }
+    .user-btn .meta span { font-size: 11px; color: var(--muted); }
+
+    .dropdown {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      width: 280px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 16px 40px rgba(15,23,42,0.12);
+      z-index: 40;
+      display: none;
+      overflow: hidden;
+    }
+    .dropdown.show { display: block; }
+    .dropdown.narrow { width: 220px; }
+    .dd-head {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+      background: #fafbfc;
+    }
+    .dd-head .name { font-size: 14px; font-weight: 600; }
+    .dd-head .email { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .dd-list { padding: 6px; }
+    .dd-item {
+      display: flex; align-items: center; gap: 10px;
+      width: 100%; text-align: left;
+      height: 36px; padding: 0 10px; border-radius: 8px;
+      font-size: 13px; color: var(--fg);
+    }
+    .dd-item:hover { background: var(--accent); }
+    .dd-item.danger { color: #b91c1c; }
+    .dd-item .muted { margin-left: auto; font-size: 11px; color: var(--muted); }
+    .dd-sep { height: 1px; background: var(--border); margin: 4px 6px; }
+    .notif-item {
+      display: block; padding: 10px 12px; border-radius: 8px;
+      text-align: left; width: 100%;
+    }
+    .notif-item:hover { background: var(--accent); }
+    .notif-item .t { font-size: 13px; font-weight: 500; }
+    .notif-item .d { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .notif-item .time { font-size: 11px; color: #94a3b8; margin-top: 4px; }
+    .dd-foot {
+      border-top: 1px solid var(--border);
+      padding: 8px;
+      text-align: center;
+      font-size: 12px;
+      color: #0369a1;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .dd-foot:hover { background: #f0f9ff; }
+
+    .layer-badge {
+      position: absolute;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 5;
+    }
+    .layer-badge.skel {
+      background: #dbeafe; color: #1d4ed8;
+      top: 48px; right: 16px;
+    }
+    .layer-badge.ext {
+      background: #d1fae5; color: #047857;
+      top: 72px; left: 72px;
+    }
+
+    .callout {
+      border: 1px solid #bfdbfe;
+      background: #eff6ff;
+      color: #1e3a8a;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .callout code {
+      font-size: 12px;
+      background: #fff;
+      border: 1px solid #bfdbfe;
+      padding: 1px 5px;
+      border-radius: 4px;
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .card-mini {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      background: #fff;
+    }
+    .card-mini h3 { margin: 0 0 8px; font-size: 13px; font-weight: 600; }
+    .card-mini ul { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--muted); line-height: 1.7; }
+    .card-mini.blue { border-color: #bfdbfe; background: #f8fbff; }
+    .card-mini.green { border-color: #a7f3d0; background: #f6fdf9; }
+  </style>
+</head>
+<body>
+  <div class="proto-bar">
+    <a href="./index.html">← 方案对照</a>
+    <strong>Skeleton · 通用管理系统骨架</strong>
+    <span class="tag">产品定义</span>
+    <div class="spacer"></div>
+    <span>蓝 = 骨架内置 · 绿 = 业务扩展（模块/菜单/页）</span>
+  </div>
+
+  <div class="shell" style="position:relative">
+    <span class="layer-badge skel">骨架内置 chrome</span>
+    <span class="layer-badge ext">业务扩展区</span>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <div>
+          <strong id="appTitle">Your App</strong>
+          <small>admin-shell 骨架</small>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <div class="nav-section">由 modules 注入 ↓</div>
+        <button class="nav-item active">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          数据概览
+        </button>
+        <button class="nav-item">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
+          用量统计
+        </button>
+
+        <div class="nav-section">子菜单示例</div>
+        <button class="nav-item">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          运营
+          <svg class="icon icon-sm chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="nav-sub">
+          <button class="nav-item">用户列表 <span class="ext-tag">ext</span></button>
+          <button class="nav-item">套餐 <span class="ext-tag">ext</span></button>
+          <button class="nav-item">公告 <span class="ext-tag">ext</span></button>
+        </div>
+        <button class="nav-item">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          API Key
+        </button>
+
+        <div class="skeleton-note">
+          <strong>扩展点 · modules</strong><br/>
+          别人用 <code style="color:#94a3b8">defineAdminModule</code> 注册菜单/路由；支持 children 子菜单、group 分组、showInMenu=false 隐藏页。
+        </div>
+      </nav>
+    </aside>
+
+    <div class="page">
+      <!-- TOPBAR: skeleton built-ins -->
+      <header class="topbar">
+        <button class="tool" title="折叠侧栏">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <div class="search" style="min-width:200px">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+          搜索菜单 / 命令…
+          <kbd>⌘K</kbd>
+        </div>
+        <div class="grow"></div>
+
+        <div class="header-tools">
+          <!-- Theme (built-in) -->
+          <button class="tool" id="themeBtn" title="主题切换 · 骨架内置">
+            <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+          </button>
+
+          <!-- Notifications (built-in UI, data via props/slot) -->
+          <div style="position:relative">
+            <button class="tool" id="notifBtn" title="通知 · 骨架内置 UI">
+              <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+              <span class="dot"></span>
+            </button>
+            <div class="dropdown" id="notifDd">
+              <div class="dd-head">
+                <div class="name">通知</div>
+                <div class="email">骨架提供面板，列表由宿主注入</div>
+              </div>
+              <div class="dd-list">
+                <button class="notif-item">
+                  <div class="t">套餐将于 7 天后到期</div>
+                  <div class="d">请及时续费以免服务中断</div>
+                  <div class="time">2 小时前</div>
+                </button>
+                <button class="notif-item">
+                  <div class="t">导出任务已完成</div>
+                  <div class="d">factor_export_2026.csv</div>
+                  <div class="time">昨天</div>
+                </button>
+              </div>
+              <div class="dd-foot">查看全部</div>
+            </div>
+          </div>
+
+          <!-- User menu (built-in UI, data via user prop) -->
+          <div style="position:relative">
+            <button class="user-btn" id="userBtn" title="用户菜单 · 骨架内置">
+              <div class="avatar">张</div>
+              <div class="meta">
+                <b>张三</b>
+                <span>管理员</span>
+              </div>
+              <svg class="icon icon-sm" viewBox="0 0 24 24" style="color:var(--muted)"><path d="M6 9l6 6 6-6"/></svg>
+            </button>
+            <div class="dropdown narrow" id="userDd">
+              <div class="dd-head">
+                <div class="name">张三</div>
+                <div class="email">zhangsan@example.com</div>
+              </div>
+              <div class="dd-list">
+                <button class="dd-item">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+                  个人中心
+                </button>
+                <button class="dd-item">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2"/></svg>
+                  账户设置
+                </button>
+                <div class="dd-sep"></div>
+                <button class="dd-item danger">
+                  <svg class="icon icon-sm" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+                  退出登录
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="main">
+        <!-- Breadcrumb + hero: built-in, driven by route.meta -->
+        <div class="hero">
+          <div class="crumbs">
+            <span>控制台</span><span class="sep">/</span>
+            <span>运营</span><span class="sep">/</span>
+            <span style="color:var(--fg)">用户列表</span>
+          </div>
+          <h1>用户列表</h1>
+          <p>面包屑与标题由 route.meta 自动生成（骨架内置）；本页内容区由业务组件填充。</p>
+        </div>
+
+        <div class="callout">
+          <strong>定位：</strong>admin-shell = <em>管理系统骨架</em>，不是业务后台。
+          内置通用 chrome（主题 / 通知面板 / 用户下拉 / 面包屑 / 折叠侧栏 / 可选 ⌘K），
+          业务只通过 <code>defineAdminModule</code> 挂子菜单与页面。
+        </div>
+
+        <div class="grid-2">
+          <div class="card-mini blue">
+            <h3>骨架内置（开箱）</h3>
+            <ul>
+              <li>侧栏布局 + 折叠持久化</li>
+              <li>顶栏：主题切换、通知铃铛、用户下拉</li>
+              <li>PageHero：面包屑 + 标题 + 描述</li>
+              <li>可选 Command（⌘K）搜菜单</li>
+              <li>路由 activeKey / menuKey 高亮</li>
+            </ul>
+          </div>
+          <div class="card-mini green">
+            <h3>业务扩展（宿主填）</h3>
+            <ul>
+              <li>modules：菜单 + 路由（含子菜单）</li>
+              <li>user：姓名 / 头像 / 角色文案</li>
+              <li>notifications：列表数据或插槽</li>
+              <li>onLogout / 个人中心 path</li>
+              <li>router-view 内的业务页面</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:12px">
+          <div class="panel-head"><span>内容区 · router-view（业务）</span></div>
+          <div style="padding:24px;text-align:center;color:var(--muted);font-size:13px">
+            这里是业务页面插槽，骨架不感知具体业务表格/表单
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function toggle(btnId, ddId) {
+      const btn = document.getElementById(btnId)
+      const dd = document.getElementById(ddId)
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation()
+        const open = dd.classList.toggle('show')
+        btn.classList.toggle('open', open)
+        // close others
+        document.querySelectorAll('.dropdown').forEach((el) => {
+          if (el !== dd) el.classList.remove('show')
+        })
+        document.querySelectorAll('.tool, .user-btn').forEach((el) => {
+          if (el !== btn) el.classList.remove('open')
+        })
+      })
+    }
+    toggle('notifBtn', 'notifDd')
+    toggle('userBtn', 'userDd')
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.dropdown').forEach((el) => el.classList.remove('show'))
+      document.querySelectorAll('.tool, .user-btn').forEach((el) => el.classList.remove('open'))
+    })
+  </script>
+</body>
+</html>

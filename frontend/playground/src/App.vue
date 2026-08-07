@@ -25,6 +25,9 @@ const themes = [
 const activeModuleKey = computed(() => getActiveModuleKey(route.path))
 const currentModule = computed(() => modules.find((m) => m.key === activeModuleKey.value))
 
+/** bare：全屏预览（如 @dwydev/admin），不渲染门户顶栏/侧栏 */
+const isBare = computed(() => route.matched.some((r) => r.meta.bare === true))
+
 function switchModule(key: string) {
   const mod = modules.find((m) => m.key === key)
   if (mod) router.push(mod.prefix)
@@ -43,7 +46,10 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
 
 <template>
   <EConfigProvider>
-  <div class="flex flex-col h-screen">
+  <!-- 全屏骨架预览：不套门户 chrome -->
+  <router-view v-if="isBare" />
+
+  <div v-else class="flex flex-col h-screen">
     <!-- Top Nav -->
     <header class="flex items-center h-12 border-b bg-background px-4 shrink-0">
       <router-link to="/" class="font-bold text-base mr-6 shrink-0">DWY Shared</router-link>
@@ -125,3 +131,4 @@ onBeforeUnmount(() => document.removeEventListener('keydown', handleKeydown))
   </div>
   </EConfigProvider>
 </template>
+

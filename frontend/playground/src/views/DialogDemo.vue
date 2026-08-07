@@ -36,7 +36,8 @@ const propsData = [
   { name: 'closeOnClickModal', type: 'boolean', default: 'true', description: '是否点击遮罩层关闭' },
   { name: 'closeOnPressEscape', type: 'boolean', default: 'true', description: '是否按 Esc 关闭' },
   { name: 'fullscreen', type: 'boolean', default: 'false', description: '是否全屏显示' },
-  { name: 'destroyOnClose', type: 'boolean', default: 'false', description: '关闭时是否销毁内容（每次打开重新创建）' },
+  { name: 'destroyOnClose', type: 'boolean', default: 'true', description: '关闭时是否销毁内容（默认 true，每次打开重新创建）' },
+  { name: 'showOverlay', type: 'boolean', default: 'true', description: '是否渲染背景遮罩层；false 时背景可交互' },
   { name: 'class', type: 'string', default: '-', description: '自定义 CSS 类名' },
 ]
 

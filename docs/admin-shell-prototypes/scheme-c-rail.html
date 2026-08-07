@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scheme C · Icon Rail + Panel</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .rail {
+      width: 56px;
+      background: #0b1220;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 6px;
+      border-right: 1px solid #1e293b;
+      flex-shrink: 0;
+    }
+    .rail-logo {
+      width: 32px; height: 32px; border-radius: 9px;
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      margin-bottom: 10px;
+    }
+    .rail-btn {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: grid; place-items: center;
+      color: #64748b;
+      position: relative;
+    }
+    .rail-btn:hover { background: #1e293b; color: #e2e8f0; }
+    .rail-btn.active {
+      background: #1e293b;
+      color: #fff;
+      box-shadow: inset 0 0 0 1px #334155;
+    }
+    .rail-btn.active::before {
+      content: '';
+      position: absolute;
+      left: -8px;
+      width: 3px;
+      height: 18px;
+      border-radius: 0 3px 3px 0;
+      background: #38bdf8;
+    }
+    .rail .spacer { flex: 1; }
+    .panel-nav {
+      width: 220px;
+      background: #fff;
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .panel-nav .title {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      font-weight: 600;
+      font-size: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .panel-nav .list { padding: 10px; flex: 1; overflow: auto; }
+    .panel-nav .item {
+      display: flex; align-items: center; gap: 8px;
+      height: 34px; padding: 0 10px; border-radius: 8px;
+      width: 100%; text-align: left; font-size: 13px; color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .panel-nav .item:hover { background: var(--accent); color: var(--fg); }
+    .panel-nav .item.active { background: #0f172a; color: #fff; }
+    .panel-nav .group {
+      font-size: 11px; color: #94a3b8; letter-spacing: 0.04em;
+      text-transform: uppercase; padding: 12px 10px 6px;
+    }
+    .topbar .module-name {
+      font-size: 13px; font-weight: 600; color: var(--fg);
+      padding-right: 12px; border-right: 1px solid var(--border); margin-right: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="proto-bar">
+    <a href="./index.html">← 方案对照</a>
+    <strong>C · Icon Rail + Panel</strong>
+    <span class="tag">复杂后台</span>
+    <div class="spacer"></div>
+    <span>范式：Linear / VS Code · 一级轨 + 二级面板</span>
+  </div>
+
+  <div class="shell">
+    <!-- Level 1: modules -->
+    <aside class="rail">
+      <div class="rail-logo" title="Brand"></div>
+      <button class="rail-btn active" title="数据">
+        <svg class="icon" viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      </button>
+      <button class="rail-btn" title="运营">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
+      </button>
+      <button class="rail-btn" title="监控">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </button>
+      <button class="rail-btn" title="告警">
+        <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+      </button>
+      <button class="rail-btn" title="系统">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+      <div class="spacer"></div>
+      <button class="rail-btn" title="设置">
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </button>
+    </aside>
+
+    <!-- Level 2: context panel -->
+    <aside class="panel-nav">
+      <div class="title">数据管理</div>
+      <div class="list">
+        <div class="group">资源</div>
+        <button class="item active">因子管理</button>
+        <button class="item">股票代码</button>
+        <button class="item">Tick 管理</button>
+        <button class="item">DolphinDB</button>
+        <div class="group">任务</div>
+        <button class="item">任务中心</button>
+        <button class="item">上传记录</button>
+        <div class="group">观测</div>
+        <button class="item">系统监控</button>
+      </div>
+    </aside>
+
+    <div class="page">
+      <header class="topbar">
+        <span class="module-name">数据</span>
+        <div class="search">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+          在「数据」中搜索…
+          <kbd>⌘K</kbd>
+        </div>
+        <div class="grow"></div>
+        <button class="btn">导出</button>
+        <button class="btn primary">新建因子</button>
+        <div class="avatar">SA</div>
+      </header>
+      <main class="main">
+        <div class="hero">
+          <div class="crumbs">
+            <span>数据</span><span class="sep">/</span><span style="color:var(--fg)">因子管理</span>
+          </div>
+          <h1>因子管理</h1>
+          <p>一级模块走 Icon Rail（defineAdminModule 的顶层 id），二级树走 Panel。适合 quant-admin 多业务域分区。</p>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <span>因子列表</span>
+            <button class="btn">筛选</button>
+          </div>
+          <table class="data">
+            <thead>
+              <tr><th>名称</th><th>频率</th><th>状态</th><th>更新</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>momentum_20d</td><td>日频</td><td><span class="badge">online</span></td><td>今天</td></tr>
+              <tr><td>value_pe_ttm</td><td>日频</td><td><span class="badge">online</span></td><td>昨天</td></tr>
+              <tr><td>quality_roe</td><td>季频</td><td><span class="badge warn">building</span></td><td>1 小时前</td></tr>
+              <tr><td>liquidity_amihud</td><td>日频</td><td><span class="badge muted">draft</span></td><td>3 天前</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
