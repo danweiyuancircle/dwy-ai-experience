@@ -247,6 +247,9 @@
 | # | 用例 | 测试要点 |
 |---|------|---------|
 | 8 | TaskCreate 校验有效输入 | task_type 和 params 正确赋值 |
+| 8a | TaskCreate 拒绝空 task_type | ValidationError |
+| 8b | TaskCreate 拒绝超长 task_type | 超过 50 字符 ValidationError |
+| 8c | TaskCreate 拒绝过多 params 键 | 超过 50 键 ValidationError |
 | 9 | TaskResponse 从 ORM 对象构造 | model_validate 成功，字段映射正确 |
 | 10 | TaskListResponse 结构 | items 列表 + total 计数 |
 

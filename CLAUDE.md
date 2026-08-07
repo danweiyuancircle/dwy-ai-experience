@@ -79,7 +79,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 | database | AsyncEngine 工厂, DeclarativeBase, TimestampMixin (created_at/updated_at) |
 | security | JWT create_token/decode_token, bcrypt hash/verify |
 | exceptions | AppError 层级 → NotFoundError, BusinessError, PermissionDeniedError, AuthenticationError + FastAPI handler 注册 |
-| response | success(), fail(), paginated() → `{ code, message, data, timestamp }` |
+| response | ApiResponse.ok / ApiResponse.page → `{ code: "SUCCESS", message, data, timestamp }` |
 | pagination | PaginationParams, paginate(), OffsetLimit |
 | cache | 异步 Redis 管理: configure(), get_redis(), close_redis() |
 | dependencies | FastAPI 依赖注入工厂 |

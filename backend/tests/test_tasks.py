@@ -127,6 +127,30 @@ class TestSchemas:
         assert tc.task_type == "export"
         assert tc.params == {"format": "csv"}
 
+    def test_task_create_rejects_empty_task_type(self):
+        """task_type 最短 1 字符。"""
+        import pytest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            TaskCreate(task_type="", params={})
+
+    def test_task_create_rejects_long_task_type(self):
+        """task_type 最长 50，对齐 ORM String(50)。"""
+        import pytest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            TaskCreate(task_type="x" * 51, params={})
+
+    def test_task_create_rejects_too_many_params_keys(self):
+        """params 键数上限 50。"""
+        import pytest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            TaskCreate(task_type="export", params={f"k{i}": i for i in range(51)})
+
     async def test_task_response_from_attributes(self, session):
         """TaskResponse should be constructible from a persisted Task ORM object."""
         task = Task(

@@ -65,3 +65,14 @@ class TestEmailProviderBase:
             codes.add(stored)
         # 20 次生成至少 10 个不同的码(低冲突)
         assert len(codes) > 10
+
+    async def test_send_code_failure_does_not_store_key(self, fake_redis):
+        """_send 失败时不应写入 Redis，避免用户未收到邮件却有可校验码。"""
+
+        class FailingProvider(EmailProviderBase):
+            async def _send(self, target: str, code: str) -> bool:
+                return False
+
+        provider = FailingProvider(redis=fake_redis)
+        assert await provider.send_code("alice@example.com") is False
+        assert await fake_redis.get(f"{CODE_KEY_PREFIX}alice@example.com") is None

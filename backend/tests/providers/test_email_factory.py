@@ -34,6 +34,14 @@ class TestResendBuiltin:
         with pytest.raises(ValueError, match="EMAIL__RESEND__API_KEY"):
             make_email_provider(settings)
 
+    def test_resend_requires_from_email(self):
+        settings = EmailSettings(
+            provider="resend",
+            resend=ResendConfig(api_key="re_test", from_email=""),
+        )
+        with pytest.raises(ValueError, match="EMAIL__RESEND__FROM_EMAIL"):
+            make_email_provider(settings)
+
     def test_resend_with_api_key_constructs(self):
         pytest.importorskip("resend")
         settings = EmailSettings(
