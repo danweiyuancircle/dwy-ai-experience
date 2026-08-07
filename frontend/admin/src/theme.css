@@ -1,0 +1,8 @@
+/**
+ * @dwydev/admin 样式扫描入口
+ * 消费者在 eui theme 之后引入，确保骨架组件内的 Tailwind 类名被扫描生成。
+ * 用法（与 eui 同用）：
+ *   @import "@dwydev/eui/theme";
+ *   @import "@dwydev/admin/theme";
+ */
+@source "./**/*.{vue,ts}";

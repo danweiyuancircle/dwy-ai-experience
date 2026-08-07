@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scheme A · Classic Sidebar</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--sidebar);
+      color: var(--sidebar-fg);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      transition: width 0.2s ease;
+      border-right: 1px solid #1e293b;
+    }
+    .sidebar.collapsed { width: var(--sidebar-collapsed); }
+    .brand {
+      height: var(--header-h);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 16px;
+      border-bottom: 1px solid #1e293b;
+      overflow: hidden;
+    }
+    .brand-mark {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: linear-gradient(135deg, #38bdf8, #6366f1);
+      flex-shrink: 0;
+    }
+    .brand span { font-weight: 600; font-size: 14px; white-space: nowrap; }
+    .sidebar.collapsed .brand span,
+    .sidebar.collapsed .nav-label,
+    .sidebar.collapsed .nav-section,
+    .sidebar.collapsed .nav-chevron { display: none; }
+    .nav { flex: 1; overflow: auto; padding: 12px 10px; }
+    .nav-section {
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--sidebar-muted);
+      padding: 10px 10px 6px;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 36px;
+      padding: 0 10px;
+      border-radius: 8px;
+      color: var(--sidebar-muted);
+      font-size: 13.5px;
+      margin-bottom: 2px;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item:hover { background: #1e293b; color: #f8fafc; }
+    .nav-item.active { background: #1e293b; color: #fff; box-shadow: inset 0 0 0 1px #334155; }
+    .nav-item .nav-chevron { margin-left: auto; opacity: 0.6; }
+    .nav-sub { padding-left: 12px; margin-bottom: 4px; }
+    .nav-sub .nav-item { height: 32px; font-size: 13px; }
+    .sidebar-foot {
+      padding: 12px 10px;
+      border-top: 1px solid #1e293b;
+      font-size: 12px;
+      color: var(--sidebar-muted);
+    }
+    .sidebar.collapsed .nav-item { justify-content: center; padding: 0; }
+  </style>
+</head>
+<body>
+  <div class="proto-bar">
+    <a href="./index.html">← 方案对照</a>
+    <strong>A · Classic Sidebar</strong>
+    <span class="tag">默认推荐</span>
+    <div class="spacer"></div>
+    <span>范式：shadcn-admin / dashboard-01 · 可折叠侧栏</span>
+  </div>
+
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <span>Admin Console</span>
+      </div>
+      <nav class="nav">
+        <div class="nav-section">概览</div>
+        <button class="nav-item active">
+          <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+          <span class="nav-label">数据概览</span>
+        </button>
+        <button class="nav-item">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 4 5-6"/></svg>
+          <span class="nav-label">用量统计</span>
+        </button>
+
+        <div class="nav-section">业务</div>
+        <button class="nav-item" id="opsToggle">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          <span class="nav-label">运营管理</span>
+          <svg class="icon icon-sm nav-chevron" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="nav-sub" id="opsSub">
+          <button class="nav-item"><span class="nav-label" style="padding-left:26px">用户列表</span></button>
+          <button class="nav-item"><span class="nav-label" style="padding-left:26px">套餐管理</span></button>
+          <button class="nav-item"><span class="nav-label" style="padding-left:26px">公告</span></button>
+        </div>
+        <button class="nav-item">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          <span class="nav-label">API Key</span>
+        </button>
+
+        <div class="nav-section">系统</div>
+        <button class="nav-item">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          <span class="nav-label">个人设置</span>
+        </button>
+      </nav>
+      <div class="sidebar-foot">v0.2 · 通用壳预览</div>
+    </aside>
+
+    <div class="page">
+      <header class="topbar">
+        <button class="icon-btn" id="collapseBtn" title="折叠侧栏">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M3 12h18M3 6h18M3 18h18"/></svg>
+        </button>
+        <div class="search">
+          <svg class="icon icon-sm" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.3-4.3"/></svg>
+          搜索页面或命令…
+          <kbd>⌘K</kbd>
+        </div>
+        <div class="grow"></div>
+        <button class="icon-btn" title="主题">
+          <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
+        </button>
+        <button class="icon-btn" title="通知">
+          <svg class="icon" viewBox="0 0 24 24"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </button>
+        <div class="avatar">AD</div>
+      </header>
+
+      <main class="main">
+        <div class="hero">
+          <div class="crumbs">
+            <span>控制台</span><span class="sep">/</span><span style="color:var(--fg)">数据概览</span>
+          </div>
+          <h1>数据概览</h1>
+          <p>默认首页（defaultPath=/dashboard）。业务通过 defineAdminModule 注册菜单与路由，壳不感知业务域。</p>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><div class="label">今日请求</div><div class="value">128.4k</div><div class="delta">↑ 12.4%</div></div>
+          <div class="stat"><div class="label">活跃用户</div><div class="value">2,841</div><div class="delta">↑ 3.1%</div></div>
+          <div class="stat"><div class="label">错误率</div><div class="value">0.18%</div><div class="delta" style="color:#c2410c">↑ 0.02pp</div></div>
+          <div class="stat"><div class="label">套餐转化</div><div class="value">6.2%</div><div class="delta">↑ 0.4pp</div></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <span>最近任务</span>
+            <button class="btn primary">新建任务</button>
+          </div>
+          <div class="panel-body">
+            <table class="data">
+              <thead>
+                <tr><th>任务</th><th>类型</th><th>状态</th><th>更新时间</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>日终因子导出</td><td>export</td><td><span class="badge">success</span></td><td>10:24</td></tr>
+                <tr><td>Tick 归档 batch-42</td><td>archive</td><td><span class="badge warn">running</span></td><td>10:18</td></tr>
+                <tr><td>配额对账</td><td>reconcile</td><td><span class="badge muted">pending</span></td><td>09:55</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const sidebar = document.getElementById('sidebar')
+    document.getElementById('collapseBtn').onclick = () => sidebar.classList.toggle('collapsed')
+  </script>
+</body>
+</html>

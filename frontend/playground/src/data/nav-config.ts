@@ -26,6 +26,7 @@ export const modules: ModuleConfig[] = [
         items: [
           { name: '概览', path: '/eui' },
           { name: '集成指南', path: '/eui/integration' },
+          { name: 'ConfigProvider 全局配置', path: '/eui/config-provider' },
         ],
       },
       {
@@ -52,9 +53,19 @@ export const modules: ModuleConfig[] = [
         title: '表单 Form',
         items: [
           { name: 'Input 输入框', path: '/eui/input' },
+          { name: 'Textarea 文本域', path: '/eui/textarea' },
           { name: 'InputGroup 输入框组', path: '/eui/input-group' },
+          { name: 'NumberField 数字输入', path: '/eui/number-field' },
+          { name: 'PinInput 钉码输入', path: '/eui/pin-input' },
+          { name: 'InputOTP 验证码输入', path: '/eui/input-otp' },
           { name: 'Mention 提及', path: '/eui/mention' },
           { name: 'Select 选择器', path: '/eui/select' },
+          { name: 'NativeSelect 原生选择', path: '/eui/native-select' },
+          { name: 'Combobox 组合框', path: '/eui/combobox' },
+          { name: 'Autocomplete 自动完成', path: '/eui/autocomplete' },
+          { name: 'Cascader 级联选择', path: '/eui/cascader' },
+          { name: 'TreeSelect 树选择', path: '/eui/tree-select' },
+          { name: 'ColorPicker 颜色选择', path: '/eui/color-picker' },
           { name: 'Checkbox 复选框', path: '/eui/checkbox' },
           { name: 'Radio 单选框', path: '/eui/radio' },
           { name: 'Switch 开关', path: '/eui/switch' },
@@ -64,6 +75,7 @@ export const modules: ModuleConfig[] = [
           { name: 'TimePicker 时间', path: '/eui/time-picker' },
           { name: 'TagsInput 标签', path: '/eui/tags-input' },
           { name: 'Upload 上传', path: '/eui/upload' },
+          { name: 'Field 字段容器', path: '/eui/field' },
           { name: 'Form 表单', path: '/eui/form' },
         ],
       },
@@ -71,6 +83,8 @@ export const modules: ModuleConfig[] = [
         title: '数据展示 Data',
         items: [
           { name: 'Table 表格', path: '/eui/table' },
+          { name: 'VirtualTable 虚拟表格', path: '/eui/virtual-table' },
+          { name: 'Chart 图表', path: '/eui/chart' },
           { name: 'Descriptions 描述', path: '/eui/descriptions' },
           { name: 'Statistic 统计', path: '/eui/statistic' },
           { name: 'Timeline 时间线', path: '/eui/timeline' },
@@ -78,6 +92,7 @@ export const modules: ModuleConfig[] = [
           { name: 'Progress 进度条', path: '/eui/progress' },
           { name: 'Skeleton 骨架', path: '/eui/skeleton' },
           { name: 'Carousel 走马灯', path: '/eui/carousel' },
+          { name: 'Item 列表项', path: '/eui/item' },
         ],
       },
       {
@@ -85,10 +100,13 @@ export const modules: ModuleConfig[] = [
         items: [
           { name: 'Tabs 标签页', path: '/eui/tabs' },
           { name: 'Menu 菜单', path: '/eui/menu' },
+          { name: 'Menubar 菜单栏', path: '/eui/menubar' },
+          { name: 'NavigationMenu 导航菜单', path: '/eui/navigation-menu' },
           { name: 'Breadcrumb 面包屑', path: '/eui/breadcrumb' },
           { name: 'Pagination 分页', path: '/eui/pagination' },
           { name: 'Dropdown 下拉菜单', path: '/eui/dropdown' },
           { name: 'Stepper 步骤条', path: '/eui/stepper' },
+          { name: 'Command 命令面板', path: '/eui/command' },
         ],
       },
       {
@@ -128,6 +146,8 @@ export const modules: ModuleConfig[] = [
           { name: 'ConfirmDialog 确认弹窗', path: '/eui/confirm-dialog' },
           { name: 'DataPage 数据页', path: '/eui/data-page' },
           { name: 'AdminLayout 管理布局', path: '/eui/admin-layout' },
+          { name: 'AIChat AI 对话', path: '/eui/ai-chat' },
+          { name: 'TimetableGrid 课表网格', path: '/eui/timetable-grid' },
         ],
       },
       {
@@ -160,6 +180,22 @@ export const modules: ModuleConfig[] = [
     ],
   },
   {
+    key: 'admin',
+    label: 'Admin 骨架',
+    prefix: '/admin',
+    categories: [
+      {
+        title: '预览',
+        items: [
+          { name: '全屏控制台', path: '/admin/dashboard' },
+          { name: '用户列表（子菜单）', path: '/admin/ops/users' },
+          { name: '套餐管理（子菜单）', path: '/admin/ops/plans' },
+          { name: '个人设置', path: '/admin/settings' },
+        ],
+      },
+    ],
+  },
+  {
     key: 'eapi',
     label: 'EApi',
     prefix: '/eapi',
@@ -176,6 +212,12 @@ export const modules: ModuleConfig[] = [
           { name: 'pagination 分页', path: '/eapi/pagination' },
           { name: 'cache 缓存', path: '/eapi/cache' },
           { name: 'dependencies 依赖', path: '/eapi/dependencies' },
+          { name: 'logger 日志', path: '/eapi/logger' },
+          { name: 'health 健康检查', path: '/eapi/health' },
+          { name: 'masking 脱敏', path: '/eapi/masking' },
+          { name: 'dt 时间工具', path: '/eapi/dt' },
+          { name: 'tasks 异步任务', path: '/eapi/tasks' },
+          { name: 'email 邮件', path: '/eapi/email' },
         ],
       },
     ],

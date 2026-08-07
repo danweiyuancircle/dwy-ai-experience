@@ -1,1 +1,5 @@
 @import "@dwydev/eui/theme";
+/* 开发期 eui 走源码 alias，需额外扫描 eui src，否则 dist 与源码不同步时类名缺失 */
+@source "../../eui/src/**/*.{vue,ts,css}";
+/* 扫描 admin 骨架，确保 rounded-* / token 类生效 */
+@import "@dwydev/admin/theme";

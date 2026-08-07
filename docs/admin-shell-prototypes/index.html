@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Shell · 布局方案对照</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            border: 'hsl(214 32% 91%)',
+            background: 'hsl(0 0% 100%)',
+            foreground: 'hsl(222 47% 11%)',
+            muted: 'hsl(210 40% 96%)',
+            'muted-foreground': 'hsl(215 16% 47%)',
+            primary: 'hsl(222 47% 20%)',
+            accent: 'hsl(210 40% 96%)',
+            ring: 'hsl(222 47% 20%)',
+            card: 'hsl(0 0% 100%)',
+          },
+          fontFamily: {
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', 'sans-serif'],
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    body { font-feature-settings: "cv02", "cv03", "cv04", "cv11"; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 min-h-screen">
+  <header class="border-b bg-white">
+    <div class="max-w-6xl mx-auto px-6 py-8">
+      <p class="text-xs font-medium tracking-wide text-slate-500 uppercase mb-2">@dwydev/admin-shell · UI 方案评审</p>
+      <h1 class="text-3xl font-semibold tracking-tight">通用后台壳 · 4 套布局方案</h1>
+      <p class="mt-3 text-slate-600 max-w-2xl leading-relaxed">
+        参考 shadcn Sidebar / satnaing shadcn-admin / Linear·VS Code 双栏轨 / 企业双顶栏等开源与产品范式。
+        壳层只负责：品牌区、导航（多级）、顶栏扩展槽、内容区、可选页头。鉴权与业务菜单过滤由宿主注入。
+      </p>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-6 py-10 space-y-10">
+    <!-- 对比表 -->
+    <section class="rounded-xl border bg-white overflow-hidden shadow-sm">
+      <div class="px-5 py-4 border-b bg-slate-50/80">
+        <h2 class="font-semibold">方案对比</h2>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm text-left">
+          <thead class="bg-slate-50 text-slate-500">
+            <tr>
+              <th class="px-4 py-3 font-medium">方案</th>
+              <th class="px-4 py-3 font-medium">范式来源</th>
+              <th class="px-4 py-3 font-medium">适合场景</th>
+              <th class="px-4 py-3 font-medium">菜单深度</th>
+              <th class="px-4 py-3 font-medium">推荐度</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y">
+            <tr>
+              <td class="px-4 py-3 font-medium">A · Classic Sidebar</td>
+              <td class="px-4 py-3 text-slate-600">shadcn-admin / dashboard-01</td>
+              <td class="px-4 py-3 text-slate-600">SaaS 控制台、通用中后台</td>
+              <td class="px-4 py-3">2–3 级</td>
+              <td class="px-4 py-3"><span class="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full text-xs font-medium">默认推荐</span></td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-medium">B · Floating Inset</td>
+              <td class="px-4 py-3 text-slate-600">shadcn sidebar floating</td>
+              <td class="px-4 py-3 text-slate-600">偏产品感、营销站+控制台同仓</td>
+              <td class="px-4 py-3">2 级</td>
+              <td class="px-4 py-3"><span class="text-sky-700 bg-sky-50 px-2 py-0.5 rounded-full text-xs font-medium">体验优先</span></td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-medium">C · Icon Rail + Panel</td>
+              <td class="px-4 py-3 text-slate-600">Linear / VS Code / Notion</td>
+              <td class="px-4 py-3 text-slate-600">模块多、需二级上下文面板</td>
+              <td class="px-4 py-3">3 级+</td>
+              <td class="px-4 py-3"><span class="text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full text-xs font-medium">复杂后台</span></td>
+            </tr>
+            <tr>
+              <td class="px-4 py-3 font-medium">D · Top Nav + Side</td>
+              <td class="px-4 py-3 text-slate-600">企业双导航 / Ant Design Pro 变体</td>
+              <td class="px-4 py-3 text-slate-600">多产品切换、门户型后台</td>
+              <td class="px-4 py-3">2 级</td>
+              <td class="px-4 py-3"><span class="text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full text-xs font-medium">多产品</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- 卡片入口 -->
+    <section class="mb-2">
+      <a href="./scheme-skeleton.html" class="group block rounded-xl border-2 border-slate-900 bg-white p-5 shadow-md hover:shadow-lg transition">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">PRODUCT TARGET · 推荐先看</p>
+            <h3 class="text-xl font-semibold mt-1">Skeleton · 通用管理系统骨架</h3>
+            <p class="mt-2 text-sm text-slate-600 leading-relaxed max-w-2xl">
+              内置：用户下拉、通知面板、主题切换、面包屑、折叠侧栏、可选 ⌘K。
+              扩展：别人用 modules 挂子菜单与页面——骨架不感知业务。
+            </p>
+          </div>
+          <span class="shrink-0 text-sm font-medium">打开 →</span>
+        </div>
+      </a>
+    </section>
+
+    <section class="grid md:grid-cols-2 gap-5">
+      <a href="./scheme-a-classic.html" class="group rounded-xl border bg-white p-5 shadow-sm hover:border-slate-400 hover:shadow-md transition">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">SCHEME A</p>
+            <h3 class="text-lg font-semibold mt-1 group-hover:text-slate-700">Classic Sidebar</h3>
+            <p class="mt-2 text-sm text-slate-600 leading-relaxed">左侧固定侧栏（可折叠为图标）+ 顶栏 + 内容。最接近当前 EAdminLayout，改造成本最低，通用性最好。</p>
+          </div>
+          <span class="shrink-0 text-slate-400 group-hover:text-slate-700 text-sm">打开 →</span>
+        </div>
+        <div class="mt-4 h-36 rounded-lg border bg-gradient-to-br from-slate-100 to-slate-50 flex overflow-hidden">
+          <div class="w-14 bg-slate-800"></div>
+          <div class="flex-1 flex flex-col">
+            <div class="h-8 border-b bg-white/80"></div>
+            <div class="flex-1 p-3 grid grid-cols-3 gap-2">
+              <div class="bg-white border rounded"></div>
+              <div class="bg-white border rounded"></div>
+              <div class="bg-white border rounded"></div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a href="./scheme-b-floating.html" class="group rounded-xl border bg-white p-5 shadow-sm hover:border-slate-400 hover:shadow-md transition">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">SCHEME B</p>
+            <h3 class="text-lg font-semibold mt-1">Floating Inset</h3>
+            <p class="mt-2 text-sm text-slate-600 leading-relaxed">侧栏悬浮圆角 + 页面内边距。更现代、更「产品」，适合 cloud 类控制台；窄屏要额外适配。</p>
+          </div>
+          <span class="shrink-0 text-slate-400 group-hover:text-slate-700 text-sm">打开 →</span>
+        </div>
+        <div class="mt-4 h-36 rounded-lg border bg-slate-100 p-2 flex gap-2">
+          <div class="w-16 rounded-xl bg-slate-800 shadow"></div>
+          <div class="flex-1 rounded-xl bg-white border flex flex-col overflow-hidden">
+            <div class="h-7 border-b"></div>
+            <div class="flex-1 p-2 grid grid-cols-2 gap-1.5">
+              <div class="bg-slate-50 border rounded"></div>
+              <div class="bg-slate-50 border rounded"></div>
+            </div>
+          </div>
+        </div>
+      </a>
+
+      <a href="./scheme-c-rail.html" class="group rounded-xl border bg-white p-5 shadow-sm hover:border-slate-400 hover:shadow-md transition">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">SCHEME C</p>
+            <h3 class="text-lg font-semibold mt-1">Icon Rail + Panel</h3>
+            <p class="mt-2 text-sm text-slate-600 leading-relaxed">最左图标轨（一级模块）+ 二级树面板 + 内容。模块极多时最清晰，quant-admin 类数据/运营/系统分区很合适。</p>
+          </div>
+          <span class="shrink-0 text-slate-400 group-hover:text-slate-700 text-sm">打开 →</span>
+        </div>
+        <div class="mt-4 h-36 rounded-lg border bg-slate-100 flex overflow-hidden">
+          <div class="w-10 bg-slate-900"></div>
+          <div class="w-28 bg-white border-r"></div>
+          <div class="flex-1 p-3 grid grid-cols-2 gap-2">
+            <div class="bg-white border rounded"></div>
+            <div class="bg-white border rounded"></div>
+          </div>
+        </div>
+      </a>
+
+      <a href="./scheme-d-top.html" class="group rounded-xl border bg-white p-5 shadow-sm hover:border-slate-400 hover:shadow-md transition">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <p class="text-xs text-slate-500 font-medium">SCHEME D</p>
+            <h3 class="text-lg font-semibold mt-1">Top Primary + Side</h3>
+            <p class="mt-2 text-sm text-slate-600 leading-relaxed">顶栏一级产品/工作区切换，侧栏二级功能。适合多租户/多产品门户；单产品时略重。</p>
+          </div>
+          <span class="shrink-0 text-slate-400 group-hover:text-slate-700 text-sm">打开 →</span>
+        </div>
+        <div class="mt-4 h-36 rounded-lg border bg-slate-100 flex flex-col overflow-hidden">
+          <div class="h-8 bg-slate-900"></div>
+          <div class="flex-1 flex">
+            <div class="w-24 bg-white border-r"></div>
+            <div class="flex-1 p-3">
+              <div class="h-full bg-white border rounded"></div>
+            </div>
+          </div>
+        </div>
+      </a>
+    </section>
+
+    <section class="rounded-xl border bg-white p-6 shadow-sm">
+      <h2 class="font-semibold mb-3">通用壳应固定的 UI 契约（与方案无关）</h2>
+      <ul class="grid md:grid-cols-2 gap-x-8 gap-y-2 text-sm text-slate-600">
+        <li>· <strong class="text-slate-800">#logo</strong> 品牌区（可点回 defaultPath）</li>
+        <li>· <strong class="text-slate-800">侧栏 menu</strong> 支持 group / children / 隐藏路由</li>
+        <li>· <strong class="text-slate-800">#header-extra</strong> 用户菜单 / 主题 / 通知</li>
+        <li>· <strong class="text-slate-800">PageHero</strong> 面包屑 + title + description（可关）</li>
+        <li>· <strong class="text-slate-800">折叠态</strong> 持久化 + 图标轨</li>
+        <li>· <strong class="text-slate-800">Command</strong> 可选全局搜索（⌘K）</li>
+        <li>· <strong class="text-slate-800">content</strong> 仅 &lt;router-view / 插槽&gt;</li>
+        <li>· <strong class="text-slate-800">不内置</strong> 鉴权、角色、业务 API</li>
+      </ul>
+    </section>
+
+    <p class="text-center text-xs text-slate-400 pb-8">
+      文件位置：docs/admin-shell-prototypes/ · 本地打开 index.html 即可评审
+    </p>
+  </main>
+</body>
+</html>

@@ -82,6 +82,19 @@ const router = createRouter({
     { path: '/eui/affix', component: () => import('./views/AffixDemo.vue') },
     { path: '/eui/watermark', component: () => import('./views/WatermarkDemo.vue') },
     { path: '/eui/mention', component: () => import('./views/MentionDemo.vue') },
+    { path: '/eui/textarea', component: () => import('./views/TextareaDemo.vue') },
+    { path: '/eui/autocomplete', component: () => import('./views/AutocompleteDemo.vue') },
+    { path: '/eui/cascader', component: () => import('./views/CascaderDemo.vue') },
+    { path: '/eui/color-picker', component: () => import('./views/ColorPickerDemo.vue') },
+    { path: '/eui/combobox', component: () => import('./views/ComboboxDemo.vue') },
+    { path: '/eui/input-otp', component: () => import('./views/InputOtpDemo.vue') },
+    { path: '/eui/native-select', component: () => import('./views/NativeSelectDemo.vue') },
+    { path: '/eui/number-field', component: () => import('./views/NumberFieldDemo.vue') },
+    { path: '/eui/pin-input', component: () => import('./views/PinInputDemo.vue') },
+    { path: '/eui/command', component: () => import('./views/CommandDemo.vue') },
+    { path: '/eui/config-provider', component: () => import('./views/ConfigProviderDemo.vue') },
+    { path: '/eui/field', component: () => import('./views/FieldDemo.vue') },
+    { path: '/eui/item', component: () => import('./views/ItemDemo.vue') },
 
     // Blocks
     { path: '/eui/blocks/login-01', component: () => import('./views/blocks/Login01.vue') },
@@ -107,6 +120,74 @@ const router = createRouter({
     { path: '/eapi/pagination', component: () => import('./views/backend/PaginationDoc.vue') },
     { path: '/eapi/cache', component: () => import('./views/backend/CacheDoc.vue') },
     { path: '/eapi/dependencies', component: () => import('./views/backend/DependenciesDoc.vue') },
+    { path: '/eapi/logger', component: () => import('./views/backend/LoggerDoc.vue') },
+    { path: '/eapi/health', component: () => import('./views/backend/HealthDoc.vue') },
+    { path: '/eapi/masking', component: () => import('./views/backend/MaskingDoc.vue') },
+    { path: '/eapi/dt', component: () => import('./views/backend/DtDoc.vue') },
+    { path: '/eapi/tasks', component: () => import('./views/backend/TasksDoc.vue') },
+    { path: '/eapi/email', component: () => import('./views/backend/EmailProviderDoc.vue') },
+
+    // @dwydev/admin 全屏预览（meta.bare 隐藏门户 chrome）
+    {
+      path: '/admin',
+      component: () => import('./views/admin/AdminDemoHost.vue'),
+      meta: { bare: true },
+      children: [
+        { path: '', redirect: '/admin/dashboard' },
+        {
+          path: 'dashboard',
+          component: () => import('./views/admin/AdminDemoPage.vue'),
+          meta: {
+            title: '数据概览',
+            description: '默认首页 defaultPath=/admin/dashboard，登录后可直接进入。',
+          },
+        },
+        {
+          path: 'ops/users',
+          component: () => import('./views/admin/AdminDemoPage.vue'),
+          meta: {
+            title: '用户列表',
+            description: '子菜单示例：运营 → 用户列表。',
+            menuKey: '/admin/ops/users',
+            breadcrumb: [
+              { label: '运营' },
+              { label: '用户列表' },
+            ],
+          },
+        },
+        {
+          path: 'ops/plans',
+          component: () => import('./views/admin/AdminDemoPage.vue'),
+          meta: {
+            title: '套餐管理',
+            description: '子菜单示例：运营 → 套餐管理。',
+            menuKey: '/admin/ops/plans',
+            breadcrumb: [
+              { label: '运营' },
+              { label: '套餐管理' },
+            ],
+          },
+        },
+        {
+          path: 'quota',
+          component: () => import('./views/admin/AdminDemoPage.vue'),
+          meta: { title: '用量统计', description: '一级菜单示例。' },
+        },
+        {
+          path: 'keys',
+          component: () => import('./views/admin/AdminDemoPage.vue'),
+          meta: { title: 'API Key', description: '一级菜单示例。' },
+        },
+        {
+          path: 'settings',
+          component: () => import('./views/admin/AdminDemoPage.vue'),
+          meta: {
+            title: '个人设置',
+            description: '用户下拉「个人中心」默认跳转本页。',
+          },
+        },
+      ],
+    },
 
     // CLI
     { path: '/cli', component: () => import('./views/cli/CliOverview.vue') },
