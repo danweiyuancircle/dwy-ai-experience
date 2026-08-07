@@ -1,0 +1,80 @@
+{
+  "version": 2,
+  "styleId": "knowledge-town-paper-film-v1",
+  "characterSystem": "xiaoqi-bubu-v1",
+  "characterRoles": {
+    "xiaoqi": "audience_question_and_reaction",
+    "bubu": "guide_prop_and_plain_language_takeaway"
+  },
+  "fps": 30,
+  "canvas": {"width": 1920, "height": 1080, "subtitleBandPx": 180},
+  "visualTokens": {
+    "paperBase": "#f4e8c6",
+    "paperCard": "#fffdf5",
+    "ink": "#14213d",
+    "accent": ["#ffd161", "#77dfd1", "#ff9cb9"],
+    "shadow": {"color": "#14213d", "offsetPx": [10, 12], "blurPx": 0},
+    "texture": "warm-rice-paper-visible"
+  },
+  "stickerSystem": {
+    "caption": {"required": true, "position": "bottom-dialogue-frame", "maxLines": 2},
+    "nameplate": {"use": "first-entry-or-identity-only", "border": "ink", "shadow": "hard-offset"},
+    "archiveFrame": {"use": "real-screenshot-or-source", "preserveOriginalImage": true},
+    "relationshipArrow": {"style": "ink-outline-coral-paper-ribbon", "motion": "draw-in"},
+    "forbidden": ["pure-black-shadow", "soft-blur-shadow", "glassmorphism", "gradient-sticker", "3d-render", "photorealistic-subject", "second-card-system"]
+  },
+  "assetAcceptance": {
+    "format": "png-alpha",
+    "alphaPreviewBackgrounds": ["#14213d", "#f4e8c6"],
+    "reject": ["magenta-fringe", "green-screen-fringe", "missing-alpha", "baked-text", "baked-ui", "baked-logo"]
+  },
+  "themeFreedom": {
+    "allowThemeSpecificSceneAndCamera": true,
+    "allowThemeSpecificHeroProps": true,
+    "mustKeep": ["visualTokens", "stickerSystem", "caption-system", "archive-frame"]
+  },
+  "layers": ["base_bg", "content", "text_sticker", "caption"],
+  "timing": {"prepareFrames": 3, "actionProgress": 0.2, "labelProgress": 0.48},
+  "audio": {
+    "bgmVolume": 0.18,
+    "bgmDuckVolume": 0.06,
+    "sfxMap": {
+      "chatBubblesPop": [{"file": "audio/sfx/paper-icon-pop-v1.wav", "offsetFrames": 24, "volume": 0.75}],
+      "llmLabelReveal": [{"file": "audio/sfx/paper-icon-pop-v1.wav", "offsetFrames": 9, "volume": 0.5}],
+      "comicBoxOpen": [{"file": "audio/sfx/town-arrival-chime-v1.wav", "offsetFrames": 0, "volume": 0.48}],
+      "mapPiecesGather": [{"file": "audio/sfx/town-arrival-chime-v1.wav", "offsetFrames": 0, "volume": 0.68}]
+    }
+  },
+  "qualityGate": {
+    "referenceComposition": "LLM-S01-ChatDoor",
+    "requiredBeats": ["problem", "action", "choice_or_turn", "result", "clear_or_transition"],
+    "requiredSpatialLayers": 3,
+    "requireStandalonePreview": true,
+    "forbidCardWallAsFinal": true,
+    "forbidIdleMotion": true,
+    "maxConcurrentNarrativeObjects": 3,
+    "requireFactTraceability": true,
+    "forbidDuplicateTermAcrossCaptionAndSticker": true,
+    "requireNarrativeActionPerCue": true,
+    "requireAmbientMicroMotionPerCue": true,
+    "requireReadableLandingPerCue": true,
+  "requireTextAndPathCollisionCheck": true,
+  "requireSceneGraphPerCue": true,
+  "requireExplicitExitForPriorCueElements": true,
+  "requireDependentConnectorLifecycle": true,
+  "forbidUndeclaredOnScreenText": true,
+  "requireZOrderBands": true,
+  "requireMidMotionCollisionSampling": true,
+  "collisionSampleFrames": [0.25, 0.5, 0.75, 0.9],
+  "maxCarryoverObjects": 1,
+    "minTextCardOuterGapPx": 24,
+    "arrowTipClearancePx": [8, 16],
+    "forbidIncompletePaperCorners": true
+  },
+  "recipes": {
+    "themeOpening": ["theme-space", "character-or-hero-prop", "paper-entrance", "result-reveal"],
+    "sourceCheck": ["claim-or-object", "archive-frame", "check-action", "verified-result"],
+    "mapFinale": ["topic-results", "paper-fold", "path-or-map"],
+    "cardWall": "preview_only_never_final"
+  }
+}

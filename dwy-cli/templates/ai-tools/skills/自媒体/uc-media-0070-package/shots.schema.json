@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://my-channel.local/schemas/media-package-shots-v1.json",
+  "title": "media package shots.json",
+  "description": "0070 成片施工图（机读）。0080/配音/渲染只认本结构。version 必须为 1。",
+  "type": "object",
+  "required": ["version", "fps", "width", "height", "chapters", "shots"],
+  "additionalProperties": true,
+  "properties": {
+    "version": {
+      "type": "integer",
+      "const": 1,
+      "description": "Schema 主版本。不兼容变更时递增。"
+    },
+    "fps": { "type": "number", "exclusiveMinimum": 0 },
+    "width": { "type": "integer", "minimum": 1 },
+    "height": { "type": "integer", "minimum": 1 },
+    "visual_style": { "type": "string" },
+    "playback_rule": {
+      "type": "string",
+      "description": "如 progressive_reveal"
+    },
+    "asset_root": {
+      "type": "string",
+      "description": "素材根相对 episode 或 work_dir，如 media/assets 或 制作/assets"
+    },
+    "cue_timeline_file": {
+      "type": "string",
+      "description": "可选。知识小城等精确对轨风格的机读真源，如 media/0070-package/cue-timeline.json。"
+    },
+    "voiceover": {
+      "type": "object",
+      "description": "可选。场景级旁白的文件与时码状态；真实音频生成后必须更新 timing_status。",
+      "properties": {
+        "file": {"type": "string"},
+        "timing_status": {"type": "string", "enum": ["estimated", "aligned_to_audio"]}
+      },
+      "additionalProperties": true
+    },
+    "total_duration_sec": { "type": "number", "minimum": 0 },
+    "total_duration_frames": { "type": "integer", "minimum": 0 },
+    "source": {
+      "type": "object",
+      "description": "上游追溯",
+      "properties": {
+        "script_dir": { "type": "string" },
+        "assets_dir": { "type": "string" },
+        "vo_file": { "type": "string" },
+        "storyboard_file": { "type": "string" },
+        "elements_file": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "chapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["chapter_id", "letter", "title", "shot_ids"],
+        "additionalProperties": true,
+        "properties": {
+          "chapter_id": { "type": "string", "minLength": 1 },
+          "letter": { "type": "string", "minLength": 1 },
+          "title": { "type": "string" },
+          "target_sec": { "type": "number", "minimum": 0 },
+          "shot_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "shots": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/shot" }
+    }
+  },
+  "$defs": {
+    "shot": {
+      "type": "object",
+      "required": [
+        "shot_id",
+        "chapter_id",
+        "order",
+        "vo_text",
+        "duration_sec",
+        "duration_frames"
+      ],
+      "additionalProperties": true,
+      "properties": {
+        "shot_id": {
+          "type": "string",
+          "pattern": "^[A-Z][0-9]{2}$",
+          "description": "全局唯一镜号，如 A00、B01、P03"
+        },
+        "chapter_id": { "type": "string", "minLength": 1 },
+        "chapter_letter": { "type": "string" },
+        "order": { "type": "integer", "minimum": 0 },
+        "vo_text": {
+          "type": "string",
+          "minLength": 1,
+          "description": "本镜口播全文；配音唯一念白源"
+        },
+        "duration_sec": { "type": "number", "exclusiveMinimum": 0 },
+        "duration_frames": {
+          "type": "integer",
+          "exclusiveMinimum": 0,
+          "description": "应 ≈ round(duration_sec * fps)"
+        },
+        "fps": { "type": "number", "exclusiveMinimum": 0 },
+        "main_visual": { "type": "string" },
+        "visual_delta": { "type": "string" },
+        "reveal": {
+          "type": "string",
+          "description": "如 add | hold | replace"
+        },
+        "builds_on": {
+          "type": ["string", "null"],
+          "description": "上一镜 shot_id；章首可为 null"
+        },
+        "motion": {
+          "type": "object",
+          "properties": {
+            "preset": {
+              "type": "string",
+              "enum": [
+                "hold",
+                "fade_up",
+                "scale_in",
+                "draw_on",
+                "highlight_pulse",
+                "slide_in",
+                "crossfade"
+              ]
+            },
+            "target": { "type": "string" },
+            "window": {
+              "type": "object",
+              "properties": {
+                "start": { "type": "number", "minimum": 0, "maximum": 1 },
+                "end": { "type": "number", "minimum": 0, "maximum": 1 }
+              },
+              "additionalProperties": true
+            },
+            "hold_after_sec": { "type": "number", "minimum": 0 }
+          },
+          "additionalProperties": true
+        },
+        "on_screen_text": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "assets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["role", "path"],
+            "additionalProperties": true,
+            "properties": {
+              "role": {
+                "type": "string",
+                "description": "bg | content | sticker | logo | main | …"
+              },
+              "path": { "type": "string", "minLength": 1 },
+              "enter_order": { "type": "integer", "minimum": 0 },
+              "type_only": { "type": "boolean" }
+            }
+          }
+        },
+        "sfx": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "cue_ids": {
+          "type": "array",
+          "description": "可选。对应 cue-timeline.json 的 cueId；Remotion 用此建立镜头与字幕/音频映射。",
+          "items": {"type": "string", "minLength": 1}
+        },
+        "elements_ref": { "type": "string" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}

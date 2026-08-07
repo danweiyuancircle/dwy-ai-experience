@@ -1,0 +1,4 @@
+interface:
+  display_name: "知识小城统一视觉视频制作"
+  short_description: "生成统一贴纸风格、可对轨的科普视频资产。"
+  default_prompt: "使用 $uc-media-knowledge-town 为本期科普锁定知识小城贴纸视觉系统，并建立可由 Remotion 渲染的素材、字幕、音频与镜头动作数据。"
