@@ -1,5 +1,5 @@
 {
-  "name": "@dwydev/admin",
+  "name": "@dwydev/admin-kit",
   "version": "0.1.0",
   "type": "module",
   "description": "Vue 3 通用后台管理系统骨架 — 内置顶栏 chrome + 模块化菜单扩展（peer @dwydev/eui）",

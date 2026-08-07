@@ -1,5 +1,5 @@
 <!--
-  @dwydev/admin 全屏预览宿主
+  @dwydev/admin-kit 全屏预览宿主
   模拟「登录后」控制台：骨架 chrome 全开 + modules 子菜单。
   不依赖业务鉴权，user/notifications 用本地 mock。
 -->
@@ -21,7 +21,7 @@ import {
   defineAdminModule,
   type AdminNotificationItem,
   type AdminUserInfo,
-} from '@dwydev/admin'
+} from '@dwydev/admin-kit'
 
 const router = useRouter()
 

@@ -97,7 +97,7 @@ const searchItems: SearchItem[] = [
   { title: 'Menubar 菜单栏', module: 'EUI 组件', path: '/eui/menubar', content: '菜单栏 menubar' },
   { title: 'NavigationMenu 导航菜单', module: 'EUI 组件', path: '/eui/navigation-menu', content: '导航菜单 navigation-menu 顶部' },
   // EKit modules
-  { title: 'Admin 骨架全屏预览', module: 'Admin 骨架', path: '/admin/dashboard', content: '@dwydev/admin AdminShell 主题 通知 用户菜单 子菜单 modules' },
+  { title: 'Admin 骨架全屏预览', module: 'Admin 骨架', path: '/admin/dashboard', content: '@dwydev/admin-kit AdminShell 主题 通知 用户菜单 子菜单 modules' },
   { title: 'request 请求', module: 'EKit 工具', path: '/ekit/request', content: 'createRequest axios plugin tokenPlugin unwrapPlugin refreshTokenPlugin 请求封装' },
   { title: 'storage 存储', module: 'EKit 工具', path: '/ekit/storage', content: 'useStorage localStorage 响应式存储' },
   { title: 'validators 校验', module: 'EKit 工具', path: '/ekit/validators', content: 'isPhone isEmail isIdCard isUrl isRequired 表单校验' },

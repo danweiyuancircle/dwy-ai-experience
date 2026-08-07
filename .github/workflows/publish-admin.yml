@@ -3,7 +3,7 @@ name: Publish Admin to npm
 on:
   push:
     tags:
-      - '@dwydev/admin@*'
+      - '@dwydev/admin-kit@*'
 
 jobs:
   publish:

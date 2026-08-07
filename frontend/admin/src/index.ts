@@ -1,5 +1,5 @@
 /**
- * @dwydev/admin
+ * @dwydev/admin-kit
  * 通用后台管理系统骨架：模块装配 + 内置顶栏 chrome + AdminShell 布局。
  * 与 @dwydev/admin-shell 并存；本包为完整骨架方案，原包保持不动。
  */

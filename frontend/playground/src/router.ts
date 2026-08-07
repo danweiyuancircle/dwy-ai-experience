@@ -127,7 +127,7 @@ const router = createRouter({
     { path: '/eapi/tasks', component: () => import('./views/backend/TasksDoc.vue') },
     { path: '/eapi/email', component: () => import('./views/backend/EmailProviderDoc.vue') },
 
-    // @dwydev/admin 全屏预览（meta.bare 隐藏门户 chrome）
+    // @dwydev/admin-kit 全屏预览（meta.bare 隐藏门户 chrome）
     {
       path: '/admin',
       component: () => import('./views/admin/AdminDemoHost.vue'),
