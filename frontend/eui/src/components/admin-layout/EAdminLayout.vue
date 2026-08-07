@@ -100,7 +100,7 @@ function toggleCollapsed() {
       >
         <button
           type="button"
-          class="rounded-md p-1.5 hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="rounded-md p-1.5 hover:bg-accent outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]"
           @click="toggleCollapsed"
         >
           <Menu class="size-4" />

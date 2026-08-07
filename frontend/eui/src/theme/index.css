@@ -5,3 +5,5 @@
 
 /* 让消费者 @import 主题后自动扫描组件类名，无需手动配置 @source */
 @source "../../dist";
+/* monorepo 开发常 alias 到源码：同步扫描 src，避免 dist 滞后导致 rounded 等类缺失 */
+@source "../**/*.{vue,ts,css}";

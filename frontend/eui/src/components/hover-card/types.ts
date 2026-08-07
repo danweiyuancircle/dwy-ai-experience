@@ -14,10 +14,4 @@ export interface EHoverCardProps {
   closeDelay?: number
 }
 
-/**
- * EHoverCard 悬浮卡片事件
- */
-export interface EHoverCardEmits {
-  /** 展开状态变化 */
-  (e: 'update:open', open: boolean): void
-}
+// 当前仅非受控 Hover；若需 v-model:open 再补 open prop + emit，避免空契约误导消费者

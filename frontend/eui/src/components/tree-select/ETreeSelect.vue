@@ -74,8 +74,8 @@ function onClear(e: MouseEvent) {
       <button
         :disabled="disabled"
         :class="cn(
-          'flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs',
-          'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+          'flex h-9 w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow]',
+          'outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
           'disabled:cursor-not-allowed disabled:opacity-50',
           !displayText && 'text-muted-foreground',
           props.class,

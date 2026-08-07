@@ -276,8 +276,8 @@ const hasValue = computed(() => {
       <button
         :disabled="disabled"
         :class="cn(
-          'flex w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs',
-          'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+          'flex w-full items-center justify-between rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs transition-[color,box-shadow]',
+          'outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
           'disabled:cursor-not-allowed disabled:opacity-50',
           multiple ? 'min-h-9 py-1.5' : 'h-9',
           !hasValue && 'text-muted-foreground',
