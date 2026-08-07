@@ -52,6 +52,19 @@
 
 ---
 
+## 0.3.0 — 2026-08-07
+
+### Added
+
+- 新分类 `skills/自媒体/`：迁入短视频 / 科普自媒体全流程 skills（源：`xiaoyuan-knowledge-town/function-tools/skills`）
+  - **编排**：`uc-media-flow`（CONTRACT + 执行清单模板，`fast`/`standard`）
+  - **流水线**：`uc-media-0010-product` → `0020-topic` → `0030-facts` → `0040-script` → `0050-design` → `0060-assets` → `0070-package` → `0080-factory`
+  - **扩展**：`uc-media-comic-kit`（漫画科普表达）、`uc-media-knowledge-town`（知识小城视觉 / Remotion 预设）
+  - 含 scripts（facts HTML、shots 校验、cue timeline）、templates、schema、Remotion 组件资产
+  - 硬编路径 `templates/skills/…` 改为 skill 包相对路径，适配 `dwy` sync 后 `.claude/skills/` / `.agents/skills/`
+
+---
+
 ## 0.2.0 — 2026-07-23
 
 ### Added
