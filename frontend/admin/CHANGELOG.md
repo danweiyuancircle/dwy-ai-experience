@@ -1,5 +1,11 @@
 # @dwydev/admin-kit
 
+## 0.1.1
+
+### Patch Changes
+
+- 修正 npm 包名与首发可见性（`@dwydev/admin-kit`）
+
 ## 0.1.0
 
 ### Minor Changes
