@@ -26,6 +26,7 @@ localizations:
 screenshots:
   ios: { zh-Hans: [], en-US: [] }
   macos: { zh-Hans: [], en-US: [] }
+# 每个内购条目必须带 `review_screenshot`，尺寸固定为 1280x800 像素。
 in_app_purchases: []
 subscriptions: []
 review:

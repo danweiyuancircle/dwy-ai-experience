@@ -48,6 +48,7 @@ description: "iOS/macOS App Store 上架编排。用户要求创建或填写 App
 ## 内购与订阅
 
 - 校验 `product_id` 与 StoreKit 代码一致，再创建消耗型、非消耗型内购或自动续期订阅。
+- 每个内购必须提交一张用于审核的 `1280 × 800` 像素截图；按 [内购审核截图](references/in-app-purchase-review.md) 从真实购买流程采集并校验。
 - 默认全地区可售；以美国区目标价格查询 Apple 价格点，并由 Apple 自动等价换算其它地区价格。
 - 价格修改必须展示旧价、新价、生效时间和受影响地区；用户二次确认后才执行。
 
@@ -61,3 +62,4 @@ description: "iOS/macOS App Store 上架编排。用户要求创建或填写 App
 
 - API 与网页动作：见 [references/api-workflow.md](references/api-workflow.md)。
 - iOS/macOS 截图采集与规格：见 [references/screenshot-workflow.md](references/screenshot-workflow.md)。
+- 内购审核截图：见 [references/in-app-purchase-review.md](references/in-app-purchase-review.md)。
