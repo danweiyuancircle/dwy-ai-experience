@@ -1,0 +1,42 @@
+# 已确认的发布包模板；秘密仅使用外部引用，不能填入此文件。
+schema_version: 1
+application:
+  bundle_id: ""
+  sku: ""
+  platforms: [ios, macos]
+  availability: all_territories
+  china_mainland:
+    icp_status: not_started
+    icp_filing_number: ""
+localizations:
+  zh-Hans:
+    name: ""
+    subtitle: ""
+    description: ""
+    keywords: ""
+    support_url: ""
+    privacy_policy_url: ""
+  en-US:
+    name: ""
+    subtitle: ""
+    description: ""
+    keywords: ""
+    support_url: ""
+    privacy_policy_url: ""
+screenshots:
+  ios: { zh-Hans: [], en-US: [] }
+  macos: { zh-Hans: [], en-US: [] }
+in_app_purchases: []
+subscriptions: []
+review:
+  contact_name: ""
+  contact_email: ""
+  contact_phone: ""
+  demo_credentials_reference: ""
+  notes: ""
+confirmations:
+  metadata_confirmed: false
+  privacy_confirmed: false
+  pricing_confirmed: false
+  submit_for_review_confirmed: false
+  release_confirmed: false
