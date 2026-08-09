@@ -41,6 +41,7 @@ test('appstore_config 保存非秘密标识且可重置', async t => {
 test('发布模板声明双语、全地区与 ICP 非阻塞策略', async () => {
   const skill = await fs.readFile(path.join(skillDir, 'SKILL.md'), 'utf8')
   const submission = await fs.readFile(path.join(skillDir, 'assets/appstore-submission.yaml'), 'utf8')
+  const reviewScreenshot = await fs.readFile(path.join(skillDir, 'references/in-app-purchase-review.md'), 'utf8')
 
   assert.match(skill, /zh-Hans/)
   assert.match(skill, /en-US/)
@@ -48,4 +49,5 @@ test('发布模板声明双语、全地区与 ICP 非阻塞策略', async () => 
   assert.match(skill, /ICP/)
   assert.match(submission, /all_territories/)
   assert.match(submission, /not_started/)
+  assert.match(reviewScreenshot, /1280 × 800/)
 })
