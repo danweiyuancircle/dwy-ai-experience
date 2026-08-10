@@ -52,6 +52,44 @@
 
 ---
 
+## 0.4.2 — 2026-08-10
+
+### Added
+
+- `skills/自媒体/media-platform-packaging/assets/cover-style-master-v1.png`：封面视觉母版（style reference）
+
+### Changed
+
+- `skills/自媒体/media-platform-packaging/SKILL.md`：固定视觉母版约束 + 提示词骨架强制引用该母版；生成后 25% 缩放可读性检查
+
+---
+
+## 0.4.1 — 2026-08-10
+
+### Changed
+
+- `skills/自媒体/media-platform-packaging/`：同步源仓更新
+  - 平台表拆分 B站 / YouTube：B站用 `#标签`，YouTube 标签字段用英文逗号分隔关键词
+  - `references/platform-copy-examples.md` 增补 YouTube 标签格式示例
+
+---
+
+## 0.4.0 — 2026-08-10
+
+### Added
+
+- `skills/自媒体/media-platform-packaging/`：多平台自媒体包装与封面（源：`xiaoyuan-knowledge-town/.agents/skills/media-platform-packaging`）
+  - B站 / 抖音 / 小红书 / 微信视频号标题、简介、标签规则
+  - 16:9、4:3、3:4 封面版式与生图流程（依赖 `imagegen`）
+  - `references/platform-copy-examples.md`：标题长度与封面文字优先级示例
+  - 产出约定写入 `media/0070-package/` 包装清单
+
+### Changed
+
+- `skills/自媒体/README.md`：Skills 表登记 `media-platform-packaging`
+
+---
+
 ## 0.3.0 — 2026-08-07
 
 ### Added
