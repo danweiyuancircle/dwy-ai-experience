@@ -36,6 +36,7 @@ media/
 | **uc-media-0080-factory** | 适配说明.md（必选工厂） |
 | uc-media-comic-kit | 漫画科普表达规范（0050/0060 风格扩展） |
 | uc-media-knowledge-town | 知识小城频道视觉 / Remotion 预设 |
+| **media-platform-packaging** | 多平台包装（B站/抖音/小红书标题简介标签 + 16:9/4:3/3:4 封面） |
 
 契约：[`uc-media-flow/CONTRACT.md`](./uc-media-flow/CONTRACT.md)
 
