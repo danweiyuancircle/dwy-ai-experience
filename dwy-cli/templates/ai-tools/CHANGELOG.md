@@ -52,6 +52,79 @@
 
 ---
 
+## 0.9.0 — 2026-08-11
+
+### Changed
+
+- **0010 合并竞品 + 演讲地图**：删除分步 `uc-media-0010-topic` / `uc-media-0020-product`
+  - 新单一 skill `uc-media-0010-product`：竞品/差异化后 **AI 强制自动填写** 讲/不讲/内容柱/时长
+  - 主文档 `0010-product/产品卡-*.md`（§1 竞品 · §2 洞察 · §3 AI 地图）
+  - 内容轨：`主题 → 0010 → 0030 按地图扩事实 → 0040`（无 0020 步）
+  - flow / CONTRACT / 清单 v7 / 0005 / 0030 / 0040 / README 对齐
+
+---
+
+## 0.8.0 — 2026-08-11
+
+### Changed
+
+- **内容轨因果修正**：`主题 → 0010 竞品 → 0020 演讲地图 → 0030 按地图扩事实 → 0040 蒸馏`
+  - skill 重命名：`uc-media-0010-topic`（竞品）、`uc-media-0020-product`（产品卡/地图）
+  - 目录：`0010-topic/竞品-*.md`、`0020-product/产品卡-*.md`
+  - 0030/0040/0005/flow/CONTRACT/README 全量对齐；清单 version 6
+  - 兼容：旧先产品后竞品、旧路径映射表
+
+---
+
+## 0.7.0 — 2026-08-11
+
+### Changed
+
+- **流程优化（P0/P1）**
+  - `uc-media-0005-ideation`：候选强制 `seed_links`；人选带入 0020
+  - `uc-media-0020-topic`：先消化 seed 再补检；「不做」回写池 `rejected`；正文称竞品包
+  - `uc-media-flow` / `CONTRACT`：fast 下 **0050 确认后连跑 0060→0070**；硬停收敛；风格 skill 挂载表
+  - `uc-media-0050-design`：可选跨集 `design-defaults.md`，本集只写增量
+  - `media-platform-packaging`：登记为可选 **0090 packaging**
+  - 执行清单 **version 5**；README 总览流程图
+
+---
+
+## 0.6.0 — 2026-08-11
+
+### Added
+
+- `skills/自媒体/uc-media-0005-ideation/`：选题发现 skill
+  - 硬依赖频道档案；多 agent（B站 / YouTube / 短视频 / 可选社区）搜集受众兴趣主题
+  - 跨集真源 `.dwy/uc-media/topic-backlog.md`；可选本集快照 `0005-ideation/选题池-*.md`
+  - **人选定**后进 0010；禁止自动代选；支持「刷新选题」force
+  - 模板：`topic-backlog.template.md` · `选题池.template.md`
+
+### Changed
+
+- `skills/自媒体/uc-media-flow/CONTRACT.md` · `SKILL.md` · `执行清单.template.md`（version 4）：接入 stage `ideation`、PATHS `topic_backlog`、硬停「0005 人选」
+- `skills/自媒体/uc-media-0010-product/`：无主题优先导向 0005；主题可来自选题池 `picked`
+- `skills/自媒体/uc-media-0020-topic/`：明确为单题竞品，选题发现归 0005
+- `skills/自媒体/README.md`：登记 0005 与 `topic-backlog.md`
+
+---
+
+## 0.5.0 — 2026-08-11
+
+### Added
+
+- `skills/自媒体/uc-media-0010-product/templates/channel-profile.template.md`：频道定位·受众·默认分发跨集模板
+- `skills/自媒体/uc-media-0010-product/templates/产品卡.template.md`：本集产品卡模板（§0 只读引用频道档案）
+
+### Changed
+
+- `skills/自媒体/uc-media-0010-product/SKILL.md`：拆分双真源——频道档案写 `<project_root>/.dwy/uc-media/channel-profile.md`（有则复用），本集产品卡只写主题·讲/不讲·分块时长；支持「更新频道定位 / 重写受众」强制刷新
+- `skills/自媒体/uc-media-flow/CONTRACT.md` · `SKILL.md` · `执行清单.template.md`：频道闸门、PATHS `channel_profile`、进度表 channel 行
+- `skills/自媒体/uc-media-0020-topic/` · `uc-media-0040-script/` · `uc-media-0050-design/`：上游必读频道档案；受众/语气/气质不再从本集卡重生成
+- `skills/自媒体/README.md`：目录结构补充 `.dwy/uc-media/`
+
+---
+
 ## 0.4.2 — 2026-08-10
 
 ### Added

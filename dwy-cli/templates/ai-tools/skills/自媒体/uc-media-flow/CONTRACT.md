@@ -1,81 +1,88 @@
 # media 流水线契约
 
-> 各 skill **可单独跑**。  
-> **铁律 A：** 每个 skill **只落一份主文档**（0070 另加机读 `shots.json`）。  
-> **铁律 B：** 本集目录带**序号前缀**，一眼看出结构与顺序。  
-> 编排节奏见 flow 的 `run_mode`（`fast` \| `standard`）。
+> **铁律 A：** 每 skill 一份主文档（0070 + shots.json；0005 跨集池）。  
+> **铁律 B：** 本集目录带序号前缀。  
+> **铁律 C：** 频道定位/受众跨集固化。  
+> **铁律 D：** 定题须人（0005）；**0010 内 AI 必须自动写出演讲地图**（可改）。  
+> **铁律 E：** `主题 → 0010（竞品+推荐地图）→ 0030 按地图扩事实 → 0040 蒸馏`。  
+> **铁律 F：** seed_links → 0010 必读复用。
 
 ---
 
-## 0. 编号目录（media 根下）
+## 0. 目录
 
 ```text
-episode_dir/
-  media/  或  制作/                 ← work_dir
+project_root/
+  .dwy/uc-media/
+    channel-profile.md
+    topic-backlog.md
+    design-defaults.md          # 可选
+  episode/media/                # work_dir
     执行清单.md
-    0010-product/                 ← 产品定义（群体·主题·分发·讲/不讲·分块时长）
-    0020-topic/                   ← 选题竞品（多源检索 + 差异化讲法）
-    0030-facts/                   ← 技术事实资料库（作者学习·可深；非口播）
-    0040-script/                  ← 脚本（脉络+分镜+口播）
-    0050-design/                  ← 风格+技术偏好
-    0060-assets/                  ← 素材清单 + files/
-    0070-package/                 ← 成片包 + shots.json
-    0080-factory/                 ← 工厂适配（用户选引擎）
-  remotion/                       ← 选 Remotion
-  hyperframe/                     ← 选 HyperFrame
+    0005-ideation/              # 可选快照
+    0010-product/               # 竞品 + AI 推荐演讲地图（合并）
+    0030-facts/
+    0040-script/
+    0050-design/
+    0060-assets/
+    0070-package/
+    0080-factory/
 ```
 
-| 步 | stage | Skill | 目录 | **主文档** |
-|----|--------|--------|------|------------|
-| 0010 | product | uc-media-0010-product | `0010-product/` | **`产品卡-{主题}.md`** |
-| 0020 | topic | uc-media-0020-topic | `0020-topic/` | `选题-{主题}.md`（**必含竞品表**） |
-| 0030 | facts | uc-media-0030-facts | `0030-facts/` | `事实-*.md` + `sources.json` + **`index.html`**（作者深库·悬停溯源） |
-| 0040 | script | uc-media-0040-script | `0040-script/` | `脚本-{主题}.md` |
-| 0050 | design | uc-media-0050-design | `0050-design/` | `design-lock.md` |
-| 0060 | assets | uc-media-0060-assets | `0060-assets/` | `素材清单.md` + `files/**` |
-| 0070 | package | uc-media-0070-package | `0070-package/` | `成片包.md` + `shots.json` |
-| 0080 | factory | uc-media-0080-factory | `0080-factory/` | `适配说明.md` + 工程目录 |
-| flow | — | uc-media-flow | work_dir 根 | `执行清单.md` |
+| 步 | stage | Skill | 主文档 |
+|----|--------|--------|--------|
+| 频道 | channel | 0010 闸门 | channel-profile.md |
+| 0005 | ideation | uc-media-0005-ideation | topic-backlog.md |
+| **0010** | **product** | **uc-media-0010-product** | **`0010-product/产品卡-*.md`** |
+| 0030 | facts | uc-media-0030-facts | 事实-*.md + sources + index.html |
+| 0040 | script | uc-media-0040-script | 脚本-*.md |
+| 0050 | design | uc-media-0050-design | design-lock.md |
+| 0060 | assets | uc-media-0060-assets | 素材清单.md |
+| 0070 | package | uc-media-0070-package | 成片包 + shots.json |
+| 0080 | factory | uc-media-0080-factory | 适配说明 + 工程 |
+| 0090 | packaging | media-platform-packaging | 可选包装 |
+| flow | — | uc-media-flow | 执行清单.md |
 
-**禁止：** 无序号旧路径当新片真源；同一步多份平行终稿；仓根 `channel/profile.md` 当产品真源。
+**0010 产品卡内含（单文件）：** 竞品表 · 差异化 · **AI 推荐讲/不讲/分块时长**。
 
-**兼容（旧 → 新）：**
+**兼容：**
 
 | 旧 | 新 |
 |----|-----|
-| 0010-channel / 0010-position + 0020-brief | **0010-product** |
-| 0030-topic … 0090-factory | **0020-topic … 0080-factory**（序 -10） |
+| 0010-topic + 0020-product 两步 | **仅 0010-product** |
+| `0010-topic/竞品-*` · `0020-product/产品卡-*` | 合并进 `0010-product/产品卡-*` |
+| 先地图后竞品 | 废；先分析后推荐地图（同步） |
 
 ---
 
-## 1. 两段式
+## 1. 流程骨架
 
 ```text
-内容轨：0010 product → 0020 topic → 0030 facts → 0040 script
-制作轨：0050 design → 0060 assets → 0070 package → 0080 factory → render
+跨集 channel-profile
+可选 0005 人选主题
+0010 竞品+差异化 → AI 自动推荐演讲地图（同文档）
+0030 按地图内容柱扩事实
+0040 按地图蒸馏口播
+0050→0060→0070→0080→render
+可选 0090 packaging
 ```
 
 ---
 
-## 2. PATHS 键
+## 2. PATHS
 
 ```text
+channel_profile, topic_backlog, design_defaults
 work_dir
-product_dir         # {work_dir}/0010-product
-topic_dir           # {work_dir}/0020-topic
-facts_dir           # {work_dir}/0030-facts
-script_dir          # {work_dir}/0040-script
-design_dir          # {work_dir}/0050-design
-assets_dir          # {work_dir}/0060-assets
-package_dir         # {work_dir}/0070-package
-factory_dir         # {work_dir}/0080-factory
-remotion_dir        # {episode_dir}/remotion
-hyperframe_dir      # {episode_dir}/hyperframe
-checklist_file      # {work_dir}/执行清单.md
+product_dir     # {work_dir}/0010-product
+facts_dir       # {work_dir}/0030-facts
+script_dir      # {work_dir}/0040-script
+…
 ```
 
 ```bash
-mkdir -p "{work_dir}"/{0010-product,0020-topic,0030-facts,0040-script,0050-design,0060-assets/files,0070-package,0080-factory}
+mkdir -p "{project_root}/.dwy/uc-media"
+mkdir -p "{work_dir}"/{0005-ideation,0010-product,0030-facts,0040-script,0050-design,0060-assets/files,0070-package,0080-factory}
 ```
 
 ---
@@ -84,27 +91,18 @@ mkdir -p "{work_dir}"/{0010-product,0020-topic,0030-facts,0040-script,0050-desig
 
 | 步 | 必读 |
 |----|------|
-| 0020 | `0010-product/产品卡-*.md` |
-| 0030 | 产品卡（议题范围）+ 选题（可选）；**深度不限于成片「不讲」** |
-| 0040 | `0030-facts/事实-*.md`（深库）+ `0010-product`（架构/受众/不讲） |
-| 0050 | `0040-script/脚本-*.md` 已人审 |
-| 0060 | design-lock + 脚本 |
-| 0070 | 脚本 + design-lock + 素材清单 |
-| 0080 | `0070-package/shots.json` 合法；**用户确认工厂** |
+| 0005 | 频道 |
+| **0010** | 主题 + 频道 + seed_links |
+| **0030** | **0010 产品卡 §3 内容柱**（硬） |
+| 0040 | 0030 + **0010 地图** + 频道 |
+| 0050+ | 同前 |
 
 ---
 
-## 4. 0080 工厂选型
+## 4–5. 工厂与硬停
 
-- 0050 design-lock 可写 **偏好** `production_stack`  
-- **0080 必须用户二选一：** remotion | hyperframe  
-- 未选 → **停**，不写码  
-
----
-
-## 5. 硬停
-
-**0030 事实**（fast 批次终点）→ **0040 脚本** → **0050 design** → **0070 成片包** → **0080 选型** → render。
+0080 须确认工厂。  
+硬停：**0005 人选** · **0010**（地图确认；fast 可连）· **0030** · **0040** · **0050** · **0070** · **0080** · render · 可选 0090。
 
 ---
 
@@ -112,7 +110,14 @@ mkdir -p "{work_dir}"/{0010-product,0020-topic,0030-facts,0040-script,0050-desig
 
 | 模式 | 行为 |
 |------|------|
-| **fast** | 自动连跑 0010→0020→0030；**0030 事实产出后停**等人确认 |
-| **standard** | 每 skill 写完即停，确认后再下一步 |
+| **fast** | 无主题 0005 停 → **0010→0030 连跑后停** → 0040 停 → 0050 停 → 连 0060–0070 → 0080 |
+| **standard** | 每步确认；0010 含「采纳/改地图」 |
 
-解析：入参 → 清单 frontmatter → 开跑前问一次。
+0010「不做」→ 不进 0030。
+
+---
+
+## 7. 刷新
+
+channel / backlog / design-defaults 触发词同前。  
+0010 不做 → rejected；成片 → done。
