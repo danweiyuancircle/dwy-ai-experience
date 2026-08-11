@@ -1,52 +1,56 @@
 # 自媒体 skills（uc-media）
 
-短视频 / 科普自媒体全流程 Agent skill 包。源迁入自 `xiaoyuan-knowledge-town/function-tools/skills`，由 dwy 统一管理；`dwy` 交互同步可选本分类。
-
-每 skill 自包含、可单独跑；**编号目录 + 每步一份主文档**。
-
-## 工作目录结构（media 根）
+## 处理流程
 
 ```text
-media/
-  执行清单.md
-  0010-product/        产品卡-*.md     ← 群体·主题·分发·讲/不讲·分块时长
-  0020-topic/          选题-*.md       ← 多源竞品 + 差异化讲法
-  0030-facts/          事实-*.md
-  0040-script/         脚本-*.md
-  0050-design/         design-lock.md
-  0060-assets/         素材清单.md · files/
-  0070-package/        成片包.md · shots.json
-  0080-factory/        适配说明.md     ← 用户选 remotion | hyperframe
+跨集 channel-profile · topic-backlog · design-defaults?
+
+  有主题 ─────────────────────┐
+  无主题 → 0005 ★人选 ────────┤
+                               ▼
+                    【0010 产品卡 · 一步】
+                    ① 竞品 + 差异化
+                    ② AI 自动推荐演讲地图
+                       （讲/不讲 · 内容柱 · 时长）
+                    ★ 不做则停；可改 §3 地图
+                               ▼
+                    【0030 事实】按内容柱扩展深库
+                               ▼
+                    【0040 脚本】按地图蒸馏口播
+                               ▼
+                    0050→0060→0070→0080→render
+                    可选 0090 包装
 ```
 
-工程在 episode 根：`remotion/` 或 `hyperframe/`。
+**因果：** 主题 → **看清赛道并自动生成讲什么** → 为地图备事实 → 蒸馏成片。
+
+| 编号 | 决定什么 | 主文档 |
+|------|----------|--------|
+| 0005 | 拍哪个主题（可选） | topic-backlog.md |
+| **0010** | 竞品差在哪 + **AI 推荐讲什么** | `0010-product/产品卡-*.md` |
+| 0030 | 按地图扩事实 | `0030-facts/事实-*.md` |
+| 0040 | 口播分镜 | `0040-script/脚本-*.md` |
+| 0050–0080 | 设计·素材·成片·工厂 | … |
+| 0090 | 多平台包装（可选） | 0070-package/ |
+
+| 模式 | 行为 |
+|------|------|
+| **fast** | 0010→0030 连跑后停；0040/0050 停；连 0060–0070；0080 停 |
+| **standard** | 每步确认（含是否改 0010 地图） |
 
 ## Skills
 
-| Skill | 主文档 |
-|-------|--------|
-| **uc-media-flow** | 执行清单.md（`fast` 到 0030 事实停 · `standard` 逐步确认） |
-| **uc-media-0010-product** | `0010-product/产品卡-*.md` |
-| **uc-media-0020-topic** | `0020-topic/选题-*.md`（竞品表 + 差异化） |
-| uc-media-0030-facts | `事实-*.md` + `sources.json` + **`index.html`**（深库·图·悬停出处） |
-| uc-media-0040-script | `0040-script/脚本-*.md` |
-| uc-media-0050-design | `0050-design/design-lock.md` |
-| uc-media-0060-assets | `0060-assets/素材清单.md` |
-| uc-media-0070-package | 成片包.md + shots.json |
-| **uc-media-0080-factory** | 适配说明.md（必选工厂） |
-| uc-media-comic-kit | 漫画科普表达规范（0050/0060 风格扩展） |
-| uc-media-knowledge-town | 知识小城频道视觉 / Remotion 预设 |
-| **media-platform-packaging** | 多平台包装（B站/抖音/小红书标题简介标签 + 16:9/4:3/3:4 封面） |
+| Skill | 作用 |
+|-------|------|
+| uc-media-flow | 编排 |
+| uc-media-0005-ideation | 选题发现 |
+| **uc-media-0010-product** | **竞品 + AI 演讲地图（合并）** |
+| uc-media-0030-facts | 按地图扩事实 |
+| uc-media-0040-script … 0080-factory | 脚本与制作 |
+| media-platform-packaging | 0090 可选 |
 
 契约：[`uc-media-flow/CONTRACT.md`](./uc-media-flow/CONTRACT.md)
 
-## 路径约定（dwy sync 后）
-
-- Claude Code：`.claude/skills/<skill-name>/`
-- Codex：`.agents/skills/<skill-name>/`
-- 本 skill 内脚本/模板用相对路径（如 `scripts/…`、`执行清单.template.md`）
-- 跨 skill 脚本用兄弟目录（如 `../uc-media-0070-package/scripts/…`）
-
 ## 兼容
 
-旧 0010-position+0020-brief → 0010-product；旧 0030…0090 → 0020…0080。
+旧分步 `0010-topic` + `0020-product` → 单一 `0010-product`；无 0020 目录。
