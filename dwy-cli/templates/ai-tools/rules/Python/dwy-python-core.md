@@ -282,6 +282,53 @@ class CreateUserRequest(BaseModel):
 - 所有类、所有方法/函数（含私有）**必须**有 docstring
 - docstring 统一使用 **Google 风格**
 
+### 临时代码标识（强制）
+
+产品源码中的业务待办、调试旁路、假数据**必须**用固定标签，便于编辑器全局搜索。`tests/` 内正规 mock / fixture **不强制**。
+
+| 标签 | 用途 | 格式 |
+|---|---|---|
+| `TODO` | 业务/技术未完成 | `# TODO(name, YYYY-MM-DD): 说明`（推荐带责任人与日期） |
+| `TESTCODE` | 临时调试、跳过校验、试验开关 | `# TESTCODE: 说明 + 移除条件` |
+| `MOCK` | 假数据、假接口、stub 实现 | `# MOCK: 说明 + 将来替换点` |
+
+- 写 mock/调试代码的**同一 diff 必须带标**；接真实现后**删标签与包夹**
+- 禁止无标签假返回；禁止自造 `# 假数据`、`# test only` 等替代词
+- 发版/提测前 `rg 'MOCK|TESTCODE'`，清单交给负责人确认（允许残留但须知情）
+
+**单行**（仅一行代码）：
+
+```python
+# MOCK: 登录假 token，接 POST /auth/login 后删除
+return {"token": "fake-token"}
+
+# TESTCODE: 强制测试账号，提测前删除
+user_id = 1
+```
+
+**多行 / 大段（≥2 行逻辑）强制包夹**：
+
+```text
+# MOCK BEGIN: <说明 + 将来替换点>
+...
+# MOCK END
+
+# TESTCODE BEGIN: <说明 + 移除条件>
+...
+# TESTCODE END
+```
+
+```python
+# MOCK BEGIN: 用户详情假数据，接 UserRepository.get 后删除
+user = {
+    "id": 1,
+    "name": "张三",
+    "roles": ["admin"],
+}
+return user
+# MOCK END
+```
+
 ### 完整示例（模块 / 类 / 方法 / 私有方法 docstring）
 
 ```python
