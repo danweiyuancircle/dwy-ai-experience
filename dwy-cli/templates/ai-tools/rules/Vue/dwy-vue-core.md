@@ -453,6 +453,60 @@ import type { UserInfo } from '@/features/users/types'
 5. 全部使用**中文**，**禁止**混用中英文
 6. 代码改了，注释**必须**同步更新
 
+### 临时代码标识（强制 · TS / Vue）
+
+产品源码（`src/`）中的业务待办、调试旁路、假数据**必须**用固定标签。`tests/` 内 Vitest mock **不强制**。
+
+| 标签 | 用途 | 格式 |
+|---|---|---|
+| `TODO` | 业务/技术未完成 | `// TODO(name, YYYY-MM-DD): 说明`（推荐） |
+| `TESTCODE` | 临时调试、`console` 后门、试验开关 | `// TESTCODE: 说明 + 移除条件` |
+| `MOCK` | 假数据、假接口、stub | `// MOCK: 说明 + 将来替换点` |
+
+- `<script>` / `.ts` 用 `//`；模板用 `<!-- ... -->`
+- 写 mock/调试的**同一 diff 必须带标**；接真实现后**删标签与包夹**
+- 禁止无标签假返回；禁止自造 `// 假数据` 等替代词
+- 发版前搜 `MOCK`、`TESTCODE`，清单确认（允许残留但须知情）
+
+**单行**（仅一行代码）：
+
+```ts
+// MOCK: 首页 banner 假数据，接 GET /banners 后删除
+const banners = ref([{ id: 1, title: 'demo' }])
+
+// TESTCODE: 打开时 dump store，上线前删除
+// console.log(store.$state)
+```
+
+**多行 / 大段（≥2 行逻辑）强制包夹**：
+
+```text
+// MOCK BEGIN: <说明 + 将来替换点>
+...
+// MOCK END
+
+// TESTCODE BEGIN: <说明 + 移除条件>
+...
+// TESTCODE END
+```
+
+```ts
+// MOCK BEGIN: 首页假数据，接 GET /home 后删除
+const banners = ref([
+  { id: 1, title: 'demo-a' },
+  { id: 2, title: 'demo-b' },
+])
+const user = ref({ name: '张三' })
+// MOCK END
+```
+
+```vue
+<!-- MOCK BEGIN: 无接口时的占位，接 CMS 后删除 -->
+<div>占位标题</div>
+<div>占位副标题</div>
+<!-- MOCK END -->
+```
+
 ### 示例
 
 ```typescript
@@ -509,6 +563,7 @@ AI 编写或审查 Vue 代码时，**必须**检查以下违规模式：
 | 解构 store 丢响应性 | `const { x } = store`（应用 `storeToRefs`） | 高 |
 | 注释缺失 | 导出函数 / 类型 / 接口字段无中文注释 | 中 |
 | 注释为英文 | 项目中文环境下写英文注释 | 中 |
+| 无标签 mock/调试 | `src/` 假数据或调试旁路未标 `MOCK:` / `TESTCODE:` | 高 |
 | 硬编码 API 地址 | URL 直接写在代码里，未走 `import.meta.env` | 高 |
 | 相对路径回溯 | `../../../` 跨层导入 | 中 |
 | scoped 替代 Tailwind | 大段 scoped CSS 实现可用 Tailwind 表达的样式 | 中 |

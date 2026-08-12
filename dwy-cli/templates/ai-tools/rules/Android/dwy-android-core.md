@@ -454,6 +454,70 @@ val data = newService.fetch()
 // TODO(zhang, 2026-05-30): 兼容企业微信扫码,关联 issue #1234
 ```
 
+### 2.9.1 临时代码标识（强制 · Java / Kotlin / XML）
+
+产品源码（`src/main` 等）中的业务待办、调试旁路、假数据**必须**用固定标签，便于 AS TODO 窗口 / 全局搜索定位。`src/test`、`androidTest` 正规测试 mock **不强制**。
+
+| 标签 | 用途 | 格式 |
+|---|---|---|
+| `TODO` | 业务/技术未完成 | `// TODO(name, YYYY-MM-DD): 说明`（同 §2.9） |
+| `TESTCODE` | 临时调试、跳过校验、试验开关 | `// TESTCODE: 说明 + 移除条件` |
+| `MOCK` | 假数据、假接口、stub 实现 | `// MOCK: 说明 + 将来替换点` |
+
+- 注释符：Java/Kotlin 用 `//`；XML 用 `<!-- -->`
+- 写 mock/调试代码的**同一 diff 必须带标**；接真实现后**删标签与包夹**
+- 禁止无标签假返回；禁止自造 `// 假数据`、`// test only` 等替代词
+- 发版/提测前搜 `MOCK`、`TESTCODE`，清单交给负责人确认（允许残留但须知情）
+
+**单行**（仅一行代码）：行上写标签即可。
+
+```kotlin
+// MOCK: 用户列表假数据，接 UserRepository.list() 后删除
+fun users() = listOf(User("张三"))
+
+// TESTCODE: 本地跳过登录，联调完删除
+if (BuildConfig.DEBUG) return true
+```
+
+**多行 / 大段（≥2 行逻辑）强制包夹**——标签在前、`BEGIN`/`END` 成对，说明写在 `BEGIN` 行：
+
+```text
+// MOCK BEGIN: <说明 + 将来替换点>
+... 多行假数据 / stub ...
+// MOCK END
+
+// TESTCODE BEGIN: <说明 + 移除条件>
+... 多行调试 / 旁路 ...
+// TESTCODE END
+```
+
+```kotlin
+// ❌ 大段无包夹
+fun loadHome(): HomeData {
+    val banners = listOf(Banner("a"), Banner("b"))
+    val user = User("张三")
+    return HomeData(banners, user)
+}
+
+// ✅
+// MOCK BEGIN: 首页假数据，接 HomeRepository.fetch 后删除
+fun loadHome(): HomeData {
+    val banners = listOf(Banner("a"), Banner("b"))
+    val user = User("张三")
+    return HomeData(banners, user)
+}
+// MOCK END
+```
+
+```xml
+<!-- MOCK BEGIN: 预览占位，接 CMS 后删除 -->
+<TextView android:text="占位标题" />
+<TextView android:text="占位副标题" />
+<!-- MOCK END -->
+```
+
+AS 默认 TODO 窗主要扫 `TODO`；`TESTCODE`/`MOCK` 用全局搜索，或在 Settings → Editor → TODO 增加 pattern `\bTESTCODE\b.*`、`\bMOCK\b.*`。
+
 ### 2.10 Gradle 脚本注释(Groovy)
 
 老项目的 `build.gradle` / `settings.gradle` 多用 **Groovy** 编写(新项目 Kotlin DSL `*.gradle.kts` 同理)。构建脚本是声明式配置,注释**只解释"为什么这样配",不复述配置项字面**。
@@ -995,7 +1059,7 @@ if (trimmed.isNotEmpty()) { ... }
 | 15  | 无空 `catch` 块、无 `catch (Throwable)`、无 `e.printStackTrace()`                                                                                                                                                                | ✓        |
 | 16  | 嵌套不超过 3 层,函数体不超过 50 行,单文件不超过 500 行                                                                                                                                                                                        | ✓        |
 | 17  | 资源命名遵守:layout 前缀(`activity_`* / `fragment_*` / `item_*`)、id 控件缩写(`tv_*` / `et_*` / `btn_*` / `rv_*` …)、drawable / selector 状态后缀(`_normal` / `_pressed` / `_disabled` …)、anim / menu / style / mipmap 命名,9-patch 带 `.9` 后缀 | ✓        |
-| 18  | 无注释掉的代码块(垃圾代码),TODO 必须带责任人 + 日期 + 上下文                                                                                                                                                                                     | ✓        |
+| 18  | 无注释掉的代码块(垃圾代码)；业务 TODO 带责任人+日期；产品源码假数据/调试旁路带 `MOCK:` / `TESTCODE:`                                                                                                                                                     | ✓        |
 | 19  | `if` / `else` / `else if` / `for` / `while` / `do-while` 语句即使单行也带 `{}`(Kotlin 表达式 `if` 除外)                                                                                                                                | ✓        |
 | 20  | 新增类按**功能聚合**放对应功能包(`login/` / `order/`),不按 `activities/` / `models/` 分层横切;仅多功能共享才放 `common/`                                                                                                                              | ✓        |
 | 21  | Gradle 脚本(Groovy / kts):锁版本 / `exclude` / 自定义 task / 变体 / 关键魔法值有 why 注释,无复述式、无注释掉的配置块                                                                                                                                     | ✓        |

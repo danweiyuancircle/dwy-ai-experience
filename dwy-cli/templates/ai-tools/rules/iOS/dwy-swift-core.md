@@ -36,6 +36,52 @@ final class TaskListViewModel {}
 - 统一 `guard` + early return，不要多层 `else`。
 - 禁止 `try?` 吞异常；不写无意义 `value ?? default`。
 
+### 临时代码标识（强制）
+
+产品源码中的业务待办、调试旁路、假数据**必须**用固定标签（`//`，勿写进正式 `///` 文档注释）。单元测试 / UITest 正规 mock **不强制**。
+
+| 标签 | 用途 | 格式 |
+|---|---|---|
+| `TODO` | 业务/技术未完成 | `// TODO(name, YYYY-MM-DD): 说明`（推荐） |
+| `TESTCODE` | 临时调试、跳过生物识别/鉴权等 | `// TESTCODE: 说明 + 移除条件` |
+| `MOCK` | 假数据、stub Service | `// MOCK: 说明 + 将来替换点` |
+
+- 写 mock/调试的**同一 diff 必须带标**；接真实现后**删标签与包夹**
+- 禁止无标签假返回；禁止自造 `// 假数据` 等替代词
+- 发版/提测前搜 `MOCK`、`TESTCODE`，清单确认（允许残留但须知情）
+
+**单行**（仅一行代码）：
+
+```swift
+// MOCK: 个人资料假数据，接 ProfileService.fetch 后删除
+let profile = Profile(name: "Demo", avatarURL: nil)
+
+// TESTCODE: 跳过生物识别，提测包删除
+// return true
+```
+
+**多行 / 大段（≥2 行逻辑）强制包夹**：
+
+```text
+// MOCK BEGIN: <说明 + 将来替换点>
+...
+// MOCK END
+
+// TESTCODE BEGIN: <说明 + 移除条件>
+...
+// TESTCODE END
+```
+
+```swift
+// MOCK BEGIN: 个人资料假数据，接 ProfileService.fetch 后删除
+let profile = Profile(
+    name: "Demo",
+    avatarURL: nil,
+    roles: ["user"]
+)
+// MOCK END
+```
+
 ## 全面屏与布局
 
 - 默认尊重安全区；固定内容区用 `safeAreaInset` / `safeAreaPadding`。
