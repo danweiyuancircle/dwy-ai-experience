@@ -15,7 +15,7 @@ function printHelp() {
     `dwy ${pkg.version}`,
     '',
     'Usage:',
-    '  dwy               运行交互式同步（自动更新全局外部 skill）',
+    '  dwy               交互同步：先选完整/仅 Skills，末步可选全局目录',
     '  dwy --help        显示本说明',
     '  dwy -h            显示本说明',
     '  dwy --version     显示当前版本',

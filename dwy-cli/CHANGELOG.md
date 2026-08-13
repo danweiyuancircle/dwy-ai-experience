@@ -1,5 +1,14 @@
 # create-dwy
 
+## 0.17.0
+
+### Minor Changes
+
+- `dwy` 交互同步开头增加「同步范围」：完整同步（默认）或仅 Skills。仅 Skills 不写、不删 Rules / Commands / Hooks。
+- 最后增加「Skill 同步位置」：默认仅项目目录；可另选 Claude / Grok / Codex / Cursor / OpenCode 全局目录，并勾选要额外拷贝的 skill。只覆盖点名 skill，不删用户 home 里其它个人 skill。选择写入 `/.dwy/sync-state.json` 的 `skillScope` / `syncMode`。
+
+---
+
 ## 0.16.1
 
 ### Patch Changes

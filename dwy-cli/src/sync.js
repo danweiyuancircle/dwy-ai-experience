@@ -257,25 +257,35 @@ async function promptSelection(items, label, defaultNames) {
 
 /**
  * 交互式选择：每步可回退到上一步，最后总览支持任意类别重选。
+ * categories 可缩成仅 Skills，未出现的类别返回空数组（调用方不得据此删除已有项）。
  * 返回 { skills, rules, commands, hooks } 或 null（取消）。
+ *
+ * @param {object} scans
+ * @param {object} existing
+ * @param {{ categories?: Array<{ key: string, label: string }> }} [opts]
  */
-export async function interactiveSelect(scans, existing) {
-  const sel = {}
+export async function interactiveSelect(scans, existing, { categories = CATEGORIES } = {}) {
+  const sel = {
+    skills: [],
+    rules: [],
+    commands: [],
+    hooks: [],
+  }
 
   // 第一轮：顺序遍历，每步给导航
   let i = 0
-  while (i < CATEGORIES.length) {
-    const { key, label } = CATEGORIES[i]
-    const defaultNames = sel[key]
+  while (i < categories.length) {
+    const { key, label } = categories[i]
+    const defaultNames = sel[key]?.length
       ? new Set(sel[key].map(x => x.name))
       : existing[key]
     sel[key] = await promptSelection(scans[key], label, defaultNames)
     if (sel[key] === null) return null
 
-    if (i === CATEGORIES.length - 1) break
+    if (i === categories.length - 1) break
 
-    const nextLabel = CATEGORIES[i + 1].label
-    const prevLabel = i > 0 ? CATEGORIES[i - 1].label : null
+    const nextLabel = categories[i + 1].label
+    const prevLabel = i > 0 ? categories[i - 1].label : null
     // 导航步可搜索单选（选项少，交互与多选一致）
     const nav = await searchableSelect({
       message: `${label} 已选 ${sel[key].length} 项。下一步：`,
@@ -294,14 +304,14 @@ export async function interactiveSelect(scans, existing) {
   // 第二轮：总览 + 任意重选
   while (true) {
     console.log(chalk.gray('\n选择汇总：'))
-    for (const { key, label } of CATEGORIES) {
+    for (const { key, label } of categories) {
       console.log(chalk.gray(`  ${label.padEnd(10)} ${sel[key].length} 项`))
     }
     const final = await searchableSelect({
       message: '确认提交还是重选？',
       options: [
         { label: '确认提交', value: 'confirm' },
-        ...CATEGORIES.map(c => ({ label: `重选 ${c.label}`, value: c.key })),
+        ...categories.map(c => ({ label: `重选 ${c.label}`, value: c.key })),
         { label: '取消同步', value: 'cancel' },
       ],
       initialValue: 'confirm',
@@ -309,7 +319,7 @@ export async function interactiveSelect(scans, existing) {
     })
     if (isCancel(final) || final === 'cancel') return null
     if (final === 'confirm') return sel
-    const cat = CATEGORIES.find(c => c.key === final)
+    const cat = categories.find(c => c.key === final)
     sel[final] = await promptSelection(scans[final], cat.label, new Set(sel[final].map(x => x.name)))
     if (sel[final] === null) return null
   }
