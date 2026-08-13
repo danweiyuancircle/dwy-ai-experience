@@ -1,7 +1,15 @@
 import fs from 'fs-extra'
 import path from 'path'
 import { confirm, isCancel } from '@clack/prompts'
-import { SEARCH_PLACEHOLDER, searchableMultiselect } from './searchable-select.js'
+import { SEARCH_PLACEHOLDER, searchableMultiselect, searchableSelect } from './searchable-select.js'
+import {
+  DEFAULT_SKILL_DESTINATIONS,
+  copySkillsToGlobalDirs,
+  copySkillsToProjectPlatforms,
+  listSkillDestOptions,
+  normalizeSkillScope,
+  resolveProjectSkillDir,
+} from './sync-global-skills.js'
 import { chalk } from './utils.js'
 import {
   interactiveSelect,
@@ -53,6 +61,24 @@ const TYPE_LABELS = {
   rules: 'rules',
   commands: 'commands',
   hooks: 'hooks',
+}
+
+/** 完整同步：skills / rules / commands / hooks 都走平台写入 */
+export const SYNC_MODE_ALL = 'all'
+/** 仅 Skills：不写、不删 rules / commands / hooks */
+export const SYNC_MODE_SKILLS = 'skills'
+export const DEFAULT_SYNC_MODE = SYNC_MODE_ALL
+
+const SKILL_ONLY_CATEGORIES = [{ key: 'skills', label: 'Skills' }]
+
+/**
+ * 规范化同步范围。未知值回退完整同步，避免误进仅 Skills 删不该删的东西。
+ *
+ * @param {unknown} raw
+ * @returns {'all' | 'skills'}
+ */
+export function normalizeSyncMode(raw) {
+  return raw === SYNC_MODE_SKILLS ? SYNC_MODE_SKILLS : DEFAULT_SYNC_MODE
 }
 
 function unionSets(...sets) {
@@ -144,6 +170,132 @@ export async function buildPlatformDefaultsFromLocalState(projectDir) {
   return defaults.length > 0 ? defaults : ['claude', 'codex']
 }
 
+/**
+ * 开头选同步范围。仅 Skills 时后面不再问 rules / commands / hooks。
+ *
+ * @param {'all' | 'skills'} initialValue
+ * @returns {Promise<'all' | 'skills' | null>}
+ */
+async function promptSyncMode(initialValue) {
+  const result = await searchableSelect({
+    message: '选择同步范围',
+    options: [
+      {
+        value: SYNC_MODE_ALL,
+        label: '完整同步',
+        description: '同步 Skills / Rules / Commands / Hooks',
+      },
+      {
+        value: SYNC_MODE_SKILLS,
+        label: '仅 Skills',
+        description: '只处理 skill，不改动已有 Rules / Commands / Hooks',
+      },
+    ],
+    initialValue,
+    placeholder: SEARCH_PLACEHOLDER,
+  })
+  if (isCancel(result)) return null
+  return normalizeSyncMode(result)
+}
+
+/**
+ * 仅 Skills 模式：只写项目/全局 skill，并清理未选中的模板 skill。
+ * 禁止调用完整平台 sync，否则空 rules/commands 会删掉项目已有项。
+ *
+ * @param {{ projectDir: string, selectedPlatforms: string[], skills: Array<{ name: string, sourcePath: string }>, templateSkillNames: Set<string>, staleSkillNames: Set<string>, skillScope: { destinations: string[] } }} opts
+ */
+async function syncSkillsOnly({
+  projectDir,
+  selectedPlatforms,
+  skills,
+  templateSkillNames,
+  staleSkillNames,
+  skillScope,
+}) {
+  const writeProject = skillScope.destinations.includes('project')
+  if (!writeProject) return
+
+  const skillPlatforms = selectedPlatforms.filter(platform => resolveProjectSkillDir(projectDir, platform))
+  if (skillPlatforms.length === 0) {
+    console.log(chalk.yellow('已选平台不支持项目内 skills，跳过项目写入。'))
+    return
+  }
+
+  console.log(chalk.blue('\nSyncing skills only (rules / commands / hooks untouched)...\n'))
+  await copySkillsToProjectPlatforms({
+    projectDir,
+    platforms: skillPlatforms,
+    skills,
+  })
+
+  const selectedNames = new Set(skills.map(item => item.name))
+  const toRemove = new Set(
+    [...templateSkillNames, ...staleSkillNames].filter(name => !selectedNames.has(name)),
+  )
+  for (const platform of skillPlatforms) {
+    const destRoot = resolveProjectSkillDir(projectDir, platform)
+    const existingNames = await scanExisting(path.dirname(destRoot), 'skills')
+    await removeManagedItems(
+      destRoot,
+      existingNames,
+      toRemove,
+      path.relative(projectDir, destRoot),
+    )
+  }
+}
+
+/**
+ * 交互最后一步：选 skill 同步位置，默认仅项目。
+ * 勾了全局 dest 后再问哪些 skill 额外拷到全局；不删用户 home 里其它 skill。
+ *
+ * @param {{ selectedSkills: Array<{ name: string }>, syncState: { skillScope?: object } }} args
+ * @returns {Promise<{ destinations: string[], globalSkills: string[] } | null>}
+ */
+async function promptSkillScope({ selectedSkills, syncState }) {
+  const previous = normalizeSkillScope(syncState.skillScope)
+  const destInitial = previous.destinations.length > 0
+    ? previous.destinations
+    : [...DEFAULT_SKILL_DESTINATIONS]
+
+  console.log(chalk.gray('\nSkill 默认同步到项目目录。勾选全局目录可把部分 skill 额外拷到本机 home。'))
+
+  const destResult = await searchableMultiselect({
+    message: '选择 skill 同步位置（默认项目）',
+    options: listSkillDestOptions(),
+    initialValues: destInitial,
+    required: true,
+    maxItems: 8,
+    placeholder: SEARCH_PLACEHOLDER,
+  })
+  if (isCancel(destResult)) return null
+
+  const destinations = destResult
+  const globalDests = destinations.filter(id => id !== 'project')
+  if (globalDests.length === 0 || selectedSkills.length === 0) {
+    return { destinations, globalSkills: [] }
+  }
+
+  const selectedNames = selectedSkills.map(item => item.name)
+  const globalInitial = previous.globalSkills.filter(name => selectedNames.includes(name))
+  const globalResult = await searchableMultiselect({
+    message: '哪些 skill 额外同步到全局？',
+    options: selectedSkills.map(item => ({
+      value: item.name,
+      label: item.name,
+      description: item.description,
+    })),
+    initialValues: globalInitial,
+    required: false,
+    placeholder: SEARCH_PLACEHOLDER,
+  })
+  if (isCancel(globalResult)) return null
+
+  return {
+    destinations,
+    globalSkills: globalResult,
+  }
+}
+
 async function selectPlatforms(projectDir) {
   const initialValues = await buildPlatformDefaultsFromLocalState(projectDir)
 
@@ -197,6 +349,8 @@ async function loadSyncState(projectDir) {
     return {
       version: 1,
       platforms: {},
+      skillScope: normalizeSkillScope(undefined),
+      syncMode: DEFAULT_SYNC_MODE,
     }
   }
 
@@ -204,6 +358,8 @@ async function loadSyncState(projectDir) {
   return {
     version: 1,
     platforms: state.platforms || {},
+    skillScope: normalizeSkillScope(state.skillScope),
+    syncMode: normalizeSyncMode(state.syncMode),
   }
 }
 
@@ -326,6 +482,19 @@ async function promptStaleRemovals(staleEntries) {
   }
 
   return approvals
+}
+
+/**
+ * 仅 Skills 模式：陈旧项提示只保留 skills，避免问 rules/commands/hooks。
+ *
+ * @param {Record<string, Record<string, string[]>>} staleEntries
+ */
+function retainSkillStaleEntries(staleEntries) {
+  const next = createEmptyRemovalState()
+  for (const [platform, types] of Object.entries(staleEntries)) {
+    if (types.skills?.length) next[platform] = { skills: types.skills }
+  }
+  return next
 }
 
 function getPreservedStaleNames(staleEntries, approvedRemovals, platform, type) {
@@ -556,6 +725,12 @@ export async function syncAll({
   selected: selectedOverride,
   selectedPlatforms: selectedPlatformsOverride,
   staleRemovals: staleRemovalsOverride,
+  // 测试/脚本可注入；交互模式在平台选择之后再问
+  skillScope: skillScopeOverride,
+  // all = 完整同步；skills = 只写 skill，测试/脚本可注入
+  syncMode: syncModeOverride,
+  // 全局 skill 写入的 home，测试注入假目录，禁止默认写真实 $HOME
+  homeDir,
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
@@ -605,7 +780,20 @@ export async function syncAll({
     console.log(chalk.gray('首次同步，进入交互式选择...\n'))
   }
 
-  const selected = selectedOverride || await interactiveSelect(scans, selectionDefaults)
+  const skipInteractive = !!(selectedOverride || selectedPlatformsOverride)
+  const syncMode = syncModeOverride
+    ? normalizeSyncMode(syncModeOverride)
+    : (skipInteractive
+      ? normalizeSyncMode(syncState.syncMode)
+      : await promptSyncMode(normalizeSyncMode(syncState.syncMode)))
+  if (syncMode === null) {
+    console.log(chalk.yellow('\n已取消同步。'))
+    return
+  }
+
+  const selected = selectedOverride || await interactiveSelect(scans, selectionDefaults, {
+    categories: syncMode === SYNC_MODE_SKILLS ? SKILL_ONLY_CATEGORIES : undefined,
+  })
   if (selected === null) {
     console.log(chalk.yellow('\n已取消同步。'))
     return
@@ -617,7 +805,10 @@ export async function syncAll({
     return
   }
 
-  const staleEntries = await collectStaleEntries(projectDir, scans, syncState, selectedPlatforms)
+  const staleEntriesRaw = await collectStaleEntries(projectDir, scans, syncState, selectedPlatforms)
+  const staleEntries = syncMode === SYNC_MODE_SKILLS
+    ? retainSkillStaleEntries(staleEntriesRaw)
+    : staleEntriesRaw
   const approvedStaleRemovals = staleRemovalsOverride
     ? normalizeRemovalInput(staleRemovalsOverride)
     : await promptStaleRemovals(staleEntries)
@@ -626,79 +817,132 @@ export async function syncAll({
     return
   }
 
+  const skillScope = skillScopeOverride
+    ? normalizeSkillScope(skillScopeOverride)
+    : (selectedOverride
+      ? normalizeSkillScope(syncState.skillScope)
+      : await promptSkillScope({ selectedSkills: selected.skills || [], syncState }))
+  if (skillScope === null) {
+    console.log(chalk.yellow('\n已取消同步。'))
+    return
+  }
+
+  const selectedSkillNames = new Set((selected.skills || []).map(item => item.name))
+  const skillsToWrite = scans.skills.filter(item => selectedSkillNames.has(item.name))
   let syncedAnySupportedPlatform = false
 
-  if (selectedPlatforms.includes('claude')) {
-    syncedAnySupportedPlatform = true
-    console.log(chalk.blue('\nSyncing Claude Code configuration...\n'))
-    await syncClaude({
-      sourceDir,
+  if (syncMode === SYNC_MODE_SKILLS) {
+    const staleSkillNames = new Set()
+    for (const platform of selectedPlatforms) {
+      for (const name of approvedStaleRemovals[platform]?.skills || []) staleSkillNames.add(name)
+    }
+    await syncSkillsOnly({
       projectDir,
-      selected,
-      staleRemovals: approvedStaleRemovals.claude,
+      selectedPlatforms,
+      skills: skillsToWrite,
+      templateSkillNames: new Set(scans.skills.map(item => item.name)),
+      staleSkillNames,
+      skillScope,
     })
-  }
+    syncedAnySupportedPlatform = selectedPlatforms.some(platform => resolveProjectSkillDir(projectDir, platform))
+      || skillScope.destinations.some(id => id !== 'project')
+  } else {
+    if (selectedPlatforms.includes('claude')) {
+      syncedAnySupportedPlatform = true
+      console.log(chalk.blue('\nSyncing Claude Code configuration...\n'))
+      await syncClaude({
+        sourceDir,
+        projectDir,
+        selected,
+        staleRemovals: approvedStaleRemovals.claude,
+      })
+    }
 
-  if (selectedPlatforms.includes('codex')) {
-    syncedAnySupportedPlatform = true
-    console.log(chalk.blue('\nSyncing Codex configuration...\n'))
-    await syncCodex({
-      sourceDir,
-      projectDir,
-      selected,
-      staleRemovals: approvedStaleRemovals.codex,
-      preserveMissingRules: getPreservedStaleNames(staleEntries, approvedStaleRemovals, 'codex', 'rules'),
-    })
-  }
+    if (selectedPlatforms.includes('codex')) {
+      syncedAnySupportedPlatform = true
+      console.log(chalk.blue('\nSyncing Codex configuration...\n'))
+      await syncCodex({
+        sourceDir,
+        projectDir,
+        selected,
+        staleRemovals: approvedStaleRemovals.codex,
+        preserveMissingRules: getPreservedStaleNames(staleEntries, approvedStaleRemovals, 'codex', 'rules'),
+      })
+    }
 
-  if (selectedPlatforms.includes('cursor')) {
-    syncedAnySupportedPlatform = true
-    await syncCursor({
-      sourceDir,
-      projectDir,
-      selected,
-      staleRemovals: approvedStaleRemovals.cursor,
-    })
-  }
+    if (selectedPlatforms.includes('cursor')) {
+      syncedAnySupportedPlatform = true
+      await syncCursor({
+        sourceDir,
+        projectDir,
+        selected,
+        staleRemovals: approvedStaleRemovals.cursor,
+      })
+    }
 
-  if (selectedPlatforms.includes('opencode')) {
-    syncedAnySupportedPlatform = true
-    await syncOpenCode({
-      sourceDir,
-      projectDir,
-      selected,
-      staleRemovals: approvedStaleRemovals.opencode,
-      preserveMissingRules: getPreservedStaleNames(staleEntries, approvedStaleRemovals, 'opencode', 'rules'),
-    })
-  }
+    if (selectedPlatforms.includes('opencode')) {
+      syncedAnySupportedPlatform = true
+      await syncOpenCode({
+        sourceDir,
+        projectDir,
+        selected,
+        staleRemovals: approvedStaleRemovals.opencode,
+        preserveMissingRules: getPreservedStaleNames(staleEntries, approvedStaleRemovals, 'opencode', 'rules'),
+      })
+    }
 
-  if (!selectedPlatforms.includes('codex') && !selectedPlatforms.includes('opencode')) {
-    await clearProjectAgentsMd(projectDir)
-  }
+    if (!selectedPlatforms.includes('codex') && !selectedPlatforms.includes('opencode')) {
+      await clearProjectAgentsMd(projectDir)
+    }
 
-  if (!selectedPlatforms.includes('claude')) {
-    await cleanupClaudePlatform(projectDir, scans, claudeManagedHookNames, baseline)
-  }
+    if (!selectedPlatforms.includes('claude')) {
+      await cleanupClaudePlatform(projectDir, scans, claudeManagedHookNames, baseline)
+    }
 
-  if (!selectedPlatforms.includes('cursor')) {
-    await cleanupCursorPlatform(projectDir, scans, baseline)
-  }
+    if (!selectedPlatforms.includes('cursor')) {
+      await cleanupCursorPlatform(projectDir, scans, baseline)
+    }
 
-  if (!selectedPlatforms.includes('codex')) {
-    await cleanupCodexPlatform(projectDir, scans, codexManagedHookNames)
-  }
+    if (!selectedPlatforms.includes('codex')) {
+      await cleanupCodexPlatform(projectDir, scans, codexManagedHookNames)
+    }
 
-  if (!selectedPlatforms.includes('opencode')) {
-    await cleanupOpenCodePlatform(projectDir, scans)
-  }
-
-  for (const platform of Object.keys(PLATFORM_SYNC_TYPES)) {
-    if (selectedPlatforms.includes(platform)) {
-      syncState.platforms[platform] = buildNextPlatformState(selected, staleEntries, approvedStaleRemovals, platform)
-    } else {
-      syncState.platforms[platform] = createEmptyPlatformState()
+    if (!selectedPlatforms.includes('opencode')) {
+      await cleanupOpenCodePlatform(projectDir, scans)
     }
   }
+
+  const globalSkillNameSet = new Set(skillScope.globalSkills)
+  const globalSkills = scans.skills.filter(item => globalSkillNameSet.has(item.name))
+  if (globalSkills.length > 0 && skillScope.destinations.some(id => id !== 'project')) {
+    console.log(chalk.blue('\nSyncing selected skills to global directories...\n'))
+    await copySkillsToGlobalDirs({
+      skills: globalSkills,
+      destIds: skillScope.destinations,
+      homeDir,
+    })
+  }
+
+  if (syncMode === SYNC_MODE_SKILLS) {
+    for (const platform of selectedPlatforms) {
+      const previous = syncState.platforms[platform] || createEmptyPlatformState()
+      const skillsOnlySelected = { skills: selected.skills || [], rules: [], commands: [], hooks: [] }
+      syncState.platforms[platform] = {
+        ...previous,
+        skills: buildNextPlatformState(skillsOnlySelected, staleEntries, approvedStaleRemovals, platform).skills,
+      }
+    }
+  } else {
+    for (const platform of Object.keys(PLATFORM_SYNC_TYPES)) {
+      if (selectedPlatforms.includes(platform)) {
+        syncState.platforms[platform] = buildNextPlatformState(selected, staleEntries, approvedStaleRemovals, platform)
+      } else {
+        syncState.platforms[platform] = createEmptyPlatformState()
+      }
+    }
+  }
+  syncState.skillScope = skillScope
+  syncState.syncMode = syncMode
   await saveSyncState(projectDir, syncState)
 
   if (!syncedAnySupportedPlatform) {
