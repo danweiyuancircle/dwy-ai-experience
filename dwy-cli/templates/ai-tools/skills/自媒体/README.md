@@ -48,6 +48,7 @@
 | uc-media-0030-facts | 按地图扩事实 |
 | uc-media-0040-script … 0080-factory | 脚本与制作 |
 | media-platform-packaging | 0090 可选 |
+| dwy-doubao-tts | 口播配音（豆包声音复刻 2.0，可选） |
 
 契约：[`uc-media-flow/CONTRACT.md`](./uc-media-flow/CONTRACT.md)
 

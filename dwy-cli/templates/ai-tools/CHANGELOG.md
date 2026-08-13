@@ -52,6 +52,16 @@
 
 ---
 
+## 0.10.0 — 2026-08-13
+
+### Added
+
+- `skills/自媒体/dwy-doubao-tts`：豆包声音复刻 2.0 口播配音
+  - 脚本随 skill 同步，不放 `~/.grok/skills`
+  - API Key / 音色 ID 只读用户全局 `~/.dwy/config.yaml` 的 `doubao_tts`，禁止写入仓库
+
+---
+
 ## 0.9.0 — 2026-08-11
 
 ### Changed

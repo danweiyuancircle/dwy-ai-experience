@@ -1,0 +1,33 @@
+# 示例：复制结构到 ~/.dwy/config.yaml（勿提交真实密钥）
+# 路径：/Users/<you>/.dwy/config.yaml
+# 权限：chmod 600 ~/.dwy/config.yaml
+
+version: 1
+
+# 豆包配音（声音复刻 2.0）
+doubao_tts:
+  api_key: "<从火山控制台粘贴>"
+  resource_id: seed-icl-2.0
+  endpoint: https://openspeech.bytedance.com/api/v3/tts/unidirectional
+  default_voice: young_female
+  voices:
+    finance:
+      id: "<金融财经音色ID>"
+      label: 金融财经
+      desc: 财经、投研、商业分析口播
+    young_female:
+      id: "<年轻女性音色ID>"
+      label: 年轻女性
+      desc: 生活、种草、日常、泛娱乐口播
+  audio:
+    format: mp3
+    sample_rate: 24000
+    speech_rate: 0
+    loudness_rate: 0
+    disable_markdown_filter: true
+    disable_emoji_filter: true
+  output_dir: ~/Movies/doubao-tts
+
+# 其它业务配置可并列追加，例如：
+# lark:
+#   app_id: "..."
