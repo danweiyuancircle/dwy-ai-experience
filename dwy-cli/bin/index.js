@@ -5,36 +5,40 @@ import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import { syncAll } from '../src/sync-all.js'
 import { installSkills } from '../src/skills-install.js'
+import { buildHelpText, buildSkillsHelpText } from '../src/cli-help.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'))
 const argv = process.argv.slice(2)
 
-function printHelp() {
-  const lines = [
-    `dwy ${pkg.version}`,
-    '',
-    'Usage:',
-    '  dwy               交互同步：先选完整/仅 Skills，末步可选全局目录',
-    '  dwy --help        显示本说明',
-    '  dwy -h            显示本说明',
-    '  dwy --version     显示当前版本',
-    '  dwy -V            显示当前版本',
-    '',
-    '以下为隐藏命令（向后兼容保留，日常无需手动调用）：',
-    '  dwy sync          同上的别名',
-    '  dwy skills install  强制刷新全局外部 skill',
-    '',
-  ]
-  console.log(lines.join('\n'))
+/** 是否请求帮助（含 -h / --help / help） */
+function wantsHelp(args) {
+  return args.includes('--help') || args.includes('-h') || args[0] === 'help'
 }
 
-if (argv.includes('--help') || argv.includes('-h') || argv[0] === 'help') {
+function printHelp() {
+  console.log(buildHelpText(pkg.version))
+}
+
+function printSkillsHelp() {
+  console.log(buildSkillsHelpText())
+}
+
+if (argv[0] === 'skills') {
+  const rest = argv.slice(1)
+  if (rest.length === 0 || wantsHelp(rest) || rest[0] === 'help') {
+    printSkillsHelp()
+  } else if (rest[0] === 'install') {
+    await installSkills()
+  } else {
+    console.error(`未知命令: dwy skills ${rest.join(' ')}`)
+    printSkillsHelp()
+    process.exitCode = 1
+  }
+} else if (wantsHelp(argv)) {
   printHelp()
 } else if (argv.includes('--version') || argv.includes('-V')) {
   console.log(pkg.version)
-} else if (argv[0] === 'skills' && argv[1] === 'install') {
-  await installSkills()
 } else if (argv.length === 0 || argv[0] === 'sync') {
   await syncAll()
 } else {

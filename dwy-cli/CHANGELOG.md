@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.17.1
+
+### Patch Changes
+
+- `dwy --help` 正式列出 `dwy skills install` / `dwy skills --help`，不再标成隐藏命令。`dwy skills` 无参数时打印 skills 子命令说明。
+
+---
+
 ## 0.17.0
 
 ### Minor Changes

@@ -324,8 +324,9 @@ Tag format: `@dwydev/eui@1.3.0`, `create-dwy@0.6.0`, etc.
 ### CLI (create-dwy)
 
 - No build step (`build:cli` is a no-op).
-- Commands: `dwy create [name]`, `dwy sync` (sync one selection to Claude Code and Codex), `dwy claude sync` (sync skills/rules/commands/hooks to project `.claude/`; `dwy claude sync md` syncs CLAUDE.md to global `~/.claude/`), `dwy codex sync`.
-- `dwy codex sync` converts Claude templates to OpenAI Codex format: rules → `AGENTS.md` (`<!-- DWY-RULES -->` managed block, supports update/delete while preserving user content), skills → `.agents/skills/` (flattened), hooks → `.codex/hooks/` + `.codex/hooks.json` (Codex script reads stdin JSON). Codex hook source lives in `templates/codex-global/`. `dwy codex sync md` copies CLAUDE.md to global `~/.codex/AGENTS.md`.
+- 已实现入口必须出现在 `dwy --help`；禁止把可用命令藏成「隐藏命令」。
+- Commands: `dwy` / `dwy sync`（交互同步：完整或仅 Skills，再选平台与 skill 落点）；`dwy skills install`（刷新 `~/.dwy/skills`）；`dwy skills --help`。
+- 不存在 `dwy claude sync` / `dwy codex sync` / `dwy sync md`（平台选择在 `dwy` 交互里完成）。
 - Templates are bundled with the `create-dwy` package under `dwy-cli/templates`; `dwy` 运行时不再读取或刷新外部缓存仓库。
 
 ## Workflow Conventions
