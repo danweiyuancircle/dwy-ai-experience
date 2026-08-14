@@ -90,13 +90,28 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 
 ### dwy-cli/ — `create-dwy`
 
-项目脚手架 + Claude 配置同步工具，命令行 `dwy`。
+项目脚手架 + 多平台 AI 配置同步工具，命令行 `dwy`。
 
-- **`dwy create [name]`**: 交互式创建项目，Handlebars 模板引擎，模板在 `templates/project/{template}/`
-- **`dwy`**: 唯一入口，交互式同步——multiselect 选平台（Claude Code / Codex / Cursor / OpenCode）+ 选 rules/skills/commands/hooks，开头自动检测更新全局外部 skill（清单变更才联网，已装且一致零开销）
-- `dwy sync` 为 `dwy` 的别名；`dwy skills install` 为强制刷新全局外部 skill 的兜底命令（日常无需手动，仅离线补装/强制重装时用）
-- 注意：实际代码只有上述入口，不存在 `dwy claude sync` / `dwy codex sync` / `dwy sync md` 等子命令（旧文档的过期描述，平台/类型选择都在 `dwy` 的交互 multiselect 里完成）
-- 模板随 `create-dwy` 发布包内置于 `dwy-cli/templates/ai-tools`，`dwy` 运行时不再读取或刷新本机模板仓库缓存。
+#### dwy 命令必须有说明（强制）
+
+已实现的 `dwy` 入口必须能在 `--help` 里查到。禁止把可用命令标成「隐藏命令」而不写进 Usage。
+
+新增 / 改名 / 删除子命令时，同一变更必须同步：
+
+1. `dwy --help`（及该子命令自己的 `--help`，如 `dwy skills --help`）写出入口 + 一行用途
+2. 本文件下面的命令列表
+3. `dwy-cli/CHANGELOG.md`
+
+以 `dwy --help` 为准；文档不得写代码里不存在的子命令（如已删除的 `dwy claude sync`）。
+
+#### 当前入口（与 `dwy --help` 一致）
+
+- **`dwy`** / **`dwy sync`**：交互同步。先选范围（完整 / 仅 Skills），再选平台与 skill 落点（项目 / 全局）。开头自检全局外部 skill（清单变更才联网）
+- **`dwy skills install`**：强制刷新全局外部 skill 到 `~/.dwy/skills`（离线补装 / 强制重装）
+- **`dwy skills --help`**：列出 skills 子命令
+- **`dwy --help`** / **`dwy --version`**
+
+模板随 `create-dwy` 发布包内置于 `dwy-cli/templates/ai-tools`。
 
 ### frontend/playground/
 
