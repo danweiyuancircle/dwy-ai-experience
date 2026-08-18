@@ -52,6 +52,14 @@
 
 ---
 
+## 0.11.0 — 2026-08-18
+
+### Changed
+
+- `rules/开发流程/dwy-git-commit.md`：提交前必须先 `git fetch` + `git pull --rebase --autostash`，冲突全部处理完才能 `git commit`（多人协作，禁止先提交再拉）
+
+---
+
 ## 0.10.0 — 2026-08-13
 
 ### Added
