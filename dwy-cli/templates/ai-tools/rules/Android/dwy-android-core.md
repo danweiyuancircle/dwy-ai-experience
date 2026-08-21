@@ -23,6 +23,70 @@ paths:
 - 全屏背景、沉浸式遮罩可以延伸到系统栏区域,但前景可交互内容默认留在安全显示区内。
 - 禁止写死状态栏高度、导航栏高度、刘海高度,统一通过系统 inset 获取。
 
+## 控件选型(AppCompat)
+
+XML 布局、代码 `new`、自定义 View:**只要存在 AppCompat 对应类,就必须用 AppCompat 版**,禁止 `android.widget` 平台控件。没有 AppCompat 对应类的布局容器 / 列表(LinearLayout、ConstraintLayout、RecyclerView 等)保持原样。
+
+**理由**:平台控件在低版本没有矢量图 tint、自动夜间色、`?attr` 着色。`AppCompatActivity.setContentView` 虽会把 `<TextView>` 自动换成 `AppCompatTextView`,但 `LayoutInflater.from(context)`、`View.inflate`、非 AppCompat 上下文的 `<include>`、自定义 View 写 `extends TextView`,都会落到平台控件,静默丢兼容。写 AppCompat 类名,不依赖自动替换。
+
+**包名禁止写死**:本规范只约束类名(`AppCompatTextView` / `SwitchCompat` 等)。XML 全限定包名、Kotlin/Java import 一律按当前项目已有控件推断,禁止把短类名当 XML 标签照抄,禁止未看项目写死 `androidx.*` 或 `android.support.*`。
+
+**id 缩写不变**:`AppCompatTextView` 仍是 `tv_`,`SwitchCompat` 仍是 `sw_`,不要另造 `actv` / `sc`。页面基类用 `AppCompatActivity`,禁止 `android.app.Activity`。
+
+### 对照表(有则必须换)
+
+
+| 禁止(平台)                         | 必须用                                                                                      |
+| ------------------------------ | ---------------------------------------------------------------------------------------- |
+| TextView                       | AppCompatTextView                                                                        |
+| EditText                       | AppCompatEditText                                                                        |
+| Button                         | AppCompatButton                                                                          |
+| ImageView                      | AppCompatImageView                                                                       |
+| ImageButton                    | AppCompatImageButton                                                                     |
+| CheckBox                       | AppCompatCheckBox                                                                        |
+| RadioButton                    | AppCompatRadioButton                                                                     |
+| CheckedTextView                | AppCompatCheckedTextView                                                                 |
+| AutoCompleteTextView           | AppCompatAutoCompleteTextView                                                            |
+| MultiAutoCompleteTextView      | AppCompatMultiAutoCompleteTextView                                                       |
+| Spinner                        | AppCompatSpinner                                                                         |
+| SeekBar                        | AppCompatSeekBar                                                                         |
+| RatingBar                      | AppCompatRatingBar                                                                       |
+| Switch                         | **SwitchCompat**(类名不是 AppCompatSwitch)                                                    |
+| `android.widget.Toolbar`       | appcompat 包下的 `Toolbar`(不是 `android.widget.Toolbar`)                                     |
+
+
+表中未列、但依赖里能搜到 `AppCompatXxx` / `SwitchCompat` 的,同样必须用。搜不到才用平台类。
+
+无 AppCompat 对应、保持原样:LinearLayout / RelativeLayout / FrameLayout / TableLayout / ConstraintLayout / ScrollView / NestedScrollView / HorizontalScrollView / RecyclerView / ListView / GridView / ViewPager / WebView / CardView / View / Space。
+
+### 代码 `new` / 自定义 View
+
+```kotlin
+// ❌
+val btn = Button(context)
+class PriceText(context: Context, attrs: AttributeSet?) : TextView(context, attrs)
+
+// ✅
+val btn = AppCompatButton(context)
+class PriceText(context: Context, attrs: AttributeSet?) : AppCompatTextView(context, attrs)
+```
+
+### 例外(可观察条件)
+
+- 依赖里搜不到 AppCompat 对应类 → 用原类
+- 项目已在用 Material / Design 同功能控件 → 那些优先(`MaterialButton` 优于 `AppCompatButton`);无对应项仍用 AppCompat
+- Jetpack Compose 组件不受本条约束
+
+### 禁止的借口
+
+
+| 借口                         | 事实                                                          |
+| -------------------------- | ----------------------------------------------------------- |
+| XML 写 TextView 会被自动替换      | 仅 AppCompat 的 LayoutInflater Factory2 会替换;其它 inflate 路径不会    |
+| 自定义 View 继承 TextView 即可    | 必须继承 AppCompatTextView,否则无 tint / 矢量                        |
+| Switch 没有 AppCompat 版      | 类名是 SwitchCompat                                             |
+
+
 ## 一、命名规范
 
 
@@ -76,7 +140,7 @@ View id 规则:`<控件缩写>_<逻辑名>`,如 `tv_username`、`btn_submit`。�
 | 容器 / 导航 | Toolbar=`toolbar`、TabLayout=`tab`、FloatingActionButton=`fab`、BottomNavigationView=`bnv`、AppBarLayout=`abl` |
 
 
-> 缩写冲突时取更长缩写消歧:`rbtn`(RadioButton) 区别于 `rb`(RatingBar)。表中无对应的控件,按"首字母 / 业务语义就近"自拟,组内保持一致。
+> 缩写冲突时取更长缩写消歧:`rbtn`(RadioButton) 区别于 `rb`(RatingBar)。表中无对应的控件,按"首字母 / 业务语义就近"自拟,组内保持一致。AppCompat 控件 id 仍用对应平台缩写(`AppCompatTextView`=`tv`、`SwitchCompat`=`sw`),类名选型见上文「控件选型(AppCompat)」。
 
 #### drawable / selector 状态后缀
 
@@ -1033,6 +1097,7 @@ if (trimmed.isNotEmpty()) { ... }
 | Java 实体 `public` 实例字段                                              | `private` 字段 + `getXxx`/`setXxx` + `toString`            |
 | Kotlin 实体 `@JvmField` / 无 `toString` 的普通 class 实体                 | 优先 `data class` + `val`;或手写访问器 + `toString`          |
 | `s.length() > 0` / `s.trim().length() > 0` 等用 length 判空 / 非空       | Java `!s.isEmpty()` / `!s.trim().isEmpty()`;Kotlin `s.isNotEmpty()` / `s.isNotBlank()`;详见本节「字符串空判断」 |
+| 平台 `TextView` / `Button` / `Switch` / 自定义 View 继承平台控件     | 改用 AppCompat 对应类(`SwitchCompat` 等),包名按项目推断;无对应类的布局容器保持原样;详见「控件选型(AppCompat)」 |
 
 
 ## 九、代码自检(写代码时强制执行)
@@ -1065,6 +1130,7 @@ if (trimmed.isNotEmpty()) { ... }
 | 21  | Gradle 脚本(Groovy / kts):锁版本 / `exclude` / 自定义 task / 变体 / 关键魔法值有 why 注释,无复述式、无注释掉的配置块                                                                                                                                     | ✓        |
 | 22  | 数据实体(Model/DTO/VO/Bean 等):Java 字段 `private` + get/set + `toString`;Kotlin 优先 `data class`+`val`(自带 toString),禁止 `@JvmField`,非 data class 必须手写 `toString`                                                                              | ✓        |
 | 23  | 字符串空判断用 `isEmpty` / `isNotEmpty` / `isNotBlank`,禁止 `length() > 0` / `== 0` / `!= 0` 及 `trim().length() > 0` 判空;详见 §八「字符串空判断」                                                                                                      | ✓        |
+| 24  | 有 AppCompat 对应类的控件必须用 AppCompat 版(XML / `new` / 自定义 View 父类),包名按当前项目推断;Switch 用 `SwitchCompat`;无对应类的布局容器保持原样                                                                                                                          | ✓        |
 
 
 **不执行自检就提交代码 = 违规。**
