@@ -1,5 +1,6 @@
 # 已确认的发布包模板；秘密仅使用外部引用，不能填入此文件。
-schema_version: 1
+# 后续版本必须先拉现网再改；禁止对着空模板重写产品页。
+schema_version: 2
 application:
   bundle_id: ""
   sku: ""
@@ -8,6 +9,29 @@ application:
   china_mainland:
     icp_status: not_started
     icp_filing_number: ""
+# source=first 仅当 Connect 上还没有该 Bundle ID 的版本。
+# 已上架必须 source=live_inherit，inherited_from 填现网 versionString。
+version:
+  source: live_inherit
+  inherited_from: ""
+  version_string: ""
+  # 推广文本不向用户询问。现网有则原样拷；需更新时 agent 自改，各 ≤170 字。
+  promotional_text:
+    zh-Hans: ""
+    en-US: ""
+  # 商店「此版本的新内容」：给用户看的概览。后续版本必填；首次可空。
+  whats_new:
+    zh-Hans: ""
+    en-US: ""
+  screenshots:
+    # 默认 false=拷上一版本。仅功能变化很大时才问是否改为 true。
+    # source=first 时必须为 true。
+    update: false
+  release:
+    # AFTER_APPROVAL=过审即发；SCHEDULED=过审后等到 delay_days 再发。
+    # 提交前向用户确认二选一；选几天则再问天数。
+    type: ""
+    delay_days: 0
 localizations:
   zh-Hans:
     name: ""
@@ -16,6 +40,7 @@ localizations:
     keywords: ""
     support_url: ""
     privacy_policy_url: ""
+    marketing_url: ""
   en-US:
     name: ""
     subtitle: ""
@@ -23,6 +48,7 @@ localizations:
     keywords: ""
     support_url: ""
     privacy_policy_url: ""
+    marketing_url: ""
 screenshots:
   ios: { zh-Hans: [], en-US: [] }
   macos: { zh-Hans: [], en-US: [] }
@@ -39,5 +65,6 @@ confirmations:
   metadata_confirmed: false
   privacy_confirmed: false
   pricing_confirmed: false
+  aso_confirmed: false
   submit_for_review_confirmed: false
   release_confirmed: false
