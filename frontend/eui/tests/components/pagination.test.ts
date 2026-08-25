@@ -80,4 +80,29 @@ describe('EPagination', () => {
     })
     expect(wrapper.find('[data-slot="pagination-jumper"]').exists()).toBe(false)
   })
+
+  it('does not render first/last page arrow buttons', () => {
+    const wrapper = mount(EPagination, {
+      props: { total: 200, modelValue: 1, pageSize: 20 },
+    })
+    expect(wrapper.find('[data-slot="pagination-first"]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="pagination-last"]').exists()).toBe(false)
+  })
+
+  it('still renders previous and next arrows', () => {
+    const wrapper = mount(EPagination, {
+      props: { total: 200, modelValue: 1, pageSize: 20 },
+    })
+    expect(wrapper.find('[data-slot="pagination-previous"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="pagination-next"]').exists()).toBe(true)
+  })
+
+  it('shows ellipsis and last page number when total pages exceed the window', () => {
+    const wrapper = mount(EPagination, {
+      props: { total: 220, modelValue: 1, pageSize: 20 },
+    })
+    const numbers = wrapper.findAll('[data-slot="pagination-item"]').map(item => item.text())
+    expect(wrapper.find('[data-slot="pagination-ellipsis"]').exists()).toBe(true)
+    expect(numbers).toContain('11')
+  })
 })

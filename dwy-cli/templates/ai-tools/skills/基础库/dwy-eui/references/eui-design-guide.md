@@ -154,8 +154,9 @@ neutral（默认）| blue | green | rose | orange | violet | slate
     v-model="page"
     :total="total"
     v-model:pageSize="pageSize"
-    showSizeChanger
-    showTotal
+    :page-sizes="[10, 20, 50, 100]"
+    show-size-changer
+    show-total
   />
 </div>
 ```

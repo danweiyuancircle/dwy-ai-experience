@@ -100,6 +100,8 @@ onMounted(fetchData)
         :total="total"
         :model-value="currentPage"
         :page-size="currentPageSize"
+        :page-sizes="pageSizes"
+        show-size-changer
         @update:model-value="handlePageChange"
         @update:page-size="handlePageSizeChange"
       />

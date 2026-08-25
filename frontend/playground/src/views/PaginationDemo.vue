@@ -27,7 +27,7 @@ const propsData = [
   { name: 'pageSize', type: 'number', default: '10', description: '每页显示条数，支持 v-model:pageSize' },
   { name: 'siblingCount', type: 'number', default: '1', description: '当前页两侧显示的页码数量' },
   { name: 'showSizeChanger', type: 'boolean', default: 'false', description: '是否显示每页条数选择器' },
-  { name: 'pageSizes', type: 'number[]', default: '[10, 20, 50, 100]', description: '每页条数选项列表' },
+  { name: 'pageSizes', type: 'number[]', default: '[10, 20, 50, 100]', description: '每页条数选项，由调用方按后端上限传入' },
   { name: 'showTotal', type: 'boolean', default: 'false', description: '是否显示数据总条数' },
   { name: 'jumper', type: 'boolean', default: 'false', description: '是否显示页码跳转输入框' },
   { name: 'layout', type: 'string', default: '-', description: '布局配置，如 "total, prev, pager, next, jumper"' },
@@ -57,7 +57,7 @@ const eventsData = [
     <section id="basic">
       <DemoBlock
         title="基础分页"
-        description="最简单的分页控件"
+        description="页码带省略号和末页数字，只保留上一页 / 下一页"
         code='<EPagination v-model="page" :total="100" />'
       >
         <EPagination v-model="page1" :total="100" />
@@ -77,11 +77,12 @@ const eventsData = [
     <section id="size-changer">
       <DemoBlock
         title="可改变每页数量"
-        description="设置 showSizeChanger 显示每页数量选择器"
+        description="showSizeChanger 打开后，pageSizes 由调用方按后端上限传入"
         code='<EPagination
   v-model="page"
   :total="500"
   v-model:pageSize="pageSize"
+  :pageSizes="[10, 20, 50, 100]"
   showSizeChanger
   showTotal
 />'

@@ -15,9 +15,13 @@ export interface EPaginationProps {
   pageSize?: number
   /** 当前页两侧显示的相邻页码数量 */
   siblingCount?: number
-  /** 是否展示每页条数切换器 */
+  /** 是否展示每页条数切换器；选项列表由 pageSizes 决定，默认不展示 */
   showSizeChanger?: boolean
-  /** 可选的每页条数列表 */
+  /**
+   * 每页条数选项。
+   * 由调用方按对应后端 page_size 上限传入，组件不绑定业务限额。
+   * 未传时兜底 `[10, 20, 50, 100]`。
+   */
   pageSizes?: number[]
   /** 是否展示总条数文字 */
   showTotal?: boolean

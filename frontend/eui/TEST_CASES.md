@@ -243,6 +243,27 @@
 
 ---
 
+## 9. EPagination（12 个）
+
+`tests/components/pagination.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 渲染根节点 | `[data-slot="pagination-wrapper"]` 存在 |
+| 2 | 渲染分页主体 | 传入 total 后 `[data-slot="pagination"]` 存在 |
+| 3 | 显示总数 | `showTotal` 时文案含「共 N 条」 |
+| 4 | 默认不显示总数 | `showTotal=false` 时无「共 N 条」 |
+| 5 | 条数切换器 | `showSizeChanger` 时出现 `[data-slot="pagination-size-changer"]` |
+| 6 | 条数选项由调用方传入 | `pageSizes: [10, 20, 50]` 渲染对应 option |
+| 7 | 禁用态 | `disabled` 时 wrapper 含 `pointer-events-none` |
+| 8 | 跳转输入 | `jumper` 时出现「前往 / 页」 |
+| 9 | 默认无跳转 | `jumper=false` 时无 jumper |
+| 10 | 无首页/末页双箭头 | `[data-slot="pagination-first/last"]` 不渲染 |
+| 11 | 保留上一页/下一页 | previous / next slot 仍在 |
+| 12 | 省略号 + 末页数字 | 总页数超出窗口时出现 ellipsis 且含末页页码 |
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -251,7 +272,7 @@ cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
 # Test Files  91 passed (91)
-# Tests       698 passed (698)
+# Tests       709 passed (709)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run src/utils/cn.test.ts
