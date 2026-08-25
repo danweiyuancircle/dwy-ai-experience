@@ -1,0 +1,97 @@
+# App Store 预览图规格。P 图与上传只读本文件，不要把尺寸抄到其它文件。
+# 数字来自 Apple App Store Connect Screenshot Specifications（2026-08）。
+# 上传被拒时先打开官方页核对，再改本文件。
+schema_version: 1
+source: https://developer.apple.com/help/app-store-connect/reference/screenshot-specifications/
+processing:
+  color_space: sRGB
+  alpha: false
+  formats: [png, jpeg, jpg]
+  min_count: 1
+  max_count: 10
+  # 后续自动 P 图默认只出 canonical；其它尺寸交给 Apple 缩放。
+  canonical:
+    ios: ios_iphone_master
+    ipados: ipad_13_master
+    macos: macos_master
+displays:
+  ios_iphone_master:
+    family: iphone
+    display: 6.9
+    required: iphone
+    note: iPhone Air / 17 Pro Max / 16 Pro Max / 16 Plus / 15 Pro Max / 15 Plus / 14 Pro Max
+    portrait:
+      - { width: 1320, height: 2868 }
+      - { width: 1290, height: 2796 }
+      - { width: 1260, height: 2736 }
+    landscape:
+      - { width: 2868, height: 1320 }
+      - { width: 2796, height: 1290 }
+      - { width: 2736, height: 1260 }
+    preferred: { width: 1320, height: 2868 }
+  iphone_65:
+    family: iphone
+    display: 6.5
+    required: iphone_without_69
+    note: 仅当未提供 6.9" 时必填。提供 6.9" 后由 Apple 缩放。
+    portrait:
+      - { width: 1284, height: 2778 }
+      - { width: 1242, height: 2688 }
+    landscape:
+      - { width: 2778, height: 1284 }
+      - { width: 2688, height: 1242 }
+  iphone_63:
+    family: iphone
+    display: 6.3
+    required: optional
+    portrait:
+      - { width: 1206, height: 2622 }
+      - { width: 1179, height: 2556 }
+    landscape:
+      - { width: 2622, height: 1206 }
+      - { width: 2556, height: 1179 }
+  ipad_13_master:
+    family: ipad
+    display: 13
+    required: ipad
+    note: iPad Pro M5/M4 与 13" 机型。应用支持 iPad 时必填。
+    portrait:
+      - { width: 2064, height: 2752 }
+      - { width: 2048, height: 2732 }
+    landscape:
+      - { width: 2752, height: 2064 }
+      - { width: 2732, height: 2048 }
+    preferred: { width: 2064, height: 2752 }
+  ipad_11:
+    family: ipad
+    display: 11
+    required: optional
+    portrait:
+      - { width: 1668, height: 2420 }
+      - { width: 1668, height: 2388 }
+      - { width: 1640, height: 2360 }
+      - { width: 1488, height: 2266 }
+    landscape:
+      - { width: 2420, height: 1668 }
+      - { width: 2388, height: 1668 }
+      - { width: 2360, height: 1640 }
+      - { width: 2266, height: 1488 }
+  macos_master:
+    family: mac
+    display: mac
+    required: mac
+    aspect_ratio: "16:10"
+    accepted:
+      - { width: 1280, height: 800 }
+      - { width: 1440, height: 900 }
+      - { width: 2560, height: 1600 }
+      - { width: 2880, height: 1800 }
+    preferred: { width: 2880, height: 1800 }
+  macos_iap_review:
+    family: mac
+    display: iap_review
+    required: each_iap
+    note: 内购审核截图，不是产品页预览图。
+    accepted:
+      - { width: 1280, height: 800 }
+    preferred: { width: 1280, height: 800 }
