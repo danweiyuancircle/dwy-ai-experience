@@ -1,5 +1,13 @@
 # @dwydev/eui
 
+## 2.3.0
+
+### Minor Changes
+
+- **EPagination**: 去掉首页 / 末页双箭头，只留上一页 / 下一页；页码默认 `show-edges`（省略号 + 末页数字）
+- **EPagination**: `pageSizes` 由调用方按后端 `page_size` 上限传入，组件不绑定业务限额
+- **EDataPage**: 打开每页条数切换，并透传 `pageSizes`
+
 ## 2.2.4
 
 ### Patch Changes

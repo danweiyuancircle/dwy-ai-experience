@@ -41,4 +41,9 @@ export interface EDataPageProps {
   searchable?: boolean
   /** 每页条数初始值 */
   pageSize?: number
+  /**
+   * 每页条数选项，透传给 EPagination。
+   * 由调用方按后端 page_size 上限传入，未传时用 EPagination 默认值。
+   */
+  pageSizes?: number[]
 }

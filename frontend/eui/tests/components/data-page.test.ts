@@ -52,4 +52,16 @@ describe('EDataPage', () => {
     })
     expect(mockFetchFn).toHaveBeenCalled()
   })
+
+  it('uses caller pageSizes on the size changer', () => {
+    const wrapper = mount(EDataPage, {
+      props: {
+        columns: defaultColumns,
+        fetchFn: mockFetchFn,
+        pageSizes: [10, 20],
+      },
+    })
+    const options = wrapper.findAll('[data-slot="pagination-size-changer"] option')
+    expect(options.map(item => item.text())).toEqual(['10 条/页', '20 条/页'])
+  })
 })

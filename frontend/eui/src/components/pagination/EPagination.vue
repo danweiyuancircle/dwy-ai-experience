@@ -1,15 +1,14 @@
 <!--
   EPagination 分页组件
   基于 reka-ui Pagination 封装，类 Element Plus API
-  通过 layout 字符串自由组合「总数/每页条数/上一页/页码/下一页/跳转」等区块
+  页码默认露出首尾数字并用省略号折叠；只保留上一页/下一页，不含首页/末页双箭头
+  每页条数选项由调用方传 pageSizes，对齐各自后端上限，组件不绑定业务限额
 -->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import {
   ChevronLeft,
   ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   MoreHorizontal,
 } from 'lucide-vue-next'
 import {
@@ -18,8 +17,6 @@ import {
   PaginationListItem,
   PaginationPrev,
   PaginationNext,
-  PaginationFirst,
-  PaginationLast,
   PaginationEllipsis,
 } from 'reka-ui'
 import { cn } from '@/utils/cn'
@@ -128,6 +125,7 @@ function hasLayout(item: string): boolean {
         :total="total"
         :items-per-page="pageSize"
         :sibling-count="siblingCount"
+        show-edges
         :disabled="disabled"
         :class="cn('flex justify-center')"
         @update:page="onPageChange"
@@ -137,16 +135,6 @@ function hasLayout(item: string): boolean {
           data-slot="pagination-content"
           :class="cn('flex flex-row items-center gap-1')"
         >
-          <!-- First page button -->
-          <PaginationFirst
-            v-if="hasLayout('prev')"
-            data-slot="pagination-first"
-            :disabled="disabled"
-            :class="cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'size-9')"
-          >
-            <ChevronsLeft class="size-4" />
-          </PaginationFirst>
-
           <!-- Previous page button -->
           <PaginationPrev
             v-if="hasLayout('prev')"
@@ -194,16 +182,6 @@ function hasLayout(item: string): boolean {
           >
             <ChevronRight class="size-4" />
           </PaginationNext>
-
-          <!-- Last page button -->
-          <PaginationLast
-            v-if="hasLayout('next')"
-            data-slot="pagination-last"
-            :disabled="disabled"
-            :class="cn(buttonVariants({ variant: 'ghost', size: 'icon' }), 'size-9')"
-          >
-            <ChevronsRight class="size-4" />
-          </PaginationLast>
         </PaginationList>
       </PaginationRoot>
 
