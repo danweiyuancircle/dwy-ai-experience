@@ -1,5 +1,14 @@
 # create-dwy
 
+## 0.19.0
+
+### Minor Changes
+
+- 按包勾选改为顶部 Tab + 下方多选：技术栈和场景包同一屏，`←/→` 切 Tab，Space 勾子项，`a` 全选本 Tab。skill / rule / hook 用图标和颜色区分。
+- `skills/` 模板目录与包名对齐（`通用` / `Vue` / `Python` / `Docker` / `DolphinDB` 等）。对应 ai-tools `0.14.0`。
+
+---
+
 ## 0.18.4
 
 ### Patch Changes

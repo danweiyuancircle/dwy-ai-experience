@@ -4,7 +4,7 @@
  * 条目按扫描结果的 category / name 匹配，模板里不存在的名字直接跳过。
  */
 
-/** 技术栈包（含通用）。第一屏只出这些。 */
+/** 技术栈包（含通用）。Tab 顺序：通用第一，Android、Vue 随后，其余保持原相对顺序。 */
 export const STACK_PACKS = [
   {
     id: 'common',
@@ -12,34 +12,35 @@ export const STACK_PACKS = [
     description: '开发流程 rules、Git hooks、跨栈 skill（dwy-shared / semver / 流程文档）',
     ruleCategories: ['开发流程'],
     hookCategories: ['Git'],
-    skillCategories: ['元工具', '开发流程'],
+    skillCategories: ['通用'],
     skillNames: ['dwy-semver'],
-  },
-  {
-    id: 'vue',
-    label: 'Vue',
-    description: 'Vue rules + dwy-eui / dwy-ekit / 全栈脚手架',
-    ruleCategories: ['Vue'],
-    skillNames: ['dwy-eui', 'dwy-ekit', 'dwy-fullstack-scaffold'],
-  },
-  {
-    id: 'python',
-    label: 'Python',
-    description: 'Python rules + dwy-eapi / 全栈脚手架',
-    ruleCategories: ['Python'],
-    skillNames: ['dwy-eapi', 'dwy-fullstack-scaffold'],
-  },
-  {
-    id: 'ios',
-    label: 'iOS',
-    description: 'iOS / Swift rules。上架 skill 在场景包「发布发版」',
-    ruleCategories: ['iOS'],
   },
   {
     id: 'android',
     label: 'Android',
     description: 'Android rules',
     ruleCategories: ['Android'],
+  },
+  {
+    id: 'vue',
+    label: 'Vue',
+    description: 'Vue rules + dwy-eui / dwy-ekit / 全栈脚手架',
+    ruleCategories: ['Vue'],
+    skillCategories: ['Vue'],
+  },
+  {
+    id: 'python',
+    label: 'Python',
+    description: 'Python rules + dwy-eapi / 全栈脚手架',
+    ruleCategories: ['Python'],
+    skillCategories: ['Python'],
+    skillNames: ['dwy-fullstack-scaffold'],
+  },
+  {
+    id: 'ios',
+    label: 'iOS',
+    description: 'iOS / Swift rules。上架 skill 在场景包「发布发版」',
+    ruleCategories: ['iOS'],
   },
   {
     id: 'flutter',
@@ -58,7 +59,7 @@ export const STACK_PACKS = [
     label: 'Docker / 运维',
     description: 'Docker rule + 镜像/部署 skill',
     ruleCategories: ['Docker'],
-    skillCategories: ['运维发布'],
+    skillCategories: ['Docker'],
   },
   {
     id: 'database',
@@ -68,7 +69,7 @@ export const STACK_PACKS = [
   },
 ]
 
-/** 场景包。第二屏单独问，允许全不选。 */
+/** 场景包。和栈包同一屏 Tab，默认不预勾。 */
 export const SCENE_PACKS = [
   {
     id: 'product-0to1',
@@ -104,7 +105,7 @@ export const SCENE_PACKS = [
     id: 'dolphindb',
     label: 'DolphinDB',
     description: 'DolphinDB 开发与审查 skill（体量大，不跟数据库栈绑定）',
-    skillNames: ['dwy-dolphindb'],
+    skillCategories: ['DolphinDB'],
   },
 ]
 
