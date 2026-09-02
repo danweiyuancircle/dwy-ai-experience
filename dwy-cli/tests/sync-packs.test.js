@@ -1,5 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readdirSync, statSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import {
   SCENE_PACKS,
   STACK_PACKS,
@@ -10,7 +13,7 @@ import {
   initialChildValues,
   itemsFromChildKeys,
   packChildKey,
-  packGroupOptions,
+  packTabs,
   parsePackChildKey,
 } from '../src/sync-scene.js'
 
@@ -18,12 +21,12 @@ import {
 function buildScans() {
   return {
     skills: [
-      { name: 'dwy-shared', category: '元工具' },
-      { name: 'dwy-eui', category: '基础库' },
-      { name: 'dwy-eapi', category: '基础库' },
-      { name: 'dwy-fullstack-scaffold', category: '脚手架' },
-      { name: 'dwy-docker', category: '运维发布' },
-      { name: 'dwy-dolphindb', category: '数据库' },
+      { name: 'dwy-shared', category: '通用' },
+      { name: 'dwy-eui', category: 'Vue' },
+      { name: 'dwy-eapi', category: 'Python' },
+      { name: 'dwy-fullstack-scaffold', category: 'Vue' },
+      { name: 'dwy-docker', category: 'Docker' },
+      { name: 'dwy-dolphindb', category: 'DolphinDB' },
       { name: 'dwy-semver', category: '发布发版' },
       { name: 'dwy-publish', category: '发布发版' },
       { name: 'dwy-product-launcher', category: '产品0到1' },
@@ -90,40 +93,40 @@ test('数据库栈只有 postgres 类 rules，DolphinDB 必须走场景包', () 
   assert.deepEqual(names(withScene.skills), ['dwy-dolphindb'])
 })
 
-test('groupMultiselect 分组挂可勾子项，value 带 packId', () => {
+test('packTabs 每个包一个 Tab，子项 value 带 packId', () => {
   const scans = buildScans()
   const vue = STACK_PACKS.find(pack => pack.id === 'vue')
-  const groups = packGroupOptions([vue], scans)
-  const title = Object.keys(groups)[0]
-  assert.match(title, /Vue（/)
-  const children = groups[title]
-  assert.ok(children.every(option => !option.disabled))
-  assert.ok(children.some(option => option.value === 'vue:rules:dwy-vue-core.md'))
-  assert.ok(children.some(option => option.value === 'vue:skills:dwy-eui'))
+  const tabs = packTabs([vue], scans)
+  assert.equal(tabs.length, 1)
+  assert.equal(tabs[0].id, 'vue')
+  assert.equal(tabs[0].label, 'Vue')
+  assert.ok(tabs[0].options.some(option => option.value === 'vue:rules:dwy-vue-core.md' && option.type === 'rules'))
+  assert.ok(tabs[0].options.some(option => option.value === 'vue:skills:dwy-eui' && option.type === 'skills'))
 })
 
-test('场景包同样按组列出可勾子项', () => {
+test('场景包同样每个包一个 Tab', () => {
   const scans = buildScans()
   const product = SCENE_PACKS.find(pack => pack.id === 'product-0to1')
-  const groups = packGroupOptions([product], scans)
-  const title = Object.keys(groups)[0]
-  assert.match(title, /产品0到1（/)
-  assert.ok(groups[title].some(option => option.value === 'product-0to1:skills:dwy-product-launcher'))
+  const tabs = packTabs([product], scans)
+  assert.equal(tabs[0].id, 'product-0to1')
+  assert.equal(tabs[0].label, '产品0到1')
+  assert.ok(tabs[0].options.some(option => option.value === 'product-0to1:skills:dwy-product-launcher'))
 })
 
-test('扫描无匹配项的包不进分组，避免空组被当成已全选', () => {
-  const groups = packGroupOptions(
+test('扫描无匹配项的包不进 Tab', () => {
+  const tabs = packTabs(
     [{ id: 'ios', label: 'iOS', ruleCategories: ['iOS'] }],
     { skills: [], rules: [], hooks: [] },
   )
-  assert.deepEqual(groups, {})
+  assert.deepEqual(tabs, [])
 })
 
 test('取消某个子项后结果不含该项，仍记所属包', () => {
   const scans = buildScans()
   const vue = STACK_PACKS.find(pack => pack.id === 'vue')
-  const children = Object.values(packGroupOptions([vue], scans))[0]
-  const keys = children.map(option => option.value).filter(value => value !== 'vue:skills:dwy-eui')
+  const keys = packTabs([vue], scans)[0].options
+    .map(option => option.value)
+    .filter(value => value !== 'vue:skills:dwy-eui')
   const picked = itemsFromChildKeys(keys, scans)
   assert.deepEqual(picked.packIds, ['vue'])
   assert.ok(!picked.skills.some(item => item.name === 'dwy-eui'))
@@ -148,14 +151,12 @@ test('默认包展开成全部子 value，供 initialValues 预勾', () => {
 
 test('跨包同名 skill 的 child key 互不覆盖', () => {
   const scans = buildScans()
-  const groups = packGroupOptions(
+  const tabs = packTabs(
     STACK_PACKS.filter(pack => pack.id === 'vue' || pack.id === 'python'),
     scans,
   )
-  const vueTitle = Object.keys(groups).find(title => title.startsWith('Vue'))
-  const pythonTitle = Object.keys(groups).find(title => title.startsWith('Python'))
-  const vueKeys = groups[vueTitle].map(option => option.value)
-  const pythonKeys = groups[pythonTitle].map(option => option.value)
+  const vueKeys = tabs.find(tab => tab.id === 'vue').options.map(option => option.value)
+  const pythonKeys = tabs.find(tab => tab.id === 'python').options.map(option => option.value)
   assert.ok(vueKeys.includes('vue:skills:dwy-fullstack-scaffold'))
   assert.ok(pythonKeys.includes('python:skills:dwy-fullstack-scaffold'))
   const onlyVue = itemsFromChildKeys(vueKeys, scans)
@@ -164,12 +165,11 @@ test('跨包同名 skill 的 child key 互不覆盖', () => {
   assert.equal(packChildKey('vue', 'skills', 'dwy-eui'), 'vue:skills:dwy-eui')
 })
 
-test('skillsOnly 分组只含子 skill，解析结果不含 rules/hooks', () => {
+test('skillsOnly 的 Tab 只含子 skill，解析结果不含 rules/hooks', () => {
   const scans = buildScans()
   const vue = STACK_PACKS.find(pack => pack.id === 'vue')
-  const groups = packGroupOptions([vue], scans, { skillsOnly: true })
-  const children = Object.values(groups)[0]
-  assert.ok(children.every(option => option.value.startsWith('vue:skills:')))
+  const tabs = packTabs([vue], scans, { skillsOnly: true })
+  assert.ok(tabs[0].options.every(option => option.value.startsWith('vue:skills:')))
   const picked = itemsFromChildKeys(['vue:skills:dwy-eui', 'vue:rules:dwy-vue-core.md'], scans, { skillsOnly: true })
   assert.deepEqual(names(picked.skills), ['dwy-eui'])
   assert.deepEqual(picked.rules, [])
@@ -179,9 +179,57 @@ test('skillsOnly 分组只含子 skill，解析结果不含 rules/hooks', () => 
 
 test('包目录 id 稳定，供按包勾选与 sync-state 使用', () => {
   assert.deepEqual(STACK_PACKS.map(pack => pack.id), [
-    'common', 'vue', 'python', 'ios', 'android', 'flutter', 'harmony', 'docker', 'database',
+    'common', 'android', 'vue', 'python', 'ios', 'flutter', 'harmony', 'docker', 'database',
   ])
   assert.deepEqual(SCENE_PACKS.map(pack => pack.id), [
     'product-0to1', 'media', 'release', 'security', 'article', 'dolphindb',
   ])
+})
+
+test('packTabs 可打 group，供 Tab 栏区分技术栈和场景', () => {
+  const scans = buildScans()
+  const vue = STACK_PACKS.find(pack => pack.id === 'vue')
+  const tabs = packTabs([vue], scans, { group: 'stack' })
+  assert.equal(tabs[0].group, 'stack')
+})
+
+const TEMPLATES = join(dirname(fileURLToPath(import.meta.url)), '../templates/ai-tools')
+
+/** 只列一级子目录，忽略点文件。 */
+function listDirs(dir) {
+  return readdirSync(dir).filter((name) => {
+    if (name.startsWith('.')) return false
+    return statSync(join(dir, name)).isDirectory()
+  }).sort()
+}
+
+test('rules 子目录名都能挂到某个技术栈包的 ruleCategories', () => {
+  const cats = new Set(STACK_PACKS.flatMap(pack => pack.ruleCategories || []))
+  for (const dir of listDirs(join(TEMPLATES, 'rules'))) {
+    assert.ok(cats.has(dir), `rules/${dir} 未出现在 STACK_PACKS.ruleCategories`)
+  }
+})
+
+test('hooks 子目录名都能挂到某包 hookCategories', () => {
+  const cats = new Set(
+    [...STACK_PACKS, ...SCENE_PACKS].flatMap(pack => pack.hookCategories || []),
+  )
+  for (const dir of listDirs(join(TEMPLATES, 'hooks'))) {
+    assert.ok(cats.has(dir), `hooks/${dir} 未挂到任何包`)
+  }
+})
+
+test('skills 子目录是某包 skillCategories，或目录内 skill 被 skillNames 点名', () => {
+  const cats = new Set(
+    [...STACK_PACKS, ...SCENE_PACKS].flatMap(pack => pack.skillCategories || []),
+  )
+  const named = new Set(
+    [...STACK_PACKS, ...SCENE_PACKS].flatMap(pack => pack.skillNames || []),
+  )
+  for (const dir of listDirs(join(TEMPLATES, 'skills'))) {
+    if (cats.has(dir)) continue
+    const children = listDirs(join(TEMPLATES, 'skills', dir))
+    const uncovered = children.filter(name => !named.has(name))
+    assert.deepEqual(uncovered, [], `skills/${dir} 未挂包：${uncovered.join(',')}`)
+  }
 })

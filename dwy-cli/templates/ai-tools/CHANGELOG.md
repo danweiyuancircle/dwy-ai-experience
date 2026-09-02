@@ -52,6 +52,19 @@
 
 ---
 
+## 0.14.0 — 2026-09-02
+
+### Changed
+
+- `skills/` 一级目录与同步 Tab 包名对齐：`通用` / `Vue` / `Python` / `Docker` / `DolphinDB`；不再使用 `元工具`、`基础库`、`脚手架`、`运维发布`、`开发流程`（skills）、`数据库`（skills）
+- 跨包条目仍一份文件：`dwy-fullstack-scaffold` 放 `Vue/`，Python 包 `skillNames` 点名；`dwy-semver` 放 `发布发版/`，通用包点名
+
+### Removed
+
+- `skills/元工具/`、`skills/基础库/`、`skills/脚手架/`、`skills/运维发布/`、`skills/开发流程/`、`skills/数据库/`（内容已迁到对应包目录）
+
+---
+
 ## 0.13.1 — 2026-09-02
 
 ### Changed
