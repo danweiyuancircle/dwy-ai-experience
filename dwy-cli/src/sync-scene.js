@@ -1,30 +1,47 @@
 /**
- * 按包勾选交互：技术栈包 → 场景包 → 展示已预勾的子条目（可取消）。
+ * 按包勾选交互：技术栈包 → 场景包（包下挂子条目）→ 预勾子条目可取消。
  * 由 dwy / dwy sync 在「按场景和技术栈」模式下调用。
  */
 
 import { isCancel } from '@clack/prompts'
 import { SEARCH_PLACEHOLDER, searchableMultiselect, searchableSelect } from './searchable-select.js'
-import { SCENE_PACKS, STACK_PACKS, expandPackSelection, normalizePacks } from './sync-packs.js'
+import {
+  SCENE_PACKS,
+  STACK_PACKS,
+  expandPackSelection,
+  listPackItems,
+  normalizePacks,
+  packLabelForItem,
+} from './sync-packs.js'
 import { chalk } from './utils.js'
 
-const TYPE_LABELS = {
-  skills: 'Skills',
-  rules: 'Rules',
-  hooks: 'Hooks',
-}
-
 /**
- * 把包目录转成可搜索选项。
+ * 包名 + 其下子条目。子条目 disabled，只展示不参与勾选；勾的是整包。
  *
- * @param {Array<{ id: string, label: string, description: string }>} packs
+ * @param {object[]} packs
+ * @param {object} scans
+ * @param {{ skillsOnly?: boolean }} [opts]
  */
-function packOptions(packs) {
-  return packs.map(pack => ({
-    value: pack.id,
-    label: pack.label,
-    description: pack.description,
-  }))
+export function packOptionsWithChildren(packs, scans, { skillsOnly = false } = {}) {
+  const rows = []
+  for (const pack of packs) {
+    const items = listPackItems(pack, scans, { skillsOnly })
+    const names = items.map(item => item.name)
+    rows.push({
+      value: pack.id,
+      label: `${pack.label}（${items.length}）`,
+      description: names.length > 0 ? names.join('、') : pack.description,
+    })
+    for (const item of items) {
+      rows.push({
+        value: `hint:${pack.id}:${item.type}:${item.name}`,
+        label: `  ${item.name}`,
+        description: item.description || pack.label,
+        disabled: true,
+      })
+    }
+  }
+  return rows
 }
 
 /**
@@ -38,21 +55,24 @@ export function packItemKey(type, name) {
 }
 
 /**
- * 把包展开结果打成一条可搜索列表。label 含类型 + 分类 + 名字。
+ * 把包展开结果打成一条可搜索列表，按包名分组，便于对照取消。
  *
  * @param {{ skills: object[], rules: object[], hooks: object[] }} selected
+ * @param {string[]} packIds
  */
-export function buildPackItemOptions(selected) {
+export function buildPackItemOptions(selected, packIds = []) {
   const rows = []
   for (const type of ['skills', 'rules', 'hooks']) {
     for (const item of selected[type] || []) {
+      const packLabel = packLabelForItem(item, type, packIds)
       rows.push({
         value: packItemKey(type, item.name),
-        label: `${TYPE_LABELS[type]} / ${item.category || '其他'} / ${item.name}`,
+        label: `${packLabel} / ${item.name}`,
         description: item.description,
       })
     }
   }
+  rows.sort((a, b) => a.label.localeCompare(b.label, 'zh'))
   return rows
 }
 
@@ -89,7 +109,7 @@ function printPackSummary(stacks, scenes, selected) {
 }
 
 /**
- * 按包选择条目。栈/场景选完后展示聚合子条目，默认全勾，用户可取消。
+ * 按包选择条目。选包时列出包下子条目；确认后默认全勾，用户可取消。
  * 返回 { skills, rules, commands, hooks, packs } 或 null（取消）。
  *
  * @param {object} scans
@@ -101,19 +121,21 @@ export async function interactiveSelectByPacks(scans, syncState, { skillsOnly = 
   let stacks = previous.stacks.length > 0 ? previous.stacks : ['common']
   let scenes = previous.scenes
   let step = 'stacks'
+  const packOpts = { skillsOnly }
 
   while (true) {
     if (step === 'stacks') {
       const result = await searchableMultiselect({
-        message: '选择技术栈（通用默认勾选）',
-        options: packOptions(STACK_PACKS),
+        message: '选择技术栈（通用默认勾选；包下列出子条目，下一步可逐条取消）',
+        options: packOptionsWithChildren(STACK_PACKS, scans, packOpts),
         initialValues: stacks,
         required: true,
-        maxItems: 12,
+        maxItems: 15,
         placeholder: SEARCH_PLACEHOLDER,
+        descLines: 8,
       })
       if (isCancel(result)) return null
-      stacks = result
+      stacks = result.filter(id => !String(id).startsWith('hint:'))
 
       const nav = await searchableSelect({
         message: `已选 ${stacks.length} 个技术栈。下一步：`,
@@ -132,28 +154,30 @@ export async function interactiveSelectByPacks(scans, syncState, { skillsOnly = 
 
     if (step === 'scenes') {
       const result = await searchableMultiselect({
-        message: '选择场景包（可全不选）',
-        options: packOptions(SCENE_PACKS),
+        message: '选择场景包（可全不选；包下列出子条目，下一步可逐条取消）',
+        options: packOptionsWithChildren(SCENE_PACKS, scans, packOpts),
         initialValues: scenes,
         required: false,
-        maxItems: 10,
+        maxItems: 15,
         placeholder: SEARCH_PLACEHOLDER,
+        descLines: 8,
       })
       if (isCancel(result)) return null
-      scenes = result
+      scenes = result.filter(id => !String(id).startsWith('hint:'))
       step = 'items'
       continue
     }
 
     const expanded = expandPackSelection(scans, { stacks, scenes, skillsOnly })
     printPackSummary(stacks, scenes, expanded)
-    const options = buildPackItemOptions(expanded)
+    const packIds = [...stacks, ...scenes]
+    const options = buildPackItemOptions(expanded, packIds)
     if (options.length === 0) {
       return { skills: [], rules: [], commands: [], hooks: [], packs: { stacks, scenes } }
     }
 
     const keys = await searchableMultiselect({
-      message: '包已预勾子条目，取消不需要的即可',
+      message: '已按包预勾子条目，取消不需要的即可',
       options,
       initialValues: options.map(option => option.value),
       required: false,

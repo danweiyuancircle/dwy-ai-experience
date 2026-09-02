@@ -121,14 +121,13 @@ function wrapHard(text, width) {
  * @param {number} contentWidth 可写字符宽
  * @returns {string[]}
  */
-function buildDescPanel(description, barPrefix, contentWidth) {
+function buildDescPanel(description, barPrefix, contentWidth, lineCount = DESC_PANEL_LINES) {
   const raw = (description && description.trim()) ? description.trim() : '（无说明）'
   const wrapped = wrapHard(raw, contentWidth)
-  // 固定 DESC_PANEL_LINES 行：超出截断末行加省略，不足补空
   const lines = []
-  for (let i = 0; i < DESC_PANEL_LINES; i++) {
+  for (let i = 0; i < lineCount; i++) {
     let part = wrapped[i] ?? ''
-    if (i === DESC_PANEL_LINES - 1 && wrapped.length > DESC_PANEL_LINES) {
+    if (i === lineCount - 1 && wrapped.length > lineCount) {
       const ellipsis = '…'
       part = (wrapped[i] ?? '').slice(0, Math.max(contentWidth - ellipsis.length, 0)) + ellipsis
     }
@@ -162,6 +161,7 @@ function resolveDescription(options, focusedValue) {
  * @param {unknown[]} [opts.initialValues]
  * @param {boolean} [opts.required]
  * @param {number} [opts.maxItems]
+ * @param {number} [opts.descLines] 底部说明区行数，包内子条目列表可加高
  * @param {string} [opts.placeholder]
  * @param {(search: string, opt: object) => boolean} [opts.filter]
  * @returns {Promise<unknown[] | symbol>}
@@ -233,6 +233,7 @@ export function searchableMultiselect(opts) {
         resolveDescription(this.filteredOptions, this.focusedValue),
         bar,
         contentWidth,
+        opts.descLines ?? DESC_PANEL_LINES,
       )
       const instructions = [
         `${styleText('dim', '↑/↓')} to navigate`,
