@@ -52,6 +52,14 @@
 
 ---
 
+## 0.12.0 — 2026-09-02
+
+### Changed
+
+- `rules/开发流程/dwy-dependency-freshness.md`：首次技术选型选版本必须只选正式版，禁止 beta / rc / alpha / preview / nightly 等预发布；AskUserQuestion 选项同样不列预发布号。7 天新鲜度约束仍在，两条同时满足
+
+---
+
 ## 0.11.0 — 2026-08-18
 
 ### Changed
