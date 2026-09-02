@@ -91,8 +91,8 @@ test('技术栈选项下列出子条目，整包可勾、子条目只展示', ()
   assert.equal(options[0].value, 'vue')
   assert.match(options[0].label, /Vue（/)
   assert.match(options[0].description, /dwy-vue-core\.md/)
-  assert.ok(options.some(option => option.disabled && option.label.includes('dwy-vue-core.md')))
-  assert.ok(options.some(option => option.disabled && option.label.includes('dwy-eui')))
+  assert.ok(options.some(option => option.disabled && option.packId === 'vue' && option.label.includes('dwy-vue-core.md')))
+  assert.ok(options.some(option => option.disabled && option.packId === 'vue' && option.label.includes('dwy-eui')))
 })
 
 test('场景包选项下列出子条目，整包可勾、子条目只展示', () => {
