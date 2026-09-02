@@ -263,15 +263,7 @@ export function searchableMultiselect(opts) {
               ? styleText('green', S_CHECKBOX_SELECTED)
               : styleText('dim', S_CHECKBOX_INACTIVE)
             if (opt.disabled) {
-              // 包内子条目：随父包勾选显示已勾，禁止点选，不要删除线
-              const packOn = opt.packId && this.selectedValues.includes(opt.packId)
-              if (packOn) {
-                const previewBox = styleText('green', S_CHECKBOX_SELECTED)
-                return active
-                  ? `${previewBox} ${label}`
-                  : `${previewBox} ${styleText('dim', label)}`
-              }
-              return `${styleText('dim', S_CHECKBOX_INACTIVE)} ${styleText('dim', label)}`
+              return `${styleText('dim', S_CHECKBOX_INACTIVE)} ${styleText(['strikethrough', 'dim'], label)}`
             }
             // 聚焦也不拼 hint，描述只在底部公共区
             if (active) {
