@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.18.4
+
+### Patch Changes
+
+- 按包勾选改用 `@clack/prompts` 的 `groupMultiselect`：Space 勾父级=全选子项，子项可单独取消。去掉「下一步再取消子项」那一屏。
+
+---
+
 ## 0.18.3
 
 ### Patch Changes

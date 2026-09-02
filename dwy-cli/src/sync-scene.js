@@ -1,100 +1,118 @@
 /**
- * 按包勾选交互：技术栈包 → 场景包（包下挂子条目）→ 预勾子条目可取消。
+ * 按包勾选交互：技术栈包 → 场景包。
+ * 用 @clack/prompts groupMultiselect：勾父级=全选子项，子项可单独取消。
  * 由 dwy / dwy sync 在「按场景和技术栈」模式下调用。
  */
 
-import { isCancel } from '@clack/prompts'
-import { SEARCH_PLACEHOLDER, searchableMultiselect, searchableSelect } from './searchable-select.js'
+import { groupMultiselect, isCancel } from '@clack/prompts'
+import { SEARCH_PLACEHOLDER, searchableSelect } from './searchable-select.js'
 import {
   SCENE_PACKS,
   STACK_PACKS,
-  expandPackSelection,
   listPackItems,
   normalizePacks,
-  packLabelForItem,
 } from './sync-packs.js'
 import { chalk } from './utils.js'
 
+/** 子 value 三段分隔：packId / type / name。packId 不含冒号。 */
+const PACK_CHILD_RE = /^([^:]+):(skills|rules|hooks):(.+)$/
+
 /**
- * 包名 + 其下子条目。子条目 disabled，只展示不参与勾选；勾的是整包。
+ * 子条目在 groupMultiselect 里的稳定 value。
+ * 带 packId：同一 skill 可同时出现在 Vue 与 Python，取消一边不能误伤另一边。
+ *
+ * @param {string} packId
+ * @param {'skills' | 'rules' | 'hooks'} type
+ * @param {string} name
+ */
+export function packChildKey(packId, type, name) {
+  return `${packId}:${type}:${name}`
+}
+
+/**
+ * 解析 packChildKey。对不上的丢掉，避免脏 initialValues 撑进结果。
+ *
+ * @param {unknown} key
+ * @returns {{ packId: string, type: 'skills' | 'rules' | 'hooks', name: string } | null}
+ */
+export function parsePackChildKey(key) {
+  const match = String(key).match(PACK_CHILD_RE)
+  if (!match) return null
+  return { packId: match[1], type: match[2], name: match[3] }
+}
+
+/**
+ * groupMultiselect 的 options：key 是分组标题（包名），value 是可单独勾的子项。
+ * 空包跳过——clack 空组 `every()` 恒 true，会显示成已全选。
  *
  * @param {object[]} packs
  * @param {object} scans
  * @param {{ skillsOnly?: boolean }} [opts]
+ * @returns {Record<string, { value: string, label: string, hint?: string }[]>}
  */
-export function packOptionsWithChildren(packs, scans, { skillsOnly = false } = {}) {
-  const rows = []
+export function packGroupOptions(packs, scans, { skillsOnly = false } = {}) {
+  const groups = {}
   for (const pack of packs) {
     const items = listPackItems(pack, scans, { skillsOnly })
-    const names = items.map(item => item.name)
-    rows.push({
-      value: pack.id,
-      label: `${pack.label}（${items.length}）`,
-      description: names.length > 0 ? names.join('、') : pack.description,
-    })
-    for (const item of items) {
-      rows.push({
-        value: `hint:${pack.id}:${item.type}:${item.name}`,
-        label: `  ${item.name}`,
-        description: item.description || pack.label,
-        disabled: true,
-        packId: pack.id,
-      })
+    if (items.length === 0) continue
+    groups[`${pack.label}（${items.length}）`] = items.map(item => ({
+      value: packChildKey(pack.id, item.type, item.name),
+      label: item.name,
+      hint: item.description || undefined,
+    }))
+  }
+  return groups
+}
+
+/**
+ * 已选包 → 其下全部子 value，给 groupMultiselect initialValues。
+ * 父级勾选态由 clack 根据「子是否全在 value 里」推导，不要传包名。
+ *
+ * @param {object[]} packs
+ * @param {object} scans
+ * @param {string[]} selectedPackIds
+ * @param {{ skillsOnly?: boolean }} [opts]
+ */
+export function initialChildValues(packs, scans, selectedPackIds, { skillsOnly = false } = {}) {
+  const selected = new Set(selectedPackIds)
+  const values = []
+  for (const pack of packs) {
+    if (!selected.has(pack.id)) continue
+    for (const item of listPackItems(pack, scans, { skillsOnly })) {
+      values.push(packChildKey(pack.id, item.type, item.name))
     }
   }
-  return rows
+  return values
 }
 
 /**
- * 子条目在多选里的稳定 key。类型前缀避免 skill/rule 重名撞车。
+ * 把勾上的子 value 还原成条目 + 所属包。
+ * 只认扫描结果里真实存在的名字，防止 key 伪造。
  *
- * @param {'skills' | 'rules' | 'hooks'} type
- * @param {string} name
- */
-export function packItemKey(type, name) {
-  return `${type}:${name}`
-}
-
-/**
- * 把包展开结果打成一条可搜索列表，按包名分组，便于对照取消。
- *
- * @param {{ skills: object[], rules: object[], hooks: object[] }} selected
- * @param {string[]} packIds
- */
-export function buildPackItemOptions(selected, packIds = []) {
-  const rows = []
-  for (const type of ['skills', 'rules', 'hooks']) {
-    for (const item of selected[type] || []) {
-      const packLabel = packLabelForItem(item, type, packIds)
-      rows.push({
-        value: packItemKey(type, item.name),
-        label: `${packLabel} / ${item.name}`,
-        description: item.description,
-      })
-    }
-  }
-  rows.sort((a, b) => a.label.localeCompare(b.label, 'zh'))
-  return rows
-}
-
-/**
- * 按用户勾选的 key 从展开结果里筛子条目。未勾的丢掉。
- *
- * @param {{ skills: object[], rules: object[], hooks: object[] }} expanded
  * @param {string[]} keys
+ * @param {object} scans
+ * @param {{ skillsOnly?: boolean }} [opts]
  */
-export function splitPackItemKeys(expanded, keys) {
-  const set = new Set(keys)
+export function itemsFromChildKeys(keys, scans, { skillsOnly = false } = {}) {
+  const parsed = keys.map(parsePackChildKey).filter(Boolean)
+  const packIds = [...new Set(parsed.map(item => item.packId))]
+  const names = { skills: new Set(), rules: new Set(), hooks: new Set() }
+  for (const item of parsed) names[item.type].add(item.name)
+  const pick = (type) => (scans[type] || []).filter(item => names[type].has(item.name))
+  if (skillsOnly) {
+    return { packIds, skills: pick('skills'), rules: [], commands: [], hooks: [] }
+  }
   return {
-    skills: expanded.skills.filter(item => set.has(packItemKey('skills', item.name))),
-    rules: expanded.rules.filter(item => set.has(packItemKey('rules', item.name))),
-    hooks: expanded.hooks.filter(item => set.has(packItemKey('hooks', item.name))),
+    packIds,
+    skills: pick('skills'),
+    rules: pick('rules'),
     commands: [],
+    hooks: pick('hooks'),
   }
 }
 
 /**
- * 打印包展开条数，随后立刻列出预勾子条目。
+ * 打印本次按包勾选的包名与条数。
  *
  * @param {string[]} stacks
  * @param {string[]} scenes
@@ -110,7 +128,7 @@ function printPackSummary(stacks, scenes, selected) {
 }
 
 /**
- * 按包选择条目。选包时列出包下子条目；确认后默认全勾，用户可取消。
+ * 按包选择条目。Space 勾父级=该包全部子项；光标在子项上可单独取消。
  * 返回 { skills, rules, commands, hooks, packs } 或 null（取消）。
  *
  * @param {object} scans
@@ -119,24 +137,31 @@ function printPackSummary(stacks, scenes, selected) {
  */
 export async function interactiveSelectByPacks(scans, syncState, { skillsOnly = false } = {}) {
   const previous = normalizePacks(syncState?.packs)
-  let stacks = previous.stacks.length > 0 ? previous.stacks : ['common']
-  let scenes = previous.scenes
-  let step = 'stacks'
   const packOpts = { skillsOnly }
+  const defaultStacks = previous.stacks.length > 0 ? previous.stacks : ['common']
+  let stacks = defaultStacks
+  let scenes = previous.scenes
+  // 返回重选时保留已取消的子项，不要用包 id 重新全勾
+  let stackKeys = initialChildValues(STACK_PACKS, scans, defaultStacks, packOpts)
+  let sceneKeys = initialChildValues(SCENE_PACKS, scans, scenes, packOpts)
+  let step = 'stacks'
 
   while (true) {
     if (step === 'stacks') {
-      const result = await searchableMultiselect({
-        message: '选择技术栈（通用默认勾选；包下列出子条目，下一步可逐条取消）',
-        options: packOptionsWithChildren(STACK_PACKS, scans, packOpts),
-        initialValues: stacks,
+      const options = packGroupOptions(STACK_PACKS, scans, packOpts)
+      const result = await groupMultiselect({
+        message: '选择技术栈（Space 勾整包，也可单独取消某个子项）',
+        options,
+        initialValues: stackKeys,
         required: true,
         maxItems: 15,
-        placeholder: SEARCH_PLACEHOLDER,
-        descLines: 8,
+        selectableGroups: true,
       })
       if (isCancel(result)) return null
-      stacks = result.filter(id => !String(id).startsWith('hint:'))
+      stackKeys = result
+      stacks = STACK_PACKS.map(pack => pack.id).filter(id =>
+        stackKeys.some(key => parsePackChildKey(key)?.packId === id),
+      )
 
       const nav = await searchableSelect({
         message: `已选 ${stacks.length} 个技术栈。下一步：`,
@@ -153,41 +178,33 @@ export async function interactiveSelectByPacks(scans, syncState, { skillsOnly = 
       continue
     }
 
-    if (step === 'scenes') {
-      const result = await searchableMultiselect({
-        message: '选择场景包（可全不选；包下列出子条目，下一步可逐条取消）',
-        options: packOptionsWithChildren(SCENE_PACKS, scans, packOpts),
-        initialValues: scenes,
+    const sceneOptions = packGroupOptions(SCENE_PACKS, scans, packOpts)
+    if (Object.keys(sceneOptions).length > 0) {
+      const result = await groupMultiselect({
+        message: '选择场景包（可全不选；Space 勾整包，也可单独取消某个子项）',
+        options: sceneOptions,
+        initialValues: sceneKeys,
         required: false,
         maxItems: 15,
-        placeholder: SEARCH_PLACEHOLDER,
-        descLines: 8,
+        selectableGroups: true,
       })
       if (isCancel(result)) return null
-      scenes = result.filter(id => !String(id).startsWith('hint:'))
-      step = 'items'
-      continue
+      sceneKeys = result
+      scenes = SCENE_PACKS.map(pack => pack.id).filter(id =>
+        sceneKeys.some(key => parsePackChildKey(key)?.packId === id),
+      )
+    } else {
+      sceneKeys = []
+      scenes = []
     }
 
-    const expanded = expandPackSelection(scans, { stacks, scenes, skillsOnly })
-    printPackSummary(stacks, scenes, expanded)
-    const packIds = [...stacks, ...scenes]
-    const options = buildPackItemOptions(expanded, packIds)
-    if (options.length === 0) {
-      return { skills: [], rules: [], commands: [], hooks: [], packs: { stacks, scenes } }
-    }
-
-    const keys = await searchableMultiselect({
-      message: '已按包预勾子条目，取消不需要的即可',
-      options,
-      initialValues: options.map(option => option.value),
-      required: false,
-      maxItems: 15,
-      placeholder: SEARCH_PLACEHOLDER,
-    })
-    if (isCancel(keys)) return null
+    const selected = itemsFromChildKeys([...stackKeys, ...sceneKeys], scans, packOpts)
+    printPackSummary(stacks, scenes, selected)
     return {
-      ...splitPackItemKeys(expanded, keys),
+      skills: selected.skills,
+      rules: selected.rules,
+      commands: selected.commands,
+      hooks: selected.hooks,
       packs: { stacks, scenes },
     }
   }
