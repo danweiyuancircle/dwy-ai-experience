@@ -14,31 +14,11 @@ export function buildHelpText(version) {
     `dwy ${version}`,
     '',
     'Usage:',
-    '  dwy                  交互同步：选范围（完整/仅 Skills）、平台、skill 落点',
-    '  dwy sync             同上',
-    '  dwy skills install   强制刷新全局外部 skill 到 ~/.dwy/skills',
-    '  dwy skills --help    显示 skills 子命令',
-    '  dwy --help           显示本说明',
-    '  dwy -h               显示本说明',
-    '  dwy --version        显示当前版本',
-    '  dwy -V               显示当前版本',
-    '',
-    'Skills:',
-    '  dwy skills install   按清单安装/覆盖更新 pm-skills、superpowers（一台机一份）',
-    '',
-  ].join('\n')
-}
-
-/**
- * skills 子命令帮助：`dwy skills` / `dwy skills --help`。
- */
-export function buildSkillsHelpText() {
-  return [
-    'dwy skills',
-    '',
-    'Usage:',
-    '  dwy skills install   强制刷新全局外部 skill 到 ~/.dwy/skills',
-    '  dwy skills --help    显示本说明',
+    '  dwy            同步项目配置，或刷新全局外部 skill',
+    '  dwy sync       同上',
+    '  dwy upgrade    把 dwy 升级到 npm 最新正式版',
+    '  dwy --help     显示本说明',
+    '  dwy --version  显示版本',
     '',
   ].join('\n')
 }

@@ -27,7 +27,7 @@ description: "【dwy·商业分析】产品 0 到 1 立项阶段（闸1 之后�
   - `pricing-strategy` — 定价模型选型 + 分层 + 价值计量 + 价格敏感度
   - `porters-five-forces` — 赛道竞争结构（补「赛道」维度，判断利润空间是否被结构压扁）
   - `gtm-strategy` — 首批用户从哪来、渠道、获客成本估算、90 天路线
-- 若 `~/.dwy/skills/<名>/` 不存在：提示用户先跑 `dwy skills install`（或 `dwy claude sync` 会自动装），不要自己用内置能力顶替。
+- 若 `~/.dwy/skills/<名>/` 不存在：提示用户先跑 `dwy`，选「刷新全局外部 skill」（日常同步也会自检安装），不要自己用内置能力顶替。
 
 ### 推荐跑法（顺序，可按上下文跳）
 1. `startup-canvas` 先出整体画布（摸商业全貌 + 战略一致性）

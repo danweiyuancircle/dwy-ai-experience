@@ -16,7 +16,7 @@ description: "【dwy·TDD开发】产品 0 到 1 开发阶段。触发场景：�
 读其 `SKILL.md`（及同目录 scripts/、配套 .md），按它的方法论产出，落到下方「产出契约」。
 - **AI 自主开发**：架构阶段文档（`技术架构.md`/`数据库设计.md`/`接口契约.md`）+ `开发任务拆解.md` 已建好，AI 据此**自行**按模块循环 RED→GREEN→REFACTOR，测试通过自动进下一模块，不再逐点弹 `AskUserQuestion` 找用户拍板。仅当文档间出现**实质冲突或硬缺口**（无法据现有文档推断）时才向用户确认。
 - 本 skill 依赖的外部 skill：`test-driven-development`、`systematic-debugging`（各对应 `~/.dwy/skills/<名>/`）
-- 若 `~/.dwy/skills/<名>/` 不存在：提示用户先跑 `dwy skills install`（或 `dwy claude sync` 会自动装），不要自己用内置能力顶替。
+- 若 `~/.dwy/skills/<名>/` 不存在：提示用户先跑 `dwy`，选「刷新全局外部 skill」（日常同步也会自检安装），不要自己用内置能力顶替。
 
 每任务循环：RED 写失败测试 → GREEN 最小实现通过 → REFACTOR 重构。
 

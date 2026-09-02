@@ -98,7 +98,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 
 新增 / 改名 / 删除子命令时，同一变更必须同步：
 
-1. `dwy --help`（及该子命令自己的 `--help`，如 `dwy skills --help`）写出入口 + 一行用途
+1. `dwy --help` 写出入口 + 一行用途
 2. 本文件下面的命令列表
 3. `dwy-cli/CHANGELOG.md`
 
@@ -106,9 +106,8 @@ FastAPI 基础设施包，Python 3.11+，全异步。9 个扁平模块：
 
 #### 当前入口（与 `dwy --help` 一致）
 
-- **`dwy`** / **`dwy sync`**：交互同步。先选范围（完整 / 仅 Skills），再选平台与 skill 落点（项目 / 全局）。开头自检全局外部 skill（清单变更才联网）
-- **`dwy skills install`**：强制刷新全局外部 skill 到 `~/.dwy/skills`（离线补装 / 强制重装）
-- **`dwy skills --help`**：列出 skills 子命令
+- **`dwy`** / **`dwy sync`**：开头选动作。同步项目配置（范围 → 按包或按条目 → 平台 → skill 落点）；强制刷新全局外部 skill；或升级 dwy 到 npm 最新正式版
+- **`dwy upgrade`**：把全局安装的 `create-dwy` 升到 npm `latest`（正式版）。源码仓不能自升级
 - **`dwy --help`** / **`dwy --version`**
 
 模板随 `create-dwy` 发布包内置于 `dwy-cli/templates/ai-tools`。

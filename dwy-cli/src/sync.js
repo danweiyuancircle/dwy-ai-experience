@@ -239,7 +239,15 @@ function buildSearchableOptions(items) {
     })
 }
 
-async function promptSelection(items, label, defaultNames) {
+/**
+ * 可搜索多选一层。items 为空直接返回 []，不弹窗。
+ * 取消返回 null，调用方必须中止整次同步。
+ *
+ * @param {Array<{ name: string, category?: string, description?: string }>} items
+ * @param {string} label
+ * @param {Iterable<string>} defaultNames
+ */
+export async function promptSelection(items, label, defaultNames) {
   if (items.length === 0) return []
   // 可搜索多选 + 底部说明区（聚焦项描述不跟在行尾）
   const selectedNames = await searchableMultiselect({

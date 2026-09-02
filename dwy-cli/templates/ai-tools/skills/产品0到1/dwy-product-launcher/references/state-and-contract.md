@@ -37,7 +37,7 @@
     state.json              # 进度 + 已确认结论，入库
 ```
 
-**外部 skill 不在项目内**：pm-skills / superpowers 的副本装在**全局** `~/.dwy/skills/<name>/`（一台机一份、全项目共享），由 `dwy skills install` 维护，`dwy claude sync` 自检缺失时自动装。包装型原子 skill 运行时直接读这个全局路径，不在项目里缓存。
+**外部 skill 不在项目内**：pm-skills / superpowers 的副本装在**全局** `~/.dwy/skills/<name>/`（一台机一份、全项目共享），由 `dwy` 选「刷新全局外部 skill」维护，日常同步自检缺失时自动装。包装型原子 skill 运行时直接读这个全局路径，不在项目里缓存。
 
 ## 二、.gitignore 规则（总控初始化项目时写入）
 
@@ -105,10 +105,10 @@
 包装型原子 skill（dwy-competitor / dwy-validate / dwy-commercial / dwy-mvp / dwy-prd / dwy-version / dwy-tasks / dwy-tdd-dev / dwy-acceptance / dwy-release）依赖 pm-skills / superpowers 的外部 skill，装在**全局** `~/.dwy/skills/<name>/`：
 
 - 每个外部 skill 是**整个目录**（含 scripts/ 与配套 .md，不止 SKILL.md）
-- 由 cli 命令 `dwy skills install` 安装/更新（clone 两仓库的指定 stable tag → 搬整目录 + LICENSE → 写 `VERSIONS.json`）
+- 由 `dwy` 选「刷新全局外部 skill」安装/更新（clone 两仓库的指定 stable tag → 搬整目录 + LICENSE → 写 `VERSIONS.json`）
 - `dwy claude sync` 自检：`~/.dwy/skills/` 缺失时自动装一次
 - 当前 stable：pm-skills **v2.0.0** | superpowers **v6.0.3**（升级改 cli 的 `skills-install.js` 清单 tag）
-- 原子 skill 运行时**只读** `~/.dwy/skills/<name>/`，缺失则提示用户先 `dwy skills install`，不自己拉、不降级
+- 原子 skill 运行时**只读** `~/.dwy/skills/<name>/`，缺失则提示用户先跑 `dwy`，选「刷新全局外部 skill」，不自己拉、不降级
 
 ## 五、运行模式与流转（run_mode）
 
