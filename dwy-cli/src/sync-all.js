@@ -209,28 +209,24 @@ export async function buildPlatformDefaultsFromLocalState(projectDir) {
 }
 
 /**
- * dwy 入口第一问：同步配置还是强制刷新全局外部 skill。
+ * dwy 入口第一问：同步全局 skills，或同步项目配置。
+ * 自升级只走 `dwy upgrade`，不出现在这张菜单。
  *
- * @returns {Promise<'sync' | 'install-skills' | 'upgrade' | null>}
+ * @returns {Promise<'sync' | 'install-skills' | null>}
  */
 async function promptAction() {
   const result = await searchableSelect({
     message: '选择要做的事',
     options: [
       {
-        value: ACTION_SYNC,
-        label: '同步项目 AI 配置',
-        description: '按包或按条目，把 skills / rules / hooks 写入当前项目',
-      },
-      {
         value: ACTION_INSTALL_SKILLS,
-        label: '刷新全局外部 skill',
+        label: '同步全局 skills',
         description: '强制重装 ~/.dwy/skills（pm-skills / superpowers）',
       },
       {
-        value: ACTION_UPGRADE,
-        label: '升级 dwy 到最新正式版',
-        description: '等同 dwy upgrade，把全局 create-dwy 升到 npm latest',
+        value: ACTION_SYNC,
+        label: '同步项目配置',
+        description: '按场景和技术栈，或一条条勾选，写入当前项目',
       },
     ],
     initialValue: ACTION_SYNC,
@@ -276,16 +272,16 @@ async function promptSyncMode(initialValue) {
  */
 async function promptSelectionStyle(initialValue) {
   const result = await searchableSelect({
-    message: '选择勾选方式',
+    message: '项目配置怎么勾',
     options: [
       {
         value: SELECTION_STYLE_PACKS,
-        label: '按技术栈 / 场景包（推荐）',
-        description: '先选 Vue/Python 等栈，再选产品0到1/自媒体等场景包',
+        label: '按场景和技术栈（推荐）',
+        description: '先选栈和场景包，再展示已勾子条目，可取消',
       },
       {
         value: SELECTION_STYLE_ITEMS,
-        label: '按条目',
+        label: '一个一个选',
         description: '一条条勾选 Skills / Rules / Hooks',
       },
     ],
@@ -822,8 +818,8 @@ async function cleanupOpenCodePlatform(projectDir, scans) {
 }
 
 /**
- * `dwy` / `dwy sync` 入口。先选动作再分支：同步 / 刷新外部 skill / 自升级。
- * 测试注入 selected / action 时跳过动作菜单。
+ * `dwy` / `dwy sync` 入口。先选动作再分支：同步全局 skills / 同步项目配置。
+ * 自升级只走 `dwy upgrade`。测试注入 selected / action 时跳过动作菜单。
  *
  * @param {object} [opts]
  */
