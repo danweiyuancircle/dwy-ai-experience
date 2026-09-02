@@ -9,7 +9,7 @@
 Connect 上已有该 Bundle ID 的版本时必须走这条路径。禁止从空模板重写产品页。API 创建新版本不会自动带上旧资料，要自己拷。
 
 1. `GET /v1/apps?filter[bundleId]=`
-2. `GET /v1/apps/{id}/appStoreVersions?filter[appStoreState]=READY_FOR_SALE`。没有在售版本时，改取最新一条（`PREPARE_FOR_SUBMISSION` / `WAITING_FOR_REVIEW` / `PENDING_DEVELOPER_RELEASE` / `REJECTED`）。
+2. `GET /v1/apps/{id}/appStoreVersions?filter[appStoreState]=READY_FOR_SALE`。没有在售版本时，改取最新一条（`PREPARE_FOR_SUBMISSION` / `WAITING_FOR_REVIEW` / `PENDING_DEVELOPER_RELEASE` / `REJECTED` / `DEVELOPER_REJECTED`）。
 3. `GET /v1/appStoreVersions/{id}/appStoreVersionLocalizations` → `promotionalText`、`whatsNew`、`description`、`keywords`、`supportUrl`、`marketingUrl`
 4. `GET /v1/apps/{id}/appInfos` 与 `appInfoLocalizations` → `name`、`subtitle`、`privacyPolicyUrl`
 5. `GET` 各本地化的 `appScreenshotSets` / `appScreenshots`（含 `imageAsset`）
@@ -29,6 +29,8 @@ Connect 上已有该 Bundle ID 的版本时必须走这条路径。禁止从空�
 4. `PATCH` 新版本 `releaseType`：`AFTER_APPROVAL`，或 `SCHEDULED` 且写入 `earliestReleaseDate`（提交时刻 + `delay_days`，UTC）。未写入不得提交
 5. 关联构建。提交审核、正式发布、涨价仍走最终门禁
 
+已送审后要改截图：不要对 `WAITING_FOR_REVIEW` 硬 POST/DELETE（必 409）。按 [screenshot-workflow.md](screenshot-workflow.md)「送审后锁死」撤审 → 换图 → 新 submission 再送。`promotionalText` 审核中仍可 PATCH，截图不行。
+
 ## 网页补齐动作
 
 只在 API 无法覆盖时，使用用户已登录的 Playwright 会话：创建 App Record、App Privacy 问卷和 Apple 要求的网页专属确认。不得自动绕过验证码或复用未授权会话。
@@ -39,7 +41,7 @@ Connect 上已有该 Bundle ID 的版本时必须走这条路径。禁止从空�
 
 ## 最终门禁
 
-下列动作必须再次询问用户：提交审核、正式发布、提高价格、启用中国大陆（当备案资料刚补齐时）。
+下列动作必须再次询问用户：提交审核、正式发布、提高价格、启用中国大陆（当备案资料刚补齐时）。用户已明确要求改**已送审**截图时，撤审重提视为该指令的必要步骤，仍须先说明审核队列会重排、定时发布日期可保留。
 
 `release.type=AFTER_APPROVAL`：提交前确认「审核通过即发布」。
 `release.type=SCHEDULED`：提交前确认「审核通过后等 N 天再发」，并把 `delay_days` 换成 `earliestReleaseDate`。若实际过审日晚于该日期，Apple 会在过审时发布。

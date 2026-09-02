@@ -115,3 +115,33 @@ test('内置 iPhone/macOS 截图规格与 ASO 关键词规则', async () => {
   assert.match(aso, /标题/)
   assert.match(aso, /副标题/)
 })
+
+/** 锁死送审后换图、保序替换、现网槽与凭据约定，且模板不得绑具体 App。 */
+test('送审后改截图必须撤审，替换单张须保序，只补现网槽', async () => {
+  const skill = await fs.readFile(path.join(skillDir, 'SKILL.md'), 'utf8')
+  const screenshots = await fs.readFile(path.join(skillDir, 'references/screenshot-workflow.md'), 'utf8')
+  const api = await fs.readFile(path.join(skillDir, 'references/api-workflow.md'), 'utf8')
+  const specs = await fs.readFile(path.join(skillDir, 'references/screenshot-specs.yaml'), 'utf8')
+
+  assert.match(skill, /What's New/)
+  assert.match(skill, /送审后锁死/)
+  assert.match(skill, /AGENTS.md/)
+  assert.doesNotMatch(skill, /ADBox|tvremote|Xiaomi/i)
+
+  assert.match(screenshots, /WAITING_FOR_REVIEW/)
+  assert.match(screenshots, /DEVELOPER_REJECTED/)
+  assert.match(screenshots, /Can't Delete Screenshot After Submit for review/)
+  assert.match(screenshots, /relationships\/appScreenshots/)
+  assert.match(screenshots, /screenshotDisplayType/)
+  assert.match(screenshots, /appearance dark/)
+  assert.match(screenshots, /2\.3\.3/)
+  assert.match(screenshots, /promotionalText/)
+  assert.doesNotMatch(screenshots, /ADBox|tvremote|Xiaomi|CLAUDE\.md/i)
+
+  assert.match(api, /DEVELOPER_REJECTED/)
+  assert.match(api, /promotionalText/)
+  assert.match(api, /队列会重排/)
+
+  assert.match(specs, /iphone_65/)
+  assert.match(specs, /preferred: \{ width: 1242, height: 2688 \}/)
+})
