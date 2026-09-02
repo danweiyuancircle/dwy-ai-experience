@@ -6,7 +6,7 @@ import {
   expandPackSelection,
   normalizePacks,
 } from '../src/sync-packs.js'
-import { buildPackItemOptions, splitPackItemKeys } from '../src/sync-scene.js'
+import { buildPackItemOptions, packOptionsWithChildren, splitPackItemKeys } from '../src/sync-scene.js'
 
 /** 构造 expand 用的扫描结果，字段与 scanSkills/scanRules/scanHooks 对齐。 */
 function buildScans() {
@@ -84,12 +84,32 @@ test('数据库栈只有 postgres 类 rules，DolphinDB 必须走场景包', () 
   assert.deepEqual(names(withScene.skills), ['dwy-dolphindb'])
 })
 
+test('技术栈选项下列出子条目，整包可勾、子条目只展示', () => {
+  const scans = buildScans()
+  const vue = STACK_PACKS.find(pack => pack.id === 'vue')
+  const options = packOptionsWithChildren([vue], scans)
+  assert.equal(options[0].value, 'vue')
+  assert.match(options[0].label, /Vue（/)
+  assert.match(options[0].description, /dwy-vue-core\.md/)
+  assert.ok(options.some(option => option.disabled && option.label.includes('dwy-vue-core.md')))
+  assert.ok(options.some(option => option.disabled && option.label.includes('dwy-eui')))
+})
+
+test('场景包选项下列出子条目，整包可勾、子条目只展示', () => {
+  const scans = buildScans()
+  const product = SCENE_PACKS.find(pack => pack.id === 'product-0to1')
+  const options = packOptionsWithChildren([product], scans)
+  assert.equal(options[0].value, 'product-0to1')
+  assert.match(options[0].label, /产品0到1（/)
+  assert.match(options[0].description, /dwy-product-launcher/)
+  assert.ok(options.some(option => option.disabled && option.label.includes('dwy-product-launcher')))
+})
+
 test('包展开子条目默认全勾，取消某条后从结果里拿掉', () => {
   const expanded = expandPackSelection(buildScans(), { stacks: ['common', 'vue'], scenes: [] })
-  const options = buildPackItemOptions(expanded)
+  const options = buildPackItemOptions(expanded, ['common', 'vue'])
   assert.ok(options.every(option => option.value.includes(':')))
-  assert.ok(options.some(option => option.label.startsWith('Skills /')))
-  assert.ok(options.some(option => option.label.startsWith('Rules /')))
+  assert.ok(options.some(option => option.label.includes(' / ')))
 
   const withoutEui = options
     .map(option => option.value)

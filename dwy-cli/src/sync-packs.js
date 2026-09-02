@@ -131,7 +131,7 @@ export function normalizePacks(raw) {
  * @param {object} pack
  * @param {'skills' | 'rules' | 'hooks'} type
  */
-function itemInPack(item, pack, type) {
+export function itemInPack(item, pack, type) {
   if (type === 'skills') {
     if ((pack.skillNames || []).includes(item.name)) return true
     return (pack.skillCategories || []).includes(item.category)
@@ -163,6 +163,37 @@ function uniqueByName(items) {
  * @param {{ skills: object[], rules: object[], commands?: object[], hooks: object[] }} scans
  * @param {{ stacks?: string[], scenes?: string[], skillsOnly?: boolean }} selection
  */
+/**
+ * 列出某包在当前扫描结果里的子条目，带 type，供界面展示「包下面有哪些」。
+ *
+ * @param {object} pack
+ * @param {{ skills?: object[], rules?: object[], hooks?: object[] }} scans
+ * @param {{ skillsOnly?: boolean }} [opts]
+ */
+export function listPackItems(pack, scans, { skillsOnly = false } = {}) {
+  const types = skillsOnly ? ['skills'] : ['skills', 'rules', 'hooks']
+  const items = []
+  for (const type of types) {
+    for (const item of scans[type] || []) {
+      if (itemInPack(item, pack, type)) items.push({ ...item, type })
+    }
+  }
+  return items
+}
+
+/**
+ * 条目属于已选包时，用包的中文名做分组前缀。
+ *
+ * @param {{ name: string, category?: string }} item
+ * @param {'skills' | 'rules' | 'hooks'} type
+ * @param {string[]} packIds
+ */
+export function packLabelForItem(item, type, packIds) {
+  const packs = [...STACK_PACKS, ...SCENE_PACKS]
+  const hit = packs.find(pack => packIds.includes(pack.id) && itemInPack(item, pack, type))
+  return hit?.label || item.category || '其他'
+}
+
 export function expandPackSelection(scans, { stacks = [], scenes = [], skillsOnly = false } = {}) {
   const packById = new Map([...STACK_PACKS, ...SCENE_PACKS].map(pack => [pack.id, pack]))
   const selectedPacks = [...stacks, ...scenes]
