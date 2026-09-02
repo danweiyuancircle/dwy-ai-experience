@@ -40,6 +40,7 @@ displays:
     landscape:
       - { width: 2778, height: 1284 }
       - { width: 2688, height: 1242 }
+    preferred: { width: 1242, height: 2688 }
   iphone_63:
     family: iphone
     display: 6.3

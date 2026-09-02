@@ -52,6 +52,14 @@
 
 ---
 
+## 0.13.0 — 2026-09-02
+
+### Changed
+
+- `skills/发布发版/dwy-ios-app-store-release`：送审后截图锁死，改图必须撤审 → 换图保序 → 新建 submission 再送；只补现网已有槽；What's New 能力现网图看不到则必须更新截图；凭据优先读仓库 `AGENTS.md` / `CLAUDE.md` 约定。`iphone_65` 补 `preferred: 1242×2688`
+
+---
+
 ## 0.12.0 — 2026-09-02
 
 ### Changed

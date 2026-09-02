@@ -10,7 +10,7 @@ description: "Use when 用户要上架、发 iOS/macOS 版本、填 App Store Co
 ## 安全边界
 
 - Skill 模板目录禁止保存任何 API Key、`.p8` 私钥、Cookie、审核账号密码或税务材料。
-- 只从 `/Users/chances/.dwy/app-store-connect/` 读取用户私有配置。首次运行时询问 Issuer ID、Key ID、团队和私钥文件位置，再调用 `scripts/appstore_config.sh` 写入。
+- 凭据先读当前仓库已有约定（`AGENTS.md` / `CLAUDE.md` / 项目规则）。已写明路径则用该路径，不再询问。没有仓内约定才用 `/Users/chances/.dwy/app-store-connect/`，首次运行询问 Issuer ID、Key ID、团队和私钥文件位置，再调用 `scripts/appstore_config.sh` 写入。
 - 不将秘密写入项目、Git、`appstore-submission.yaml` 或执行日志。审核账号在发布包中只能使用钥匙串或环境变量引用。
 - 提交审核、正式发布、价格上调前，必须显示变更并获得用户二次确认。
 
@@ -35,8 +35,8 @@ description: "Use when 用户要上架、发 iOS/macOS 版本、填 App Store Co
 ## 每版本处理
 
 1. **推广文本不向用户询问**。现网有内容则原样拷进 `promotional_text`。与本版卖点明显不符时自行改写，改前可上网核对卖点是否仍准确；双语各 ≤170 字。首次无现网则按名称/副标题/描述生成。细则见 [aso.md](references/aso.md)。
-2. **更新说明**：后续版本 `whats_new` 双语必填。给用户看的概览，写「更新网络抓包功能」这类句子，机制细节不写，可用「等等」。禁止把 `dwy-publish` 的 git `CHANGELOG` 或实现细节贴进商店。首次上架可空。
-3. **截图**：默认 `screenshots.update=false`，拷上一版本，不问。仅当本版功能变化很大（新主界面、新核心能力、旧截图已不能代表产品）时，才确认是否按 [screenshot-specs.yaml](references/screenshot-specs.yaml) 更新。
+2. **更新说明**：后续版本 `whats_new` 双语必填。给用户看的概览，写「新增某某功能」这类句子，机制细节不写，可用「等等」。禁止把 `dwy-publish` 的 git `CHANGELOG` 或实现细节贴进商店。首次上架可空。
+3. **截图**：默认 `screenshots.update=false`，拷上一版本，不问。出现任一情况必须更新：新主界面、新核心能力、旧图已不能代表产品、**What's New 写了的能力在现网截图里看不到**。按 [screenshot-specs.yaml](references/screenshot-specs.yaml) 处理；已送审版本改图见 [screenshot-workflow.md](references/screenshot-workflow.md)「送审后锁死」。
 4. **发布策略**：向用户确认二选一——过审即发（`AFTER_APPROVAL`），或过审后几天再发（`SCHEDULED` + `delay_days`）。选几天则再问天数。未选不得提交。
 
 ## ASO
@@ -56,7 +56,7 @@ P 图与上传只读 [screenshot-specs.yaml](references/screenshot-specs.yaml) �
 ## 自动化顺序
 
 1. 判定 first / live_inherit；更新则先拉现网。
-2. 收齐更新说明与 `release.type`；推广文本自处理；截图仅功能变化很大才问；做 ASO，输出完整 diff。
+2. 收齐更新说明与 `release.type`；推广文本自处理；截图仅功能变化很大（含 What's New 与现网图不符）才问或必更；做 ASO，输出完整 diff。
 3. 用 API 写入 App 信息、版本本地化、价格、地区、年龄分级、审核资料、截图、内购和订阅。
 4. 对 API 未覆盖项复用用户已登录 Playwright 会话：创建 App Record、填写 App Privacy 或处理网页专属确认。
 5. 关联构建与审核提交。仅在用户再次确认后调用提交审核或发布动作。
