@@ -33,7 +33,10 @@ import {
 } from './sync-codex.js'
 import { scanExistingCursorRules, syncCursor } from './sync-cursor.js'
 import { syncOpenCode } from './sync-opencode.js'
-import { ensureSkillsInstalled } from './skills-install.js'
+import { ensureSkillsInstalled, installSkills } from './skills-install.js'
+import { selfUpgrade } from './self-upgrade.js'
+import { normalizePacks } from './sync-packs.js'
+import { interactiveSelectByPacks } from './sync-scene.js'
 
 const PLATFORM_OPTIONS = [
   { value: 'claude', label: 'Claude Code', description: '支持 rules / skills / commands / hooks' },
@@ -69,6 +72,19 @@ export const SYNC_MODE_ALL = 'all'
 export const SYNC_MODE_SKILLS = 'skills'
 export const DEFAULT_SYNC_MODE = SYNC_MODE_ALL
 
+/** 按条目勾选 Skills / Rules / Hooks */
+export const SELECTION_STYLE_ITEMS = 'items'
+/** 按技术栈包 + 场景包勾选 */
+export const SELECTION_STYLE_PACKS = 'packs'
+export const DEFAULT_SELECTION_STYLE = SELECTION_STYLE_PACKS
+
+/** 同步项目配置（skills / rules / hooks） */
+export const ACTION_SYNC = 'sync'
+/** 强制刷新 ~/.dwy/skills 外部 skill */
+export const ACTION_INSTALL_SKILLS = 'install-skills'
+/** 把全局 create-dwy 升到 npm latest */
+export const ACTION_UPGRADE = 'upgrade'
+
 const SKILL_ONLY_CATEGORIES = [{ key: 'skills', label: 'Skills' }]
 
 /**
@@ -79,6 +95,28 @@ const SKILL_ONLY_CATEGORIES = [{ key: 'skills', label: 'Skills' }]
  */
 export function normalizeSyncMode(raw) {
   return raw === SYNC_MODE_SKILLS ? SYNC_MODE_SKILLS : DEFAULT_SYNC_MODE
+}
+
+/**
+ * 规范化勾选方式。未知值回退按包，避免新用户落到 80+ 条逐项勾选。
+ *
+ * @param {unknown} raw
+ * @returns {'items' | 'packs'}
+ */
+export function normalizeSelectionStyle(raw) {
+  return raw === SELECTION_STYLE_ITEMS ? SELECTION_STYLE_ITEMS : DEFAULT_SELECTION_STYLE
+}
+
+/**
+ * 规范化入口动作。未知值回退同步，避免误进强制重装。
+ *
+ * @param {unknown} raw
+ * @returns {'sync' | 'install-skills' | 'upgrade'}
+ */
+export function normalizeAction(raw) {
+  if (raw === ACTION_INSTALL_SKILLS) return ACTION_INSTALL_SKILLS
+  if (raw === ACTION_UPGRADE) return ACTION_UPGRADE
+  return ACTION_SYNC
 }
 
 function unionSets(...sets) {
@@ -171,6 +209,38 @@ export async function buildPlatformDefaultsFromLocalState(projectDir) {
 }
 
 /**
+ * dwy 入口第一问：同步配置还是强制刷新全局外部 skill。
+ *
+ * @returns {Promise<'sync' | 'install-skills' | 'upgrade' | null>}
+ */
+async function promptAction() {
+  const result = await searchableSelect({
+    message: '选择要做的事',
+    options: [
+      {
+        value: ACTION_SYNC,
+        label: '同步项目 AI 配置',
+        description: '按包或按条目，把 skills / rules / hooks 写入当前项目',
+      },
+      {
+        value: ACTION_INSTALL_SKILLS,
+        label: '刷新全局外部 skill',
+        description: '强制重装 ~/.dwy/skills（pm-skills / superpowers）',
+      },
+      {
+        value: ACTION_UPGRADE,
+        label: '升级 dwy 到最新正式版',
+        description: '等同 dwy upgrade，把全局 create-dwy 升到 npm latest',
+      },
+    ],
+    initialValue: ACTION_SYNC,
+    placeholder: SEARCH_PLACEHOLDER,
+  })
+  if (isCancel(result)) return null
+  return normalizeAction(result)
+}
+
+/**
  * 开头选同步范围。仅 Skills 时后面不再问 rules / commands / hooks。
  *
  * @param {'all' | 'skills'} initialValue
@@ -196,6 +266,34 @@ async function promptSyncMode(initialValue) {
   })
   if (isCancel(result)) return null
   return normalizeSyncMode(result)
+}
+
+/**
+ * 选勾选方式。按包是默认推荐；按条目保留原来的逐项勾选。
+ *
+ * @param {'items' | 'packs'} initialValue
+ * @returns {Promise<'items' | 'packs' | null>}
+ */
+async function promptSelectionStyle(initialValue) {
+  const result = await searchableSelect({
+    message: '选择勾选方式',
+    options: [
+      {
+        value: SELECTION_STYLE_PACKS,
+        label: '按技术栈 / 场景包（推荐）',
+        description: '先选 Vue/Python 等栈，再选产品0到1/自媒体等场景包',
+      },
+      {
+        value: SELECTION_STYLE_ITEMS,
+        label: '按条目',
+        description: '一条条勾选 Skills / Rules / Hooks',
+      },
+    ],
+    initialValue,
+    placeholder: SEARCH_PLACEHOLDER,
+  })
+  if (isCancel(result)) return null
+  return normalizeSelectionStyle(result)
 }
 
 /**
@@ -351,6 +449,8 @@ async function loadSyncState(projectDir) {
       platforms: {},
       skillScope: normalizeSkillScope(undefined),
       syncMode: DEFAULT_SYNC_MODE,
+      selectionStyle: DEFAULT_SELECTION_STYLE,
+      packs: normalizePacks(undefined),
     }
   }
 
@@ -360,6 +460,8 @@ async function loadSyncState(projectDir) {
     platforms: state.platforms || {},
     skillScope: normalizeSkillScope(state.skillScope),
     syncMode: normalizeSyncMode(state.syncMode),
+    selectionStyle: normalizeSelectionStyle(state.selectionStyle),
+    packs: normalizePacks(state.packs),
   }
 }
 
@@ -719,6 +821,37 @@ async function cleanupOpenCodePlatform(projectDir, scans) {
   return removedCount
 }
 
+/**
+ * `dwy` / `dwy sync` 入口。先选动作再分支：同步 / 刷新外部 skill / 自升级。
+ * 测试注入 selected / action 时跳过动作菜单。
+ *
+ * @param {object} [opts]
+ */
+export async function runDwy(opts = {}) {
+  const skipMenu = !!(opts.selected || opts.selectedPlatforms || opts.action)
+  const action = opts.action != null
+    ? normalizeAction(opts.action)
+    : (skipMenu ? ACTION_SYNC : await promptAction())
+  if (action === null) {
+    console.log(chalk.yellow('\n已取消。'))
+    return
+  }
+  if (action === ACTION_INSTALL_SKILLS) {
+    await installSkills()
+    return
+  }
+  if (action === ACTION_UPGRADE) {
+    try {
+      await selfUpgrade()
+    } catch (error) {
+      console.error(error.message)
+      process.exitCode = 1
+    }
+    return
+  }
+  await syncAll(opts)
+}
+
 export async function syncAll({
   sourceDir: sourceDirOverride,
   projectDir: projectDirOverride,
@@ -731,6 +864,8 @@ export async function syncAll({
   syncMode: syncModeOverride,
   // 全局 skill 写入的 home，测试注入假目录，禁止默认写真实 $HOME
   homeDir,
+  // 测试注入勾选方式；交互模式在同步范围之后再问
+  selectionStyle: selectionStyleOverride,
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
@@ -741,7 +876,7 @@ export async function syncAll({
 
   // 开头无条件自检全局外部 skill：未装 / 清单变更（cli 加了 skill 或改了 tag）则自动更新，
   // 已装且清单一致则零开销跳过。失败不阻塞 sync（离线/网络故障，下次再来）。
-  // 这样用户跑一次 `dwy` 就把 skill 更新到位，无需另记 `dwy skills install`。
+  // 这样用户跑一次同步就把 skill 更新到位；强制重装走入口「刷新全局外部 skill」。
   console.log(chalk.gray('检查全局外部 skill 更新...'))
   await ensureSkillsInstalled()
 
@@ -791,9 +926,23 @@ export async function syncAll({
     return
   }
 
-  const selected = selectedOverride || await interactiveSelect(scans, selectionDefaults, {
-    categories: syncMode === SYNC_MODE_SKILLS ? SKILL_ONLY_CATEGORIES : undefined,
-  })
+  const selectionStyle = selectionStyleOverride
+    ? normalizeSelectionStyle(selectionStyleOverride)
+    : (skipInteractive
+      ? normalizeSelectionStyle(syncState.selectionStyle)
+      : await promptSelectionStyle(normalizeSelectionStyle(syncState.selectionStyle)))
+  if (selectionStyle === null) {
+    console.log(chalk.yellow('\n已取消同步。'))
+    return
+  }
+
+  const selected = selectedOverride || (
+    selectionStyle === SELECTION_STYLE_PACKS
+      ? await interactiveSelectByPacks(scans, syncState, { skillsOnly: syncMode === SYNC_MODE_SKILLS })
+      : await interactiveSelect(scans, selectionDefaults, {
+        categories: syncMode === SYNC_MODE_SKILLS ? SKILL_ONLY_CATEGORIES : undefined,
+      })
+  )
   if (selected === null) {
     console.log(chalk.yellow('\n已取消同步。'))
     return
@@ -943,6 +1092,11 @@ export async function syncAll({
   }
   syncState.skillScope = skillScope
   syncState.syncMode = syncMode
+  syncState.selectionStyle = selectionStyle
+  // 按条目同步不覆盖上次按包选择，方便下次再走按包
+  if (selectionStyle === SELECTION_STYLE_PACKS) {
+    syncState.packs = normalizePacks(selected.packs)
+  }
   await saveSyncState(projectDir, syncState)
 
   if (!syncedAnySupportedPlatform) {

@@ -4,8 +4,11 @@ import fs from 'fs-extra'
 import os from 'node:os'
 import path from 'node:path'
 import {
+  ACTION_SYNC,
+  SELECTION_STYLE_PACKS,
   buildPlatformDefaultsFromLocalState,
   buildSelectionDefaultsFromSyncState,
+  runDwy,
   syncAll,
 } from '../src/sync-all.js'
 
@@ -250,4 +253,65 @@ test('syncAll keeps stale managed items until deletion is confirmed', async t =>
 
   const finalAgentsMd = await fs.readFile(path.join(projectDir, 'AGENTS.md'), 'utf-8')
   assert.doesNotMatch(finalAgentsMd, /dwy-vue\.md/)
+})
+
+test('syncAll in packs style writes packs into sync-state', async t => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-sync-packs-state-'))
+  t.after(() => fs.remove(tempDir))
+  const sourceDir = path.join(tempDir, 'templates', 'ai-tools')
+  const projectDir = path.join(tempDir, 'project')
+
+  await fs.outputFile(
+    path.join(sourceDir, 'skills', '基础', 'dwy-shared', 'SKILL.md'),
+    '---\ndescription: Shared skill\n---\n# Shared skill\n',
+  )
+  await fs.outputJson(path.join(sourceDir, 'hook-manifests', 'hooks.json'), [])
+  await fs.ensureDir(path.join(projectDir, '.claude'))
+
+  await syncAll({
+    sourceDir,
+    projectDir,
+    selected: {
+      ...buildSelected(),
+      packs: { stacks: ['common', 'vue'], scenes: ['media'] },
+    },
+    selectedPlatforms: ['claude'],
+    staleRemovals: { claude: { skills: [], rules: [], commands: [], hooks: [] } },
+    skillScope: { destinations: ['project'], globalSkills: [] },
+    selectionStyle: SELECTION_STYLE_PACKS,
+    syncMode: 'all',
+  })
+
+  const state = await fs.readJson(path.join(projectDir, '.dwy', 'sync-state.json'))
+  assert.deepEqual(state.packs, { stacks: ['common', 'vue'], scenes: ['media'] })
+})
+
+test('runDwy action=sync 走项目同步，不进刷新分支', async t => {
+  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-run-dwy-sync-'))
+  t.after(() => fs.remove(tempDir))
+  const sourceDir = path.join(tempDir, 'templates', 'ai-tools')
+  const projectDir = path.join(tempDir, 'project')
+
+  await fs.outputFile(
+    path.join(sourceDir, 'skills', '基础', 'dwy-shared', 'SKILL.md'),
+    '---\ndescription: Shared skill\n---\n# Shared skill\n',
+  )
+  await fs.outputJson(path.join(sourceDir, 'hook-manifests', 'hooks.json'), [])
+  await fs.ensureDir(path.join(projectDir, '.claude'))
+
+  await runDwy({
+    action: ACTION_SYNC,
+    sourceDir,
+    projectDir,
+    selected: buildSelected(),
+    selectedPlatforms: ['claude'],
+    staleRemovals: { claude: { skills: [], rules: [], commands: [], hooks: [] } },
+    skillScope: { destinations: ['project'], globalSkills: [] },
+    syncMode: 'all',
+  })
+
+  assert.equal(
+    await fs.pathExists(path.join(projectDir, '.claude', 'skills', 'dwy-shared', 'SKILL.md')),
+    true,
+  )
 })

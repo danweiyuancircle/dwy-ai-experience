@@ -1,5 +1,15 @@
 # create-dwy
 
+## 0.18.0
+
+### Minor Changes
+
+- `dwy` / `dwy sync` 开头选动作：同步项目配置（按包或按条目），刷新全局外部 skill，或升级 dwy。删除 `dwy skills` / `dwy skills install` / `dwy scene`。
+- 新增 `dwy upgrade`：把全局 `create-dwy` 升到 npm `latest` 正式版（npm/pnpm/yarn/bun）。源码目录拒绝自升级。
+- 按包勾选写入 `.dwy/sync-state.json` 的 `selectionStyle` / `packs`。
+
+---
+
 ## 0.17.1
 
 ### Patch Changes
