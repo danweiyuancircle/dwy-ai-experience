@@ -38,6 +38,7 @@ export function packOptionsWithChildren(packs, scans, { skillsOnly = false } = {
         label: `  ${item.name}`,
         description: item.description || pack.label,
         disabled: true,
+        packId: pack.id,
       })
     }
   }
