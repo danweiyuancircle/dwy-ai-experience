@@ -325,7 +325,7 @@ Tag format: `@dwydev/eui@1.3.0`, `create-dwy@0.6.0`, etc.
 
 - No build step (`build:cli` is a no-op).
 - 已实现入口必须出现在 `dwy --help`；禁止把可用命令藏成「隐藏命令」。
-- Commands: `dwy` / `dwy sync`（开头选：同步项目配置 / 刷新全局外部 skill / 升级 dwy）；`dwy upgrade`（自升级到 npm latest）；`dwy --help` / `dwy --version`。
+- Commands: `dwy` / `dwy sync`（开头选：同步全局 skills / 同步项目配置）；`dwy upgrade`（自升级到 npm latest）；`dwy --help` / `dwy --version`。
 - 不存在 `dwy claude sync` / `dwy codex sync` / `dwy sync md` / `dwy skills install`（平台选择与刷新外部 skill 都在 `dwy` 交互里完成）。
 - Templates are bundled with the `create-dwy` package under `dwy-cli/templates`; `dwy` 运行时不再读取或刷新外部缓存仓库。
 

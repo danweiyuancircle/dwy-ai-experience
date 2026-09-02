@@ -6,6 +6,7 @@ import {
   expandPackSelection,
   normalizePacks,
 } from '../src/sync-packs.js'
+import { buildPackItemOptions, splitPackItemKeys } from '../src/sync-scene.js'
 
 /** 构造 expand 用的扫描结果，字段与 scanSkills/scanRules/scanHooks 对齐。 */
 function buildScans() {
@@ -81,6 +82,21 @@ test('数据库栈只有 postgres 类 rules，DolphinDB 必须走场景包', () 
 
   const withScene = expandPackSelection(buildScans(), { stacks: ['database'], scenes: ['dolphindb'] })
   assert.deepEqual(names(withScene.skills), ['dwy-dolphindb'])
+})
+
+test('包展开子条目默认全勾，取消某条后从结果里拿掉', () => {
+  const expanded = expandPackSelection(buildScans(), { stacks: ['common', 'vue'], scenes: [] })
+  const options = buildPackItemOptions(expanded)
+  assert.ok(options.every(option => option.value.includes(':')))
+  assert.ok(options.some(option => option.label.startsWith('Skills /')))
+  assert.ok(options.some(option => option.label.startsWith('Rules /')))
+
+  const withoutEui = options
+    .map(option => option.value)
+    .filter(value => value !== 'skills:dwy-eui')
+  const tuned = splitPackItemKeys(expanded, withoutEui)
+  assert.ok(!tuned.skills.some(item => item.name === 'dwy-eui'))
+  assert.ok(tuned.skills.some(item => item.name === 'dwy-shared'))
 })
 
 test('包目录 id 稳定，供按包勾选与 sync-state 使用', () => {

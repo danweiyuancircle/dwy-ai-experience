@@ -1,13 +1,18 @@
 /**
- * 按包勾选交互：技术栈包 → 场景包 → 确认/微调。
- * 由 dwy / dwy sync 在「按技术栈 / 场景包」模式下调用。
+ * 按包勾选交互：技术栈包 → 场景包 → 展示已预勾的子条目（可取消）。
+ * 由 dwy / dwy sync 在「按场景和技术栈」模式下调用。
  */
 
 import { isCancel } from '@clack/prompts'
 import { SEARCH_PLACEHOLDER, searchableMultiselect, searchableSelect } from './searchable-select.js'
 import { SCENE_PACKS, STACK_PACKS, expandPackSelection, normalizePacks } from './sync-packs.js'
-import { promptSelection } from './sync.js'
 import { chalk } from './utils.js'
+
+const TYPE_LABELS = {
+  skills: 'Skills',
+  rules: 'Rules',
+  hooks: 'Hooks',
+}
 
 /**
  * 把包目录转成可搜索选项。
@@ -23,7 +28,52 @@ function packOptions(packs) {
 }
 
 /**
- * 打印包展开条数。确认步默认用这些预选项，微调再加减。
+ * 子条目在多选里的稳定 key。类型前缀避免 skill/rule 重名撞车。
+ *
+ * @param {'skills' | 'rules' | 'hooks'} type
+ * @param {string} name
+ */
+export function packItemKey(type, name) {
+  return `${type}:${name}`
+}
+
+/**
+ * 把包展开结果打成一条可搜索列表。label 含类型 + 分类 + 名字。
+ *
+ * @param {{ skills: object[], rules: object[], hooks: object[] }} selected
+ */
+export function buildPackItemOptions(selected) {
+  const rows = []
+  for (const type of ['skills', 'rules', 'hooks']) {
+    for (const item of selected[type] || []) {
+      rows.push({
+        value: packItemKey(type, item.name),
+        label: `${TYPE_LABELS[type]} / ${item.category || '其他'} / ${item.name}`,
+        description: item.description,
+      })
+    }
+  }
+  return rows
+}
+
+/**
+ * 按用户勾选的 key 从展开结果里筛子条目。未勾的丢掉。
+ *
+ * @param {{ skills: object[], rules: object[], hooks: object[] }} expanded
+ * @param {string[]} keys
+ */
+export function splitPackItemKeys(expanded, keys) {
+  const set = new Set(keys)
+  return {
+    skills: expanded.skills.filter(item => set.has(packItemKey('skills', item.name))),
+    rules: expanded.rules.filter(item => set.has(packItemKey('rules', item.name))),
+    hooks: expanded.hooks.filter(item => set.has(packItemKey('hooks', item.name))),
+    commands: [],
+  }
+}
+
+/**
+ * 打印包展开条数，随后立刻列出预勾子条目。
  *
  * @param {string[]} stacks
  * @param {string[]} scenes
@@ -39,7 +89,7 @@ function printPackSummary(stacks, scenes, selected) {
 }
 
 /**
- * 按包选择条目。
+ * 按包选择条目。栈/场景选完后展示聚合子条目，默认全勾，用户可取消。
  * 返回 { skills, rules, commands, hooks, packs } 或 null（取消）。
  *
  * @param {object} scans
@@ -51,8 +101,6 @@ export async function interactiveSelectByPacks(scans, syncState, { skillsOnly = 
   let stacks = previous.stacks.length > 0 ? previous.stacks : ['common']
   let scenes = previous.scenes
   let step = 'stacks'
-  /** 微调后的展开结果；返回改包时丢弃，重新 expand。 */
-  let selected = null
 
   while (true) {
     if (step === 'stacks') {
@@ -66,7 +114,6 @@ export async function interactiveSelectByPacks(scans, syncState, { skillsOnly = 
       })
       if (isCancel(result)) return null
       stacks = result
-      selected = null
 
       const nav = await searchableSelect({
         message: `已选 ${stacks.length} 个技术栈。下一步：`,
@@ -94,53 +141,29 @@ export async function interactiveSelectByPacks(scans, syncState, { skillsOnly = 
       })
       if (isCancel(result)) return null
       scenes = result
-      selected = null
-      step = 'confirm'
+      step = 'items'
       continue
     }
 
-    selected = selected || expandPackSelection(scans, { stacks, scenes, skillsOnly })
-    printPackSummary(stacks, scenes, selected)
+    const expanded = expandPackSelection(scans, { stacks, scenes, skillsOnly })
+    printPackSummary(stacks, scenes, expanded)
+    const options = buildPackItemOptions(expanded)
+    if (options.length === 0) {
+      return { skills: [], rules: [], commands: [], hooks: [], packs: { stacks, scenes } }
+    }
 
-    const confirmOptions = [
-      { label: '确认提交（用上面勾好的）', value: 'confirm' },
-      { label: '微调 Skills（可加减）', value: 'skills' },
-      ...(!skillsOnly ? [
-        { label: '微调 Rules（可加减）', value: 'rules' },
-        { label: '微调 Hooks（可加减）', value: 'hooks' },
-      ] : []),
-      { label: '返回改技术栈', value: 'stacks' },
-      { label: '返回改场景包', value: 'scenes' },
-      { label: '取消同步', value: 'cancel' },
-    ]
-    const final = await searchableSelect({
-      message: '包已帮你勾好。确认提交，或微调加减条目：',
-      options: confirmOptions,
-      initialValue: 'confirm',
+    const keys = await searchableMultiselect({
+      message: '包已预勾子条目，取消不需要的即可',
+      options,
+      initialValues: options.map(option => option.value),
+      required: false,
+      maxItems: 15,
       placeholder: SEARCH_PLACEHOLDER,
     })
-    if (isCancel(final) || final === 'cancel') return null
-    if (final === 'confirm') {
-      return {
-        ...selected,
-        commands: [],
-        packs: { stacks, scenes },
-      }
+    if (isCancel(keys)) return null
+    return {
+      ...splitPackItemKeys(expanded, keys),
+      packs: { stacks, scenes },
     }
-    if (final === 'stacks' || final === 'scenes') {
-      step = final
-      selected = null
-      continue
-    }
-
-    // 完整清单 + 包内项预勾：可减包内项，也可加包外项
-    const catalog = scans[final] || []
-    const tuned = await promptSelection(
-      catalog,
-      final === 'skills' ? 'Skills' : final === 'rules' ? 'Rules' : 'Hooks',
-      new Set(selected[final].map(item => item.name)),
-    )
-    if (tuned === null) return null
-    selected = { ...selected, [final]: tuned }
   }
 }

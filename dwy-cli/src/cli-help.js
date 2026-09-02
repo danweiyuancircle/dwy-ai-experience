@@ -14,7 +14,7 @@ export function buildHelpText(version) {
     `dwy ${version}`,
     '',
     'Usage:',
-    '  dwy            同步项目配置，或刷新全局外部 skill',
+    '  dwy            同步全局 skills，或同步项目配置',
     '  dwy sync       同上',
     '  dwy upgrade    把 dwy 升级到 npm 最新正式版',
     '  dwy --help     显示本说明',
