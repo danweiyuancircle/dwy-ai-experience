@@ -166,4 +166,11 @@ describe('EInput', () => {
     expect(input.attributes('value')).toBeUndefined()
     expect((input.element as HTMLInputElement).value).toBe('updated')
   })
+
+  it('root and wrapper can shrink inside a flex row', () => {
+    const wrapper = mount(EInput)
+    expect(wrapper.classes()).toContain('min-w-0')
+    const inner = wrapper.find('[data-slot="input-wrapper"]')
+    expect(inner.classes()).toContain('min-w-0')
+  })
 })

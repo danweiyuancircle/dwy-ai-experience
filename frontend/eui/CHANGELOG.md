@@ -1,5 +1,12 @@
 # @dwydev/eui
 
+## 2.4.0-beta.2
+
+### Patch Changes
+
+- **ECard**：根节点 `w-full min-w-0`；header/content/footer `px-4 sm:px-6 min-w-0`。窄屏作为 flex 子项时按容器收缩，不再把「忘记密码」等右对齐文字裁掉
+- **EInput**：根与 wrapper 加 `min-w-0`。和定宽按钮并排时（验证码行）输入框收缩，按钮不再被挤出视口
+
 ## 2.4.0-beta.1
 
 ### Minor Changes
