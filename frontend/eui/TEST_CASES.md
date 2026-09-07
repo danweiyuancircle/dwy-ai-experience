@@ -291,6 +291,7 @@
 | 5 | 受控打开渲染 Sheet | `mobileOpen=true` 时 document 有 sheet-content |
 | 6 | 点菜单关抽屉 | emit `update:mobileOpen` false |
 | 7 | mobileMode=none | 375px 仍 docked |
+| 8 | 汉堡点击后抽屉保持打开 | pointerdown+click 后只 emit mobileOpen true，不被 outside 立刻关掉 |
 
 ---
 

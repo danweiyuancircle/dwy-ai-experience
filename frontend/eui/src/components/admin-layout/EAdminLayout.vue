@@ -67,14 +67,19 @@ function handleMenuSelect(key: string) {
 
 /**
  * 顶栏汉堡：桌面切折叠，手机切抽屉。两套状态互不写入。
+ * 抽屉必须等当前 pointer 事件结束再开：汉堡在 Dialog 外面，同一手势会被
+ * reka Dialog 当成 pointer-down-outside，刚打开就关掉。
  */
-function handleTrigger() {
+function handleTrigger(event?: Event) {
+  event?.stopPropagation()
   if (isDrawerLayout.value) {
-    mobileOpenModel.value = !mobileOpenModel.value
+    const next = !mobileOpenModel.value
+    queueMicrotask(() => {
+      mobileOpenModel.value = next
+    })
+    return
   }
-  else {
-    emit('update:collapsed', !props.collapsed)
-  }
+  emit('update:collapsed', !props.collapsed)
 }
 </script>
 
@@ -166,9 +171,10 @@ function handleTrigger() {
         <button
           type="button"
           data-slot="admin-layout-sidebar-trigger"
-          class="rounded-md p-1.5 outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
+          class="relative z-10 flex size-11 shrink-0 items-center justify-center rounded-md outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50"
           :aria-expanded="isDrawerLayout ? mobileOpenModel : !collapsed"
-          @click="handleTrigger"
+          @pointerdown.stop
+          @click.stop="handleTrigger"
         >
           <Menu class="size-4" />
           <span class="sr-only">Toggle sidebar</span>

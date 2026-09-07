@@ -1,5 +1,13 @@
 # @dwydev/eui
 
+## 2.4.0-beta.3
+
+### Patch Changes
+
+- **EAdminLayout**：汉堡在 Dialog 外，同一手势会被当成 outside 立刻关抽屉。改为 `pointerdown/click stop` + microtask 再开；触控热区 44px
+- **ESheet**：关闭/退场态 overlay 与 content `pointer-events-none`，避免挡住汉堡和页面
+- **EMenu**：父级展开改用 Collapsible 回传的 open 值，不再 toggle。手机 pointerdown+click 发两次时不会刚开就关
+
 ## 2.4.0-beta.2
 
 ### Patch Changes
