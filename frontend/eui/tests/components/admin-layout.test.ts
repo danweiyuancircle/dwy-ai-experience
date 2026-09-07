@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import EAdminLayout from '@/components/admin-layout/EAdminLayout.vue'
+import ESheet from '@/components/sheet/ESheet.vue'
 import { mockViewportWidth } from '../helpers/mock-viewport'
 
 // Mock vue-router
@@ -90,6 +91,26 @@ describe('EAdminLayout mobile drawer', () => {
     wrapper.unmount()
   })
 
+  it('关闭态没有 sheet overlay，汉堡点击后抽屉真正出现', async () => {
+    const wrapper = mount(EAdminLayout, {
+      attachTo: document.body,
+      props: { menuItems: [{ key: '/dash', label: '概览' }] },
+    })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="sheet-overlay"]')).toBeNull()
+    const trigger = wrapper.find('[data-slot="admin-layout-sidebar-trigger"]')
+    expect(trigger.exists()).toBe(true)
+    await trigger.trigger('pointerdown')
+    await trigger.trigger('click')
+    await flushPromises()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await wrapper.vm.$nextTick()
+    expect(wrapper.emitted('update:mobileOpen')?.at(-1)).toEqual([true])
+    expect(wrapper.findComponent(ESheet).props('open')).toBe(true)
+    expect(document.querySelector('[data-slot="sheet-content"]')).not.toBeNull()
+    wrapper.unmount()
+  })
+
   it('汉堡点击后抽屉状态保持打开，不被同一手势立刻关掉', async () => {
     const wrapper = mount(EAdminLayout, {
       attachTo: document.body,
@@ -100,11 +121,12 @@ describe('EAdminLayout mobile drawer', () => {
     await trigger.trigger('click')
     await flushPromises()
     await new Promise((resolve) => setTimeout(resolve, 0))
-    document.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+    expect(wrapper.emitted('update:mobileOpen')?.[0]).toEqual([true])
+    expect(document.querySelector('[data-slot="sheet-content"]')).not.toBeNull()
+    // 打开后再 pointerdown 汉堡：outside 被 ignore，不能自己关掉
+    await trigger.trigger('pointerdown')
     await flushPromises()
-    const mobileOpenEmits = wrapper.emitted('update:mobileOpen') ?? []
-    expect(mobileOpenEmits[0]).toEqual([true])
-    expect(mobileOpenEmits.at(-1)).toEqual([true])
+    expect(wrapper.emitted('update:mobileOpen')?.at(-1)).toEqual([true])
     wrapper.unmount()
   })
 
@@ -172,8 +194,9 @@ describe('EAdminLayout mobile drawer', () => {
     // overlay 与 content 同 z-50 时遮罩会吃掉菜单点击；content 必须更高
     expect(content?.className).toMatch(/z-\[51\]/)
     expect(overlay?.className).toContain('z-50')
-    // reka overlay 有 inline pointer-events:auto，关闭态必须 !important 才能让出汉堡
-    expect(overlay?.className).toMatch(/data-\[state=closed\]:!pointer-events-none/)
+    // reka overlay 写死 inline pointer-events:auto，默认必须 !none，仅打开态 !auto
+    expect(overlay?.className).toMatch(/!pointer-events-none/)
+    expect(overlay?.className).toMatch(/data-\[state=open\]:!pointer-events-auto/)
     expect(content?.className).toMatch(/data-\[state=open\]:!pointer-events-auto/)
     wrapper.unmount()
   })

@@ -1,8 +1,12 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach } from 'vitest'
 import ESheet from '@/components/sheet/ESheet.vue'
 
 describe('ESheet', () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
   it('mounts without error in closed state', () => {
     const wrapper = mount(ESheet)
     expect(wrapper.exists()).toBe(true)
@@ -11,6 +15,30 @@ describe('ESheet', () => {
   it('does not render overlay in closed state (portaled)', () => {
     const wrapper = mount(ESheet)
     expect(wrapper.find('[data-slot="sheet-overlay"]').exists()).toBe(false)
+  })
+
+  it('关闭态不把 overlay 留在 document，避免挡住页面点击', async () => {
+    const wrapper = mount(ESheet, {
+      attachTo: document.body,
+      props: { open: false },
+    })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="sheet-overlay"]')).toBeNull()
+    expect(document.querySelector('[data-slot="sheet-content"]')).toBeNull()
+    wrapper.unmount()
+  })
+
+  it('打开后 overlay 在 document，关闭后卸掉', async () => {
+    const wrapper = mount(ESheet, {
+      attachTo: document.body,
+      props: { open: true, title: '侧栏' },
+    })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="sheet-overlay"]')).not.toBeNull()
+    await wrapper.setProps({ open: false })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="sheet-overlay"]')).toBeNull()
+    wrapper.unmount()
   })
 
   it('accepts open prop without error', () => {

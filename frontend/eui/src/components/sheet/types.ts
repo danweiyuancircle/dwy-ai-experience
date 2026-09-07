@@ -22,6 +22,12 @@ export interface ESheetProps {
    * 侧栏进抽屉时用 `p-0` 去掉默认 padding，避免和菜单自身间距叠两层。
    */
   bodyClass?: HTMLAttributes['class']
+  /**
+   * 点在匹配节点上时不把抽屉当 outside 关掉。
+   * 汉堡在 Dialog 外：同一手势会被当成 pointer-down-outside，刚开就关。
+   * 示例：`[data-slot="admin-layout-sidebar-trigger"]`
+   */
+  ignoreOutsideSelector?: string
 }
 
 /** ESheet Emits */

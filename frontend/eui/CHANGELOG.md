@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.4.0-beta.6
+
+### Patch Changes
+
+- **EAdminLayout / ESheet**：未传的 Boolean `open` / `mobileOpen` 会被编译成 `false`，本地开关永远读不到，汉堡点了抽屉也不开。缺省改为 `undefined`。关闭态 `unmountOnHide` 卸 overlay，避免挡住汉堡。汉堡用 `ignoreOutsideSelector` 避免刚开就被当成 outside 关掉
+
 ## 2.4.0-beta.5
 
 ### Patch Changes

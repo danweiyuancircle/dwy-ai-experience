@@ -4,7 +4,7 @@
   与 EDrawer 的差异：Sheet 是 shadcn 风格的侧拉，更贴合移动端与快速预览场景
 -->
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { X } from 'lucide-vue-next'
 import {
   DialogClose,
@@ -22,27 +22,44 @@ import type { ESheetProps, ESheetEmits } from './types'
 const props = withDefaults(defineProps<ESheetProps>(), {
   side: 'right',
   showClose: true,
+  // Boolean 缺省会被编译成 false，非受控 trigger 再也打不开
+  open: undefined,
 })
 
 const emit = defineEmits<ESheetEmits>()
 
-/** 本地开关：reka DialogRoot 要可写 v-model，外层 open 单向灌入 */
+/** 非受控时自己记开关；受控时只信 props.open，避免双 watch 和 Dialog 互相反写 */
 const localOpen = ref(props.open ?? false)
-
-watch(() => props.open, (value) => {
-  if (value !== undefined) localOpen.value = value
+const openModel = computed({
+  get: () => props.open ?? localOpen.value,
+  set: (value: boolean) => {
+    localOpen.value = value
+    emit('update:open', value)
+    if (!value) emit('close')
+  },
 })
 
-watch(localOpen, (value) => {
-  emit('update:open', value)
-  if (!value) emit('close')
-})
+/**
+ * 汉堡等触发器在 Dialog 外时，同一 pointer 会被当成 outside 关掉。
+ * 匹配到 ignoreOutsideSelector 就 preventDefault，只让触发器自己 toggle。
+ */
+function onPointerDownOutside(event: Event) {
+  const selector = props.ignoreOutsideSelector
+  if (!selector) return
+  const original = (event as CustomEvent<{ originalEvent?: Event }>).detail?.originalEvent
+  const target = original?.target ?? (event as Event).target
+  // document 级 pointerdown 的 target 可能不是 Element
+  if (target instanceof Element && target.closest(selector)) {
+    event.preventDefault()
+  }
+}
 </script>
 
 <template>
   <DialogRoot
-    v-model:open="localOpen"
+    v-model:open="openModel"
     data-slot="sheet"
+    :unmount-on-hide="true"
   >
     <DialogTrigger v-if="$slots.trigger" as-child>
       <slot name="trigger" />
@@ -50,26 +67,26 @@ watch(localOpen, (value) => {
 
     <DialogPortal>
       <!--
-        关闭/退场时 overlay 与 content 仍可能留在 DOM。
-        reka DialogOverlay 写死 inline pointer-events:auto，普通 Tailwind 盖不住，
-        必须 !important；content 用 z-[51] 压过同层遮罩，否则左侧菜单点到的是 overlay。
+        关闭态必须卸掉 overlay：reka 给 overlay 写死 inline pointer-events:auto，
+        留在 body 会挡住汉堡。打开态 content 用 z-[51] 压过同层遮罩。
       -->
       <DialogOverlay
         data-slot="sheet-overlay"
         :class="cn(
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 pointer-events-none data-[state=closed]:!pointer-events-none data-[state=open]:!pointer-events-auto fixed inset-0 z-50 bg-black/80',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 !pointer-events-none data-[state=open]:!pointer-events-auto fixed inset-0 z-50 bg-black/80',
         )"
       />
       <DialogContent
         data-slot="sheet-content"
         :class="cn(
-          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out pointer-events-none data-[state=closed]:!pointer-events-none data-[state=open]:!pointer-events-auto fixed z-[51] flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
+          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out !pointer-events-none data-[state=open]:!pointer-events-auto fixed z-[51] flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
           side === 'right' && 'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
           side === 'left' && 'data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm',
           side === 'top' && 'data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b',
           side === 'bottom' && 'data-[state=closed]:slide-out-to-bottom data-[state=open]:slide-in-from-bottom inset-x-0 bottom-0 h-auto border-t',
           props.class,
         )"
+        @pointer-down-outside="onPointerDownOutside"
       >
         <!-- 无可见标题时仍提供 DialogTitle，满足 reka 无障碍约束 -->
         <DialogTitle v-if="!title && !$slots.header" class="sr-only">面板</DialogTitle>
