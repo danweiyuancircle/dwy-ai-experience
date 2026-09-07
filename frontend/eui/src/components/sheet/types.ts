@@ -17,6 +17,11 @@ export interface ESheetProps {
   side?: 'top' | 'right' | 'bottom' | 'left'
   /** 是否显示右上角关闭按钮，默认 true */
   showClose?: boolean
+  /**
+   * 内容区（默认插槽容器）class。
+   * 侧栏进抽屉时用 `p-0` 去掉默认 padding，避免和菜单自身间距叠两层。
+   */
+  bodyClass?: HTMLAttributes['class']
 }
 
 /** ESheet Emits */

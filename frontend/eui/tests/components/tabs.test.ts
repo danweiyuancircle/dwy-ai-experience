@@ -84,4 +84,14 @@ describe('ETabs', () => {
     const triggers = wrapper.findAll('[data-slot="tabs-trigger"]')
     expect(triggers[2].attributes('disabled')).toBeDefined()
   })
+
+  it('wraps horizontal tab list for overflow scroll', () => {
+    const wrapper = mount(ETabs, {
+      props: { items },
+    })
+    const wrap = wrapper.find('[data-slot="tabs-list-wrap"]')
+    expect(wrap.exists()).toBe(true)
+    expect(wrap.classes().join(' ')).toContain('overflow-x-auto')
+  })
 })
+

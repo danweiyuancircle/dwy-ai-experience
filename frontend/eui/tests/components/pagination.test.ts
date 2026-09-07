@@ -1,6 +1,7 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
 import EPagination from '@/components/pagination/EPagination.vue'
+import { mockViewportWidth } from '../helpers/mock-viewport'
 
 beforeAll(() => {
   window.ResizeObserver = class {
@@ -11,6 +12,10 @@ beforeAll(() => {
 })
 
 describe('EPagination', () => {
+  beforeEach(() => {
+    mockViewportWidth(1024)
+  })
+
   it('renders without errors', () => {
     const wrapper = mount(EPagination, {
       props: { total: 100, modelValue: 1 },
@@ -105,4 +110,41 @@ describe('EPagination', () => {
     expect(wrapper.find('[data-slot="pagination-ellipsis"]').exists()).toBe(true)
     expect(numbers).toContain('11')
   })
+
+  it('simple mode shows current/total and hides size changer', () => {
+    const wrapper = mount(EPagination, {
+      props: {
+        total: 100,
+        modelValue: 2,
+        pageSize: 10,
+        mode: 'simple',
+        showSizeChanger: true,
+        showTotal: true,
+        jumper: true,
+      },
+    })
+    expect(wrapper.find('[data-slot="pagination-simple"]').text()).toContain('2 / 10')
+    expect(wrapper.find('[data-slot="pagination-size-changer"]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="pagination-jumper"]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="pagination-item"]').exists()).toBe(false)
+  })
+
+  it('full mode keeps size changer even on a narrow viewport', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(EPagination, {
+      props: { total: 100, modelValue: 1, mode: 'full', showSizeChanger: true },
+    })
+    expect(wrapper.find('[data-slot="pagination-size-changer"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="pagination-simple"]').exists()).toBe(false)
+  })
+
+  it('auto mode uses simple layout on mobile', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(EPagination, {
+      props: { total: 100, modelValue: 1, pageSize: 10, showSizeChanger: true },
+    })
+    expect(wrapper.find('[data-slot="pagination-simple"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="pagination-size-changer"]').exists()).toBe(false)
+  })
 })
+

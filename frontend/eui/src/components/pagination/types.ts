@@ -31,6 +31,12 @@ export interface EPaginationProps {
   layout?: string
   /** 是否禁用整个分页 */
   disabled?: boolean
+  /**
+   * 布局模式。
+   * `auto`（默认）：窄屏简版（上一页 / 当前页 / 下一页），宽屏完整。
+   * `simple`：始终简版。`full`：始终完整（忽略视口）。
+   */
+  mode?: 'auto' | 'simple' | 'full'
 }
 
 /** EPagination Emits */

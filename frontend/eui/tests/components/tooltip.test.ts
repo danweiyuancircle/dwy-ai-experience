@@ -66,4 +66,18 @@ describe('ETooltip', () => {
     })
     expect(wrapper.exists()).toBe(true)
   })
+
+  it('click trigger opens content on pointer', async () => {
+    document.body.innerHTML = ''
+    const wrapper = mount(ETooltip, {
+      attachTo: document.body,
+      props: { content: 'Click tip', trigger: 'click' },
+      slots: { default: '<button type="button">Open</button>' },
+    })
+    await wrapper.find('button').trigger('click')
+    await wrapper.vm.$nextTick()
+    expect(document.body.textContent).toContain('Click tip')
+    wrapper.unmount()
+  })
 })
+

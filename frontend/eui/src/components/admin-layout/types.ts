@@ -30,6 +30,16 @@ export interface EAdminLayoutProps {
   collapsedWidth?: string | number
   /** 为 true 时菜单点击会触发 vue-router 路由跳转 */
   router?: boolean
+  /**
+   * 窄屏侧栏模式。
+   * `drawer`（默认）：小于断点时侧栏改为 ESheet 覆层，不占宽。
+   * `none`：保持桌面折叠行为（逃生开关）。
+   */
+  mobileMode?: 'drawer' | 'none'
+  /** 覆盖全局 mobileBreakpoint（px）。不传则用 EConfigProvider / 默认 767 */
+  mobileBreakpoint?: number
+  /** 手机抽屉是否打开，v-model:mobileOpen。仅 drawer 模式生效 */
+  mobileOpen?: boolean
 }
 
 /**
@@ -40,6 +50,8 @@ export interface EAdminLayoutEmits {
   'update:activeKey': [key: string]
   /** 折叠状态变化时触发 */
   'update:collapsed': [value: boolean]
+  /** 手机抽屉开关，用于 v-model:mobileOpen */
+  'update:mobileOpen': [value: boolean]
   /** 菜单点击选中时触发（与 update:activeKey 并发，提供更语义化命名） */
   'menu-select': [key: string]
 }

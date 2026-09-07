@@ -1,10 +1,15 @@
 <!--
   ETooltip 文字提示组件
-  基于 reka-ui Tooltip 封装，hover/focus 时在目标元素旁弹出提示
-  content 传纯文本，复杂内容通过 content 插槽提供
+  指针设备：reka Tooltip（hover/focus）。
+  触屏/窄屏或 trigger=click：改走 Popover，因为 Tooltip 在触摸上打不开。
 -->
 <script setup lang="ts">
+import { computed } from 'vue'
 import {
+  PopoverContent,
+  PopoverPortal,
+  PopoverRoot,
+  PopoverTrigger,
   TooltipArrow,
   TooltipContent,
   TooltipPortal,
@@ -13,17 +18,50 @@ import {
   TooltipTrigger,
 } from 'reka-ui'
 import { cn } from '@/utils/cn'
+import { useEuiMobile } from '@/composables/useEuiMobile'
 import type { ETooltipProps } from './types'
 
 const props = withDefaults(defineProps<ETooltipProps>(), {
   sideOffset: 4,
   delayDuration: 0,
   disabled: false,
+  trigger: 'auto',
 })
+
+const isMobile = useEuiMobile()
+
+/** click 模式：强制 click，或 auto 且当前是手机视口 */
+const useClick = computed(() => {
+  if (props.trigger === 'click') return true
+  if (props.trigger === 'hover') return false
+  return isMobile.value
+})
+
+const contentClass = computed(() =>
+  cn(
+    'bg-foreground text-background z-50 w-fit rounded-md px-3 py-1.5 text-xs text-balance',
+    props.class,
+  ),
+)
 </script>
 
 <template>
-  <TooltipProvider :delay-duration="delayDuration">
+  <PopoverRoot v-if="useClick && !disabled" data-slot="tooltip">
+    <PopoverTrigger data-slot="tooltip-trigger" as-child>
+      <slot />
+    </PopoverTrigger>
+    <PopoverPortal>
+      <PopoverContent
+        data-slot="tooltip-content"
+        :side="side"
+        :side-offset="sideOffset"
+        :class="contentClass"
+      >
+        <slot name="content">{{ content }}</slot>
+      </PopoverContent>
+    </PopoverPortal>
+  </PopoverRoot>
+  <TooltipProvider v-else :delay-duration="delayDuration">
     <TooltipRoot data-slot="tooltip" :disabled="disabled">
       <TooltipTrigger data-slot="tooltip-trigger" as-child>
         <slot />

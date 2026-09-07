@@ -20,7 +20,9 @@ export {
   useMessage,
   useNotification,
   useMessageBox,
+  useEuiMobile,
 } from './composables'
+export { DEFAULT_MOBILE_BREAKPOINT } from './composables'
 
 // Components - 基础组件
 export { EConfigProvider } from './components/config-provider'

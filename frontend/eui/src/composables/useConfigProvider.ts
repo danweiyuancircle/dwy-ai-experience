@@ -6,11 +6,16 @@ import type { InjectionKey, Ref } from 'vue'
 import { inject, ref } from 'vue'
 import type { Size } from '@/types'
 
-/** EConfigProvider 的注入 key，包含统一的尺寸、弹层层级、国际化文案 */
+/** 默认手机断点（px）。与 Tailwind md（768）对齐，含本值及以下视为手机。 */
+export const DEFAULT_MOBILE_BREAKPOINT = 767
+
+/** EConfigProvider 的注入 key，包含统一的尺寸、弹层层级、国际化文案、手机断点 */
 export const CONFIG_PROVIDER_KEY = Symbol() as InjectionKey<{
   size: Ref<Size>
   zIndex: Ref<number>
   locale: Ref<Record<string, string>>
+  /** 进入手机布局的最大宽度（px），默认 767 */
+  mobileBreakpoint: Ref<number>
 }>
 
 /** 默认中文语言包，覆盖所有需要文案的组件（上传、选择器、消息框等） */
@@ -45,6 +50,7 @@ export function useConfigProvider() {
     size: ref('default' as Size),
     zIndex: ref(2000),
     locale: ref(defaultLocale),
+    mobileBreakpoint: ref(DEFAULT_MOBILE_BREAKPOINT),
   })
   return config
 }
