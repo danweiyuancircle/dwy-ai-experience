@@ -61,7 +61,14 @@ jobs:
 
       - name: Publish
         working-directory: frontend/eui
-        run: npm publish --access public
+        run: |
+          VERSION="${{ steps.verify.outputs.package_version }}"
+          # 预发布（含 -beta / -rc）打 dist-tag beta，避免覆盖 latest
+          if [[ "$VERSION" == *-* ]]; then
+            npm publish --access public --tag beta
+          else
+            npm publish --access public
+          fi
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -69,4 +76,5 @@ jobs:
           tag_name: ${{ github.ref_name }}
           name: ${{ steps.verify.outputs.release_name }}
           draft: false
+          prerelease: ${{ contains(steps.verify.outputs.package_version, '-') }}
           body_path: .github/release-body-eui.md
