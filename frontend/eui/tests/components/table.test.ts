@@ -30,6 +30,18 @@ describe('ETable', () => {
     expect(wrapper.find('[data-slot="table"]').exists()).toBe(true)
   })
 
+  it('表宽随内容撑开，容器 overflow-auto 才能横滑', () => {
+    const wrapper = mount(ETable, {
+      props: { columns, data },
+    })
+    const table = wrapper.find('[data-slot="table"]')
+    expect(table.classes()).toContain('min-w-full')
+    expect(table.classes()).toContain('w-max')
+    expect(table.classes()).not.toContain('w-full')
+    expect(wrapper.find('[data-slot="table-container"]').classes()).toContain('overflow-auto')
+    expect(wrapper.find('[data-slot="table-container"]').classes()).toContain('overscroll-x-contain')
+  })
+
   it('renders columns and data rows', () => {
     const wrapper = mount(ETable, {
       props: { columns, data },

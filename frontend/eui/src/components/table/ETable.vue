@@ -328,9 +328,13 @@ function getColumnWidth(column: TableColumn): number | string | undefined {
 
 function getColumnStyle(column: TableColumn): Record<string, string | undefined> {
   const w = getColumnWidth(column)
+  const widthPx = w ? (typeof w === 'number' ? `${w}px` : w) : undefined
+  // 数字 width 同时当下限：table-fixed + 100% 时列不会被压到比声明更窄，窄屏才能横滑
   return {
-    width: w ? (typeof w === 'number' ? `${w}px` : w) : undefined,
-    minWidth: column.minWidth ? `${column.minWidth}px` : undefined,
+    width: widthPx,
+    minWidth: column.minWidth
+      ? `${column.minWidth}px`
+      : (typeof w === 'number' ? `${w}px` : undefined),
     ...getFixedStyle(column),
   }
 }
@@ -386,7 +390,7 @@ function onResizeMouseUp() {
     ref="virtualContainerRef"
     data-slot="table-container"
     :class="cn(
-      'relative w-full overflow-auto',
+      'relative w-full overflow-auto overscroll-x-contain',
       bordered && 'rounded-md border',
     )"
     v-on="virtual ? { scroll: handleVirtualScroll } : {}"
@@ -402,7 +406,7 @@ function onResizeMouseUp() {
     <table
       data-slot="table"
       :class="cn(
-        'w-full caption-bottom text-sm',
+        'min-w-full w-max caption-bottom text-sm',
         bordered && '[&_th]:border [&_td]:border',
         resizable && 'table-fixed',
         props.class,

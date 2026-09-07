@@ -278,7 +278,7 @@
 | 3 | 宽屏为 false | 视口 1024 → false |
 | 4 | 覆盖断点 | 视口 800 + breakpoint 900 → true |
 
-## 11. EAdminLayout 手机抽屉（6 个）
+## 11. EAdminLayout 手机抽屉（9 个）
 
 `tests/components/admin-layout.test.ts`
 
@@ -292,6 +292,7 @@
 | 6 | 点菜单关抽屉 | emit `update:mobileOpen` false |
 | 7 | mobileMode=none | 375px 仍 docked |
 | 8 | 汉堡点击后抽屉保持打开 | pointerdown+click 后只 emit mobileOpen true，不被 outside 立刻关掉 |
+| 9 | content 叠在 overlay 之上 | `z-[51]` + 关闭态 `!pointer-events-none`，菜单不被遮罩吃掉 |
 
 ---
 

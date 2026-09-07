@@ -155,5 +155,27 @@ describe('EAdminLayout mobile drawer', () => {
     })
     expect(wrapper.find('[data-slot="admin-layout-sidebar"]').exists()).toBe(true)
   })
+
+  it('抽屉打开时 content 叠在 overlay 之上，菜单可点', async () => {
+    const wrapper = mount(EAdminLayout, {
+      attachTo: document.body,
+      props: {
+        mobileOpen: true,
+        menuItems: [{ key: '/dash', label: '概览' }],
+      },
+    })
+    await flushPromises()
+    const overlay = document.querySelector('[data-slot="sheet-overlay"]') as HTMLElement | null
+    const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null
+    expect(overlay).not.toBeNull()
+    expect(content).not.toBeNull()
+    // overlay 与 content 同 z-50 时遮罩会吃掉菜单点击；content 必须更高
+    expect(content?.className).toMatch(/z-\[51\]/)
+    expect(overlay?.className).toContain('z-50')
+    // reka overlay 有 inline pointer-events:auto，关闭态必须 !important 才能让出汉堡
+    expect(overlay?.className).toMatch(/data-\[state=closed\]:!pointer-events-none/)
+    expect(content?.className).toMatch(/data-\[state=open\]:!pointer-events-auto/)
+    wrapper.unmount()
+  })
 })
 
