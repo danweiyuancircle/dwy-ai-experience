@@ -113,12 +113,12 @@ function togglePasswordVisibility() {
 <template>
   <div
     data-slot="input-root"
-    :class="cn('w-full', props.class)"
+    :class="cn('w-full min-w-0', props.class)"
   >
     <div
       data-slot="input-wrapper"
       :class="cn(
-        'relative flex items-center w-full',
+        'relative flex min-w-0 w-full items-center',
       )"
     >
       <span

@@ -16,6 +16,21 @@ describe('ECard', () => {
     expect(card.classes()).toContain('border')
   })
 
+  it('root can shrink in a flex parent', () => {
+    const wrapper = mount(ECard)
+    const card = wrapper.find('[data-slot="card"]')
+    expect(card.classes()).toContain('min-w-0')
+    expect(card.classes()).toContain('w-full')
+  })
+
+  it('content uses responsive horizontal padding and can shrink', () => {
+    const wrapper = mount(ECard, { slots: { default: '<p>内容</p>' } })
+    const content = wrapper.find('[data-slot="card-content"]')
+    expect(content.classes()).toContain('min-w-0')
+    expect(content.classes()).toContain('px-4')
+    expect(content.classes()).toContain('sm:px-6')
+  })
+
   it('renders title when title prop is provided', () => {
     const wrapper = mount(ECard, { props: { title: '卡片标题' } })
     const title = wrapper.find('[data-slot="card-title"]')

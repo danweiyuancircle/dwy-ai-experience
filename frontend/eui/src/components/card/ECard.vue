@@ -2,6 +2,8 @@
   ECard 卡片组件
   提供 header / content / footer 三段式结构
   header 支持标题 / 描述 / 右侧操作按钮（action 插槽）
+  根与内容区 min-w-0：作为 flex 子项时按容器收缩，避免登录卡把「忘记密码」挤出视口。
+  横向 padding px-4 sm:px-6：窄屏少占宽，桌面仍是 24px。
 -->
 <script setup lang="ts">
 import { cn } from '@/utils/cn'
@@ -19,14 +21,14 @@ const hasHeader = (slots: Record<string, unknown>) =>
 <template>
   <div
     data-slot="card"
-    :class="cn('bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm', props.class)"
+    :class="cn('bg-card text-card-foreground flex w-full min-w-0 flex-col gap-6 rounded-xl border py-6 shadow-sm', props.class)"
   >
     <!-- header -->
     <slot name="header">
       <div
         v-if="title || description || $slots.title || $slots.action"
         data-slot="card-header"
-        class="@container/card-header grid auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
+        class="@container/card-header grid min-w-0 auto-rows-min grid-rows-[auto_auto] items-start gap-1.5 px-4 sm:px-6 has-data-[slot=card-action]:grid-cols-[1fr_auto] [.border-b]:pb-6"
       >
         <h3
           v-if="title || $slots.title"
@@ -56,7 +58,7 @@ const hasHeader = (slots: Record<string, unknown>) =>
     <div
       v-if="$slots.default"
       data-slot="card-content"
-      class="px-6"
+      class="min-w-0 px-4 sm:px-6"
     >
       <slot />
     </div>
@@ -65,7 +67,7 @@ const hasHeader = (slots: Record<string, unknown>) =>
     <div
       v-if="$slots.footer"
       data-slot="card-footer"
-      class="flex items-center px-6 [.border-t]:pt-6"
+      class="flex min-w-0 items-center px-4 sm:px-6 [.border-t]:pt-6"
     >
       <slot name="footer" />
     </div>
