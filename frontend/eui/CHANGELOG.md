@@ -1,5 +1,12 @@
 # @dwydev/eui
 
+## 2.4.0-beta.4
+
+### Patch Changes
+
+- **ESheet**：`sheet-content` 提到 `z-[51]`，压过同层 overlay，避免抽屉里侧栏菜单点到遮罩。关闭/退场态 overlay 与 content 用 `!pointer-events-none`，盖住 reka 写死的 inline `pointer-events:auto`
+- **ETable**：`table` 从 `w-full` 改为 `min-w-full w-max`，列宽作 minWidth。窄屏表比视口宽时容器 `overflow-auto` 可左右滑，不再把列压扁
+
 ## 2.4.0-beta.3
 
 ### Patch Changes
