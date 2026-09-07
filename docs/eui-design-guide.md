@@ -213,7 +213,14 @@ neutral（默认）| blue | green | rose | orange | violet | slate
 | lg | 1024px | 小桌面 |
 | xl | 1280px | 标准桌面 |
 
-中后台页面最小支持 `md`（768px），不强求手机适配。
+中后台**壳**必须在 375px 可用：`EAdminLayout` 默认窄屏抽屉，不要再假设最小 `md`。
+
+| 场景 | 要求 |
+|------|------|
+| 布局壳 | `EAdminLayout` 375px 可开抽屉；顶栏不裁切 |
+| 列表 | 表格允许横滑；`EPagination` 默认 `mode="auto"` |
+| 表单 | 标签置顶 / `EField orientation="responsive"` |
+| 提示 | 禁止 hover-only 作为唯一入口（`ETooltip trigger="auto"`） |
 
 ## 八、ESelect 特殊约束
 
