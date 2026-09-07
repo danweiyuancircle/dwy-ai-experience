@@ -21,6 +21,8 @@ const props = withDefaults(defineProps<EAdminLayoutProps>(), {
   sidebarWidth: 240,
   collapsedWidth: 56,
   mobileMode: 'drawer',
+  // Boolean 缺省会被编译成 false，?? 永远走不到本地开关，汉堡点了抽屉也不开
+  mobileOpen: undefined,
 })
 
 const emit = defineEmits<EAdminLayoutEmits>()
@@ -67,16 +69,13 @@ function handleMenuSelect(key: string) {
 
 /**
  * 顶栏汉堡：桌面切折叠，手机切抽屉。两套状态互不写入。
- * 抽屉必须等当前 pointer 事件结束再开：汉堡在 Dialog 外面，同一手势会被
- * reka Dialog 当成 pointer-down-outside，刚打开就关掉。
+ * 必须同步改 open：queueMicrotask 会让 ESheet 收不到 true，抽屉看起来点不开。
+ * 汉堡在 Dialog 外，outside 关闭靠 ESheet ignoreOutsideSelector 拦住。
  */
 function handleTrigger(event?: Event) {
   event?.stopPropagation()
   if (isDrawerLayout.value) {
-    const next = !mobileOpenModel.value
-    queueMicrotask(() => {
-      mobileOpenModel.value = next
-    })
+    mobileOpenModel.value = !mobileOpenModel.value
     return
   }
   emit('update:collapsed', !props.collapsed)
@@ -125,10 +124,10 @@ function handleTrigger(event?: Event) {
     <!-- 手机：侧栏进左侧抽屉，不占主栏宽度 -->
     <ESheet
       v-else
-      :open="mobileOpenModel"
+      v-model:open="mobileOpenModel"
       side="left"
       body-class="p-0"
-      @update:open="mobileOpenModel = $event"
+      ignore-outside-selector="[data-slot='admin-layout-sidebar-trigger']"
     >
       <div
         data-slot="admin-layout-sidebar"
