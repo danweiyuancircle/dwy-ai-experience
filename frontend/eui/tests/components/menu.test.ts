@@ -90,4 +90,19 @@ describe('EMenu', () => {
     // Flat item
     expect(wrapper.text()).toContain('Home')
   })
+
+  it('点父级展开子项，点子项才 select', async () => {
+    const wrapper = mount(EMenu, {
+      props: { items: nestedItems, collapsed: false },
+    })
+    const parent = wrapper.findAll('button').find((button) => button.text().includes('Navigation'))
+    expect(parent).toBeDefined()
+    await parent!.trigger('click')
+    expect(wrapper.text()).toContain('Sub Item 1')
+    const child = wrapper.findAll('button').find((button) => button.text().includes('Sub Item 1'))
+    expect(child).toBeDefined()
+    await child!.trigger('click')
+    expect(wrapper.emitted('select')?.[0]).toEqual(['nav-1'])
+    expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['nav-1'])
+  })
 })

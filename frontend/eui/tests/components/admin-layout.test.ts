@@ -85,7 +85,26 @@ describe('EAdminLayout mobile drawer', () => {
   it('emits update:mobileOpen when hamburger is clicked', async () => {
     const wrapper = mount(EAdminLayout, { attachTo: document.body })
     await wrapper.find('[data-slot="admin-layout-sidebar-trigger"]').trigger('click')
+    await flushPromises()
     expect(wrapper.emitted('update:mobileOpen')?.[0]).toEqual([true])
+    wrapper.unmount()
+  })
+
+  it('汉堡点击后抽屉状态保持打开，不被同一手势立刻关掉', async () => {
+    const wrapper = mount(EAdminLayout, {
+      attachTo: document.body,
+      props: { menuItems: [{ key: '/dash', label: '概览' }] },
+    })
+    const trigger = wrapper.find('[data-slot="admin-layout-sidebar-trigger"]')
+    await trigger.trigger('pointerdown')
+    await trigger.trigger('click')
+    await flushPromises()
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    document.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true }))
+    await flushPromises()
+    const mobileOpenEmits = wrapper.emitted('update:mobileOpen') ?? []
+    expect(mobileOpenEmits[0]).toEqual([true])
+    expect(mobileOpenEmits.at(-1)).toEqual([true])
     wrapper.unmount()
   })
 

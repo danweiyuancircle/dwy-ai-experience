@@ -48,18 +48,19 @@ function isExpanded(key: string): boolean {
 }
 
 /**
- * 切换子菜单展开状态
- * uniqueOpened=true 时先清空其他展开项再加入当前项
+ * 按 Collapsible 回传的 open 写入展开集。
+ * 必须用事件值而不是再 toggle：手机上 pointerdown+click 会发两次，toggle 两次等于没开。
  */
-function toggleExpand(key: string) {
+function setExpanded(key: string, open: boolean) {
   const next = new Set(expandedKeys.value)
-  if (next.has(key)) {
-    next.delete(key)
-  } else {
+  if (open) {
     if (props.uniqueOpened) {
       next.clear()
     }
     next.add(key)
+  }
+  else {
+    next.delete(key)
   }
   expandedKeys.value = next
 }
@@ -95,7 +96,7 @@ function hasChildren(item: MenuItem): boolean {
       <CollapsibleRoot
         v-if="hasChildren(item) && !collapsed"
         :open="isExpanded(item.key)"
-        @update:open="toggleExpand(item.key)"
+        @update:open="(open: boolean) => setExpanded(item.key, open)"
       >
         <CollapsibleTrigger
           :disabled="item.disabled"
@@ -158,7 +159,7 @@ function hasChildren(item: MenuItem): boolean {
           collapsed ? 'justify-center px-0 py-2' : 'gap-2 px-3 py-2',
         )"
         :title="collapsed ? item.label : undefined"
-        @click="hasChildren(item) ? toggleExpand(item.key) : handleSelect(item)"
+        @click="hasChildren(item) ? setExpanded(item.key, !isExpanded(item.key)) : handleSelect(item)"
       >
         <component
           :is="item.icon"
