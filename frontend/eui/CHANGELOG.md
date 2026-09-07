@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.4.0-beta.5
+
+### Patch Changes
+
+- **deps**：`reka-ui` `^2.9.0` → `^2.10.4`。2.10.x 无破坏性变更。含 Dialog `unmountOnHide`、DismissableLayer 关闭态忽略 outside pointerdown，减轻抽屉 overlay 挡点击。无 Table 原语，表格逻辑仍在 eui / TanStack
+
 ## 2.4.0-beta.4
 
 ### Patch Changes
