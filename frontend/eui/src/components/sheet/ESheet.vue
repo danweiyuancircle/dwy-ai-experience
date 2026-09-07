@@ -4,6 +4,7 @@
   与 EDrawer 的差异：Sheet 是 shadcn 风格的侧拉，更贴合移动端与快速预览场景
 -->
 <script setup lang="ts">
+import { ref, watch } from 'vue'
 import { X } from 'lucide-vue-next'
 import {
   DialogClose,
@@ -25,21 +26,23 @@ const props = withDefaults(defineProps<ESheetProps>(), {
 
 const emit = defineEmits<ESheetEmits>()
 
-/**
- * 打开状态变化回调
- * 关闭时额外触发 close 事件，方便父组件区分打开/关闭时机
- */
-function onUpdate(value: boolean) {
+/** 本地开关：reka DialogRoot 要可写 v-model，外层 open 单向灌入 */
+const localOpen = ref(props.open ?? false)
+
+watch(() => props.open, (value) => {
+  if (value !== undefined) localOpen.value = value
+})
+
+watch(localOpen, (value) => {
   emit('update:open', value)
   if (!value) emit('close')
-}
+})
 </script>
 
 <template>
   <DialogRoot
+    v-model:open="localOpen"
     data-slot="sheet"
-    :open="open"
-    @update:open="onUpdate"
   >
     <DialogTrigger v-if="$slots.trigger" as-child>
       <slot name="trigger" />
@@ -63,6 +66,11 @@ function onUpdate(value: boolean) {
           props.class,
         )"
       >
+        <!-- 无可见标题时仍提供 DialogTitle，满足 reka 无障碍约束 -->
+        <DialogTitle v-if="!title && !$slots.header" class="sr-only">面板</DialogTitle>
+        <DialogDescription v-if="!description && !$slots.header" class="sr-only">
+          侧滑面板
+        </DialogDescription>
         <!-- Header -->
         <div v-if="$slots.header || title || description" data-slot="sheet-header" class="flex flex-col gap-1.5 p-4">
           <slot name="header">
@@ -76,7 +84,7 @@ function onUpdate(value: boolean) {
         </div>
 
         <!-- Default content -->
-        <div class="flex-1 overflow-auto px-4 py-1">
+        <div :class="cn('flex-1 overflow-auto px-4 py-1', props.bodyClass)">
           <slot />
         </div>
 

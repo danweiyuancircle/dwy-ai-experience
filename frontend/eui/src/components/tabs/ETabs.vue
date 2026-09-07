@@ -79,9 +79,14 @@ function onAdd() {
     :orientation="isVertical ? 'vertical' : 'horizontal'"
     @update:model-value="onValueChange"
   >
+    <div
+      v-if="!isVertical"
+      data-slot="tabs-list-wrap"
+      class="w-full min-w-0 overflow-x-auto overscroll-x-contain"
+    >
     <TabsList
       data-slot="tabs-list"
-      :class="cn(listLayoutClass)"
+      :class="cn(listLayoutClass, 'w-max')"
     >
       <TabsTrigger
         v-for="item in items"
@@ -119,6 +124,47 @@ function onAdd() {
         <Plus class="size-4" />
       </button>
 
+      <slot name="extra" />
+    </TabsList>
+    </div>
+    <TabsList
+      v-else
+      data-slot="tabs-list"
+      :class="cn(listLayoutClass)"
+    >
+      <TabsTrigger
+        v-for="item in items"
+        :key="item.key"
+        data-slot="tabs-trigger"
+        :value="item.key"
+        :disabled="item.disabled"
+        :class="cn(
+          'data-[state=active]:bg-background dark:data-[state=active]:text-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:outline-ring dark:data-[state=active]:border-input dark:data-[state=active]:bg-input/30 text-foreground dark:text-muted-foreground inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-2 py-1 text-sm font-medium whitespace-nowrap transition-[color,box-shadow] focus-visible:ring-[3px] focus-visible:outline-1 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-sm [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=\'size-\'])]:size-4',
+        )"
+      >
+        {{ item.label }}
+        <button
+          v-if="closable && !item.disabled"
+          type="button"
+          tabindex="-1"
+          class="ml-1 inline-flex items-center justify-center rounded-sm opacity-60 hover:opacity-100 transition-opacity pointer-events-auto"
+          @click="onClose($event, item.key)"
+          @pointerdown.stop
+        >
+          <X class="size-3" />
+        </button>
+      </TabsTrigger>
+      <button
+        v-if="addable"
+        type="button"
+        data-slot="tabs-add"
+        :class="cn(
+          'inline-flex items-center justify-center rounded-md px-2 py-1 text-sm text-muted-foreground hover:text-foreground hover:bg-background/60 transition-colors',
+        )"
+        @click="onAdd"
+      >
+        <Plus class="size-4" />
+      </button>
       <slot name="extra" />
     </TabsList>
 

@@ -261,6 +261,36 @@
 | 10 | 无首页/末页双箭头 | `[data-slot="pagination-first/last"]` 不渲染 |
 | 11 | 保留上一页/下一页 | previous / next slot 仍在 |
 | 12 | 省略号 + 末页数字 | 总页数超出窗口时出现 ellipsis 且含末页页码 |
+| 13 | simple 模式 | 显示「当前 / 总页」，隐藏 sizes / jumper / 页码 |
+| 14 | full 模式忽略窄屏 | 375px 仍渲染 size changer |
+| 15 | auto 窄屏简版 | 375px 走 simple |
+
+---
+
+## 10. useEuiMobile（4 个）
+
+`tests/composables/useEuiMobile.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 默认断点 | `DEFAULT_MOBILE_BREAKPOINT === 767` |
+| 2 | 窄屏为 true | 视口 375 → true |
+| 3 | 宽屏为 false | 视口 1024 → false |
+| 4 | 覆盖断点 | 视口 800 + breakpoint 900 → true |
+
+## 11. EAdminLayout 手机抽屉（6 个）
+
+`tests/components/admin-layout.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 桌面占位侧栏 | 1024px 存在 docked sidebar |
+| 2 | 窄屏不占位 | 375px 根下无 docked sidebar |
+| 3 | 汉堡切抽屉 | 375px 点击 trigger emit `update:mobileOpen` |
+| 4 | 不误切 collapsed | 375px 点击不 emit `update:collapsed` |
+| 5 | 受控打开渲染 Sheet | `mobileOpen=true` 时 document 有 sheet-content |
+| 6 | 点菜单关抽屉 | emit `update:mobileOpen` false |
+| 7 | mobileMode=none | 375px 仍 docked |
 
 ---
 
@@ -271,8 +301,8 @@
 cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
-# Test Files  91 passed (91)
-# Tests       709 passed (709)
+# Test Files  92 passed (92)
+# Tests       725 passed (725)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run src/utils/cn.test.ts

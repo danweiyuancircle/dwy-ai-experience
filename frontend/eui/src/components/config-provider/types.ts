@@ -13,4 +13,9 @@ export interface EConfigProviderProps {
   zIndex?: number
   /** 国际化文案覆盖表，会与内置 defaultLocale 合并 */
   locale?: Record<string, string>
+  /**
+   * 进入手机布局的最大宽度（px）。
+   * 默认 767，与 Tailwind `md`（768）对齐。EAdminLayout / EPagination 等共用。
+   */
+  mobileBreakpoint?: number
 }

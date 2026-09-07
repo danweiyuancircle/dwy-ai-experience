@@ -21,6 +21,7 @@ import {
 } from 'reka-ui'
 import { cn } from '@/utils/cn'
 import { buttonVariants } from '@/components/button/types'
+import { useEuiMobile } from '@/composables/useEuiMobile'
 import type { EPaginationProps, EPaginationEmits } from './types'
 
 const props = withDefaults(defineProps<EPaginationProps>(), {
@@ -34,6 +35,15 @@ const props = withDefaults(defineProps<EPaginationProps>(), {
   jumper: false,
   layout: 'total, sizes, prev, pager, next, jumper',
   disabled: false,
+  mode: 'auto',
+})
+
+/** 窄屏时 auto 切简版，避免页码+条数选择把行撑爆 */
+const isMobile = useEuiMobile()
+const isSimpleMode = computed(() => {
+  if (props.mode === 'simple') return true
+  if (props.mode === 'full') return false
+  return isMobile.value
 })
 
 const emit = defineEmits<EPaginationEmits>()
@@ -92,7 +102,7 @@ function hasLayout(item: string): boolean {
     <template v-for="layoutItem in layoutItems" :key="layoutItem">
       <!-- Total text -->
       <span
-        v-if="layoutItem === 'total' && showTotal && total !== undefined"
+        v-if="layoutItem === 'total' && showTotal && total !== undefined && !isSimpleMode"
         data-slot="pagination-total"
         class="text-sm text-muted-foreground shrink-0"
       >
@@ -101,7 +111,7 @@ function hasLayout(item: string): boolean {
 
       <!-- Page size selector -->
       <select
-        v-if="layoutItem === 'sizes' && showSizeChanger"
+        v-if="layoutItem === 'sizes' && showSizeChanger && !isSimpleMode"
         data-slot="pagination-size-changer"
         :value="pageSize"
         :disabled="disabled"
@@ -145,8 +155,18 @@ function hasLayout(item: string): boolean {
             <ChevronLeft class="size-4" />
           </PaginationPrev>
 
+          <!-- 简版：当前页 / 总页，不铺页码 -->
+          <span
+            v-if="isSimpleMode"
+            data-slot="pagination-simple"
+            class="px-2 text-sm tabular-nums text-muted-foreground"
+          >
+            {{ modelValue }} / {{ pageCount }}
+          </span>
+
           <!-- Page number items -->
           <template v-for="(paginationItem, index) in paginationItems" :key="index">
+            <template v-if="!isSimpleMode">
             <PaginationListItem
               v-if="paginationItem.type === 'page'"
               data-slot="pagination-item"
@@ -171,6 +191,7 @@ function hasLayout(item: string): boolean {
               <MoreHorizontal class="size-4" />
               <span class="sr-only">More pages</span>
             </PaginationEllipsis>
+            </template>
           </template>
 
           <!-- Next page button -->
@@ -187,7 +208,7 @@ function hasLayout(item: string): boolean {
 
       <!-- Jumper -->
       <div
-        v-if="layoutItem === 'jumper' && jumper"
+        v-if="layoutItem === 'jumper' && jumper && !isSimpleMode"
         data-slot="pagination-jumper"
         class="flex items-center gap-2 text-sm text-muted-foreground shrink-0"
       >

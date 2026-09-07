@@ -6,12 +6,13 @@
 <script setup lang="ts">
 import { computed, provide, toRef } from 'vue'
 import { ConfigProvider as RekaConfigProvider } from 'reka-ui'
-import { CONFIG_PROVIDER_KEY, defaultLocale } from '@/composables/useConfigProvider'
+import { CONFIG_PROVIDER_KEY, DEFAULT_MOBILE_BREAKPOINT, defaultLocale } from '@/composables/useConfigProvider'
 import type { EConfigProviderProps } from './types'
 
 const props = withDefaults(defineProps<EConfigProviderProps>(), {
   size: 'default',
   zIndex: 2000,
+  mobileBreakpoint: DEFAULT_MOBILE_BREAKPOINT,
 })
 
 // 将用户 locale 与内置默认值合并，支持局部覆盖文案
@@ -21,6 +22,7 @@ provide(CONFIG_PROVIDER_KEY, {
   size: toRef(props, 'size'),
   zIndex: toRef(props, 'zIndex'),
   locale: mergedLocale,
+  mobileBreakpoint: toRef(props, 'mobileBreakpoint'),
 })
 </script>
 

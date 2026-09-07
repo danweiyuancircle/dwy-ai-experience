@@ -1,5 +1,16 @@
 # @dwydev/eui
 
+## 2.4.0-beta.1
+
+### Minor Changes
+
+- **useEuiMobile / EConfigProvider.mobileBreakpoint**：共用手机断点（默认 767，对齐 Tailwind `md`）。`EAdminLayout` / `EPagination` / `ETooltip` 都走这一处，避免各写一遍 media query
+- **EAdminLayout**：窄屏默认 `mobileMode="drawer"`，侧栏改为左侧 `ESheet` 覆层，不占主栏宽度。汉堡只切 `mobileOpen`，与桌面 `collapsed` 独立。点菜单后自动关抽屉。`mobileMode="none"` 可关
+- **EPagination**：新增 `mode`（`auto` / `simple` / `full`）。默认 `auto`：窄屏只留上一页 / 当前页 / 下一页
+- **ETabs**：横向标签条外包 `overflow-x-auto`，多 Tab 在窄屏横滑而不是撑开页面
+- **ETooltip**：新增 `trigger`（`auto` / `hover` / `click`）。默认 `auto`：窄屏走 Popover 点击，指针设备仍是 hover
+- **ESheet**：新增 `bodyClass`；受控 `open` 改为本地 v-model 同步；无标题时补 `sr-only` 的 DialogTitle，满足无障碍
+
 ## 2.3.0
 
 ### Minor Changes

@@ -18,4 +18,10 @@ export interface ETooltipProps {
   delayDuration?: number
   /** 是否禁用提示 */
   disabled?: boolean
+  /**
+   * 打开方式。
+   * `auto`（默认）：触屏/窄屏 click（Popover），指针 hover（Tooltip）。
+   * 可强制 `hover` 或 `click`。
+   */
+  trigger?: 'auto' | 'hover' | 'click'
 }
