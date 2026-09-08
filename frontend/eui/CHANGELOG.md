@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.4.0-beta.11
+
+### Patch Changes
+
+- **EAdminLayout**：手机抽屉打开时顶栏 header 槽 `invisible`，用户名不再和关闭钮抢角
+
 ## 2.4.0-beta.10
 
 ### Patch Changes
