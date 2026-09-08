@@ -292,7 +292,7 @@
 | 6 | 点菜单关抽屉 | emit `update:mobileOpen` false |
 | 7 | mobileMode=none | 375px 仍 docked |
 | 8 | 汉堡点击后抽屉保持打开 | pointerdown+click 后只 emit mobileOpen true，不被 outside 立刻关掉 |
-| 9 | content 叠在 overlay 之上 | `z-[51]` + 关闭态 `!pointer-events-none`，菜单不被遮罩吃掉 |
+| 9 | content 叠在 overlay 之上 | overlay `z-[100]` 压过顶栏 z-50，content `z-[101]`，菜单不被遮罩吃掉 |
 
 ---
 
@@ -319,6 +319,9 @@
 | 2 | FormItem 内能读 id | probe `data-inside=true` |
 | 3 | 校验失败 Input 有 aria-invalid | EForm validate 后 input 带 aria-describedby |
 | 4 | ETable virtual 仍渲染表头 | `virtual=true` 时 table / container 存在 |
+| 5 | ESheet 打开 overlay 高于顶栏 | overlay `z-[100]`，content `z-[101]` |
+| 6 | ETable 默认 w-full | 无 `w-max`，长文案不撑破容器 |
+| 7 | ETable 数字列宽写 minWidth | 160+120 → style `min-width: 280px` |
 
 ---
 
@@ -330,7 +333,7 @@ cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
 # Test Files  87 passed (87)
-# Tests       706 passed (706)
+# Tests       708 passed (708)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run tests/utils/cn.test.ts

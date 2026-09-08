@@ -334,6 +334,20 @@ function getColumnStyle(column: TableColumn): Record<string, string | undefined>
   }
 }
 
+/**
+ * 声明了数字列宽时，表 min-width 取列宽之和。
+ * 宽于容器 → 横滑；窄于容器 → width 100% 把余量分给各列。
+ * 不用 w-max：长单元格会把表撑出视口，末列（如结束日期）默认看不见。
+ */
+const tableMinWidth = computed(() => {
+  let sum = 0
+  for (const column of props.columns ?? []) {
+    const w = getColumnWidth(column)
+    if (typeof w === 'number') sum += w
+  }
+  return sum > 0 ? `${sum}px` : undefined
+})
+
 let resizeCol: string | null = null
 let resizeStartX = 0
 let resizeStartWidth = 0
@@ -400,11 +414,12 @@ function onResizeMouseUp() {
     <table
       data-slot="table"
       :class="cn(
-        'min-w-full w-max caption-bottom text-sm',
+        'w-full caption-bottom text-sm',
         bordered && '[&_th]:border [&_td]:border',
         resizable && 'table-fixed',
         props.class,
       )"
+      :style="tableMinWidth ? { minWidth: tableMinWidth } : undefined"
     >
       <!-- Header -->
       <thead
