@@ -1,5 +1,43 @@
 # @dwydev/eui
 
+## 2.4.0
+
+相对 `2.3.0` 的正式线。beta.1–beta.11 细节仍留在下方各段。
+
+### Major Changes
+
+- **删领域组件**：`EAIChat`、`ETimetableGrid`、`EDataPage`（列表页壳未定稿，先去掉）
+- **删组件（同一场景）**：`EVirtualTable`（用 `ETable virtual`）、`EInputOTP`（用 `EPinInput` + `otp`）、`EChartContainer`、`useToast`（用 `useMessage`）
+- **死代码**：`installComponents`、`@floating-ui/vue`、vite `vaul-vue` external
+
+### Minor Changes
+
+- **useEuiMobile / EConfigProvider.mobileBreakpoint**：共用手机断点（默认 767，对齐 Tailwind `md`）。`EAdminLayout` / `EPagination` / `ETooltip` 走同一处
+- **EAdminLayout**：窄屏默认 `mobileMode="drawer"`，侧栏左侧 `ESheet` 覆层。汉堡只切 `mobileOpen`，与桌面 `collapsed` 独立。点菜单后自动关抽屉。`mobileMode="none"` 可关。手机抽屉打开时顶栏 header 槽 `invisible`
+- **EPagination**：新增 `mode`（`auto` / `simple` / `full`）。默认 `auto`：窄屏只留上一页 / 当前页 / 下一页
+- **ETabs**：横向标签条外包 `overflow-x-auto`
+- **ETooltip**：新增 `trigger`（`auto` / `hover` / `click`）。默认 `auto`：窄屏走 Popover 点击
+- **ESheet**：新增 `bodyClass`；受控 `open` 本地 v-model 同步；无标题时补 `sr-only` DialogTitle。打开态 overlay / content 用 `EConfigProvider.zIndex`（默认 2000 / 2001）
+- **ETable**：排序/行模型接 `@tanstack/vue-table`；`virtual` 接 `@tanstack/vue-virtual`。对外 `TableColumn` / `#cell-*` / `@sort` 不变。数字列宽之和写入表 `minWidth`，去掉 `w-max`
+- **useFormField**：接到 `EFormItem` provide（不再要求 vee-validate `<FormField>`）。`EInput` / `ETextarea` 在表单项内补 `aria-invalid` / `aria-describedby`
+
+### Patch Changes
+
+- **reka-ui**：`^2.9.0` → `^2.10.4`。Dialog `unmountOnHide`、DismissableLayer 关闭态忽略 outside pointerdown。未接入 2.10 Alpha `Drawer` / `Rating`
+- **EDialog / EDrawer**：`destroyOnClose` 接到 `unmountOnHide`；无 description 时补 sr-only `DialogDescription`
+- **EConfirmDialog / EAlertDialog**：显式 `unmountOnHide`
+- **ESelect**：多选 `update:modelValue` 兼容 2.10 泛型 `T`
+- **EHoverCard**：透传 `enableTouch`
+- **EConfigProvider**：透传 `teleportTo`
+- **ESheet / EAdminLayout**：Boolean `open` / `mobileOpen` 缺省 `undefined`（`false` 会让非受控开关打不开）。关闭态 `unmountOnHide` 卸 overlay。汉堡 `ignoreOutsideSelector`
+- **ECard / EInput**：根节点 `min-w-0`，窄屏作为 flex 子项可收缩
+- **EMenu**：父级展开用 Collapsible 回传的 open 值
+
+### 不合并（场景不同）
+
+- `ESheet` 侧向覆盖 vs `EDrawer` 底部抓手
+- `EAlertDialog` 阻断确认 vs `EConfirmDialog` 声明式带图标 vs `useMessageBox` 命令式
+
 ## 2.4.0-beta.11
 
 ### Patch Changes

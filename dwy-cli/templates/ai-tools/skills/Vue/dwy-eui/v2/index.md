@@ -17,7 +17,7 @@
 | `useSecureValue` | 密码不写进 HTML attribute | |
 | `useEuiMobile` | `max-width: 767` 是否手机布局 | ≥2.4 |
 
-2.4.0-beta.8 **删除** `useToast`，改 `useMessage`。
+2.4.0 **删除** `useToast`，改 `useMessage`。仍停在 2.3 的项目读 `breaking.md`。
 
 ## 组件导航（只列名）
 
@@ -39,14 +39,14 @@
 
 ### 汉堡 / 抽屉
 
-- `ESheet` / `EAdminLayout` 的 Boolean `open` / `mobileOpen` **缺省必须是 `undefined`**，不能是 `false`。`false` 会让非受控开关永远打不开（≥2.4.0-beta.6）。
+- `ESheet` / `EAdminLayout` 的 Boolean `open` / `mobileOpen` **缺省必须是 `undefined`**，不能是 `false`。`false` 会让非受控开关永远打不开（≥2.4.0）。
 - 关闭态 overlay 必须卸掉（`unmountOnHide`），否则挡住汉堡。
-- 打开态 overlay 用 `EConfigProvider.zIndex`（默认 2000），压过应用顶栏 `z-50`（≥2.4.0-beta.10）。
-- 手机抽屉打开时 `EAdminLayout` 把 header 槽设 `invisible`，避免用户名和关闭钮抢角（≥2.4.0-beta.11）。
+- 打开态 overlay 用 `EConfigProvider.zIndex`（默认 2000），压过应用顶栏 `z-50`（≥2.4.0）。
+- 手机抽屉打开时 `EAdminLayout` 把 header 槽设 `invisible`，避免用户名和关闭钮抢角（≥2.4.0）。
 
 ### ETable
 
-- 列 `width` 用数字 px，不要百分比。表 `minWidth` = 列宽之和：宽于容器横滑，窄于容器铺满（≥2.4.0-beta.9）。
+- 列 `width` 用数字 px，不要百分比。表 `minWidth` = 列宽之和：宽于容器横滑，窄于容器铺满（≥2.4.0）。
 - 不要再上 `EVirtualTable`，用 `ETable` 的 `virtual`。
 - 排序对外仍 `@sort` + `TableColumn.sortable`。
 

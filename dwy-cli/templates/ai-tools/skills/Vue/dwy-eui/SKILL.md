@@ -32,7 +32,7 @@ Vue 3 组件库（Reka-ui + shadcn 视觉 + Element Plus 式 API + Tailwind 4）
 ### 1. clone tag（优先）
 
 ```bash
-VER=2.4.0-beta.11                  # 换成第 1 步探测到的版本
+VER=2.4.0                          # 换成第 1 步探测到的版本
 TAG="@dwydev/eui@${VER}"
 DEST=".dwy/eui-src/${VER}"         # 项目内缓存，已 gitignore
 
@@ -73,7 +73,7 @@ ls node_modules/@dwydev/eui/dist/component-manifest.json
 | `shared/config-theme.md` | EConfigProvider、useTheme、cn() |
 | `v2/index.md` | 2.x 组件导航、composables、陷阱 |
 | `v2/lookup.md` | manifest / types.d.ts 怎么查 |
-| `v2/breaking.md` | 2.x 内部 breaking（含 2.4.0-beta.8 删组件） |
+| `v2/breaking.md` | 2.x 内部 breaking（含 2.4.0 删组件） |
 | `v1/index.md` | 1.x 导航；无 manifest 时怎么查 |
 | `references/eui-integration-guide.md` | 新项目接入 |
 | `references/eui-design-guide.md` | 中后台设计 |
@@ -84,6 +84,6 @@ ls node_modules/@dwydev/eui/dist/component-manifest.json
 | 借口 | 实际 |
 |------|------|
 | 读旁边 dwy-shared master | 消费方版本可能不同。先 clone 安装版本的 tag，不行再读本项目 node_modules |
-| 文档是 2.1，装的 2.4.0-beta.11，差不多 | 有下限的能力必须对照版本；已删组件当不存在 |
+| 文档是 2.1，装的 2.4.0，差不多 | 有下限的能力必须对照版本；已删组件当不存在 |
 | tag 没有就猜 / 直接停 | clone 失败后读 node_modules；也没有才停 |
 | 再开一个 `dwy-eui-v2` skill | 对外只有 `dwy-eui` |
