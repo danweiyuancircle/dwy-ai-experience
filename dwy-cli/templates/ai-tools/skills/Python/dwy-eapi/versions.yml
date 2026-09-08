@@ -1,0 +1,13 @@
+# dwyeapi 安装版本 → 文档线。匹配从上到下第一条。
+# 大版本破坏才新开 vN/；0.x 内部 breaking 写 v0/breaking.md，细节 clone 对应 tag。
+repo: https://github.com/danweiyuancircle/dwy-ai-experience.git
+tag_prefix: "dwyeapi@"
+sparse:
+  - backend/src/dwyeapi
+lines:
+  - match: ">=2.0.0"
+    dir: v2
+  - match: ">=1.0.0"
+    dir: v1
+  - match: ">=0.0.0"
+    dir: v0
