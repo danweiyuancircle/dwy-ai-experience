@@ -178,7 +178,13 @@ function handleTrigger(event?: Event) {
           <Menu class="size-4" />
           <span class="sr-only">Toggle sidebar</span>
         </button>
-        <slot name="header" />
+        <!-- 抽屉打开时藏顶栏右侧（用户名 / 公告），避免和抽屉关闭钮抢同一角 -->
+        <div
+          class="min-w-0 flex-1"
+          :class="isDrawerLayout && mobileOpenModel ? 'invisible' : undefined"
+        >
+          <slot name="header" />
+        </div>
       </header>
 
       <!-- Content -->

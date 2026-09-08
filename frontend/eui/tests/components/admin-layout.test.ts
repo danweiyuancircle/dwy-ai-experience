@@ -178,6 +178,19 @@ describe('EAdminLayout mobile drawer', () => {
     expect(wrapper.find('[data-slot="admin-layout-sidebar"]').exists()).toBe(true)
   })
 
+  it('抽屉打开时顶栏 header 槽 hidden，避免用户名叠在关闭钮上', async () => {
+    mockViewportWidth(375)
+    const wrapper = mount(EAdminLayout, {
+      attachTo: document.body,
+      props: { mobileOpen: true },
+      slots: { header: '<div class="header-content">用户名</div>' },
+    })
+    await flushPromises()
+    const slotWrap = wrapper.find('.header-content').element.parentElement
+    expect(slotWrap?.classList.contains('invisible')).toBe(true)
+    wrapper.unmount()
+  })
+
   it('抽屉打开时 content 叠在 overlay 之上，菜单可点', async () => {
     const wrapper = mount(EAdminLayout, {
       attachTo: document.body,

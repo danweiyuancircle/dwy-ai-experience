@@ -278,7 +278,7 @@
 | 3 | 宽屏为 false | 视口 1024 → false |
 | 4 | 覆盖断点 | 视口 800 + breakpoint 900 → true |
 
-## 11. EAdminLayout 手机抽屉（9 个）
+## 11. EAdminLayout 手机抽屉（10 个）
 
 `tests/components/admin-layout.test.ts`
 
@@ -293,6 +293,7 @@
 | 7 | mobileMode=none | 375px 仍 docked |
 | 8 | 汉堡点击后抽屉保持打开 | pointerdown+click 后只 emit mobileOpen true，不被 outside 立刻关掉 |
 | 9 | content 叠在 overlay 之上 | overlay / content 用 ConfigProvider.zIndex（默认 2000 / 2001） |
+| 10 | 抽屉打开藏顶栏 header 槽 | `invisible`，用户名不叠关闭钮 |
 
 ---
 
@@ -333,7 +334,7 @@ cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
 # Test Files  87 passed (87)
-# Tests       708 passed (708)
+# Tests       709 passed (709)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run tests/utils/cn.test.ts
