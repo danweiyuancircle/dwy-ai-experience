@@ -49,8 +49,8 @@ describe('ESheet', () => {
     await flushPromises()
     const overlay = document.querySelector('[data-slot="sheet-overlay"]') as HTMLElement | null
     const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null
-    expect(overlay?.className).toMatch(/z-\[100\]/)
-    expect(content?.className).toMatch(/z-\[101\]/)
+    expect(getComputedStyle(overlay!).zIndex).toBe('2000')
+    expect(getComputedStyle(content!).zIndex).toBe('2001')
     wrapper.unmount()
   })
 

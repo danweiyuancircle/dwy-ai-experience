@@ -17,6 +17,7 @@ import {
   DialogTrigger,
 } from 'reka-ui'
 import { cn } from '@/utils/cn'
+import { useConfigProvider } from '@/composables/useConfigProvider'
 import type { ESheetProps, ESheetEmits } from './types'
 
 const props = withDefaults(defineProps<ESheetProps>(), {
@@ -27,6 +28,14 @@ const props = withDefaults(defineProps<ESheetProps>(), {
 })
 
 const emit = defineEmits<ESheetEmits>()
+
+/**
+ * 弹层走 ConfigProvider.zIndex（默认 2000）。
+ * Tailwind z-50 / z-[100] 压不过应用 fixed 顶栏的叠层上下文，用户名会浮在遮罩上。
+ */
+const config = useConfigProvider()
+const overlayZ = computed(() => config.zIndex.value)
+const contentZ = computed(() => config.zIndex.value + 1)
 
 /** 非受控时自己记开关；受控时只信 props.open，避免双 watch 和 Dialog 互相反写 */
 const localOpen = ref(props.open ?? false)
@@ -69,19 +78,20 @@ function onPointerDownOutside(event: Event) {
       <!--
         关闭态必须卸掉 overlay：reka 给 overlay 写死 inline pointer-events:auto，
         留在 body 会挡住汉堡。
-        打开态 overlay 用 z-[100] 压过应用顶栏（PublicShell / 控制台 header 常用 z-50），
-        避免用户名、CTA 浮在遮罩上挡住关闭钮。content 再高一层。
+        打开态 z-index 用 ConfigProvider（默认 2000），压过顶栏 z-50 叠层。
       -->
       <DialogOverlay
         data-slot="sheet-overlay"
+        :style="{ zIndex: overlayZ }"
         :class="cn(
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 !pointer-events-none data-[state=open]:!pointer-events-auto fixed inset-0 z-[100] bg-black/80',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 !pointer-events-none data-[state=open]:!pointer-events-auto fixed inset-0 bg-black/80',
         )"
       />
       <DialogContent
         data-slot="sheet-content"
+        :style="{ zIndex: contentZ }"
         :class="cn(
-          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out !pointer-events-none data-[state=open]:!pointer-events-auto fixed z-[101] flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
+          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out !pointer-events-none data-[state=open]:!pointer-events-auto fixed flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500',
           side === 'right' && 'data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm',
           side === 'left' && 'data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm',
           side === 'top' && 'data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b',
