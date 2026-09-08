@@ -28,6 +28,7 @@ const props = withDefaults(defineProps<EDialogProps>(), {
   destroyOnClose: true,
   showOverlay: true,
 })
+// destroyOnClose 映射 reka 2.10 DialogRoot.unmountOnHide：关闭卸 overlay，避免残留挡点击
 
 const emit = defineEmits<EDialogEmits>()
 
@@ -104,6 +105,7 @@ function onPointerUp() {
   <DialogRoot
     v-model:open="localOpen"
     data-slot="dialog"
+    :unmount-on-hide="destroyOnClose"
   >
     <DialogTrigger
       v-if="$slots.trigger"
@@ -162,6 +164,15 @@ function onPointerUp() {
             </DialogDescription>
           </slot>
         </div>
+        <!-- 无可见标题/描述时仍提供，满足 reka Dialog 无障碍约束 -->
+        <DialogTitle v-if="!title && !$slots.header" class="sr-only">对话框</DialogTitle>
+        <DialogDescription
+          v-if="!description && !$slots.header"
+          data-slot="dialog-description"
+          class="sr-only"
+        >
+          对话框内容
+        </DialogDescription>
 
         <!-- destroyOnClose: unmount content when closed; otherwise always render -->
         <div v-if="destroyOnClose ? localOpen : true" data-slot="dialog-body" class="flex-1 min-h-0 overflow-y-auto">

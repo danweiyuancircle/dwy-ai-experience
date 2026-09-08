@@ -1,6 +1,6 @@
 <!--
   EToast 全局消息通知容器
-  基于 vue-sonner 封装，需在 App 根节点放置一次；实际调用通过 useToast composable 触发
+  基于 vue-sonner 封装的 Toaster 挂载点。轻提示请用 useMessage。
   自定义了五种语义图标以及关闭图标，使用 lucide 保持与 EUI 视觉统一
 -->
 <script setup lang="ts">

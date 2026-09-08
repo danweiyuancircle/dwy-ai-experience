@@ -55,7 +55,7 @@ const router = createRouter({
     { path: '/eui/aspect-ratio', component: () => import('./views/AspectRatioDemo.vue') },
     { path: '/eui/form-dialog', component: () => import('./views/FormDialogDemo.vue') },
     { path: '/eui/confirm-dialog', component: () => import('./views/ConfirmDialogDemo.vue') },
-    { path: '/eui/data-page', component: () => import('./views/DataPageDemo.vue') },
+
     { path: '/eui/alert-dialog', component: () => import('./views/AlertDialogDemo.vue') },
     { path: '/eui/sheet', component: () => import('./views/SheetDemo.vue') },
     { path: '/eui/hover-card', component: () => import('./views/HoverCardDemo.vue') },
@@ -66,11 +66,10 @@ const router = createRouter({
     { path: '/eui/calendar', component: () => import('./views/CalendarDemo.vue') },
     { path: '/eui/range-calendar', component: () => import('./views/RangeCalendarDemo.vue') },
     { path: '/eui/tree-select', component: () => import('./views/TreeSelectDemo.vue') },
-    { path: '/eui/virtual-table', component: () => import('./views/VirtualTableDemo.vue') },
+
     { path: '/eui/admin-layout', component: () => import('./views/AdminLayoutDemo.vue') },
-    { path: '/eui/ai-chat', component: () => import('./views/AIChatDemo.vue') },
-    { path: '/eui/timetable-grid', component: () => import('./views/TimetableGridDemo.vue') },
-    { path: '/eui/chart', component: () => import('./views/ChartDemo.vue') },
+
+
     { path: '/eui/menubar', component: () => import('./views/MenubarDemo.vue') },
     { path: '/eui/navigation-menu', component: () => import('./views/NavigationMenuDemo.vue') },
     { path: '/eui/toggle', component: () => import('./views/ToggleDemo.vue') },
@@ -87,7 +86,7 @@ const router = createRouter({
     { path: '/eui/cascader', component: () => import('./views/CascaderDemo.vue') },
     { path: '/eui/color-picker', component: () => import('./views/ColorPickerDemo.vue') },
     { path: '/eui/combobox', component: () => import('./views/ComboboxDemo.vue') },
-    { path: '/eui/input-otp', component: () => import('./views/InputOtpDemo.vue') },
+
     { path: '/eui/native-select', component: () => import('./views/NativeSelectDemo.vue') },
     { path: '/eui/number-field', component: () => import('./views/NumberFieldDemo.vue') },
     { path: '/eui/pin-input', component: () => import('./views/PinInputDemo.vue') },

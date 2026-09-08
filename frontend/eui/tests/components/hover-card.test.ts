@@ -66,4 +66,15 @@ describe('EHoverCard', () => {
     })
     expect(wrapper.exists()).toBe(true)
   })
+
+  it('accepts enableTouch prop（reka-ui 2.10 触控点击打开）', () => {
+    const wrapper = mount(EHoverCard, {
+      props: { enableTouch: true },
+      slots: {
+        trigger: '<span>Hover</span>',
+        default: 'Content',
+      },
+    })
+    expect(wrapper.exists()).toBe(true)
+  })
 })

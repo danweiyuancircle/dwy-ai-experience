@@ -1,8 +1,12 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach } from 'vitest'
 import EDialog from '@/components/dialog/EDialog.vue'
 
 describe('EDialog', () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
   it('mounts without error in closed state', () => {
     const wrapper = mount(EDialog)
     expect(wrapper.exists()).toBe(true)
@@ -70,5 +74,43 @@ describe('EDialog', () => {
   it('accepts destroyOnClose=false to preserve content on close', () => {
     const wrapper = mount(EDialog, { props: { destroyOnClose: false } })
     expect(wrapper.exists()).toBe(true)
+  })
+
+  it('默认 destroyOnClose 关闭后卸掉 overlay（对齐 reka unmountOnHide=true）', async () => {
+    const wrapper = mount(EDialog, {
+      attachTo: document.body,
+      props: { open: true, title: '标题' },
+    })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).not.toBeNull()
+    await wrapper.setProps({ open: false })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).toBeNull()
+    wrapper.unmount()
+  })
+
+  it('destroyOnClose=false 关闭后仍保留 overlay（对齐 reka unmountOnHide=false）', async () => {
+    const wrapper = mount(EDialog, {
+      attachTo: document.body,
+      props: { open: true, title: '标题', destroyOnClose: false },
+    })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).not.toBeNull()
+    await wrapper.setProps({ open: false })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="dialog-overlay"]')).not.toBeNull()
+    wrapper.unmount()
+  })
+
+  it('无 description 时仍渲染 sr-only DialogDescription，满足 reka 无障碍', async () => {
+    const wrapper = mount(EDialog, {
+      attachTo: document.body,
+      props: { open: true, title: '编辑' },
+    })
+    await flushPromises()
+    const desc = document.querySelector('[data-slot="dialog-description"]')
+    expect(desc).not.toBeNull()
+    expect(desc?.classList.contains('sr-only')).toBe(true)
+    wrapper.unmount()
   })
 })

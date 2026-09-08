@@ -1,8 +1,12 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach } from 'vitest'
 import EFormDialog from '@/components/form-dialog/EFormDialog.vue'
 
 describe('EFormDialog', () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
   it('renders without error when closed', () => {
     const wrapper = mount(EFormDialog, {
       props: { open: false },
@@ -44,5 +48,15 @@ describe('EFormDialog', () => {
       slots: { default: '<p>Form fields</p>' },
     })
     expect(wrapper.exists()).toBe(true)
+  })
+
+  it('打开时有 DialogDescription，避免 reka 缺 description 警告', async () => {
+    const wrapper = mount(EFormDialog, {
+      attachTo: document.body,
+      props: { open: true, title: 'Edit User' },
+    })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="dialog-description"]')).not.toBeNull()
+    wrapper.unmount()
   })
 })

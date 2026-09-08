@@ -57,7 +57,7 @@ export const modules: ModuleConfig[] = [
           { name: 'InputGroup 输入框组', path: '/eui/input-group' },
           { name: 'NumberField 数字输入', path: '/eui/number-field' },
           { name: 'PinInput 钉码输入', path: '/eui/pin-input' },
-          { name: 'InputOTP 验证码输入', path: '/eui/input-otp' },
+
           { name: 'Mention 提及', path: '/eui/mention' },
           { name: 'Select 选择器', path: '/eui/select' },
           { name: 'NativeSelect 原生选择', path: '/eui/native-select' },
@@ -83,8 +83,7 @@ export const modules: ModuleConfig[] = [
         title: '数据展示 Data',
         items: [
           { name: 'Table 表格', path: '/eui/table' },
-          { name: 'VirtualTable 虚拟表格', path: '/eui/virtual-table' },
-          { name: 'Chart 图表', path: '/eui/chart' },
+
           { name: 'Descriptions 描述', path: '/eui/descriptions' },
           { name: 'Statistic 统计', path: '/eui/statistic' },
           { name: 'Timeline 时间线', path: '/eui/timeline' },
@@ -116,7 +115,7 @@ export const modules: ModuleConfig[] = [
           { name: 'Drawer 抽屉', path: '/eui/drawer' },
           { name: 'AlertDialog 警告对话框', path: '/eui/alert-dialog' },
           { name: 'Sheet 侧边面板', path: '/eui/sheet' },
-          { name: 'Toast 轻提示', path: '/eui/toast' },
+          { name: 'Message 轻提示', path: '/eui/toast' },
           { name: 'Tooltip 提示', path: '/eui/tooltip' },
           { name: 'Popover 气泡', path: '/eui/popover' },
           { name: 'HoverCard 悬浮卡片', path: '/eui/hover-card' },
@@ -144,10 +143,7 @@ export const modules: ModuleConfig[] = [
         items: [
           { name: 'FormDialog 表单弹窗', path: '/eui/form-dialog' },
           { name: 'ConfirmDialog 确认弹窗', path: '/eui/confirm-dialog' },
-          { name: 'DataPage 数据页', path: '/eui/data-page' },
           { name: 'AdminLayout 管理布局', path: '/eui/admin-layout' },
-          { name: 'AIChat AI 对话', path: '/eui/ai-chat' },
-          { name: 'TimetableGrid 课表网格', path: '/eui/timetable-grid' },
         ],
       },
       {
@@ -217,7 +213,7 @@ export const modules: ModuleConfig[] = [
           { name: 'masking 脱敏', path: '/eapi/masking' },
           { name: 'dt 时间工具', path: '/eapi/dt' },
           { name: 'tasks 异步任务', path: '/eapi/tasks' },
-          { name: 'email 邮件', path: '/eapi/email' },
+          { name: 'email 邮件 / 规范化', path: '/eapi/email' },
         ],
       },
     ],

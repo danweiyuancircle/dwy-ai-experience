@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 
-const otpCode = ref('')
+const otpChars = ref<string[]>([])
 </script>
 
 <template>
@@ -11,7 +11,7 @@ const otpCode = ref('')
         <form class="flex flex-col gap-6" @submit.prevent>
           <div class="flex flex-col gap-3">
             <ELabel for="otp">验证码</ELabel>
-            <EInputOTP id="otp" v-model="otpCode" :length="6" />
+            <EPinInput id="otp" v-model="otpChars" :length="6" otp />
             <p class="text-sm text-muted-foreground">
               请输入发送到您邮箱的 6 位验证码
             </p>

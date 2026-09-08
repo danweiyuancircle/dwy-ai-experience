@@ -62,7 +62,7 @@ export { EDialog } from './components/dialog'
 export type { EDialogProps, EDialogEmits } from './components/dialog'
 export { EDrawer } from './components/drawer'
 export type { EDrawerProps, EDrawerEmits, DrawerDirection } from './components/drawer'
-export { EToast, useToast } from './components/toast'
+export { EToast } from './components/toast'
 export type { EToastProps } from './components/toast'
 export { EForm, EFormItem } from './components/form'
 export type { EFormProps, EFormEmits, EFormExpose, EFormItemProps } from './components/form'
@@ -154,8 +154,6 @@ export {
 export type { EResizablePanelGroupProps, EResizablePanelProps, EResizableHandleProps } from './components/resizable'
 export { EScrollArea } from './components/scroll-area'
 export type { EScrollAreaProps } from './components/scroll-area'
-export { EChartContainer } from './components/chart'
-export type { EChartContainerProps, ChartConfig } from './components/chart'
 export { ERangeCalendar } from './components/range-calendar'
 export type { ERangeCalendarProps, ERangeCalendarEmits } from './components/range-calendar'
 export { ECalendar } from './components/calendar'
@@ -164,8 +162,6 @@ export { EAutocomplete } from './components/autocomplete'
 export type { EAutocompleteProps, EAutocompleteEmits, AutocompleteOption } from './components/autocomplete'
 export { ETransfer } from './components/transfer'
 export type { ETransferProps, ETransferEmits, TransferItem } from './components/transfer'
-export { EVirtualTable } from './components/virtual-table'
-export type { EVirtualTableProps, EVirtualTableEmits, VirtualTableColumn } from './components/virtual-table'
 export { EDescriptions } from './components/descriptions'
 export type { EDescriptionsProps, DescriptionItem } from './components/descriptions'
 export { ETimeline } from './components/timeline'
@@ -218,26 +214,18 @@ export { EField, fieldVariants } from './components/field'
 export type { EFieldProps, FieldVariants } from './components/field'
 export { EInputGroup, EInputGroupAddon, inputGroupAddonVariants } from './components/input-group'
 export type { EInputGroupProps, EInputGroupAddonProps, InputGroupVariants } from './components/input-group'
-export { EInputOTP } from './components/input-otp'
-export type { EInputOTPProps, EInputOTPEmits } from './components/input-otp'
 export { EPinInput } from './components/pin-input'
 export type { EPinInputProps, EPinInputEmits } from './components/pin-input'
 export { ENativeSelect } from './components/native-select'
 export type { ENativeSelectProps, ENativeSelectEmits, SelectOption } from './components/native-select'
 
 // Business Components - 业务封装组件
-export { EDataPage } from './components/data-page'
-export type { EDataPageProps, FetchParams, FetchResult } from './components/data-page'
 export { EFormDialog } from './components/form-dialog'
 export type { EFormDialogProps, EFormDialogEmits } from './components/form-dialog'
 export { EConfirmDialog } from './components/confirm-dialog'
 export type { EConfirmDialogProps, EConfirmDialogEmits, ConfirmDialogType } from './components/confirm-dialog'
 export { EAdminLayout } from './components/admin-layout'
 export type { EAdminLayoutProps, EAdminLayoutEmits } from './components/admin-layout'
-export { EAIChat } from './components/ai-chat'
-export type { EAIChatProps, EAIChatEmits, ChatMessage } from './components/ai-chat'
-export { ETimetableGrid } from './components/timetable-grid'
-export type { ETimetableGridProps, TimetableItem } from './components/timetable-grid'
 
 // Vue plugin - 默认导出插件，用于 app.use() 一次性全局注册所有组件
 import type { App } from 'vue'
@@ -318,12 +306,10 @@ import {
 import { EHoverCard } from './components/hover-card'
 import { EResizablePanelGroup, EResizablePanel, EResizableHandle } from './components/resizable'
 import { EScrollArea } from './components/scroll-area'
-import { EChartContainer } from './components/chart'
 import { ERangeCalendar } from './components/range-calendar'
 import { ECalendar } from './components/calendar'
 import { EAutocomplete } from './components/autocomplete'
 import { ETransfer } from './components/transfer'
-import { EVirtualTable } from './components/virtual-table'
 import { EDescriptions } from './components/descriptions'
 import { ETimeline } from './components/timeline'
 import { EStatistic } from './components/statistic'
@@ -349,15 +335,11 @@ import { ETypography } from './components/typography'
 import { EItem } from './components/item'
 import { EField } from './components/field'
 import { EInputGroup, EInputGroupAddon } from './components/input-group'
-import { EInputOTP } from './components/input-otp'
 import { EPinInput } from './components/pin-input'
 import { ENativeSelect } from './components/native-select'
-import { EDataPage } from './components/data-page'
 import { EFormDialog } from './components/form-dialog'
 import { EConfirmDialog } from './components/confirm-dialog'
 import { EAdminLayout } from './components/admin-layout'
-import { EAIChat } from './components/ai-chat'
-import { ETimetableGrid } from './components/timetable-grid'
 
 const components: Record<string, any> = {
   EConfigProvider,
@@ -435,12 +417,10 @@ const components: Record<string, any> = {
   EResizablePanel,
   EResizableHandle,
   EScrollArea,
-  EChartContainer,
   ERangeCalendar,
   ECalendar,
   EAutocomplete,
   ETransfer,
-  EVirtualTable,
   EDescriptions,
   ETimeline,
   EStatistic,
@@ -467,15 +447,11 @@ const components: Record<string, any> = {
   EField,
   EInputGroup,
   EInputGroupAddon,
-  EInputOTP,
   EPinInput,
   ENativeSelect,
-  EDataPage,
   EFormDialog,
   EConfirmDialog,
   EAdminLayout,
-  EAIChat,
-  ETimetableGrid,
 }
 
 export default {

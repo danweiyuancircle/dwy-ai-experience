@@ -51,7 +51,7 @@ const slotsData = [
   >
     <section id="usage">
       <h2 class="text-lg font-semibold mb-3">使用场景</h2>
-      <p class="text-muted-foreground text-sm leading-relaxed">适用于 PIN 码、安全密码、支付密码等需要逐位输入的场景。与 InputOTP 类似但值为字符串数组，支持 mask 密码掩码模式和 otp 自动填充。</p>
+      <p class="text-muted-foreground text-sm leading-relaxed">分格输入：PIN / 验证码。值为 string[]。mask 遮盖，otp 打开短信自动填充。</p>
     </section>
 
     <section id="basic">

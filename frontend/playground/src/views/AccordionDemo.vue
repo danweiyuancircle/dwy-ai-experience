@@ -111,7 +111,7 @@ const slotsData = [
           </template>
           <template #faq2>
             <p class="text-sm text-muted-foreground">
-              EUI 专注于企业级中后台场景，内置业务组件（如 EDataPage、EFormDialog），减少重复代码。
+              EUI 专注于企业级中后台场景，内置业务组件（如 EFormDialog、EAdminLayout），减少重复代码。
             </p>
           </template>
           <template #faq3>

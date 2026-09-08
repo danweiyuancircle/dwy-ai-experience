@@ -296,6 +296,32 @@
 
 ---
 
+## 12. reka-ui 2.10 对齐（8 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | EDialog 默认关闭卸 overlay | `tests/components/dialog.test.ts` attachTo body，open true→false 后 overlay 为 null |
+| 2 | EDialog destroyOnClose=false 保留 overlay | 关闭后 document 仍有 `[data-slot="dialog-overlay"]` |
+| 3 | EDialog 无 description 补 sr-only | 打开后有 `[data-slot="dialog-description"].sr-only` |
+| 4 | EDrawer 默认关闭卸 overlay | `tests/components/drawer.test.ts` |
+| 5 | EDrawer destroyOnClose=false 保留 overlay | 同上 |
+| 6 | EFormDialog 打开有 DialogDescription | `tests/components/form-dialog.test.ts` |
+| 7 | EHoverCard enableTouch | `tests/components/hover-card.test.ts` |
+| 8 | EConfigProvider teleportTo | `tests/components/config-provider.test.ts` |
+
+---
+
+## 13. useFormField / ETable P0P1
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 表单外 useFormField 为 null | `tests/composables/useFormField.test.ts` 不抛错 |
+| 2 | FormItem 内能读 id | probe `data-inside=true` |
+| 3 | 校验失败 Input 有 aria-invalid | EForm validate 后 input 带 aria-describedby |
+| 4 | ETable virtual 仍渲染表头 | `virtual=true` 时 table / container 存在 |
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -303,13 +329,13 @@
 cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
-# Test Files  92 passed (92)
-# Tests       725 passed (725)
+# Test Files  87 passed (87)
+# Tests       706 passed (706)
 
 # 3. 单模块测试（调试用）
-pnpm vitest run src/utils/cn.test.ts
-pnpm vitest run src/components/alert
-pnpm vitest run src/components/badge
-pnpm vitest run src/components/button
-pnpm vitest run src/components/input
+pnpm vitest run tests/utils/cn.test.ts
+pnpm vitest run tests/components/dialog.test.ts
+pnpm vitest run tests/components/drawer.test.ts
+pnpm vitest run tests/components/select.test.ts
+pnpm vitest run tests/components/form-dialog.test.ts
 ```

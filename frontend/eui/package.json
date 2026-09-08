@@ -1,6 +1,6 @@
 {
   "name": "@dwydev/eui",
-  "version": "2.4.0-beta.6",
+  "version": "2.4.0-beta.8",
   "type": "module",
   "description": "Vue 3 component library — shadcn-vue visuals + Element Plus API + Tailwind CSS 4",
   "license": "MIT",
@@ -39,9 +39,9 @@
     "zod": "^3.25.0"
   },
   "dependencies": {
-    "@floating-ui/vue": "^1.1.0",
     "@internationalized/date": "^3.12.0",
     "@tanstack/vue-table": "^8.21.0",
+    "@tanstack/vue-virtual": "^3.13.23",
     "@vee-validate/zod": "^4.15.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.0",

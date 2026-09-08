@@ -9,6 +9,7 @@ import { useId } from 'reka-ui'
 import { useField } from 'vee-validate'
 import { cn } from '@/utils/cn'
 import { FORM_ITEM_INJECTION_KEY } from '@/composables'
+import type { FormFieldContext } from '@/composables/useFormField'
 import { FORM_CONTEXT_KEY } from './context'
 import type { EFormItemProps } from './types'
 
@@ -17,8 +18,6 @@ const props = defineProps<EFormItemProps>()
 const formContext = inject(FORM_CONTEXT_KEY, undefined)
 
 const id = useId()
-// 向子控件暴露 FormItem id，便于 aria-describedby 关联
-provide(FORM_ITEM_INJECTION_KEY, id)
 
 // 优先使用 FormItem 自身 labelWidth，否则回退到 EForm 的 labelWidth
 const resolvedLabelWidth = computed(() => {
@@ -62,6 +61,14 @@ if (fieldState && formContext?.model) {
 }
 
 const errorMessage = computed(() => fieldState?.errorMessage?.value)
+
+/** 给子控件（EInput 等）的 aria id 与错误态；独立控件不 inject */
+const fieldContext: FormFieldContext = {
+  id,
+  name: props.prop,
+  error: errorMessage,
+}
+provide(FORM_ITEM_INJECTION_KEY, fieldContext)
 </script>
 
 <template>

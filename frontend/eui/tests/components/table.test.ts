@@ -119,4 +119,13 @@ describe('ETable', () => {
     expect(wrapper.emitted('row-click')).toBeTruthy()
     expect(wrapper.emitted('row-click')![0]).toEqual([data[0], 0])
   })
+
+  it('virtual=true 仍渲染表头和容器（滚动窗口交给 vue-virtual）', () => {
+    const wrapper = mount(ETable, {
+      props: { columns, data, virtual: true, virtualRowHeight: 48 },
+    })
+    expect(wrapper.find('[data-slot="table"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="table-container"]').exists()).toBe(true)
+    expect(wrapper.findAll('th').length).toBe(2)
+  })
 })

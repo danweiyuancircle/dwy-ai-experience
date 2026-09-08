@@ -78,7 +78,6 @@ c. 都拿不到 → 退到本文档下方的 [组件目录索引](#组件目录�
 - `EButton` → `button`
 - `EDatePicker` → `date-picker`
 - `EAdminLayout` → `admin-layout`
-- `EAIChat` → `ai-chat`（连续大写视为整体）
 
 **不确定目录名时**：`ls node_modules/@dwydev/eui/dist/components/` 或 `ls frontend/eui/src/components/`，**不要靠猜**。
 
@@ -152,7 +151,7 @@ vue-tsc 输出的 `.d.ts` 中，slots 类型大多被擦平成 `any`。需要 sl
 | `useMessageBox()` | 对话确认（alert / confirm / prompt），返回 Promise |
 | `useTheme()` | 主题管理（isDark / setTheme / setColorTheme / toggleDark） |
 | `useConfigProvider()` | 读取全局配置（size / zIndex / locale） |
-| `useFormField()` | 表单字段上下文（id / name / valid / error），需在 FormField 内使用 |
+| `useFormField()` | 表单字段上下文（id / name / error），在 EFormItem 内由控件调用；表单外返回 null |
 | `useSecureValue()` | 敏感输入安全绑定（DOM property 赋值，避免密码泄露到 HTML attribute） |
 
 精确签名读 `<project-root>/node_modules/@dwydev/eui/dist/composables/{name}.d.ts`。
@@ -257,8 +256,7 @@ interface TableColumn<T = any> {
 | `ECascader` | 级联选择 |
 | `ETreeSelect` | 树选择 |
 | `EMention` | @提及输入 |
-| `EInputOTP` | OTP 验证码 |
-| `EPinInput` | PIN 输入 |
+| `EPinInput` | 分格输入（验证码 OTP / PIN，`otp` + `mask`） |
 | `EUpload` | 文件上传（含拖拽/图片墙） |
 | `ETransfer` | 穿梭框 |
 
@@ -266,8 +264,7 @@ interface TableColumn<T = any> {
 
 | 组件 | 用途 |
 |------|------|
-| `ETable` | 表格（含排序/选择/展开/虚拟滚动/列固定） |
-| `EVirtualTable` | 虚拟滚动表格（大数据专用） |
+| `ETable` | 表格（排序/选择/展开/列固定；`virtual` 走 TanStack Virtual） |
 | `EDescriptions` | 描述列表 |
 | `ETimeline` | 时间线 |
 | `EStatistic` | 统计数值 |
@@ -276,7 +273,6 @@ interface TableColumn<T = any> {
 | `ERangeCalendar` | 日期范围日历 |
 | `EPagination` | 分页 |
 | `EBreadcrumb` | 面包屑 |
-| `EChartContainer` | 图表容器 |
 
 ### 弹层与反馈
 
@@ -289,7 +285,7 @@ interface TableColumn<T = any> {
 | `ETooltip` | 提示气泡 |
 | `EPopover` | 弹出卡片 |
 | `EHoverCard` | 悬停卡片 |
-| `EToast` | 轻提示（配合 useToast / `toast()`） |
+| `EToast` | vue-sonner Toaster 挂载点；轻提示用 `useMessage()` |
 | `EContextMenu` | 右键菜单 |
 
 ### 导航与布局
@@ -324,10 +320,7 @@ interface TableColumn<T = any> {
 
 | 组件 | 用途 |
 |------|------|
-| `EDataPage` | 数据列表页（内置表格 + 分页 + 搜索） |
 | `EFormDialog` | 表单弹窗 |
 | `EConfirmDialog` | 确认弹窗（类型: info / warning / error） |
 | `EAdminLayout` | 后台管理布局（顶部 + 侧边栏 + 主内容） |
-| `EAIChat` | AI 对话 |
-| `ETimetableGrid` | 课程表/时间表 |
 | `EConfigProvider` | 全局配置（必须包裹 App 根） |

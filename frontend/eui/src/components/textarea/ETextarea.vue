@@ -7,6 +7,7 @@
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { cn } from '@/utils/cn'
 import { useSecureValue } from '@/composables/useSecureValue'
+import { useFormField } from '@/composables/useFormField'
 import type { ETextareaProps, ETextareaEmits } from './types'
 
 const props = withDefaults(defineProps<ETextareaProps>(), {
@@ -17,6 +18,9 @@ const props = withDefaults(defineProps<ETextareaProps>(), {
 })
 
 const emit = defineEmits<ETextareaEmits>()
+
+/** 在 EFormItem 内补 id / aria-invalid；表单外为 null */
+const formField = useFormField()
 
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
 const lineHeight = ref(0)
@@ -119,6 +123,9 @@ function onFocus(event: FocusEvent) {
     <textarea
       ref="textareaRef"
       data-slot="textarea"
+      :id="formField?.formItemId"
+      :aria-invalid="formField?.error.value ? true : undefined"
+      :aria-describedby="formField?.error.value ? formField.formMessageId : undefined"
       :placeholder="placeholder"
       :rows="rows"
       :disabled="disabled"

@@ -8,6 +8,7 @@ import { computed, nextTick, ref, shallowRef, useSlots } from 'vue'
 import { X, Eye, EyeOff } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
 import { useSecureValue } from '@/composables/useSecureValue'
+import { useFormField } from '@/composables/useFormField'
 import type { EInputProps, EInputEmits } from './types'
 
 const props = withDefaults(defineProps<EInputProps>(), {
@@ -22,6 +23,9 @@ const props = withDefaults(defineProps<EInputProps>(), {
 const slots = useSlots()
 
 const emit = defineEmits<EInputEmits>()
+
+/** 在 EFormItem 内补 id / aria-invalid；表单外为 null */
+const formField = useFormField()
 
 const inputRef = shallowRef<HTMLInputElement>()
 const passwordVisible = ref(false)
@@ -131,11 +135,14 @@ function togglePasswordVisibility() {
       <input
         ref="inputRef"
         data-slot="input"
+        :id="formField?.formItemId"
+        :aria-invalid="formField?.error.value ? true : undefined"
+        :aria-describedby="formField?.error.value ? formField.formMessageId : undefined"
         :type="inputType"
         :placeholder="placeholder"
         :disabled="disabled"
         :readonly="readonly"
-        :name="name"
+        :name="name ?? formField?.name"
         :maxlength="maxlength"
         :autocomplete="autocomplete"
         :autocorrect="type === 'password' ? 'off' : undefined"

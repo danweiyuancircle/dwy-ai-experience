@@ -193,9 +193,14 @@ const hiddenTagCount = computed(() => {
   return Math.max(0, selectedOptions.value.length - 1)
 })
 
-/** 多选值变更：还原每一项的原始类型后抛出 */
-function onUpdateMultiple(value: string[]) {
-  const finalValues = value.map((v) => {
+/**
+ * 多选值变更：还原每一项的原始类型后抛出。
+ * reka-ui 2.10 SelectRoot 泛型默认 T，`update:modelValue` 类型是 T 不是 T[]；
+ * 多选运行时仍给数组。handler 同时收 string | string[]，避免 dts TS2322。
+ */
+function onUpdateMultiple(value: string | string[]) {
+  const list = Array.isArray(value) ? value : [value]
+  const finalValues = list.map((v) => {
     const found = flatOptions.value.find((o) => String(optionValue(o)) === v)
     return found ? optionValue(found) : v
   })

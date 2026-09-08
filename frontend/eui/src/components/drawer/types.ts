@@ -22,7 +22,10 @@ export interface EDrawerProps {
   direction?: DrawerDirection
   /** 是否显示右上角关闭按钮 */
   showClose?: boolean
-  /** 关闭时是否卸载默认插槽内容，默认 true */
+  /**
+   * 关闭时是否卸载内容与 overlay。
+   * 对齐 reka-ui 2.10 DialogRoot.unmountOnHide；false 仅隐藏不卸 DOM。
+   */
   destroyOnClose?: boolean
 }
 

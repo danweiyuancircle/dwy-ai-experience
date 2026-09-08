@@ -24,6 +24,7 @@ const props = withDefaults(defineProps<EDrawerProps>(), {
   showClose: true,
   destroyOnClose: true,
 })
+// destroyOnClose 映射 reka 2.10 DialogRoot.unmountOnHide
 
 const emit = defineEmits<EDrawerEmits>()
 
@@ -46,6 +47,7 @@ watch(localOpen, (val) => {
   <DialogRoot
     v-model:open="localOpen"
     data-slot="drawer"
+    :unmount-on-hide="destroyOnClose"
   >
     <DialogTrigger
       v-if="$slots.trigger"
@@ -80,6 +82,11 @@ watch(localOpen, (val) => {
           class="bg-muted mx-auto mt-4 h-2 w-[100px] shrink-0 rounded-full"
         />
 
+        <!-- 无可见标题/描述时仍提供，满足 reka Dialog 无障碍约束 -->
+        <DialogTitle v-if="!title && !$slots.header" class="sr-only">抽屉</DialogTitle>
+        <DialogDescription v-if="!description && !$slots.header" class="sr-only">
+          抽屉面板
+        </DialogDescription>
         <!-- Header -->
         <div
           v-if="title || description || $slots.header"

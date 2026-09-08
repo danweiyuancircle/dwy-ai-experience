@@ -19,7 +19,7 @@ const searchItems: SearchItem[] = [
   { title: 'Table 表格', module: 'EUI 组件', path: '/eui/table', content: '数据表格 columns sortable selectable' },
   { title: 'Dialog 对话框', module: 'EUI 组件', path: '/eui/dialog', content: '对话框 modal 弹窗 draggable fullscreen' },
   { title: 'Drawer 抽屉', module: 'EUI 组件', path: '/eui/drawer', content: '抽屉 侧边面板 drawer direction' },
-  { title: 'Toast 轻提示', module: 'EUI 组件', path: '/eui/toast', content: '消息提示 toast success error' },
+  { title: 'Message 轻提示', module: 'EUI 组件', path: '/eui/toast', content: 'useMessage 消息提示 success error warning info' },
   { title: 'Tabs 标签页', module: 'EUI 组件', path: '/eui/tabs', content: '标签页 tab' },
   { title: 'Menu 菜单', module: 'EUI 组件', path: '/eui/menu', content: '导航菜单 sidebar' },
   { title: 'Card 卡片', module: 'EUI 组件', path: '/eui/card', content: '卡片容器' },
@@ -56,7 +56,7 @@ const searchItems: SearchItem[] = [
   { title: 'AspectRatio 宽高比', module: 'EUI 组件', path: '/eui/aspect-ratio', content: '宽高比 16:9 4:3' },
   { title: 'FormDialog 表单弹窗', module: 'EUI 组件', path: '/eui/form-dialog', content: '表单对话框 FormDialog loading confirm' },
   { title: 'ConfirmDialog 确认弹窗', module: 'EUI 组件', path: '/eui/confirm-dialog', content: '确认对话框 warning error 删除' },
-  { title: 'DataPage 数据页', module: 'EUI 组件', path: '/eui/data-page', content: '数据列表页 搜索 分页 fetchFn' },
+
   { title: 'AlertDialog 警告对话框', module: 'EUI 组件', path: '/eui/alert-dialog', content: '警告对话框 确认 删除 alert-dialog confirm cancel' },
   { title: 'Sheet 侧边面板', module: 'EUI 组件', path: '/eui/sheet', content: '侧边面板 抽屉 sheet side top right bottom left' },
   { title: 'HoverCard 悬浮卡片', module: 'EUI 组件', path: '/eui/hover-card', content: '悬浮卡片 hover 鼠标悬停 用户信息' },
@@ -80,7 +80,7 @@ const searchItems: SearchItem[] = [
   { title: 'Cascader 级联选择', module: 'EUI 组件', path: '/eui/cascader', content: '级联选择 cascader 多级' },
   { title: 'ColorPicker 颜色选择', module: 'EUI 组件', path: '/eui/color-picker', content: '颜色选择 color picker 预设' },
   { title: 'Combobox 组合框', module: 'EUI 组件', path: '/eui/combobox', content: '组合框 combobox 可搜索选择' },
-  { title: 'InputOTP 验证码输入', module: 'EUI 组件', path: '/eui/input-otp', content: 'OTP 验证码输入 input-otp' },
+
   { title: 'NativeSelect 原生选择', module: 'EUI 组件', path: '/eui/native-select', content: '原生 select native-select' },
   { title: 'NumberField 数字输入', module: 'EUI 组件', path: '/eui/number-field', content: '数字输入 number field 步进' },
   { title: 'PinInput 钉码输入', module: 'EUI 组件', path: '/eui/pin-input', content: '钉码 pin-input mask otp' },
@@ -89,11 +89,10 @@ const searchItems: SearchItem[] = [
   { title: 'Field 字段容器', module: 'EUI 组件', path: '/eui/field', content: '字段容器 field label description invalid' },
   { title: 'Item 列表项', module: 'EUI 组件', path: '/eui/item', content: '列表项 item variant size' },
   { title: 'TreeSelect 树选择', module: 'EUI 组件', path: '/eui/tree-select', content: '树选择 tree-select 级联' },
-  { title: 'VirtualTable 虚拟表格', module: 'EUI 组件', path: '/eui/virtual-table', content: '虚拟表格 virtual-table 大表 滚动' },
+
   { title: 'AdminLayout 管理布局', module: 'EUI 组件', path: '/eui/admin-layout', content: '管理布局 admin-layout 侧边栏' },
-  { title: 'AIChat AI 对话', module: 'EUI 组件', path: '/eui/ai-chat', content: 'AI 对话 chat LLM messages' },
-  { title: 'TimetableGrid 课表网格', module: 'EUI 组件', path: '/eui/timetable-grid', content: '课表网格 timetable grid' },
-  { title: 'Chart 图表', module: 'EUI 组件', path: '/eui/chart', content: '图表 chart recharts container' },
+
+
   { title: 'Menubar 菜单栏', module: 'EUI 组件', path: '/eui/menubar', content: '菜单栏 menubar' },
   { title: 'NavigationMenu 导航菜单', module: 'EUI 组件', path: '/eui/navigation-menu', content: '导航菜单 navigation-menu 顶部' },
   // EKit modules
@@ -117,7 +116,7 @@ const searchItems: SearchItem[] = [
   { title: 'masking 脱敏', module: 'EApi', path: '/eapi/masking', content: 'mask_phone mask_email mask_id_card PII 脱敏' },
   { title: 'dt 时间工具', module: 'EApi', path: '/eapi/dt', content: 'dt.now Asia/Shanghai timedelta after before UTC' },
   { title: 'tasks 异步任务', module: 'EApi', path: '/eapi/tasks', content: 'ARQ setup_tasks task_router register TaskContext' },
-  { title: 'email 邮件', module: 'EApi', path: '/eapi/email', content: 'EmailProvider resend send_code verify_code 验证码' },
+  { title: 'email 邮件', module: 'EApi', path: '/eapi/email', content: 'canonicalize_email is_folded_alias Gmail plus googlemail EmailProvider resend send_code verify_code 验证码' },
   // CLI
   { title: 'create-dwy', module: 'CLI', path: '/cli/create-dwy', content: 'dwy create dwy sync 项目脚手架 配置同步' },
   // Claude Code · Skills

@@ -10,11 +10,16 @@ import type { EHoverCardProps } from './types'
 const props = withDefaults(defineProps<EHoverCardProps>(), {
   openDelay: 700,
   closeDelay: 300,
+  enableTouch: false,
 })
 </script>
 
 <template>
-  <HoverCardRoot :open-delay="props.openDelay" :close-delay="props.closeDelay">
+  <HoverCardRoot
+    :open-delay="props.openDelay"
+    :close-delay="props.closeDelay"
+    :enable-touch="props.enableTouch"
+  >
     <HoverCardTrigger as-child>
       <slot name="trigger" />
     </HoverCardTrigger>
