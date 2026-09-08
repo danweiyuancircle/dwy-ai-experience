@@ -1,4 +1,8 @@
-"""Email Provider 工厂 -- 内置 resend,支持外部注册自定义 provider。"""
+"""Email Provider 工厂 -- 内置与自定义走同一注册表。
+
+`make_email_provider` 只按名查表,不再对 resend 写死 if。
+内置通道用懒加载器写入注册表,缺 extra 时由对应 builder 抛 ImportError。
+"""
 
 from collections.abc import Callable
 
@@ -10,15 +14,36 @@ logger = get_logger(__name__)
 
 EmailProviderFactory = Callable[[EmailSettings], EmailProvider]
 
-_BUILTIN_RESEND = "resend"
-_PROVIDER_REGISTRY: dict[str, EmailProviderFactory] = {}
+_REGISTRY: dict[str, EmailProviderFactory] = {}
+# 测试仍 import 此名;与 _REGISTRY 是同一 dict
+_PROVIDER_REGISTRY = _REGISTRY
+
+
+def _load_resend() -> EmailProviderFactory:
+    """延迟 import,避免未装 email-resend extra 时加载 SDK。"""
+    from dwyeapi.providers.email.resend import build_resend_provider
+
+    return build_resend_provider
+
+
+# 新增内置通道只在此加一行,工厂查找逻辑不动
+_BUILTIN_LOADERS: dict[str, Callable[[], EmailProviderFactory]] = {
+    "resend": _load_resend,
+}
+
+
+def _ensure_builtin(name: str) -> None:
+    """首次用到某内置名时写入注册表。注册表被测试 clear 后也能补回。"""
+    if name in _REGISTRY or name not in _BUILTIN_LOADERS:
+        return
+    _REGISTRY[name] = _BUILTIN_LOADERS[name]()
 
 
 def register_email_provider(name: str, factory: EmailProviderFactory) -> None:
     """注册自定义 Email Provider。
 
     业务项目继承 `EmailProviderBase` 实现 `_send` 后,通过此函数注册到工厂,
-    `.env` 设 `EMAIL__PROVIDER=<name>` 即可启用。
+    `.env` 设 `EMAIL__PROVIDER=<name>` 即可启用,无需改 eapi。
 
     Args:
         name: provider 名称,与 EMAIL__PROVIDER 环境变量值对应。
@@ -29,15 +54,15 @@ def register_email_provider(name: str, factory: EmailProviderFactory) -> None:
     """
     if not name:
         raise ValueError("provider 名称不能为空")
-    if name == _BUILTIN_RESEND:
+    if name in _BUILTIN_LOADERS:
         raise ValueError(f"'{name}' 为内置 provider 名称,不可覆盖")
-    if name in _PROVIDER_REGISTRY:
+    if name in _REGISTRY:
         logger.warning("Email provider %s 被覆盖注册", name)
-    _PROVIDER_REGISTRY[name] = factory
+    _REGISTRY[name] = factory
 
 
 def make_email_provider(settings: EmailSettings) -> EmailProvider:
-    """根据 `settings.provider` 构造对应的 Email Provider 实例。
+    """根据 `settings.provider` 从注册表构造实例。
 
     Args:
         settings: Email 模块配置(项目 Settings 的嵌套字段)。
@@ -47,37 +72,15 @@ def make_email_provider(settings: EmailSettings) -> EmailProvider:
 
     Raises:
         ValueError: 未知 provider 或必填配置缺失。
-        ImportError: resend extra 未安装。
+        ImportError: 对应内置 extra 未安装。
     """
-    common = {
-        "code_ttl": settings.code_ttl,
-        "code_length": settings.code_length,
-        "brand_name": settings.brand_name,
-        "brand_tagline": settings.brand_tagline,
-        "brand_url": settings.brand_url,
-        "brand_slogan": settings.brand_slogan,
-        "support_email": settings.support_email,
-    }
-
-    if settings.provider == _BUILTIN_RESEND:
-        from dwyeapi.providers.email.resend import ResendEmailProvider
-
-        if not settings.resend.api_key:
-            raise ValueError("EMAIL__RESEND__API_KEY 未配置")
-        # from_email 启用时必填：缺省会导致 resend 运行时发信失败，尽早在工厂拦截
-        if not settings.resend.from_email:
-            raise ValueError("EMAIL__RESEND__FROM_EMAIL 未配置")
-        return ResendEmailProvider(
-            api_key=settings.resend.api_key,
-            from_email=settings.resend.from_email,
-            subject=settings.resend.subject,
-            **common,
+    name = settings.provider
+    _ensure_builtin(name)
+    factory = _REGISTRY.get(name)
+    if factory is None:
+        builtins = ", ".join(sorted(_BUILTIN_LOADERS))
+        raise ValueError(
+            f"未知 email provider: {name};"
+            f"内置: {builtins};自定义需先调用 register_email_provider 注册"
         )
-
-    if settings.provider in _PROVIDER_REGISTRY:
-        return _PROVIDER_REGISTRY[settings.provider](settings)
-
-    raise ValueError(
-        f"未知 email provider: {settings.provider};"
-        f"内置仅支持 'resend',自定义 provider 需先调用 register_email_provider 注册"
-    )
+    return factory(settings)

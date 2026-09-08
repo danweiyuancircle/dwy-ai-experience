@@ -13,7 +13,7 @@ const modules = [
   { name: 'masking', title: 'Masking', desc: 'PII 数据脱敏工具', path: '/eapi/masking' },
   { name: 'dt', title: 'dt', desc: 'Asia/Shanghai 时间工具唯一入口', path: '/eapi/dt' },
   { name: 'tasks', title: 'Tasks', desc: 'ARQ 异步任务（需 [tasks] extra）', path: '/eapi/tasks' },
-  { name: 'email', title: 'Email', desc: '邮件验证码 Provider（需 email extra）', path: '/eapi/email' },
+  { name: 'email', title: 'Email', desc: '邮箱规范化 + 邮件验证码 Provider', path: '/eapi/email' },
 ]
 </script>
 
@@ -67,7 +67,8 @@ from dwyeapi.exceptions import NotFoundError, BusinessError, register_exception_
 from dwyeapi.pagination import PaginationParams, paginate
 from dwyeapi.cache import configure as configure_redis, get_redis, close_redis
 from dwyeapi.dependencies import create_get_db
-from dwyeapi import dt, masking</code></pre>
+from dwyeapi import dt, masking
+from dwyeapi.email import canonicalize_email</code></pre>
       </ECard>
     </div>
   </div>

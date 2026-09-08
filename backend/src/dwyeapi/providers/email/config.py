@@ -34,16 +34,16 @@ class EmailSettings(BaseModel):
     `.env` 自动识别(双下划线嵌套):
         EMAIL__PROVIDER=resend
         EMAIL__BRAND_NAME=宽舟科技
-        EMAIL__BRAND_URL=https://quantzone.tech
-        EMAIL__SUPPORT_EMAIL=support@quantzone.tech
+        EMAIL__BRAND_URL=https://example.com
+        EMAIL__SUPPORT_EMAIL=support@example.com
         EMAIL__RESEND__API_KEY=re_xxx
     """
 
     provider: str = Field(
         default="resend",
         description=(
-            "Email Provider 名称。内置仅支持 'resend';"
-            "业务可通过 register_email_provider(name, factory) 注册自定义 provider 后填入对应名称"
+            "Email Provider 名称。内置见工厂注册表(当前 resend);"
+            "自定义先 register_email_provider(name, factory) 再填对应名称"
         ),
     )
     code_ttl: int = Field(

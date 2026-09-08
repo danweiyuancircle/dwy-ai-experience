@@ -449,6 +449,28 @@
 
 ---
 
+## 10.1 email 模块（6 个）
+
+`tests/test_email.py`
+
+Gmail plus / 点号 / googlemail 折成同一收件箱；其它域名只做大小写折叠。注册查重必须走 `canonicalize_email`。
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | test_strips_gmail_plus_and_dots | plus、点、googlemail 折成 `local@gmail.com` |
+| 2 | test_other_domains_only_lower | iCloud / example 保留 + 与点，只转小写 |
+| 3 | test_missing_at_returns_stripped_lower | 无 @ 不抛，strip + lower |
+| 4 | test_detects_gmail_variants | plus / 点 / googlemail 为折叠；仅大小写不算 |
+
+`tests/providers/test_email_base.py` 追加：
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 5 | test_gmail_aliases_share_redis_key | 发码 Redis key 用规范化邮箱；另一 plus 可验码 |
+| 6 | test_send_code_delivers_to_original_address | `_send` 仍用用户输入地址 |
+
+---
+
 ## 11. logger 模块（12 个）
 
 `tests/test_logger.py`
@@ -524,7 +546,9 @@
 | # | 类 | 用例 | 测试要点 |
 |---|----|------|---------|
 | 1 | TestResendBuiltin | test_resend_requires_api_key | provider=resend 缺 api_key → ValueError |
-| 2 | TestResendBuiltin | test_resend_with_api_key_constructs | resend 装好 api_key 后正常构造 |
+| 2 | TestResendBuiltin | test_resend_with_api_key_constructs | 返回 ResendEmailProvider 实例(dev extra 必装 resend) |
+| 2a | TestResendBuiltin | test_resend_resolves_from_same_registry | 构造后 `resend` 在同一 `_REGISTRY` |
+| 2b | TestResendBuiltin | test_cleared_registry_reseeds_resend | clear 注册表后仍能懒加载 resend |
 | 3 | TestCustomRegistration | test_register_and_resolve | 注册自定义 provider 后,工厂能解析返回该实例 |
 | 4 | TestCustomRegistration | test_register_builtin_name_raises | 用 'resend' 注册抛 ValueError |
 | 5 | TestCustomRegistration | test_register_empty_name_raises | 空字符串名注册抛 ValueError |
@@ -532,7 +556,15 @@
 | 7 | TestCustomRegistration | test_unknown_provider_raises | 未注册名调用工厂抛 ValueError |
 | 8 | TestCustomRegistration | test_factory_receives_full_settings | 注册的工厂能拿到完整 EmailSettings(common 字段透传) |
 
-`tests/providers/test_email_base.py` 与 `tests/providers/test_email_resend_import.py` 验证基类 Redis 验证码 + 模板逻辑与 resend extra 缺失时的友好报错,共 8 个用例,代码自维护。
+`tests/providers/test_email_base.py` 验证基类 Redis 验证码 + 模板逻辑。Gmail 别名共用 Redis key 的用例见 10.1。
+
+`tests/providers/test_email_resend_import.py`:
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | test_missing_resend_package_raises_friendly_error | mock 缺包 → ImportError 提示 `dwyeapi[email-resend]` |
+| 2 | test_send_code_calls_resend_async_api | mock `send_async`,断言 from/to/subject/html/text;信封用原地址 |
+| 3 | test_send_failure_returns_false_and_skips_redis | SDK 失败不写 Redis key |
 
 ---
 
@@ -556,6 +588,7 @@ python -m pytest tests/test_cache.py -v
 python -m pytest tests/test_dependencies.py -v
 python -m pytest tests/test_tasks.py -v
 python -m pytest tests/test_masking.py -v
+python -m pytest tests/test_email.py -v
 python -m pytest tests/test_logger.py -v
 python -m pytest tests/test_health.py -v
 ```

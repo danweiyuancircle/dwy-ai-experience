@@ -1,8 +1,9 @@
 """Email Provider 模块 -- 提供可插拔的邮件验证码发送能力。
 
 模块由 Protocol 抽象 + 抽象基类 + 配置类 + 工厂函数 + 内置 resend 实现组成。
-内置仅 resend 一种 provider;业务项目可通过 `register_email_provider` 注入自定义 provider
-(继承 `EmailProviderBase` 实现 `_send`,即可复用 Redis 验证码 + 品牌化模板)。
+内置与自定义走同一注册表;`make_email_provider` 只按名查表。
+业务可通过 `register_email_provider` 注入自定义 provider
+(继承 `EmailProviderBase` 实现 `_send`,即可复用 Redis 验证码 + 品牌化模板,无需改 eapi)。
 
 典型用法 -- 内置 resend:
     from dwyeapi.providers.email import EmailSettings, make_email_provider

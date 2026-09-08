@@ -7,6 +7,7 @@ import redis.asyncio as aioredis
 
 from dwyeapi.logger import get_logger
 from dwyeapi.providers.email.base import DEFAULT_CODE_LENGTH, DEFAULT_CODE_TTL, EmailProviderBase
+from dwyeapi.providers.email.config import EmailSettings
 
 logger = get_logger(__name__)
 
@@ -85,3 +86,26 @@ class ResendEmailProvider(EmailProviderBase):
         except Exception as e:
             logger.error("Resend email failed: target=%s error=%s", target, e)
             return False
+
+
+def build_resend_provider(settings: EmailSettings) -> ResendEmailProvider:
+    """注册表回调:校验 Resend 配置后构造实例。
+
+    工厂只按名查表,通道特有校验留在本函数,避免 factory.py 写死 if resend。
+    """
+    if not settings.resend.api_key:
+        raise ValueError("EMAIL__RESEND__API_KEY 未配置")
+    if not settings.resend.from_email:
+        raise ValueError("EMAIL__RESEND__FROM_EMAIL 未配置")
+    return ResendEmailProvider(
+        api_key=settings.resend.api_key,
+        from_email=settings.resend.from_email,
+        subject=settings.resend.subject,
+        code_ttl=settings.code_ttl,
+        code_length=settings.code_length,
+        brand_name=settings.brand_name,
+        brand_tagline=settings.brand_tagline,
+        brand_url=settings.brand_url,
+        brand_slogan=settings.brand_slogan,
+        support_email=settings.support_email,
+    )

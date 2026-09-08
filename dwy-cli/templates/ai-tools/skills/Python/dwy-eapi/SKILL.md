@@ -10,7 +10,7 @@ Python 3.11+ FastAPI 基础设施包，全异步。单文件模块设计（每�
 
 本 skill 索引基于 dwyeapi **0.9.0**。消费方版本可能不同 — 见 [版本兼容规则](#版本兼容规则)。
 
-## 模块清单（13 个）
+## 模块清单（15 个）
 
 | 模块 | 用途 |
 |------|------|
@@ -25,6 +25,7 @@ Python 3.11+ FastAPI 基础设施包，全异步。单文件模块设计（每�
 | `dt` | 中国时区敏感的全局时间工具（替代 datetime.now） |
 | `logger` | loguru 全局日志（按天 + 按大小轮转、stdlib 拦截） |
 | `masking` | PII 数据脱敏（手机/邮箱/身份证/银行卡/姓名/地址/IP/车牌） |
+| `email` | 邮箱规范化（Gmail plus / 点号 / googlemail 折成同一收件箱） |
 | `health` | 健康检查路由工厂（只探活、不探依赖） |
 | `tasks` | 异步任务系统（基于 ARQ，需 `pip install dwyeapi[tasks]`） |
 | `providers.email` | 邮件验证码发送（可插拔，默认 Resend，可继承注入腾讯 SES / SMTP 等） |
@@ -57,7 +58,7 @@ a. 优先：<site-packages>/dwyeapi/{module}.py
 b. 次选：<dwy-shared-root>/backend/src/dwyeapi/{module}.py
    —— 仅当在 dwy-shared monorepo 内或并列 clone 时可用，内容相同
 
-c. 都拿不到 → 退到本文档下方的 [模块清单](#模块清单13-个)（粗略，仅做导航）
+c. 都拿不到 → 退到本文档下方的 [模块清单](#模块清单15-个)（粗略，仅做导航）
 ```
 
 ### 第三步：tasks 模块查详细文档
@@ -123,8 +124,18 @@ references/tasks-integration-guide.md
 
 ### 邮件 Provider
 
-- 内置仅 `resend`。业务用其他通道（腾讯 SES / SMTP / 自建）：继承 `EmailProviderBase` 实现 `_send` → `register_email_provider("name", factory)` → `.env` 设 `EMAIL__PROVIDER=name`
+- 内置与自定义走同一注册表。`make_email_provider` 只按名查表。当前内置仅 `resend`（`dwyeapi[email-resend]`）
+- 业务用其他通道：继承 `EmailProviderBase` 实现 `_send` → `register_email_provider("name", factory)` → `.env` 设 `EMAIL__PROVIDER=name`。**不用改 eapi**
 - 验证码生成 + Redis 存储 + 品牌化模板 由基类全部复用，子类只管"发出去"
+- 内置名（`resend`）不可覆盖；自定义同名二次注册会覆盖并打 warning
+- `send_code` / `verify_code` 的 Redis key 已走 `canonicalize_email`：Gmail plus / 点号 / `googlemail.com` 共用同一验证码
+
+### 邮箱规范化（Gmail 别名）
+
+- 注册查重、登录查找、用户表写入 **必须** `from dwyeapi.email import canonicalize_email`，禁止用原始输入当唯一键
+- 原因：Gmail 把 `a+x@gmail.com` / `a.b@gmail.com` / `a@googlemail.com` 投到同一收件箱，不折就会开多个号、绕过发码冷却
+- 其它域名只做 strip + lower，保留 `+` 与点
+- `is_folded_alias(email)` 判断输入是否因 Gmail 规则被折叠（仅大小写不算）
 
 ### 日志
 

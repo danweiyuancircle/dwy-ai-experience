@@ -43,13 +43,35 @@ class TestResendBuiltin:
             make_email_provider(settings)
 
     def test_resend_with_api_key_constructs(self):
-        pytest.importorskip("resend")
+        from dwyeapi.providers.email.resend import ResendEmailProvider
+
         settings = EmailSettings(
             provider="resend",
             resend=ResendConfig(api_key="re_test", from_email="a@b.com"),
         )
         provider = make_email_provider(settings)
-        assert provider is not None
+        assert isinstance(provider, ResendEmailProvider)
+
+    def test_resend_resolves_from_same_registry(self):
+        """内置 resend 必须进 _REGISTRY,不能走工厂硬编码 if。"""
+        settings = EmailSettings(
+            provider="resend",
+            resend=ResendConfig(api_key="re_test", from_email="a@b.com"),
+        )
+        make_email_provider(settings)
+        assert "resend" in _PROVIDER_REGISTRY
+
+    def test_cleared_registry_reseeds_resend(self):
+        """测试清空注册表后,再次 make 仍能懒加载内置 resend。"""
+        from dwyeapi.providers.email.resend import ResendEmailProvider
+
+        _PROVIDER_REGISTRY.clear()
+        settings = EmailSettings(
+            provider="resend",
+            resend=ResendConfig(api_key="re_test", from_email="a@b.com"),
+        )
+        provider = make_email_provider(settings)
+        assert isinstance(provider, ResendEmailProvider)
 
 
 class TestCustomRegistration:
