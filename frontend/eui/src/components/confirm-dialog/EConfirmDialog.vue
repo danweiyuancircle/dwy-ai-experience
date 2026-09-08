@@ -65,6 +65,7 @@ function handleCancel() {
   <DialogRoot
     data-slot="confirm-dialog"
     :open="props.open"
+    :unmount-on-hide="true"
     @update:open="(val) => emit('update:open', val)"
   >
     <DialogPortal>

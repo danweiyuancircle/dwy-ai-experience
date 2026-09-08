@@ -1,5 +1,36 @@
 # @dwydev/eui
 
+## 2.4.0-beta.8
+
+### Major Changes
+
+- **删领域组件**：`EAIChat`、`ETimetableGrid`、`EDataPage`（列表页壳未定稿，先去掉）
+- **删组件（同一场景）**：`EVirtualTable`（用 `ETable virtual`）、`EInputOTP`（用 `EPinInput` + `otp`）、`EChartContainer`、`useToast`（用 `useMessage`）
+- **死代码**：`installComponents`、`@floating-ui/vue`、vite `vaul-vue` external
+
+### Minor Changes
+
+- **ETable**：排序/行模型接 `@tanstack/vue-table`；`virtual` 接 `@tanstack/vue-virtual`。对外 `TableColumn` / `#cell-*` / `@sort` 不变
+- **useFormField**：接到 `EFormItem` provide（不再要求 vee-validate `<FormField>`）。`EInput` / `ETextarea` 在表单项内补 `aria-invalid` / `aria-describedby`；表单外返回 null
+
+### 不合并（场景不同）
+
+- `ESheet` 侧向覆盖 vs `EDrawer` 底部抓手
+- `EAlertDialog` 阻断确认 vs `EConfirmDialog` 声明式带图标 vs `useMessageBox` 命令式
+
+## 2.4.0-beta.7
+
+### Patch Changes
+
+- **reka-ui 2.10 对齐**：`v2.9.10` → `v2.10.4`
+  - **EDialog / EDrawer**：`destroyOnClose` 接到 DialogRoot `unmountOnHide`。2.10 默认卸载 overlay；`destroyOnClose=false` 才会保留 DOM
+  - **EConfirmDialog / EAlertDialog**：显式 `unmountOnHide`
+  - **EDialog / EDrawer / EFormDialog**：无 description 时补 sr-only `DialogDescription`，消 reka 无障碍警告
+  - **ESelect**：多选 `update:modelValue` 兼容 2.10 泛型 `T`（dts 不再 TS2322）
+  - **EHoverCard**：透传 `enableTouch`（2.10 触控点击打开）
+  - **EConfigProvider**：透传 `teleportTo`（2.10 全局 Portal 目标）
+  - 未接入 2.10 Alpha `Drawer` / `Rating` 原语（预发布，EDrawer 仍走 Dialog）
+
 ## 2.4.0-beta.6
 
 ### Patch Changes

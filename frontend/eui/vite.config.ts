@@ -27,8 +27,8 @@ export default defineConfig({
       external: [
         'vue',
         'reka-ui',
-        '@floating-ui/vue',
         '@tanstack/vue-table',
+        '@tanstack/vue-virtual',
         '@vueuse/core',
         'class-variance-authority',
         'clsx',
@@ -36,7 +36,6 @@ export default defineConfig({
         'embla-carousel-vue',
         'lucide-vue-next',
         'tailwind-merge',
-        'vaul-vue',
         'vee-validate',
         '@vee-validate/zod',
         'vue-sonner',

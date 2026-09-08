@@ -27,7 +27,10 @@ provide(CONFIG_PROVIDER_KEY, {
 </script>
 
 <template>
-  <RekaConfigProvider :locale="mergedLocale.name ?? 'zh-CN'">
+  <RekaConfigProvider
+    :locale="mergedLocale.name ?? 'zh-CN'"
+    :teleport-to="props.teleportTo"
+  >
     <slot />
   </RekaConfigProvider>
 </template>

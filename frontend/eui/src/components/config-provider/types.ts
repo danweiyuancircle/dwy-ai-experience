@@ -18,4 +18,9 @@ export interface EConfigProviderProps {
    * 默认 767，与 Tailwind `md`（768）对齐。EAdminLayout / EPagination 等共用。
    */
   mobileBreakpoint?: number
+  /**
+   * 全局弹层 teleport 目标，透传 reka-ui 2.10 ConfigProvider.teleportTo。
+   * 单个 Portal 仍可用自己的 `to` 覆盖。用于自定义根节点 / Shadow DOM。
+   */
+  teleportTo?: string | HTMLElement
 }

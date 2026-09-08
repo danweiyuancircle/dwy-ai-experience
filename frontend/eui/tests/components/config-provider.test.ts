@@ -51,4 +51,12 @@ describe('EConfigProvider', () => {
     }))
     expect(combined.find('.consumer').text()).toContain('3000')
   })
+
+  it('accepts teleportTo prop（透传到 reka ConfigProvider）', () => {
+    const combined = mount(defineComponent({
+      components: { EConfigProvider, Consumer },
+      template: '<EConfigProvider teleport-to="body"><Consumer /></EConfigProvider>',
+    }))
+    expect(combined.find('.consumer').exists()).toBe(true)
+  })
 })

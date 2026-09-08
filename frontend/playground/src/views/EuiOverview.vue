@@ -11,7 +11,7 @@ const quickLinks = [
   { name: 'Table 表格', path: '/eui/table', desc: '排序、选择、自定义列渲染' },
   { name: 'Dialog 对话框', path: '/eui/dialog', desc: '对话框组件，支持拖拽和全屏' },
   { name: 'Select 选择器', path: '/eui/select', desc: '单选、分组、可搜索、可清除' },
-  { name: '业务组件', path: '/eui/business', desc: 'EDataPage、EFormDialog、EConfirmDialog' },
+  { name: '业务组件', path: '/eui/form-dialog', desc: 'EFormDialog、EConfirmDialog、EAdminLayout' },
 ]
 
 const features = [

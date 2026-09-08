@@ -1,12 +1,19 @@
 <!--
   ETable 数据表格组件
-  支持排序、选择、展开行、固定列、汇总行、虚拟滚动、列宽拖拽等企业级功能
-  columns 数组按 fixed 字段自动计算 sticky 偏移量实现左右列固定
-  数据量大时开启 virtual 虚拟滚动，仅渲染可视窗口内的行以保持流畅滚动
+  排序/行模型走 @tanstack/vue-table；virtual 走 @tanstack/vue-virtual。
+  对外仍是 TableColumn / #cell-* / @sort，不泄露 TanStack 类型。
 -->
 <script setup lang="ts">
-import { computed, ref, onMounted, onBeforeUnmount } from 'vue'
+import { computed, ref } from 'vue'
 import { LoaderCircle, ArrowUpDown, ArrowUp, ArrowDown, ChevronRight } from 'lucide-vue-next'
+import {
+  useVueTable,
+  getCoreRowModel,
+  getSortedRowModel,
+  type ColumnDef,
+  type SortingState,
+} from '@tanstack/vue-table'
+import { useVirtualizer } from '@tanstack/vue-virtual'
 import { cn } from '@/utils/cn'
 import type { ETableProps, ETableEmits } from './types'
 import type { TableColumn } from '@/types'
@@ -36,25 +43,42 @@ const sortState = ref<{ key: string; direction: 'asc' | 'desc' | null }>({
   direction: null,
 })
 
-// 本地排序结果；同时抛出 sort 事件便于外部接管（如接服务端排序）
-const sortedData = computed(() => {
-  if (!sortState.value.key || !sortState.value.direction) return props.data
-  const key = sortState.value.key
-  const dir = sortState.value.direction
-  return [...props.data].sort((a, b) => {
-    const va = a[key]
-    const vb = b[key]
-    if (va == null && vb == null) return 0
-    if (va == null) return 1
-    if (vb == null) return -1
-    if (typeof va === 'number' && typeof vb === 'number') {
-      return dir === 'asc' ? va - vb : vb - va
-    }
-    const sa = String(va)
-    const sb = String(vb)
-    return dir === 'asc' ? sa.localeCompare(sb) : sb.localeCompare(sa)
-  })
+/** 把 eui TableColumn 映射成 TanStack ColumnDef，只给排序/行模型用 */
+const tanstackColumns = computed<ColumnDef<Record<string, any>>[]>(() =>
+  props.columns.map((col) => ({
+    id: col.key,
+    accessorKey: col.key,
+    header: col.title,
+    enableSorting: Boolean(col.sortable),
+  })),
+)
+
+const sorting = computed<SortingState>(() => {
+  if (!sortState.value.direction || !sortState.value.key) return []
+  return [{ id: sortState.value.key, desc: sortState.value.direction === 'desc' }]
 })
+
+const table = useVueTable({
+  get data() {
+    return props.data
+  },
+  get columns() {
+    return tanstackColumns.value
+  },
+  getCoreRowModel: getCoreRowModel(),
+  getSortedRowModel: getSortedRowModel(),
+  state: {
+    get sorting() {
+      return sorting.value
+    },
+  },
+  getRowId: (row, index) => String(row[props.rowKey] ?? index),
+})
+
+/** 排序后的行数据（original），模板仍按 eui 行对象渲染插槽 */
+const sortedData = computed(() =>
+  table.getRowModel().rows.map((row) => row.original as Record<string, any>),
+)
 
 function getRowKey(row: Record<string, any>, index: number): string | number {
   return row[props.rowKey] ?? index
@@ -251,68 +275,39 @@ const summaryValues = computed<(string | number)[]>(() => {
   })
 })
 
-// --- 虚拟滚动 ---
+// --- 虚拟滚动（@tanstack/vue-virtual）---
 
 const virtualContainerRef = ref<HTMLElement | null>(null)
-const scrollTop = ref(0)
-const containerHeight = ref(0)
-/** 上下额外渲染的缓冲行数，缓解快速滚动时的白屏 */
-const VIRTUAL_BUFFER = 5
 
-function handleVirtualScroll(event: Event) {
-  scrollTop.value = (event.target as HTMLElement).scrollTop
-}
+const rowVirtualizer = useVirtualizer(
+  computed(() => ({
+    count: props.virtual ? sortedData.value.length : 0,
+    estimateSize: () => props.virtualRowHeight,
+    getScrollElement: () => virtualContainerRef.value,
+    overscan: 5,
+  })),
+)
 
-const totalHeight = computed(() => {
-  if (!props.virtual) return 0
-  return sortedData.value.length * props.virtualRowHeight
-})
-
-const virtualStartIndex = computed(() => {
-  if (!props.virtual) return 0
-  return Math.max(0, Math.floor(scrollTop.value / props.virtualRowHeight) - VIRTUAL_BUFFER)
-})
-
-const virtualEndIndex = computed(() => {
-  if (!props.virtual) return sortedData.value.length
-  const visibleCount = Math.ceil(containerHeight.value / props.virtualRowHeight)
-  return Math.min(sortedData.value.length, Math.floor(scrollTop.value / props.virtualRowHeight) + visibleCount + VIRTUAL_BUFFER)
-})
+const virtualItems = computed(() =>
+  props.virtual ? rowVirtualizer.value.getVirtualItems() : [],
+)
 
 const visibleRows = computed(() => {
   if (!props.virtual) return sortedData.value
-  return sortedData.value.slice(virtualStartIndex.value, virtualEndIndex.value)
+  return virtualItems.value.map((item) => sortedData.value[item.index]).filter(Boolean)
 })
 
-const virtualOffsetY = computed(() => {
-  return virtualStartIndex.value * props.virtualRowHeight
-})
+const virtualOffsetY = computed(() => virtualItems.value[0]?.start ?? 0)
 
-function initVirtualContainer() {
-  if (!props.virtual || !virtualContainerRef.value) return
-  containerHeight.value = virtualContainerRef.value.clientHeight
+const totalHeight = computed(() =>
+  props.virtual ? rowVirtualizer.value.getTotalSize() : 0,
+)
+
+/** 当前渲染行在全量数据中的下标（virtual 用 virtualizer index） */
+function dataIndex(idx: number): number {
+  if (!props.virtual) return idx
+  return virtualItems.value[idx]?.index ?? idx
 }
-
-let resizeObserver: ResizeObserver | null = null
-
-onMounted(() => {
-  if (props.virtual && virtualContainerRef.value) {
-    initVirtualContainer()
-    resizeObserver = new ResizeObserver(() => {
-      if (virtualContainerRef.value) {
-        containerHeight.value = virtualContainerRef.value.clientHeight
-      }
-    })
-    resizeObserver.observe(virtualContainerRef.value)
-  }
-})
-
-onBeforeUnmount(() => {
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-    resizeObserver = null
-  }
-})
 
 // --- 列宽拖拽 ---
 
@@ -393,7 +388,6 @@ function onResizeMouseUp() {
       'relative w-full overflow-auto overscroll-x-contain',
       bordered && 'rounded-md border',
     )"
-    v-on="virtual ? { scroll: handleVirtualScroll } : {}"
   >
     <!-- Loading overlay -->
     <div
@@ -515,18 +509,18 @@ function onResizeMouseUp() {
         <!-- Data rows (visible rows when virtual, all rows when not) -->
         <template
           v-for="(row, idx) in visibleRows"
-          :key="getRowKey(row, virtual ? virtualStartIndex + idx : idx)"
+          :key="getRowKey(row, dataIndex(idx))"
         >
           <tr
             data-slot="table-row"
-            :data-state="isRowSelected(row, virtual ? virtualStartIndex + idx : idx) ? 'selected' : undefined"
+            :data-state="isRowSelected(row, dataIndex(idx)) ? 'selected' : undefined"
             :class="cn(
               'hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors',
-              striped && (virtual ? virtualStartIndex + idx : idx) % 2 === 1 && 'bg-muted/40',
-              getRowClassName(row, virtual ? virtualStartIndex + idx : idx),
+              striped && (dataIndex(idx)) % 2 === 1 && 'bg-muted/40',
+              getRowClassName(row, dataIndex(idx)),
             )"
             :style="virtual ? { height: `${virtualRowHeight}px` } : undefined"
-            @click="handleRowClick(row, virtual ? virtualStartIndex + idx : idx)"
+            @click="handleRowClick(row, dataIndex(idx))"
           >
             <!-- Selection checkbox -->
             <td
@@ -538,9 +532,9 @@ function onResizeMouseUp() {
             >
               <input
                 type="checkbox"
-                :checked="isRowSelected(row, virtual ? virtualStartIndex + idx : idx)"
+                :checked="isRowSelected(row, dataIndex(idx))"
                 class="size-4 rounded border border-primary accent-primary"
-                @change="handleSelectRow(row, virtual ? virtualStartIndex + idx : idx)"
+                @change="handleSelectRow(row, dataIndex(idx))"
               />
             </td>
 
@@ -550,12 +544,12 @@ function onResizeMouseUp() {
               data-slot="table-cell"
               :class="cn('w-10 px-2 text-center align-middle whitespace-nowrap bg-background')"
               :style="{ position: 'sticky', left: selectable ? '40px' : '0px', zIndex: 1 }"
-              @click.stop="toggleRowExpand(row, virtual ? virtualStartIndex + idx : idx)"
+              @click.stop="toggleRowExpand(row, dataIndex(idx))"
             >
               <button
                 type="button"
                 class="inline-flex items-center justify-center rounded p-0.5 hover:bg-muted transition-transform duration-200"
-                :class="isRowExpanded(row, virtual ? virtualStartIndex + idx : idx) && 'rotate-90'"
+                :class="isRowExpanded(row, dataIndex(idx)) && 'rotate-90'"
               >
                 <ChevronRight class="size-4 text-muted-foreground" />
               </button>
@@ -577,7 +571,7 @@ function onResizeMouseUp() {
               <slot
                 :name="`cell-${column.key}`"
                 :row="row"
-                :index="virtual ? virtualStartIndex + idx : idx"
+                :index="dataIndex(idx)"
                 :value="row[column.key]"
               >
                 {{ row[column.key] }}
@@ -591,13 +585,13 @@ function onResizeMouseUp() {
               :class="cn('p-2 text-right align-middle whitespace-nowrap')"
               @click.stop
             >
-              <slot name="actions" :row="row" :index="virtual ? virtualStartIndex + idx : idx" />
+              <slot name="actions" :row="row" :index="dataIndex(idx)" />
             </td>
           </tr>
 
           <!-- Expanded content row -->
           <tr
-            v-if="expandable && isRowExpanded(row, virtual ? virtualStartIndex + idx : idx)"
+            v-if="expandable && isRowExpanded(row, dataIndex(idx))"
             data-slot="table-row-expanded"
             :class="cn('border-b bg-muted/30')"
           >
@@ -605,7 +599,7 @@ function onResizeMouseUp() {
               :colspan="(selectable ? 1 : 0) + 1 + columns.length + ($slots.actions ? 1 : 0)"
               :class="cn('p-4')"
             >
-              <slot name="expand" :row="row" :index="virtual ? virtualStartIndex + idx : idx" />
+              <slot name="expand" :row="row" :index="dataIndex(idx)" />
             </td>
           </tr>
         </template>

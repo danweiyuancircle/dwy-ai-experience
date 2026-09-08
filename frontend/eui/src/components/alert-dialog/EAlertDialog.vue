@@ -45,6 +45,7 @@ function handleCancel() {
   <AlertDialogRoot
     data-slot="alert-dialog"
     :open="props.open"
+    :unmount-on-hide="true"
     @update:open="(val) => emit('update:open', val)"
   >
     <slot name="trigger" />

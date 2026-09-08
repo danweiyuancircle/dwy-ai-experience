@@ -1,8 +1,12 @@
-import { mount } from '@vue/test-utils'
-import { describe, it, expect } from 'vitest'
+import { flushPromises, mount } from '@vue/test-utils'
+import { describe, it, expect, afterEach } from 'vitest'
 import EDrawer from '@/components/drawer/EDrawer.vue'
 
 describe('EDrawer', () => {
+  afterEach(() => {
+    document.body.innerHTML = ''
+  })
+
   it('mounts without error in closed state', () => {
     const wrapper = mount(EDrawer)
     expect(wrapper.exists()).toBe(true)
@@ -69,5 +73,31 @@ describe('EDrawer', () => {
   it('accepts destroyOnClose=false to preserve content on close', () => {
     const wrapper = mount(EDrawer, { props: { destroyOnClose: false } })
     expect(wrapper.exists()).toBe(true)
+  })
+
+  it('默认 destroyOnClose 关闭后卸掉 overlay（对齐 reka unmountOnHide=true）', async () => {
+    const wrapper = mount(EDrawer, {
+      attachTo: document.body,
+      props: { open: true, title: '抽屉' },
+    })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="drawer-overlay"]')).not.toBeNull()
+    await wrapper.setProps({ open: false })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="drawer-overlay"]')).toBeNull()
+    wrapper.unmount()
+  })
+
+  it('destroyOnClose=false 关闭后仍保留 overlay（对齐 reka unmountOnHide=false）', async () => {
+    const wrapper = mount(EDrawer, {
+      attachTo: document.body,
+      props: { open: true, title: '抽屉', destroyOnClose: false },
+    })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="drawer-overlay"]')).not.toBeNull()
+    await wrapper.setProps({ open: false })
+    await flushPromises()
+    expect(document.querySelector('[data-slot="drawer-overlay"]')).not.toBeNull()
+    wrapper.unmount()
   })
 })
