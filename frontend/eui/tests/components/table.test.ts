@@ -30,16 +30,29 @@ describe('ETable', () => {
     expect(wrapper.find('[data-slot="table"]').exists()).toBe(true)
   })
 
-  it('表宽随内容撑开，容器 overflow-auto 才能横滑', () => {
+  it('表宽默认铺满容器，长文案不把表撑出视口', () => {
     const wrapper = mount(ETable, {
       props: { columns, data },
     })
     const table = wrapper.find('[data-slot="table"]')
-    expect(table.classes()).toContain('min-w-full')
-    expect(table.classes()).toContain('w-max')
-    expect(table.classes()).not.toContain('w-full')
+    expect(table.classes()).toContain('w-full')
+    expect(table.classes()).not.toContain('w-max')
     expect(wrapper.find('[data-slot="table-container"]').classes()).toContain('overflow-auto')
     expect(wrapper.find('[data-slot="table-container"]').classes()).toContain('overscroll-x-contain')
+  })
+
+  it('列声明数字 width 时表 minWidth 为列宽之和，窄容器才能横滑而不是压列', () => {
+    const wrapper = mount(ETable, {
+      props: {
+        columns: [
+          { key: 'name', title: '姓名', width: 160 },
+          { key: 'age', title: '年龄', width: 120 },
+        ],
+        data,
+      },
+    })
+    const table = wrapper.find('[data-slot="table"]')
+    expect(table.attributes('style')).toMatch(/min-width:\s*280px/)
   })
 
   it('renders columns and data rows', () => {

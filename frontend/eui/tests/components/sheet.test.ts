@@ -41,6 +41,19 @@ describe('ESheet', () => {
     wrapper.unmount()
   })
 
+  it('打开态 overlay 高于应用顶栏 z-50，content 再高于 overlay', async () => {
+    const wrapper = mount(ESheet, {
+      attachTo: document.body,
+      props: { open: true, title: '导航' },
+    })
+    await flushPromises()
+    const overlay = document.querySelector('[data-slot="sheet-overlay"]') as HTMLElement | null
+    const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null
+    expect(overlay?.className).toMatch(/z-\[100\]/)
+    expect(content?.className).toMatch(/z-\[101\]/)
+    wrapper.unmount()
+  })
+
   it('accepts open prop without error', () => {
     const wrapper = mount(ESheet, { props: { open: false } })
     expect(wrapper.exists()).toBe(true)

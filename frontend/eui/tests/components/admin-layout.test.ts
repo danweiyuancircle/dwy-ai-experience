@@ -191,9 +191,9 @@ describe('EAdminLayout mobile drawer', () => {
     const content = document.querySelector('[data-slot="sheet-content"]') as HTMLElement | null
     expect(overlay).not.toBeNull()
     expect(content).not.toBeNull()
-    // overlay 与 content 同 z-50 时遮罩会吃掉菜单点击；content 必须更高
-    expect(content?.className).toMatch(/z-\[51\]/)
-    expect(overlay?.className).toContain('z-50')
+    // overlay 须压过应用顶栏 z-50；content 再高于 overlay，菜单可点
+    expect(overlay?.className).toMatch(/z-\[100\]/)
+    expect(content?.className).toMatch(/z-\[101\]/)
     // reka overlay 写死 inline pointer-events:auto，默认必须 !none，仅打开态 !auto
     expect(overlay?.className).toMatch(/!pointer-events-none/)
     expect(overlay?.className).toMatch(/data-\[state=open\]:!pointer-events-auto/)
