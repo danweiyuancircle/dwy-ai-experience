@@ -7,6 +7,7 @@ from html import escape
 import redis.asyncio as aioredis
 
 from dwyeapi.cache import get_redis
+from dwyeapi.email import canonicalize_email
 
 CODE_KEY_PREFIX = "dwyeapi:email:code:"
 DEFAULT_CODE_TTL = 300
@@ -62,23 +63,32 @@ class EmailProviderBase(ABC):
         """生成指定位数的数字验证码。"""
         return "".join(secrets.choice("0123456789") for _ in range(self._length))
 
-    async def send_code(self, target: str) -> bool:
-        """生成验证码：先发送成功再写入 Redis。
+    def _code_key(self, target: str) -> str:
+        """验证码 Redis key.Gmail plus/点号/googlemail 折成同一收件箱,避免别名绕过."""
+        return f"{CODE_KEY_PREFIX}{canonicalize_email(target)}"
 
-        顺序约束：``_send`` 失败时不落库，避免用户未收到邮件却有可校验码。
-        发送成功后写 Redis；若写库失败则返回 False（邮件已发出属极端边界，业务可重发覆盖）。
+    async def send_code(self, target: str) -> bool:
+        """生成验证码:先发送成功再写入 Redis.
+
+        顺序约束:``_send`` 失败时不落库,避免用户未收到邮件却有可校验码.
+        发送成功后写 Redis;若写库失败则返回 False(邮件已发出属极端边界,业务可重发覆盖).
+        发信信封用用户输入的地址;Redis key 走 ``canonicalize_email``,Gmail 别名共用同一码.
         """
         code = self._generate_code()
-        if not await self._send(target, code):
+        deliver_to = target.strip()
+        if not await self._send(deliver_to, code):
             return False
         redis = await self._get_redis()
-        await redis.set(f"{CODE_KEY_PREFIX}{target}", code, ex=self._ttl)
+        await redis.set(self._code_key(target), code, ex=self._ttl)
         return True
 
     async def verify_code(self, target: str, code: str) -> bool:
-        """从 Redis 读取存储的验证码比对,成功则删除 key(一次性)。"""
+        """从 Redis 读取存储的验证码比对,成功则删除 key(一次性).
+
+        ``target`` 经 ``canonicalize_email`` 后再查 key,与 ``send_code`` 对齐.
+        """
         redis = await self._get_redis()
-        key = f"{CODE_KEY_PREFIX}{target}"
+        key = self._code_key(target)
         stored = await redis.get(key)
         if stored is None:
             return False

@@ -1,5 +1,14 @@
 # dwyeapi
 
+## 0.9.6
+
+### Patch Changes
+
+- **邮箱规范化**：新增 `dwyeapi.email.canonicalize_email` / `is_folded_alias` / `GMAIL_DOMAINS`。Gmail plus、点号、`googlemail.com` 折成同一收件箱，其它域名只做大小写折叠。注册查重、登录查找必须走规范化结果。
+- **Email 验证码 key**：`send_code` / `verify_code` 的 Redis key 走规范化邮箱；发信信封仍用用户输入的地址，避免 plus 别名绕过冷却与校验。
+- **dev extra 含 resend**：测试环境装内置 Email provider 的 SDK，构造 / `_send` 不再 `importorskip`。缺包报错仍用 mock 覆盖。
+- **Email 工厂同一注册表**：内置 resend 与自定义 provider 都进 `_REGISTRY`，`make_email_provider` 只按名查表，不再 `if provider == "resend"`。业务 `register_email_provider` 即可热插拔，不用改 eapi。
+
 ## 0.9.5
 
 ### Patch Changes

@@ -67,7 +67,7 @@ class TestEmailProviderBase:
         assert len(codes) > 10
 
     async def test_send_code_failure_does_not_store_key(self, fake_redis):
-        """_send 失败时不应写入 Redis，避免用户未收到邮件却有可校验码。"""
+        """_send 失败时不应写入 Redis,避免用户未收到邮件却有可校验码."""
 
         class FailingProvider(EmailProviderBase):
             async def _send(self, target: str, code: str) -> bool:
@@ -76,3 +76,31 @@ class TestEmailProviderBase:
         provider = FailingProvider(redis=fake_redis)
         assert await provider.send_code("alice@example.com") is False
         assert await fake_redis.get(f"{CODE_KEY_PREFIX}alice@example.com") is None
+
+    async def test_gmail_aliases_share_redis_key(self, fake_redis):
+        """Gmail plus / 点 / googlemail 共用同一验证码 key,避免别名绕过冷却与校验."""
+        provider = FakeEmailProvider(redis=fake_redis)
+        ok = await provider.send_code("Bai.Wen+1@Gmail.com")
+        assert ok is True
+
+        stored = await fake_redis.get(f"{CODE_KEY_PREFIX}baiwen@gmail.com")
+        assert stored is not None
+        assert await fake_redis.get(f"{CODE_KEY_PREFIX}Bai.Wen+1@Gmail.com") is None
+        assert await provider.verify_code("baiwen+9@googlemail.com", stored) is True
+
+    async def test_send_code_delivers_to_original_address(self, fake_redis):
+        """发信信封用用户输入的地址;规范化只作用于 Redis key."""
+
+        class CaptureProvider(EmailProviderBase):
+            def __init__(self, **kwargs):
+                super().__init__(**kwargs)
+                self.sent_to: str | None = None
+
+            async def _send(self, target: str, code: str) -> bool:
+                self.sent_to = target
+                return True
+
+        provider = CaptureProvider(redis=fake_redis)
+        await provider.send_code("User+tag@Gmail.com")
+        assert provider.sent_to == "User+tag@Gmail.com"
+        assert await fake_redis.get(f"{CODE_KEY_PREFIX}user@gmail.com") is not None
