@@ -1,10 +1,16 @@
 # @dwydev/eui
 
+## 2.4.0-beta.10
+
+### Patch Changes
+
+- **ESheet**：打开态 overlay / content 用 `EConfigProvider.zIndex`（默认 2000 / 2001），压过应用顶栏叠层，避免用户名浮在遮罩上
+
 ## 2.4.0-beta.9
 
 ### Patch Changes
 
-- **ESheet**：打开态 overlay `z-[100]`、content `z-[101]`，压过应用顶栏 `z-50`，避免用户名 / CTA 浮在遮罩上
+- **ESheet**：打开态 overlay 提高层级，避免用户名 / CTA 浮在遮罩上
 - **ETable**：去掉 `w-max`；数字列宽之和写入表 `minWidth`。宽屏铺满，窄屏横滑，长文案不再把末列挤出视口
 
 ## 2.4.0-beta.8

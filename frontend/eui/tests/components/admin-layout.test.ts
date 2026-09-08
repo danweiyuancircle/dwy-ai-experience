@@ -192,8 +192,8 @@ describe('EAdminLayout mobile drawer', () => {
     expect(overlay).not.toBeNull()
     expect(content).not.toBeNull()
     // overlay 须压过应用顶栏 z-50；content 再高于 overlay，菜单可点
-    expect(overlay?.className).toMatch(/z-\[100\]/)
-    expect(content?.className).toMatch(/z-\[101\]/)
+    expect(getComputedStyle(overlay!).zIndex).toBe('2000')
+    expect(getComputedStyle(content!).zIndex).toBe('2001')
     // reka overlay 写死 inline pointer-events:auto，默认必须 !none，仅打开态 !auto
     expect(overlay?.className).toMatch(/!pointer-events-none/)
     expect(overlay?.className).toMatch(/data-\[state=open\]:!pointer-events-auto/)
