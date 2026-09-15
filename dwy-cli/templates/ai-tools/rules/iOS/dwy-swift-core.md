@@ -4,6 +4,8 @@ paths:
   - "**/*.swift"
 ---
 
+分层、双壳依赖、Package.swift 版本锁定见 `dwy-apple-layering`。本文件只管写法与体验基线。
+
 ## iOS 目标与写法
 
 - iOS 最低版本 17.0+，不为 16 及以下做兼容分支。

@@ -39,7 +39,7 @@ export const STACK_PACKS = [
   {
     id: 'ios',
     label: 'iOS',
-    description: 'iOS / Swift rules。上架 skill 在场景包「发布发版」',
+    description: 'iOS / macOS Swift rules（含 dwy-apple-layering）。上架 skill 在场景包「发布发版」',
     ruleCategories: ['iOS'],
   },
   {
