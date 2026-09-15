@@ -132,6 +132,7 @@ const searchItems: SearchItem[] = [
   // Claude Code · Rules · 项目结构
   { title: 'dwy-project-structure', module: 'Claude Code', path: '/claude/rules/dwy-project-structure', content: '项目结构 monorepo 目录约定 rule' },
   // Claude Code · Rules · 开发流程与提交
+  { title: 'dwy-code-craft', module: 'Claude Code', path: '/claude/rules/dwy-code-craft', content: '编码大局观 行文准则 第二次才抽 扩展加文件 反屎山 可维护 自进化 project-rules rule' },
   { title: 'dwy-tdd-development', module: 'Claude Code', path: '/claude/rules/dwy-tdd-development', content: 'TDD 测试驱动开发 先测试后代码 rule' },
   // Claude Code · Rules · 安全
   { title: 'dwy-server-security', module: 'Claude Code', path: '/claude/rules/dwy-server-security', content: '服务器安全 端口 Nginx Docker rule' },
