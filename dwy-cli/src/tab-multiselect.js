@@ -8,6 +8,7 @@ import { Prompt, getColumns, settings } from '@clack/core'
 import { limitOptions } from '@clack/prompts'
 import { styleText } from 'node:util'
 import process from 'node:process'
+import { formatCheckboxRow } from './prompt-style.js'
 
 /** 是否支持 unicode 符号（与 clack / searchable-select 判定一致） */
 function isUnicodeSupported() {
@@ -35,8 +36,6 @@ const S_STEP_SUBMIT = unicodeOr('◇', 'o')
 const S_BAR = unicodeOr('│', '|')
 const S_BAR_END = unicodeOr('└', '—')
 const S_BAR_H = () => unicodeOr('─', '-')
-const S_CHECKBOX_SELECTED = unicodeOr('◼', '[+]')
-const S_CHECKBOX_INACTIVE = unicodeOr('◻', '[ ]')
 const S_TAB_MORE = unicodeOr('‹', '<')
 const S_TAB_MORE_RIGHT = unicodeOr('›', '>')
 
@@ -418,16 +417,12 @@ export function tabMultiselect(opts) {
           maxItems: opts.maxItems ?? 12,
           output: opts.output,
           rowPadding: header.length + footer.length,
-          style: (opt, active) => {
-            const on = selected.includes(opt.value)
-            const label = opt.label ?? String(opt.value ?? '')
-            const box = on
-              ? styleText('green', S_CHECKBOX_SELECTED)
-              : styleText('dim', S_CHECKBOX_INACTIVE)
-            const prefix = formatItemTypePrefix(opt.type)
-            if (active) return `${box} ${prefix} ${label}`
-            return `${box} ${prefix} ${styleText('dim', label)}`
-          },
+          style: (opt, active) => formatCheckboxRow({
+            label: opt.label ?? String(opt.value ?? ''),
+            selected: selected.includes(opt.value),
+            active,
+            prefix: formatItemTypePrefix(opt.type),
+          }),
         })
 
       return [
