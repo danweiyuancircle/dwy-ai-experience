@@ -926,6 +926,8 @@ class User(val id: Long, val name: String)
 
 ### 包组织(按功能聚合)
 
+**Gradle 模块四层（`:app` / `:features:*` / `:biz-foundation` / `:foundation`）与依赖边 → 见 `dwy-android-layering`。** 本节只约束**模块内部** Java/Kotlin 包。
+
 **按功能聚合(package-by-feature),不按技术分层(package-by-layer)。**
 
 同一个功能/页面相关的所有类 —— 页面(Activity / Fragment)、其数据实体、业务逻辑(ViewModel / Presenter / UseCase)、数据访问(Repository)、列表 Adapter、UI 状态等 —— 放在**同一个功能包**下聚合,而不是按类型横切成 `activities/`、`models/`、`adapters/`、`repositories/` 这种分层包。

@@ -52,6 +52,22 @@
 
 ---
 
+## 0.15.0 — 2026-09-15
+
+### Added
+
+- `rules/Python/dwy-python-layering.md`：四层目录（`app` / `features` / `biz_foundation` / `foundation`）、Feature 零互依、uv 根 `constraint-dependencies`
+- `rules/Vue/dwy-vue-layering.md`：四层目录（`apps/web` / `packages/features` / `biz-foundation` / `foundation`）、Feature 零互依、pnpm `catalog:`
+- `rules/Android/dwy-android-layering.md`：四层模块（`:app` / `:features:*` / `:biz-foundation` / `:foundation`）、禁止透传越层、Gradle Version Catalog
+- `rules/iOS/dwy-apple-layering.md`：iOS+macOS 双壳、`DesktopKit` 仅桌面壳、根 `Package.swift` 锁定 `from:`
+
+### Changed
+
+- `dwy-python-backend` / `dwy-vue-core` / `dwy-android-core` / `dwy-swift-core`：项目结构改指向对应 layering，不再维护第二套目录树
+- `skills/产品0到1/dwy-architecture/SKILL.md`：四层表改为引用 `dwy-*-layering`
+
+---
+
 ## 0.14.0 — 2026-09-02
 
 ### Changed

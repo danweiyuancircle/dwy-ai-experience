@@ -1,5 +1,5 @@
 ---
-description: Vue 3 + TS + Vite + Tailwind 应用层通用规范（业务聚合结构、组件 / TS / 路由 / API / 模板 / 样式 / 错误处理 / 注释）
+description: Vue 3 + TS + Vite + Tailwind 应用层通用规范（组件 / TS / 路由 / API / 模板 / 样式 / 错误处理 / 注释；仓库分层见 dwy-vue-layering）
 paths:
   - "**/*.vue"
   - "**/*.ts"
@@ -14,57 +14,11 @@ paths:
 
 ## 一、项目结构与业务聚合（强制）
 
-### 核心原则
+**仓库四层（`apps/web` / `packages/features` / `packages/biz-foundation` / `packages/foundation`）、Feature 互不依赖、pnpm catalog → 见 `dwy-vue-layering`。** 本节只约定 Feature **域内**文件名。
 
-**按功能模块（feature / domain）聚合，禁止按技术层散落。** 同一业务功能的 view / components / store / api / types 必须集中在同一个功能目录下；**禁止**全局存在 `views/` / `components/` / `stores/` / `api/` 等顶级"技术层"目录把不同功能的同类文件混放。
-
-### 为什么
-
-- **跨项目迁移**：复制单个功能目录即可携带该功能全部代码；技术层散落需在 5+ 目录里翻找
-- **可读性**：阅读功能时所有相关代码在同一目录，无需跨目录跳转
-- **变更影响域清晰**：一次改动 diff 集中，code review 更高效
-- **删除友好**：删功能时整个目录删掉即可，不会留下孤儿文件
-
-### 标准结构（参考）
-
-```
-src/
-├── features/                   # 业务功能根目录
-│   ├── users/                  # 用户功能
-│   │   ├── api.ts              # 该业务的 API（用全局 HTTP 客户端）
-│   │   ├── store.ts            # 该业务的 Pinia store
-│   │   ├── types.ts            # 该业务的类型
-│   │   ├── views/              # 该业务的页面组件
-│   │   │   ├── UserListView.vue
-│   │   │   └── UserDetailView.vue
-│   │   ├── components/         # 该业务的内部组件
-│   │   │   └── UserCard.vue
-│   │   └── route.ts            # 该业务的路由片段
-│   └── orders/
-│       ├── api.ts
-│       ├── store.ts
-│       └── views/
-├── shared/                     # 跨业务真正复用：UI 子组件 / composables / 常量
-│   ├── components/
-│   ├── composables/
-│   └── constants/
-├── core/                       # 全局基础设施：HTTP client / 路由根 / 主题 / 启动
-│   ├── http.ts                 # 全局唯一 HTTP 客户端实例
-│   ├── router.ts
-│   └── main.ts
-├── App.vue
-└── style.css
-```
-
-> 测试目录与 `src/` 并列、镜像业务聚合结构（详见 `dwy-vue-testing` rule）。
-
-### 强制规则
-
-- **禁止**顶级 `views/` / `components/` / `stores/` / `api/` / `types/` 把不同功能的同类文件混放
 - 一个功能目录内文件名固定：`api.ts` / `store.ts` / `types.ts` / `route.ts`（单数、不带功能前缀）
-- 跨业务真正共享的代码放 `shared/` 或 `core/`，**禁止**为"可能复用"把单一功能逻辑提前抽离
 - 单文件超过约 400 行时再考虑拆分，**禁止**未到规模就预拆分
-- 模块间引用通过明确 import，**禁止**循环依赖
+- 测试目录与源码并列、镜像业务聚合（详见 `dwy-vue-testing`）
 
 ## 二、组件规范
 

@@ -12,52 +12,11 @@ paths:
 
 ## 一、项目结构与业务聚合（强制）
 
-### 核心原则
+**仓库四层（`app` / `features` / `biz_foundation` / `foundation`）、Feature 互不依赖、uv 根锁定版本 → 见 `dwy-python-layering`。** 本节只约定 Feature **域内**文件名。
 
-**按功能模块（feature / domain）聚合，禁止按技术层散落。** 同一业务功能的 router / schema / service / model / dependency 必须集中在同一个功能目录下；**禁止**全局存在 `routers/` / `services/` / `models/` / `schemas/` 等"技术层"顶级目录，把不相关功能的同类型文件强行揉到一起。
-
-### 为什么
-
-- **跨项目迁移**：复制单个功能目录即可携带该功能全部代码；技术层散落需在 4+ 目录里翻找
-- **可读性**：阅读功能时所有相关代码在同一目录，无需跨目录跳转
-- **变更影响域清晰**：一次改动 diff 集中，code review 更高效
-- **删除友好**：删功能时整个目录删掉即可，不会留下孤儿文件
-
-### 标准结构（参考）
-
-```
-app/
-├── users/                  # 用户功能（一个业务模块自成一个目录）
-│   ├── __init__.py
-│   ├── router.py           # FastAPI 路由
-│   ├── schemas.py          # Pydantic 请求 / 响应模型
-│   ├── service.py          # 业务逻辑
-│   ├── models.py           # ORM 模型
-│   ├── dependencies.py     # 该功能专用 Depends（可选）
-│   └── exceptions.py       # 该功能专用异常（可选）
-├── orders/
-│   ├── router.py
-│   ├── schemas.py
-│   ├── service.py
-│   └── models.py
-├── core/                   # 跨功能共享：配置 / 全局中间件 / 启动逻辑
-│   ├── config.py
-│   ├── middleware.py
-│   └── lifespan.py
-└── main.py                 # 注册各功能 router
-```
-
-### 强制规则
-
-- **禁止**顶级 `routers/` / `services/` / `models/` / `schemas/` 把不同功能的同类文件混放
 - 一个功能目录内文件名固定：`router.py` / `schemas.py` / `service.py` / `models.py`（单数，不带功能前缀）
-- 跨功能真正共享的代码放 `core/` 或 `shared/`，**禁止**为"可能复用"把单一功能逻辑提前抽离
 - 单文件超过约 400 行时再考虑拆分（如 `service.py` → `services/create.py` + `services/query.py`），**禁止**未到规模就预拆分
-- 功能间引用通过明确 import，**禁止**循环依赖
-- 测试镜像功能聚合结构：`tests/users/test_router.py` / `tests/users/test_service.py`（详见第九节）
-
-### 例外
-- 通用基础设施代码（如基础框架库内部）可保持技术层结构
+- 测试镜像功能聚合：`tests/features/orders/test_router.py`（详见第九节）
 
 ---
 
@@ -466,6 +425,7 @@ AI 编写或审查后端代码时，**必须**检查以下违规模式，按严�
 |--------|---------|---------|
 | 重复造轮子 | 自造异常基类 / 自封装统一响应 / 散落手写 bcrypt 或 JWT 调用 / 自建 Redis 连接池 等本应走项目级统一模块的能力 | 高 |
 | 技术层散落 | 顶级出现 `routers/` / `services/` / `models/` / `schemas/` 等技术层目录把不同功能文件混放，未按功能聚合 | 高 |
+| 分层依赖 | Feature `from app.` / import 另一 Feature / 源码 `from foundation.`；成员包写死第三方版本。细则见 `dwy-python-layering` | 高 |
 | 测试与源码混放 | 测试文件放在源码目录中（如 `app/users/test_router.py`），未独立到测试目录 | 高 |
 | 密码明文 | `password` 字段出现在 Response Schema | **致命 → STOP** |
 | 密码弱存储 | 使用 MD5 / SHA 而非 bcrypt | **致命 → STOP** |
