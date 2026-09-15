@@ -1,5 +1,13 @@
 # create-dwy
 
+## 0.19.1
+
+### Patch Changes
+
+- 上下移动时当前条目用指针 + 反底标出。原先只靠 dim，已勾选或 JetBrains 终端里看不出光标。
+
+---
+
 ## 0.19.0
 
 ### Minor Changes

@@ -8,6 +8,7 @@ import { AutocompletePrompt, getColumns, settings } from '@clack/core'
 import { limitOptions } from '@clack/prompts'
 import { styleText } from 'node:util'
 import process from 'node:process'
+import { formatCheckboxRow, formatRadioRow } from './prompt-style.js'
 
 /** 是否支持 unicode 符号（与 clack prompts 判定一致） */
 function isUnicodeSupported() {
@@ -34,10 +35,6 @@ const S_STEP_ERROR = unicodeOr('▲', 'x')
 const S_STEP_SUBMIT = unicodeOr('◇', 'o')
 const S_BAR = unicodeOr('│', '|')
 const S_BAR_END = unicodeOr('└', '—')
-const S_RADIO_ACTIVE = unicodeOr('●', '>')
-const S_RADIO_INACTIVE = unicodeOr('○', ' ')
-const S_CHECKBOX_SELECTED = unicodeOr('◼', '[+]')
-const S_CHECKBOX_INACTIVE = unicodeOr('◻', '[ ]')
 
 /** 底部说明区固定行数，避免列表高度随描述长短跳动 */
 const DESC_PANEL_LINES = 3
@@ -256,21 +253,12 @@ export function searchableMultiselect(opts) {
           maxItems: opts.maxItems,
           output: opts.output,
           rowPadding: header.length + footer.length,
-          style: (opt, active) => {
-            const selected = this.selectedValues.includes(opt.value)
-            const label = optionLabel(opt)
-            const box = selected
-              ? styleText('green', S_CHECKBOX_SELECTED)
-              : styleText('dim', S_CHECKBOX_INACTIVE)
-            if (opt.disabled) {
-              return `${styleText('dim', S_CHECKBOX_INACTIVE)} ${styleText(['strikethrough', 'dim'], label)}`
-            }
-            // 聚焦也不拼 hint，描述只在底部公共区
-            if (active) {
-              return `${box} ${label}`
-            }
-            return `${box} ${styleText('dim', label)}`
-          },
+          style: (opt, active) => formatCheckboxRow({
+            label: optionLabel(opt),
+            selected: this.selectedValues.includes(opt.value),
+            active,
+            disabled: opt.disabled,
+          }),
         })
 
       return [
@@ -396,16 +384,11 @@ export function searchableSelect(opts) {
           output: opts.output,
           columnPadding: withGuide ? 3 : 0,
           rowPadding: header.length + footer.length,
-          style: (opt, active) => {
-            const label = optionLabel(opt)
-            if (opt.disabled) {
-              return `${styleText('gray', S_RADIO_INACTIVE)} ${styleText(['strikethrough', 'gray'], label)}`
-            }
-            if (active) {
-              return `${styleText('green', S_RADIO_ACTIVE)} ${label}`
-            }
-            return `${styleText('dim', S_RADIO_INACTIVE)} ${styleText('dim', label)}`
-          },
+          style: (opt, active) => formatRadioRow({
+            label: optionLabel(opt),
+            active,
+            disabled: opt.disabled,
+          }),
         })
 
       return [
