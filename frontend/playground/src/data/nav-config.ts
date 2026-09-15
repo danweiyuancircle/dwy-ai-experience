@@ -266,6 +266,7 @@ export const modules: ModuleConfig[] = [
       {
         title: 'Rules · 开发流程与提交',
         items: [
+          { name: 'dwy-code-craft', path: '/claude/rules/dwy-code-craft' },
           { name: 'dwy-tdd-development', path: '/claude/rules/dwy-tdd-development' },
         ],
       },

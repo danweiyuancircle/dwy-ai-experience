@@ -6,7 +6,7 @@ import DocPage from '../../components/DocPage.vue'
 const route = useRoute()
 const name = computed(() => route.params.name as string)
 
-const ruleFiles = import.meta.glob('/../../dwy-cli/templates/claude-global/rules/*.md', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>
+const ruleFiles = import.meta.glob('/../../dwy-cli/templates/ai-tools/rules/**/*.md', { eager: true, query: '?raw', import: 'default' }) as Record<string, string>
 
 const rules = computed(() => {
   const map: Record<string, string> = {}
