@@ -1,6 +1,6 @@
 ---
 name: dwy-eapi
-description: "Use when building or changing FastAPI backends that use dwyeapi: Pydantic Settings, async SQLAlchemy, Redis, JWT/bcrypt, AppError/NotFoundError/BusinessError, ApiResponse/PageData, pagination, loguru, health checks, PII masking, timezone-aware dt, ARQ tasks, email verification codes, Gmail alias canonicalization. The single navigation skill for dwyeapi."
+description: "Use when building or changing FastAPI backends that use dwyeapi: Pydantic Settings, async SQLAlchemy, Redis, JWT/bcrypt, AppError/NotFoundError/BusinessError, ApiResponse/PageData, pagination, loguru, health checks, PII masking, timezone-aware dt, ARQ tasks, email verification codes, Gmail alias canonicalization, common email-domain allowlist. The single navigation skill for dwyeapi."
 ---
 
 # dwyeapi
@@ -71,7 +71,7 @@ editable 安装时这个路径就是消费方正在跑的代码，当作安装�
 | `shared/anticorruption.md` | 禁止直调 redis/jwt/logging |
 | `v0/index.md` | 0.x 模块清单、接入、陷阱 |
 | `v0/providers-email.md` | 邮件 Provider 注册表 |
-| `v0/email-canonical.md` | Gmail 规范化（≥0.9.6） |
+| `v0/email-canonical.md` | Gmail 规范化（≥0.9.6）+ 常见域名白名单 / 发码校验（≥0.10.0） |
 | `v0/breaking.md` | 0.x 内部 breaking |
 | `references/tasks-integration-guide.md` | 只用 tasks 时读 |
 

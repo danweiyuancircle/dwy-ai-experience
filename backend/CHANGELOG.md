@@ -1,5 +1,15 @@
 # dwyeapi
 
+## 0.10.0
+
+### Breaking Changes
+
+- **发码默认校验常见邮箱域名**：`send_code` 在 `EMAIL__REQUIRE_COMMON_DOMAIN=true`（默认）时拒绝非白名单地址，不发信、不写 Redis。原 `user@example.com` 一类测试/一次性域名会收到 `BusinessError(code="EMAIL_DOMAIN_NOT_ALLOWED")`。B2B 设 `EMAIL__REQUIRE_COMMON_DOMAIN=false`；机构域用 `EMAIL__EXTRA_ALLOW_DOMAINS`。
+
+### Patch Changes
+
+- **常见邮箱域名白名单**：新增 `COMMON_EMAIL_DOMAINS` / `is_common_email_domain` / `require_common_email_domain`。精确匹配 qq / 163 / gmail / outlook 等个人域，默认放行 `*.edu.cn`。消息不回显用户域名。
+
 ## 0.9.6
 
 ### Patch Changes
