@@ -32,6 +32,9 @@ class ResendEmailProvider(EmailProviderBase):
         brand_slogan: str = "",
         support_email: str = "",
         redis: aioredis.Redis | None = None,
+        require_common_domain: bool = True,
+        extra_allow_domains: tuple[str, ...] = (),
+        allow_edu_cn: bool = True,
     ) -> None:
         """初始化 Resend Provider。
 
@@ -47,6 +50,9 @@ class ResendEmailProvider(EmailProviderBase):
             brand_slogan: 页脚说明。
             support_email: 客服邮箱。
             redis: 可选显式注入的 Redis 连接。
+            require_common_domain: 发码前是否校验常见邮箱域名.默认 True.
+            extra_allow_domains: 额外放行域名.默认空.
+            allow_edu_cn: 是否放行 ``*.edu.cn``.默认 True.
 
         Raises:
             ImportError: 未安装 resend 包时抛出,提示用户安装对应 extra。
@@ -60,6 +66,9 @@ class ResendEmailProvider(EmailProviderBase):
             brand_slogan=brand_slogan,
             support_email=support_email,
             redis=redis,
+            require_common_domain=require_common_domain,
+            extra_allow_domains=extra_allow_domains,
+            allow_edu_cn=allow_edu_cn,
         )
         try:
             import resend
@@ -108,4 +117,7 @@ def build_resend_provider(settings: EmailSettings) -> ResendEmailProvider:
         brand_url=settings.brand_url,
         brand_slogan=settings.brand_slogan,
         support_email=settings.support_email,
+        require_common_domain=settings.require_common_domain,
+        extra_allow_domains=settings.extra_allow_domain_list(),
+        allow_edu_cn=settings.allow_edu_cn,
     )

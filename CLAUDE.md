@@ -84,7 +84,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。扁平模块：
 | cache | 异步 Redis 管理: configure(), get_redis(), close_redis() |
 | dependencies | FastAPI 依赖注入工厂 |
 | masking | PII 数据脱敏: mask_phone, mask_email, mask_id_card, mask_bank_card, mask_name, mask_address, mask_ip, mask_license_plate, mask_text |
-| email | 邮箱规范化: canonicalize_email / is_folded_alias（Gmail plus、点号、googlemail 折成同一收件箱） |
+| email | 邮箱规范化 canonicalize_email / is_folded_alias；常见个人域名白名单 is_common_email_domain / require_common_email_domain |
 
 - **Lint**: Ruff（规则: E, W, F, I, N, UP, B, SIM, RUF），行宽 120
 - **测试**: pytest + pytest-asyncio (asyncio_mode = "auto")

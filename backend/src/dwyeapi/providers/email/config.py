@@ -1,6 +1,6 @@
 """Email Provider 配置模型。"""
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class ResendConfig(BaseModel):
@@ -33,6 +33,8 @@ class EmailSettings(BaseModel):
 
     `.env` 自动识别(双下划线嵌套):
         EMAIL__PROVIDER=resend
+        EMAIL__REQUIRE_COMMON_DOMAIN=true
+        EMAIL__EXTRA_ALLOW_DOMAINS=yanbofund.com,contek.io
         EMAIL__BRAND_NAME=宽舟科技
         EMAIL__BRAND_URL=https://example.com
         EMAIL__SUPPORT_EMAIL=support@example.com
@@ -74,7 +76,48 @@ class EmailSettings(BaseModel):
         default="",
         description="客服邮箱,展示在邮件正文底部,留空则不显示",
     )
+    require_common_domain: bool = Field(
+        default=True,
+        description="发码前校验常见个人邮箱域名.C 端保持 True;B2B 可关",
+    )
+    extra_allow_domains: str = Field(
+        default="",
+        max_length=2000,
+        description="逗号分隔的额外放行域名,机构邮箱用.示例:yanbofund.com,contek.io",
+    )
+    allow_edu_cn: bool = Field(
+        default=True,
+        description="是否放行 edu.cn / *.edu.cn.默认 True",
+    )
     resend: ResendConfig = Field(
         default_factory=ResendConfig,
         description="Resend 配置,provider=resend 时必填",
     )
+
+    def extra_allow_domain_list(self) -> tuple[str, ...]:
+        """把 ``extra_allow_domains`` 折成去空白的域名元组.
+
+        Returns:
+            tuple[str, ...]: 额外放行域名.空配置为 ``()``.示例:``("yanbofund.com",)``.
+        """
+        return tuple(part.strip() for part in self.extra_allow_domains.split(",") if part.strip())
+
+    @field_validator("extra_allow_domains")
+    @classmethod
+    def extra_allow_domains_must_be_domains(cls, value: str) -> str:
+        """拒绝过长单段,防止把整段正文塞进配置.
+
+        Args:
+            value (str): 原始配置串.长度 ``[0, 2000]``.示例:``yanbofund.com,contek.io``.
+
+        Returns:
+            str: 原样返回(已由 Field max_length 限长).
+
+        Raises:
+            ValueError: 单段超过 253 字符(DNS 域名上限).
+        """
+        for part in value.split(","):
+            item = part.strip()
+            if len(item) > 253:
+                raise ValueError("extra_allow_domains 单段超过 253 字符")
+        return value

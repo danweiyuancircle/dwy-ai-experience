@@ -13,7 +13,7 @@
 
     settings = Settings()
     provider = make_email_provider(settings.email)
-    await provider.send_code("user@example.com")
+    await provider.send_code("user@qq.com")
 
 典型用法 -- 注册自定义 provider:
     from dwyeapi.providers.email import (
@@ -36,7 +36,9 @@
             secret_id=app_settings.tencent.secret_id,
             code_ttl=s.code_ttl,
             brand_name=s.brand_name,
-            ...,
+            require_common_domain=s.require_common_domain,
+            extra_allow_domains=s.extra_allow_domain_list(),
+            allow_edu_cn=s.allow_edu_cn,
         )
 
     register_email_provider("tencent_ses", _build)

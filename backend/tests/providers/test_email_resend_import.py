@@ -55,6 +55,6 @@ class TestResendSend:
         )
         provider._resend.Emails.send_async = AsyncMock(side_effect=RuntimeError("network"))
 
-        ok = await provider.send_code("alice@example.com")
+        ok = await provider.send_code("alice@gmail.com")
         assert ok is False
-        assert await fake_redis.get(f"{CODE_KEY_PREFIX}alice@example.com") is None
+        assert await fake_redis.get(f"{CODE_KEY_PREFIX}alice@gmail.com") is None

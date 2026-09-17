@@ -19,7 +19,7 @@ pip install dwyeapi
 - `response` — Unified API response helpers
 - `pagination` — PaginationParams + paginate helper
 - `logger` — Facade logger (loguru-backed) with daily + size rotation and stdlib interception; downstream code depends on `dwyeapi.logger.Logger`, not loguru directly
-- `email` — 邮箱规范化（Gmail plus / 点号 / googlemail 折成同一收件箱；注册查重、登录查找必须走 `canonicalize_email`）
+- `email` — 邮箱规范化（Gmail plus / 点号 / googlemail 折成同一收件箱）+ 常见个人域名白名单（`is_common_email_domain` / `require_common_email_domain`，注册查重必须走 `canonicalize_email`）
 - `providers.email` — 邮件验证码 Provider 工厂(内置 resend;支持业务通过 `register_email_provider` 注入自定义实现；验证码 Redis key 已自动规范化)
 
 ## Environment (dev / prod)

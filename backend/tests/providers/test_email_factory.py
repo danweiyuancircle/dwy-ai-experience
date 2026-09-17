@@ -1,6 +1,7 @@
 """Tests for dwyeapi.providers.email.factory(内置 resend + 自定义注册)。"""
 
 import pytest
+from pydantic import ValidationError
 
 from dwyeapi.providers.email import (
     EmailProvider,
@@ -51,6 +52,20 @@ class TestResendBuiltin:
         )
         provider = make_email_provider(settings)
         assert isinstance(provider, ResendEmailProvider)
+
+    def test_resend_forwards_domain_policy(self):
+        """工厂必须把白名单开关和 extra_allow 传进 provider,不能只靠基类默认值。"""
+        settings = EmailSettings(
+            provider="resend",
+            require_common_domain=False,
+            extra_allow_domains="yanbofund.com",
+            allow_edu_cn=False,
+            resend=ResendConfig(api_key="re_test", from_email="a@b.com"),
+        )
+        provider = make_email_provider(settings)
+        assert provider._require_common_domain is False
+        assert provider._extra_allow == ("yanbofund.com",)
+        assert provider._allow_edu_cn is False
 
     def test_resend_resolves_from_same_registry(self):
         """内置 resend 必须进 _REGISTRY,不能走工厂硬编码 if。"""
@@ -111,3 +126,16 @@ class TestCustomRegistration:
         register_email_provider("capture", builder)
         make_email_provider(EmailSettings(provider="capture", brand_name="X", code_ttl=120))
         assert captured == {"brand_name": "X", "code_ttl": 120}
+
+
+class TestEmailDomainSettings:
+    def test_extra_allow_domain_list_splits_and_strips(self):
+        settings = EmailSettings(extra_allow_domains=" yanbofund.com, contek.io ,")
+        assert settings.extra_allow_domain_list() == ("yanbofund.com", "contek.io")
+        assert settings.require_common_domain is True
+        assert settings.allow_edu_cn is True
+
+    def test_extra_allow_rejects_oversized_segment(self):
+        too_long = "a" * 254
+        with pytest.raises(ValidationError, match="253"):
+            EmailSettings(extra_allow_domains=too_long)

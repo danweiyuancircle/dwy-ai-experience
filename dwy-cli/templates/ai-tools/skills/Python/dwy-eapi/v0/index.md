@@ -19,7 +19,7 @@
 | `dt` | 中国时区时间工具 | ≥0.7 左右；`timedelta`/`after` ≥0.9.4 |
 | `logger` | loguru | |
 | `masking` | PII 脱敏 | |
-| `email` | Gmail 规范化 | ≥0.9.6 |
+| `email` | Gmail 规范化 + 常见域名白名单 | 规范化 ≥0.9.6；白名单 / 发码校验 ≥0.10.0 |
 | `health` | 只探活健康检查 | ≥0.7.0 |
 | `tasks` | ARQ 异步任务，需 `[tasks]` | ≥0.7 后 |
 | `providers.email` | 邮件验证码，内置 resend | 工厂注册表 ≥0.9.0 |
@@ -100,4 +100,4 @@ app.include_router(create_health_router(service_name=settings.service_name, vers
 ### 邮件 / Gmail
 
 - Provider：`v0/providers-email.md`
-- 规范化：`v0/email-canonical.md`（≥0.9.6）
+- 规范化 / 常见域名白名单：`v0/email-canonical.md`（规范化 ≥0.9.6；白名单 / 发码校验 ≥0.10.0）

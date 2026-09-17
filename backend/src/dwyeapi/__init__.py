@@ -15,7 +15,7 @@ Modules:
     logger        — 基于 loguru 的全局日志,支持按天与按大小轮转、stdlib 拦截
     tasks         — 异步任务系统(基于 ARQ,需安装 [tasks] extra)
     masking       — PII 数据脱敏工具
-    email         — 邮箱规范化(Gmail plus/点号/googlemail 折成同一收件箱)
+    email         — 邮箱规范化(Gmail plus/点号/googlemail) + 常见个人域名白名单
     health        — 健康检查路由工厂(只探活,不探依赖)
 """
 
@@ -33,4 +33,4 @@ __all__ = [
     "is_prod",
     "logger",
 ]
-__version__ = "0.9.6"
+__version__ = "0.10.0"

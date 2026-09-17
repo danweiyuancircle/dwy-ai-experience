@@ -2,12 +2,13 @@
 
 import secrets
 from abc import ABC, abstractmethod
+from collections.abc import Collection
 from html import escape
 
 import redis.asyncio as aioredis
 
 from dwyeapi.cache import get_redis
-from dwyeapi.email import canonicalize_email
+from dwyeapi.email import canonicalize_email, require_common_email_domain
 
 CODE_KEY_PREFIX = "dwyeapi:email:code:"
 DEFAULT_CODE_TTL = 300
@@ -31,6 +32,9 @@ class EmailProviderBase(ABC):
         brand_slogan: str = "",
         support_email: str = "",
         redis: aioredis.Redis | None = None,
+        require_common_domain: bool = True,
+        extra_allow_domains: Collection[str] = (),
+        allow_edu_cn: bool = True,
     ) -> None:
         """初始化。
 
@@ -43,6 +47,9 @@ class EmailProviderBase(ABC):
             brand_slogan: 页脚版权下方一行说明文案;空串则不显示。
             support_email: 客服邮箱,展示在邮件正文底部;空串则不显示。
             redis: 可选显式注入的 Redis 连接;为 None 时 fallback 到 dwyeapi.cache.get_redis()。
+            require_common_domain: 发码前是否校验常见邮箱域名.默认 True.C 端保持开启.
+            extra_allow_domains: 额外放行域名.默认空.示例:``("yanbofund.com",)``.
+            allow_edu_cn: 是否放行 ``*.edu.cn``.默认 True.
         """
         self._ttl = code_ttl
         self._length = code_length
@@ -52,6 +59,9 @@ class EmailProviderBase(ABC):
         self._brand_slogan = brand_slogan
         self._support_email = support_email
         self._redis = redis
+        self._require_common_domain = require_common_domain
+        self._extra_allow = tuple(extra_allow_domains)
+        self._allow_edu_cn = allow_edu_cn
 
     async def _get_redis(self) -> aioredis.Redis:
         """获取 Redis 连接,优先使用注入的,否则取全局单例。"""
@@ -68,12 +78,19 @@ class EmailProviderBase(ABC):
         return f"{CODE_KEY_PREFIX}{canonicalize_email(target)}"
 
     async def send_code(self, target: str) -> bool:
-        """生成验证码:先发送成功再写入 Redis.
+        """生成验证码:先校验域名,发送成功再写入 Redis.
 
-        顺序约束:``_send`` 失败时不落库,避免用户未收到邮件却有可校验码.
+        顺序约束:域名不在白名单时抛 ``BusinessError``,不发信、不落库.
+        ``_send`` 失败时不落库,避免用户未收到邮件却有可校验码.
         发送成功后写 Redis;若写库失败则返回 False(邮件已发出属极端边界,业务可重发覆盖).
         发信信封用用户输入的地址;Redis key 走 ``canonicalize_email``,Gmail 别名共用同一码.
         """
+        if self._require_common_domain:
+            require_common_email_domain(
+                target,
+                extra_allow=self._extra_allow,
+                allow_edu_cn=self._allow_edu_cn,
+            )
         code = self._generate_code()
         deliver_to = target.strip()
         if not await self._send(deliver_to, code):
