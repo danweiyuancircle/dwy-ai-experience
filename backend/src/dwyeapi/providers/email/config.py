@@ -34,7 +34,9 @@ class EmailSettings(BaseModel):
     `.env` 自动识别(双下划线嵌套):
         EMAIL__PROVIDER=resend
         EMAIL__REQUIRE_COMMON_DOMAIN=true
-        EMAIL__EXTRA_ALLOW_DOMAINS=yanbofund.com,contek.io
+        EMAIL__EXTRA_ALLOW_DOMAINS=chances.com.cn
+        EMAIL__ALLOW_EDU=true
+        EMAIL__ALLOW_EDU_CN=true
         EMAIL__BRAND_NAME=宽舟科技
         EMAIL__BRAND_URL=https://example.com
         EMAIL__SUPPORT_EMAIL=support@example.com
@@ -83,7 +85,11 @@ class EmailSettings(BaseModel):
     extra_allow_domains: str = Field(
         default="",
         max_length=2000,
-        description="逗号分隔的额外放行域名,机构邮箱用.示例:yanbofund.com,contek.io",
+        description="逗号分隔的额外放行域名,企业 / 机构邮箱用.示例:chances.com.cn",
+    )
+    allow_edu: bool = Field(
+        default=True,
+        description="是否放行美国 .edu TLD.默认 True.不放行 edu.kg 等国家教育后缀",
     )
     allow_edu_cn: bool = Field(
         default=True,
@@ -98,7 +104,7 @@ class EmailSettings(BaseModel):
         """把 ``extra_allow_domains`` 折成去空白的域名元组.
 
         Returns:
-            tuple[str, ...]: 额外放行域名.空配置为 ``()``.示例:``("yanbofund.com",)``.
+            tuple[str, ...]: 额外放行域名.空配置为 ``()``.示例:``("chances.com.cn",)``.
         """
         return tuple(part.strip() for part in self.extra_allow_domains.split(",") if part.strip())
 
@@ -108,7 +114,7 @@ class EmailSettings(BaseModel):
         """拒绝过长单段,防止把整段正文塞进配置.
 
         Args:
-            value (str): 原始配置串.长度 ``[0, 2000]``.示例:``yanbofund.com,contek.io``.
+            value (str): 原始配置串.长度 ``[0, 2000]``.示例:``chances.com.cn``.
 
         Returns:
             str: 原样返回(已由 Field max_length 限长).

@@ -449,12 +449,12 @@
 
 ---
 
-## 10.1 email 模块（16 个）
+## 10.1 email 模块（18 个）
 
 `tests/test_email.py`
 
 Gmail plus / 点号 / googlemail 折成同一收件箱；其它域名只做大小写折叠。注册查重必须走 `canonicalize_email`。
-注册 / 换绑另走 `require_common_email_domain`：常见个人域白名单，默认放行 `*.edu.cn`，机构域靠 `extra_allow`。
+注册 / 换绑另走 `require_common_email_domain`：常见个人域白名单，默认放行美国 `.edu` 与 `*.edu.cn`，企业域靠 `extra_allow`。
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
@@ -464,21 +464,23 @@ Gmail plus / 点号 / googlemail 折成同一收件箱；其它域名只做大�
 | 4 | test_detects_gmail_variants | plus / 点 / googlemail 为折叠；仅大小写不算 |
 | 5 | test_allows_common_consumer_domains | qq / 163 / gmail / outlook / icloud / proton / googlemail 放行 |
 | 6 | test_rejects_disposable_and_unknown_domains | uberip / 2925 / mail.tm / example / mail.qq.com 拒绝 |
-| 7 | test_allows_edu_cn_by_default | `*.edu.cn` 默认放行；`columbia.edu` 拒绝；开关可关 |
-| 8 | test_extra_allow_is_case_insensitive | 机构域靠 extra_allow，大小写不敏感 |
-| 9 | test_missing_at_is_not_common | 无 @ 视为不在白名单 |
-| 10 | test_returns_canonical_email | require 成功返回规范化地址 |
-| 11 | test_raises_business_error_without_echoing_domain | `EMAIL_DOMAIN_NOT_ALLOWED`，消息不回显域名 |
+| 7 | test_allows_edu_cn_by_default | `*.edu.cn` 默认放行；开关可关 |
+| 8 | test_allows_us_edu_by_default | `columbia.edu` / `mail.mit.edu` 默认放行；开关可关 |
+| 9 | test_rejects_fake_edu_cctld | `edu.kg` / `edu.pl` / `edu.co` 拒绝 |
+| 10 | test_extra_allow_is_case_insensitive | 企业域 `chances.com.cn` 靠 extra_allow |
+| 11 | test_missing_at_is_not_common | 无 @ 视为不在白名单 |
+| 12 | test_returns_canonical_email | require 成功返回规范化地址 |
+| 13 | test_raises_business_error_without_echoing_domain | `EMAIL_DOMAIN_NOT_ALLOWED`，消息不回显域名 |
 
 `tests/providers/test_email_base.py` 追加：
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
-| 12 | test_gmail_aliases_share_redis_key | 发码 Redis key 用规范化邮箱；另一 plus 可验码 |
-| 13 | test_send_code_delivers_to_original_address | `_send` 仍用用户输入地址 |
-| 14 | test_send_code_rejects_uncommon_domain_before_send | uberip 抛 `EMAIL_DOMAIN_NOT_ALLOWED`，不发信不写 Redis |
-| 15 | test_send_code_allows_common_domain | qq 默认可发码 |
-| 16 | test_send_code_extra_allow_and_disable | extra_allow 放行机构域；开关关闭后任意域可发 |
+| 14 | test_gmail_aliases_share_redis_key | 发码 Redis key 用规范化邮箱；另一 plus 可验码 |
+| 15 | test_send_code_delivers_to_original_address | `_send` 仍用用户输入地址 |
+| 16 | test_send_code_rejects_uncommon_domain_before_send | uberip 抛 `EMAIL_DOMAIN_NOT_ALLOWED`，不发信不写 Redis |
+| 17 | test_send_code_allows_common_domain | qq 默认可发码 |
+| 18 | test_send_code_extra_allow_and_disable | extra_allow 放行企业域；`.edu` 可发；`edu.kg` 拒绝；开关关闭后任意域可发 |
 
 ---
 

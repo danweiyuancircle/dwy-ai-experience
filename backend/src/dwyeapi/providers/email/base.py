@@ -34,6 +34,7 @@ class EmailProviderBase(ABC):
         redis: aioredis.Redis | None = None,
         require_common_domain: bool = True,
         extra_allow_domains: Collection[str] = (),
+        allow_edu: bool = True,
         allow_edu_cn: bool = True,
     ) -> None:
         """初始化。
@@ -48,7 +49,8 @@ class EmailProviderBase(ABC):
             support_email: 客服邮箱,展示在邮件正文底部;空串则不显示。
             redis: 可选显式注入的 Redis 连接;为 None 时 fallback 到 dwyeapi.cache.get_redis()。
             require_common_domain: 发码前是否校验常见邮箱域名.默认 True.C 端保持开启.
-            extra_allow_domains: 额外放行域名.默认空.示例:``("yanbofund.com",)``.
+            extra_allow_domains: 额外放行域名.默认空.示例:``("chances.com.cn",)``.
+            allow_edu: 是否放行美国 ``.edu``.默认 True.
             allow_edu_cn: 是否放行 ``*.edu.cn``.默认 True.
         """
         self._ttl = code_ttl
@@ -61,6 +63,7 @@ class EmailProviderBase(ABC):
         self._redis = redis
         self._require_common_domain = require_common_domain
         self._extra_allow = tuple(extra_allow_domains)
+        self._allow_edu = allow_edu
         self._allow_edu_cn = allow_edu_cn
 
     async def _get_redis(self) -> aioredis.Redis:
@@ -89,6 +92,7 @@ class EmailProviderBase(ABC):
             require_common_email_domain(
                 target,
                 extra_allow=self._extra_allow,
+                allow_edu=self._allow_edu,
                 allow_edu_cn=self._allow_edu_cn,
             )
         code = self._generate_code()

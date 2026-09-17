@@ -5,7 +5,8 @@ Gmail / Googlemail 把 plus 别名和点号视为同一收件箱;其它域名只
 
 一次性邮箱会轮换马甲域(如 mail.tm 的 uberip.com),社区黑名单跟不上.
 ``send_code`` 默认走 ``require_common_email_domain``;B2B 设 ``EMAIL__REQUIRE_COMMON_DOMAIN=false``.
-机构域用 ``EMAIL__EXTRA_ALLOW_DOMAINS``,不要把公司域写进 ``COMMON_EMAIL_DOMAINS``.
+企业 / 机构域用 ``EMAIL__EXTRA_ALLOW_DOMAINS``(如 ``chances.com.cn``),不要把公司域写进 ``COMMON_EMAIL_DOMAINS``.
+默认放行美国 ``.edu`` 与 ``*.edu.cn``;不放行 ``edu.kg`` 一类国家教育后缀.
 """
 
 from collections.abc import Collection, Iterable
@@ -16,7 +17,7 @@ from dwyeapi.exceptions import BusinessError
 GMAIL_DOMAINS = frozenset({"gmail.com", "googlemail.com"})
 
 # 常见个人邮箱域名.只做精确匹配,不把 mail.qq.com 当成 qq.com.
-# 机构 / 高校(非 edu.cn)走 extra_allow,不要把公司域写进这张表.
+# 机构 / 企业域走 extra_allow,不要把公司域写进这张表.
 COMMON_EMAIL_DOMAINS = frozenset(
     {
         "qq.com",
@@ -55,6 +56,8 @@ COMMON_EMAIL_DOMAINS = frozenset(
     }
 )
 
+_EDU_SUFFIX = ".edu"
+_EDU_DOMAIN = "edu"
 _EDU_CN_SUFFIX = ".edu.cn"
 _EDU_CN_DOMAIN = "edu.cn"
 _EMAIL_DOMAIN_NOT_ALLOWED_CODE = "EMAIL_DOMAIN_NOT_ALLOWED"
@@ -98,21 +101,24 @@ def is_common_email_domain(
     email: str,
     *,
     extra_allow: Collection[str] = (),
+    allow_edu: bool = True,
     allow_edu_cn: bool = True,
 ) -> bool:
     """邮箱域名是否在常见个人邮箱白名单.
 
     先 ``canonicalize_email``,再精确匹配域名.``mail.qq.com`` 不等于 ``qq.com``.
-    ``allow_edu_cn`` 只认 ``edu.cn`` / ``*.edu.cn``,不放行 ``columbia.edu`` 这类任意 ``.edu``.
+    ``allow_edu`` 只认美国 ``.edu`` TLD(``columbia.edu``),不把 ``atlas.edu.kg`` 当教育域.
+    ``allow_edu_cn`` 只认 ``edu.cn`` / ``*.edu.cn``.企业域走 extra_allow.
 
     Args:
         email (str): 用户输入的邮箱.长度建议 ``[3, 254]``.示例:``user@qq.com``.
         extra_allow (Collection[str]): 业务追加的域名或完整邮箱,大小写不敏感.
-            默认空.示例:``{"yanbofund.com"}``.
+            默认空.示例:``{"chances.com.cn"}``.
+        allow_edu (bool): 是否放行美国 ``.edu``.默认 ``True``.示例:``False``.
         allow_edu_cn (bool): 是否放行中国高校域.默认 ``True``.示例:``False``.
 
     Returns:
-        bool: 在白名单或 extra_allow / edu.cn 规则内为 True;无 ``@`` 为 False.
+        bool: 在白名单或 extra_allow / edu 规则内为 True;无 ``@`` 为 False.
     """
     domain = _email_domain(email)
     if not domain:
@@ -121,6 +127,8 @@ def is_common_email_domain(
         return True
     if domain in _normalize_allow_domains(extra_allow):
         return True
+    if allow_edu and _is_edu(domain):
+        return True
     return allow_edu_cn and _is_edu_cn(domain)
 
 
@@ -128,6 +136,7 @@ def require_common_email_domain(
     email: str,
     *,
     extra_allow: Collection[str] = (),
+    allow_edu: bool = True,
     allow_edu_cn: bool = True,
 ) -> str:
     """校验常见邮箱域名,通过则返回规范化地址.
@@ -137,7 +146,8 @@ def require_common_email_domain(
 
     Args:
         email (str): 用户输入的邮箱.长度建议 ``[3, 254]``.示例:``user@163.com``.
-        extra_allow (Collection[str]): 业务追加的域名或完整邮箱.默认空.示例:``{"contek.io"}``.
+        extra_allow (Collection[str]): 业务追加的域名或完整邮箱.默认空.示例:``{"chances.com.cn"}``.
+        allow_edu (bool): 是否放行美国 ``.edu``.默认 ``True``.示例:``True``.
         allow_edu_cn (bool): 是否放行 ``*.edu.cn``.默认 ``True``.示例:``True``.
 
     Returns:
@@ -146,7 +156,12 @@ def require_common_email_domain(
     Raises:
         BusinessError: 域名不在白名单.``code`` 为 ``EMAIL_DOMAIN_NOT_ALLOWED``.
     """
-    if not is_common_email_domain(email, extra_allow=extra_allow, allow_edu_cn=allow_edu_cn):
+    if not is_common_email_domain(
+        email,
+        extra_allow=extra_allow,
+        allow_edu=allow_edu,
+        allow_edu_cn=allow_edu_cn,
+    ):
         raise BusinessError(message=_EMAIL_DOMAIN_NOT_ALLOWED_MESSAGE, code=_EMAIL_DOMAIN_NOT_ALLOWED_CODE)
     return canonicalize_email(email)
 
@@ -187,6 +202,20 @@ def _normalize_allow_domains(items: Iterable[str]) -> set[str]:
         if value:
             domains.add(value)
     return domains
+
+
+def _is_edu(domain: str) -> bool:
+    """是否美国 ``.edu`` 顶级域.
+
+    Educause 管 ``.edu``,门槛高.``atlas.edu.kg`` 的 TLD 是 ``kg``,这里不放行.
+
+    Args:
+        domain (str): 已小写的域名.示例:``columbia.edu``.
+
+    Returns:
+        bool: 域名是 ``edu`` 或以 ``.edu`` 结尾则为 True.
+    """
+    return domain == _EDU_DOMAIN or domain.endswith(_EDU_SUFFIX)
 
 
 def _is_edu_cn(domain: str) -> bool:
