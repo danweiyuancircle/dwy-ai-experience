@@ -1,5 +1,12 @@
 # dwyeapi
 
+## 0.10.1
+
+### Patch Changes
+
+- **美国 `.edu`**：默认放行 `columbia.edu` 一类 Educause 管理的 `.edu` TLD。仍拒绝 `atlas.edu.kg` / `edu.pl` 等国家教育后缀。`EMAIL__ALLOW_EDU` 可关。
+- **企业域**：继续走 `EMAIL__EXTRA_ALLOW_DOMAINS`（如 `chances.com.cn`），不把公司域写进框架常量表。
+
 ## 0.10.0
 
 ### Breaking Changes

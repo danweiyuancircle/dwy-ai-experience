@@ -34,6 +34,7 @@ class ResendEmailProvider(EmailProviderBase):
         redis: aioredis.Redis | None = None,
         require_common_domain: bool = True,
         extra_allow_domains: tuple[str, ...] = (),
+        allow_edu: bool = True,
         allow_edu_cn: bool = True,
     ) -> None:
         """初始化 Resend Provider。
@@ -52,6 +53,7 @@ class ResendEmailProvider(EmailProviderBase):
             redis: 可选显式注入的 Redis 连接。
             require_common_domain: 发码前是否校验常见邮箱域名.默认 True.
             extra_allow_domains: 额外放行域名.默认空.
+            allow_edu: 是否放行美国 ``.edu``.默认 True.
             allow_edu_cn: 是否放行 ``*.edu.cn``.默认 True.
 
         Raises:
@@ -68,6 +70,7 @@ class ResendEmailProvider(EmailProviderBase):
             redis=redis,
             require_common_domain=require_common_domain,
             extra_allow_domains=extra_allow_domains,
+            allow_edu=allow_edu,
             allow_edu_cn=allow_edu_cn,
         )
         try:
@@ -119,5 +122,6 @@ def build_resend_provider(settings: EmailSettings) -> ResendEmailProvider:
         support_email=settings.support_email,
         require_common_domain=settings.require_common_domain,
         extra_allow_domains=settings.extra_allow_domain_list(),
+        allow_edu=settings.allow_edu,
         allow_edu_cn=settings.allow_edu_cn,
     )

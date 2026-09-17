@@ -58,13 +58,15 @@ class TestResendBuiltin:
         settings = EmailSettings(
             provider="resend",
             require_common_domain=False,
-            extra_allow_domains="yanbofund.com",
+            extra_allow_domains="chances.com.cn",
+            allow_edu=False,
             allow_edu_cn=False,
             resend=ResendConfig(api_key="re_test", from_email="a@b.com"),
         )
         provider = make_email_provider(settings)
         assert provider._require_common_domain is False
-        assert provider._extra_allow == ("yanbofund.com",)
+        assert provider._extra_allow == ("chances.com.cn",)
+        assert provider._allow_edu is False
         assert provider._allow_edu_cn is False
 
     def test_resend_resolves_from_same_registry(self):
@@ -130,9 +132,10 @@ class TestCustomRegistration:
 
 class TestEmailDomainSettings:
     def test_extra_allow_domain_list_splits_and_strips(self):
-        settings = EmailSettings(extra_allow_domains=" yanbofund.com, contek.io ,")
-        assert settings.extra_allow_domain_list() == ("yanbofund.com", "contek.io")
+        settings = EmailSettings(extra_allow_domains=" chances.com.cn, contek.io ,")
+        assert settings.extra_allow_domain_list() == ("chances.com.cn", "contek.io")
         assert settings.require_common_domain is True
+        assert settings.allow_edu is True
         assert settings.allow_edu_cn is True
 
     def test_extra_allow_rejects_oversized_segment(self):

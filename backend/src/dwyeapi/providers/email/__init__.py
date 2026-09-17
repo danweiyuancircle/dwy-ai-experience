@@ -38,6 +38,7 @@
             brand_name=s.brand_name,
             require_common_domain=s.require_common_domain,
             extra_allow_domains=s.extra_allow_domain_list(),
+            allow_edu=s.allow_edu,
             allow_edu_cn=s.allow_edu_cn,
         )
 

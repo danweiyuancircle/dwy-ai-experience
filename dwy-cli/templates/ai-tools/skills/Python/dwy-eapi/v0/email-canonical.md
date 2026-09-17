@@ -32,11 +32,12 @@ email = require_common_email_domain(raw)
 
 # .env
 # EMAIL__REQUIRE_COMMON_DOMAIN=true
-# EMAIL__EXTRA_ALLOW_DOMAINS=yanbofund.com,contek.io
+# EMAIL__EXTRA_ALLOW_DOMAINS=chances.com.cn
+# EMAIL__ALLOW_EDU=true
 # EMAIL__ALLOW_EDU_CN=true
 ```
 
 - 精确匹配 `COMMON_EMAIL_DOMAINS`（qq / 163 / gmail / outlook / icloud / proton 等），`mail.qq.com` 不等于 `qq.com`
-- 默认放行 `edu.cn` / `*.edu.cn`，不放行任意 `.edu`
-- 机构域用 `extra_allow` / `EMAIL__EXTRA_ALLOW_DOMAINS`，不要把公司域写进框架常量表
-- 自定义 provider 的 factory 必须把 `require_common_domain` / `extra_allow_domain_list()` / `allow_edu_cn` 传给 `EmailProviderBase`
+- 默认放行美国 `.edu`（`columbia.edu`）与 `edu.cn` / `*.edu.cn`；**不**放行 `edu.kg` / `edu.pl` 等国家教育后缀
+- 企业 / 机构域用 `extra_allow` / `EMAIL__EXTRA_ALLOW_DOMAINS`（如 `chances.com.cn`），不要把公司域写进框架常量表
+- 自定义 provider 的 factory 必须把 `require_common_domain` / `extra_allow_domain_list()` / `allow_edu` / `allow_edu_cn` 传给 `EmailProviderBase`

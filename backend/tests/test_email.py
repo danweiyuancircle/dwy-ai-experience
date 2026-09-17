@@ -56,16 +56,29 @@ class TestIsCommonEmailDomain:
         assert is_common_email_domain("a@mail.qq.com") is False
 
     def test_allows_edu_cn_by_default(self):
-        """默认放行 *.edu.cn;关闭开关后拒绝;不放行任意 .edu."""
+        """默认放行 *.edu.cn;关闭开关后拒绝."""
         assert is_common_email_domain("a@mails.tsinghua.edu.cn") is True
         assert is_common_email_domain("a@mail2.sysu.edu.cn") is True
-        assert is_common_email_domain("a@columbia.edu") is False
+        assert is_common_email_domain("a@saif.sjtu.edu.cn") is True
+        assert is_common_email_domain("a@sz.pku.edu.cn") is True
         assert is_common_email_domain("a@mails.tsinghua.edu.cn", allow_edu_cn=False) is False
 
+    def test_allows_us_edu_by_default(self):
+        """默认放行美国 .edu TLD;关闭开关后拒绝."""
+        assert is_common_email_domain("a@columbia.edu") is True
+        assert is_common_email_domain("a@mail.mit.edu") is True
+        assert is_common_email_domain("a@columbia.edu", allow_edu=False) is False
+
+    def test_rejects_fake_edu_cctld(self):
+        """edu.kg / edu.pl 等国家教育后缀可随便注册,不当成美国 .edu."""
+        assert is_common_email_domain("a@atlas.edu.kg") is False
+        assert is_common_email_domain("a@school.edu.pl") is False
+        assert is_common_email_domain("a@school.edu.co") is False
+
     def test_extra_allow_is_case_insensitive(self):
-        """机构域靠 extra_allow;大小写不敏感,可传完整邮箱."""
-        assert is_common_email_domain("ops@yanbofund.com") is False
-        assert is_common_email_domain("ops@YanboFund.com", extra_allow={"yanbofund.com"}) is True
+        """机构 / 企业域靠 extra_allow;大小写不敏感,可传完整邮箱."""
+        assert is_common_email_domain("ops@chances.com.cn") is False
+        assert is_common_email_domain("ops@Chances.com.cn", extra_allow={"chances.com.cn"}) is True
         assert is_common_email_domain("ops@contek.io", extra_allow={"ops@Contek.io"}) is True
 
     def test_missing_at_is_not_common(self):

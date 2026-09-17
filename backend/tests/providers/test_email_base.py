@@ -136,8 +136,15 @@ class TestEmailProviderBase:
 
     async def test_send_code_extra_allow_and_disable(self, fake_redis):
         """机构域靠 extra_allow;关闭开关后任意域可发码。"""
-        allowed = FakeEmailProvider(redis=fake_redis, extra_allow_domains=("yanbofund.com",))
-        assert await allowed.send_code("ops@yanbofund.com") is True
+        allowed = FakeEmailProvider(redis=fake_redis, extra_allow_domains=("chances.com.cn",))
+        assert await allowed.send_code("ops@chances.com.cn") is True
+
+        edu = FakeEmailProvider(redis=fake_redis)
+        assert await edu.send_code("a@columbia.edu") is True
+        fake = FakeEmailProvider(redis=fake_redis)
+        with pytest.raises(BusinessError) as exc_info:
+            await fake.send_code("a@atlas.edu.kg")
+        assert exc_info.value.code == "EMAIL_DOMAIN_NOT_ALLOWED"
 
         disabled = FakeEmailProvider(redis=fake_redis, require_common_domain=False)
         assert await disabled.send_code("alice@example.com") is True
