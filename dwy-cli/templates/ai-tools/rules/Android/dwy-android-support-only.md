@@ -84,6 +84,8 @@ android.enableJetifier=false
 3. 传递依赖混入 androidx 时,用 `exclude` 排除,并替换为 support 等价物;**无法排除或无 support 等价物 → 换库**,不要将就
 4. **禁止**为使用某个只支持 androidx 的库而引入 androidx —— 一个 androidx 进来就破坏整套隔离,得不偿失
 
+屏幕适配固定用 AndroidAutoSize `v1.2.1`（JitPack，`1.2.0+` 兼容 Support），只按宽度。移动端设计宽 `390`，TV 设计宽 `1280`。禁止改用 `androidx.window` / WindowSizeClass / Compose Adaptive。细则见 `dwy-android-core`「屏幕适配」。
+
 ```groovy
 // 库 foo 的 3.x 已迁 androidx,锁在最后支持 support 的 2.8.0(升级需先整体迁 androidx,见 issue #1234)
 implementation 'com.foo:bar:2.8.0'
