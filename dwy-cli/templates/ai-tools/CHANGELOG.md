@@ -52,6 +52,52 @@
 
 ---
 
+## 0.21.0 — 2026-09-20
+
+### Changed
+
+- `rules/Android/dwy-android-core.md`：分端只保留设计基准（移动 `390×844` / TV `1280×720`）+ AutoSize `design_width`。去掉 `values-television`、flavor、`uiMode` 运行时切换等区分方式
+- `rules/Android/dwy-android-support-only.md`：同步去掉资源分目录要求
+
+---
+
+## 0.20.0 — 2026-09-20
+
+### Added
+
+- `rules/Android/dwy-android-core.md`：屏幕适配分端设计基准。移动端 `390×844` dp（AutoSize 宽 `390`），TV 端 `1280×720` dp（AutoSize 宽 `1280`）；资源 `values` / `values-television`；双端禁止共用 `design_width` 与 dimens
+
+### Changed
+
+- `rules/Android/dwy-android-support-only.md`：Support 仓同步上述分端宽
+
+---
+
+## 0.19.0 — 2026-09-20
+
+### Added
+
+- `rules/Android/dwy-android-core.md`：屏幕适配固定 AndroidAutoSize `v1.2.1`，只按宽度（`design_width_in_dp` 对齐设计稿宽，手机稿 `390`）；禁止按高适配、禁止副单位；页面基类必须 `getResources()` + `AutoSizeCompat`
+- `rules/Android/dwy-android-support-only.md`：Support 仓屏幕适配同样走 AutoSize，禁止改用 `androidx.window`
+
+---
+
+## 0.18.0 — 2026-09-20
+
+### Added
+
+- `rules/Android/dwy-android-core.md`：尺寸与字号一律 `dp`，禁止 `px` / `sp`（文字不跟系统字体缩放）；数值走 `dimens.xml`
+
+---
+
+## 0.17.0 — 2026-09-20
+
+### Added
+
+- `CLAUDE.md`：新增「团队基础库缺口回流」。AI 读当前项目识别用户自研基础库；落点按当场情况动态判断（改基础库还是改业务），不写死库名、也不写死「一律先改业务」。落在业务侧则事后总结提问。
+
+---
+
 ## 0.16.0 — 2026-09-15
 
 ### Added
