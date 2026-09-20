@@ -297,18 +297,20 @@
 
 ---
 
-## 12. reka-ui 2.10 对齐（8 个）
+## 12. reka-ui 2.10 对齐（10 个）
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
 | 1 | EDialog 默认关闭卸 overlay | `tests/components/dialog.test.ts` attachTo body，open true→false 后 overlay 为 null |
 | 2 | EDialog destroyOnClose=false 保留 overlay | 关闭后 document 仍有 `[data-slot="dialog-overlay"]` |
 | 3 | EDialog 无 description 补 sr-only | 打开后有 `[data-slot="dialog-description"].sr-only` |
-| 4 | EDrawer 默认关闭卸 overlay | `tests/components/drawer.test.ts` |
-| 5 | EDrawer destroyOnClose=false 保留 overlay | 同上 |
-| 6 | EFormDialog 打开有 DialogDescription | `tests/components/form-dialog.test.ts` |
-| 7 | EHoverCard enableTouch | `tests/components/hover-card.test.ts` |
-| 8 | EConfigProvider teleportTo | `tests/components/config-provider.test.ts` |
+| 4 | EDialog 关闭瞬间不卸 body | 收起动画前 `#dlg-slot-body` 仍在 content 里 |
+| 5 | EDrawer 默认关闭卸 overlay | `tests/components/drawer.test.ts` |
+| 6 | EDrawer destroyOnClose=false 保留 overlay | 同上 |
+| 7 | EDrawer 关闭瞬间不卸 body | 收起动画前槽内容仍在 |
+| 8 | EFormDialog 打开有 DialogDescription | `tests/components/form-dialog.test.ts` |
+| 9 | EHoverCard enableTouch | `tests/components/hover-card.test.ts` |
+| 10 | EConfigProvider teleportTo | `tests/components/config-provider.test.ts` |
 
 ---
 

@@ -88,6 +88,23 @@ describe('EDrawer', () => {
     wrapper.unmount()
   })
 
+  it('关闭瞬间不卸 body，避免收起动画期间高度塌掉', async () => {
+    const wrapper = mount(EDrawer, {
+      attachTo: document.body,
+      props: { open: true, title: '抽屉' },
+      slots: { default: '<p id="drawer-slot-body">内容</p>' },
+    })
+    await flushPromises()
+    expect(document.querySelector('#drawer-slot-body')).not.toBeNull()
+
+    await wrapper.setProps({ open: false })
+    expect(document.querySelector('[data-slot="drawer-content"]')).not.toBeNull()
+    expect(document.querySelector('#drawer-slot-body')).not.toBeNull()
+
+    await flushPromises()
+    wrapper.unmount()
+  })
+
   it('destroyOnClose=false 关闭后仍保留 overlay（对齐 reka unmountOnHide=false）', async () => {
     const wrapper = mount(EDrawer, {
       attachTo: document.body,

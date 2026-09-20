@@ -102,6 +102,23 @@ describe('EDialog', () => {
     wrapper.unmount()
   })
 
+  it('关闭瞬间不卸 body，避免收起动画期间高度塌掉', async () => {
+    const wrapper = mount(EDialog, {
+      attachTo: document.body,
+      props: { open: true, title: '标题' },
+      slots: { default: '<p id="dlg-slot-body">表单</p>' },
+    })
+    await flushPromises()
+    expect(document.querySelector('#dlg-slot-body')).not.toBeNull()
+
+    await wrapper.setProps({ open: false })
+    expect(document.querySelector('[data-slot="dialog-content"]')).not.toBeNull()
+    expect(document.querySelector('#dlg-slot-body')).not.toBeNull()
+
+    await flushPromises()
+    wrapper.unmount()
+  })
+
   it('无 description 时仍渲染 sr-only DialogDescription，满足 reka 无障碍', async () => {
     const wrapper = mount(EDialog, {
       attachTo: document.body,

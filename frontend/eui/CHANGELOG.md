@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.4.2
+
+### Patch Changes
+
+- **EDialog / EDrawer**：关闭时等收起动画结束再卸内容。先前默认 `destroyOnClose` 在 `open=false` 同一帧拆掉 body，长表单高度先塌再淡出，看起来像闪屏。卸 overlay 仍交给 reka `unmountOnHide`。
+
 ## 2.4.1
 
 ### Patch Changes

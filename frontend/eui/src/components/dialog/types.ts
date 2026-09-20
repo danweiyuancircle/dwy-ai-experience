@@ -29,7 +29,7 @@ export interface EDialogProps {
   fullscreen?: boolean
   /**
    * 关闭时是否卸载内容与 overlay。
-   * 对齐 reka-ui 2.10 DialogRoot.unmountOnHide：true 关闭即卸 DOM，避免残留 overlay 挡点击；
+   * 对齐 reka-ui 2.10 DialogRoot.unmountOnHide：true 等收起动画结束再卸 DOM；
    * false 仅隐藏，保留状态（SEO / 避免反复挂载）。
    */
   destroyOnClose?: boolean
