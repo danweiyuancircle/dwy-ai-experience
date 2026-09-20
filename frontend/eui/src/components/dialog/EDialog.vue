@@ -174,8 +174,8 @@ function onPointerUp() {
           对话框内容
         </DialogDescription>
 
-        <!-- destroyOnClose: unmount content when closed; otherwise always render -->
-        <div v-if="destroyOnClose ? localOpen : true" data-slot="dialog-body" class="flex-1 min-h-0 overflow-y-auto">
+        <!-- 卸 DOM 交给 DialogRoot unmountOnHide（等收起动画结束）。不要跟 localOpen 绑 v-if，否则长表单会先塌高度再淡出。 -->
+        <div data-slot="dialog-body" class="flex-1 min-h-0 overflow-y-auto">
           <div class="p-1">
             <slot />
           </div>

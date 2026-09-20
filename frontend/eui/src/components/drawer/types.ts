@@ -24,7 +24,8 @@ export interface EDrawerProps {
   showClose?: boolean
   /**
    * 关闭时是否卸载内容与 overlay。
-   * 对齐 reka-ui 2.10 DialogRoot.unmountOnHide；false 仅隐藏不卸 DOM。
+   * 对齐 reka-ui 2.10 DialogRoot.unmountOnHide：true 等收起动画结束再卸；
+   * false 仅隐藏不卸 DOM。
    */
   destroyOnClose?: boolean
 }

@@ -111,8 +111,8 @@ watch(localOpen, (val) => {
           </slot>
         </div>
 
-        <!-- Body -->
-        <div v-if="destroyOnClose ? localOpen : true" class="flex-1 overflow-auto px-4 py-1">
+        <!-- 卸 DOM 交给 unmountOnHide，等收起动画结束；不要跟 localOpen 绑 v-if。 -->
+        <div data-slot="drawer-body" class="flex-1 overflow-auto px-4 py-1">
           <slot />
         </div>
 
