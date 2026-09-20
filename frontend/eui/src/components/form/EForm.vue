@@ -30,11 +30,52 @@ const isZodSchema = computed(() => {
 })
 
 /**
- * 将单个 FormRule 转换为 vee-validate 可识别的校验函数
- * 支持 required / min / max / type=email / pattern / 自定义 validator
+ * 把业务校验返回值收成 vee-validate 认的 `true | string`。
+ * vee-validate 把非 string 的 truthy 当通过，直接 return Error 会静默成功。
+ */
+function toVeeValidateResult(raw: unknown, fallback?: string): true | string {
+  if (raw === true || raw === undefined || raw === null) return true
+  if (raw === false) return fallback || '校验失败'
+  if (typeof raw === 'string') return raw || fallback || '校验失败'
+  if (raw instanceof Error) return raw.message || fallback || '校验失败'
+  return true
+}
+
+/**
+ * 跑自定义 validator：同步 return、callback、Promise 三种 Element Plus 写法都收。
+ */
+function runCustomValidator(rule: FormRule, value: unknown): Promise<true | string> {
+  return new Promise((resolve) => {
+    let settled = false
+    const finish = (raw: unknown) => {
+      if (settled) return
+      settled = true
+      resolve(toVeeValidateResult(raw, rule.message))
+    }
+    try {
+      const ret = rule.validator!(rule, value, (err?: Error) => {
+        finish(err ?? true)
+      })
+      if (ret instanceof Promise) {
+        void ret.then(
+          (resolved) => finish(resolved === undefined ? true : resolved),
+          (err: unknown) => finish(err),
+        )
+        return
+      }
+      if (ret !== undefined) finish(ret)
+    } catch (err) {
+      finish(err)
+    }
+  })
+}
+
+/**
+ * 将单个 FormRule 转换为 vee-validate 可识别的校验函数。
+ * 支持 required / min / max / type=email / pattern / 自定义 validator。
  */
 function ruleToValidator(rule: FormRule) {
-  return (value: any) => {
+  return (value: unknown) => {
     if (rule.required && (value === undefined || value === null || value === '')) {
       return rule.message || '此字段为必填项'
     }
@@ -47,35 +88,32 @@ function ruleToValidator(rule: FormRule) {
       }
     }
     if (rule.type === 'email' && value) {
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value))) {
         return rule.message || '请输入有效的邮箱地址'
       }
     }
-    if (rule.pattern && value && !rule.pattern.test(value)) {
+    if (rule.pattern && value && !rule.pattern.test(String(value))) {
       return rule.message || '格式不正确'
     }
     if (rule.validator) {
-      let error: string | undefined
-      rule.validator(rule, value, (err?: Error) => {
-        if (err) error = err.message
-      })
-      if (error) return error
+      return runCustomValidator(rule, value)
     }
     return true
   }
 }
 
 /**
- * 将"字段 → 规则"映射构建为 vee-validate 兼容的字段级校验 schema
+ * 将"字段 → 规则"映射构建为 vee-validate 兼容的字段级校验 schema。
+ * 组合函数必须 async：自定义 validator 可能返回 Promise。
  */
 function buildPlainSchema(rules: Record<string, FormRule | FormRule[]>) {
-  const schema: Record<string, (value: any) => string | true> = {}
+  const schema: Record<string, (value: unknown) => Promise<true | string>> = {}
   for (const [field, fieldRules] of Object.entries(rules)) {
     const ruleArray = Array.isArray(fieldRules) ? fieldRules : [fieldRules]
     const validators = ruleArray.map(ruleToValidator)
-    schema[field] = (value: any) => {
-      for (const v of validators) {
-        const result = v(value)
+    schema[field] = async (value: unknown) => {
+      for (const validator of validators) {
+        const result = await validator(value)
         if (result !== true) return result
       }
       return true
@@ -99,6 +137,8 @@ const initialSnapshot = JSON.parse(JSON.stringify(props.model ?? {}))
 const { handleSubmit, resetForm, setErrors, validate: veeValidate, validateField: veeValidateField, setFieldValue } = useForm({
   validationSchema,
   initialValues: initialSnapshot,
+  // 进页空表不能出红字；提交 / 值变化再校
+  validateOnMount: false,
 })
 
 const onSubmit = handleSubmit((values) => {

@@ -312,7 +312,22 @@
 
 ---
 
-## 13. useFormField / ETable P0P1
+## 13. EForm 边输边校（6 个）
+
+`tests/components/form.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 挂载空字段无红字 | 无 `[data-slot="form-message"]` |
+| 2 | 密码输入不足最小长度立即出错误 | 输入 `a` 后文案含「密码至少 8 位」 |
+| 3 | 改到合法后错误消失 | 从 `a` 改到 8 位后无 form-message |
+| 4 | 确认密码已填时改密码提示不一致 | `return new Error(...)` 必须显示，不能被 vee-validate 当成通过 |
+| 5 | 确认密码为空时改密码不出确认错误 | 未触碰的确认栏保持干净 |
+| 6 | 提交空表单仍拦截并显示必填 | native submit 出「请输入密码」 |
+
+---
+
+## 14. useFormField / ETable P0P1
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
@@ -334,7 +349,7 @@ cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
 # Test Files  87 passed (87)
-# Tests       709 passed (709)
+# Tests       715 passed (715)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run tests/utils/cn.test.ts

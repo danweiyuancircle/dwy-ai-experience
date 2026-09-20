@@ -103,6 +103,13 @@ export interface FormRule {
   type?: string
   /** 正则匹配 */
   pattern?: RegExp
-  /** 自定义异步/同步校验器，调用 callback 返回结果 */
-  validator?: (rule: FormRule, value: any, callback: (error?: Error) => void) => void
+  /**
+   * 自定义校验。三种写法都认：callback(Error)、return Error/string/false、return Promise。
+   * 必须把 Error 转成 string 再交给 vee-validate，否则 truthy 的 Error 会被当成通过。
+   */
+  validator?: (
+    rule: FormRule,
+    value: unknown,
+    callback: (error?: Error) => void,
+  ) => void | boolean | string | Error | Promise<void | boolean | string | Error>
 }

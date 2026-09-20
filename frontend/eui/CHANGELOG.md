@@ -1,5 +1,12 @@
 # @dwydev/eui
 
+## 2.4.1
+
+### Patch Changes
+
+- **EForm 自定义 validator**：`return true` / `return new Error('…')` / `return '…'` / callback 都收。先前只认 callback，`Error` 对象会被 vee-validate 当成通过，确认密码对不上也不出红字
+- **EForm**：显式 `validateOnMount: false`。值变化后栏下出校验（vee-validate `validateOnValueUpdate`）
+
 ## 2.4.0
 
 相对 `2.3.0` 的正式线。beta.1–beta.11 细节仍留在下方各段。
