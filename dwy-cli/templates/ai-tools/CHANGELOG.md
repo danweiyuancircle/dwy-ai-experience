@@ -52,6 +52,15 @@
 
 ---
 
+## 0.23.0 — 2026-09-21
+
+### Changed
+
+- `rules/Android/dwy-android-mvp.md`：实际 MVP 架构以当前项目上下文为准；写页面前必须先读本仓 Presenter / Contract / 业务 Base。本文件只定行为，不定骨架。静态页可不写 Presenter。业务 Base 仍落 BizFoundation。
+- `rules/Android/dwy-android-core.md` / `dwy-android-layering.md`：去掉强制 Contract 示例与命名
+
+---
+
 ## 0.22.0 — 2026-09-21
 
 ### Added
