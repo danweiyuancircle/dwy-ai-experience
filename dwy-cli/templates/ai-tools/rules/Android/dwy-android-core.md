@@ -13,7 +13,7 @@ paths:
 
 适用于 **Android 原生项目**(Java + Kotlin 混编,XML 布局,Gradle 构建脚本)。本规范**重点是代码注释**,兼带最小必要的命名 / 简约 / 反模式约束。
 
-不限制构建工具、UI 框架、架构模式、SDK 版本、依赖库选型 —— 与老项目兼容。
+不限制构建工具、UI 框架、SDK 版本、依赖库选型 —— 与老项目兼容。页面架构走 `dwy-android-mvp`（Contract MVP + 业务 Base）；模块四层走 `dwy-android-layering`。
 
 ## 全面屏 / 刘海屏适配
 
@@ -228,6 +228,7 @@ class PriceText(context: Context, attrs: AttributeSet?) : AppCompatTextView(cont
 | Fragment                          | `XxxFragment`                       | `HomeFragment`                |
 | Adapter / ViewHolder              | `XxxAdapter` / `XxxViewHolder`      | `OrderAdapter`                |
 | Dialog                            | `XxxDialog`                         | `ConfirmDialog`               |
+| MVP Contract / Presenter          | `XxxContract` / `XxxPresenter`      | `LoginContract`、`LoginPresenter` |
 | 布尔变量 / 方法                         | `is`* / `has*` / `can*` / `should*` | `isLoading`、`hasNext`         |
 
 
@@ -919,7 +920,7 @@ for (Order o : orders) {
 
 | 覆盖 | 不覆盖 |
 | ---- | ------ |
-| Model / Entity / DTO / VO / Bean 及同类数据载体 | Activity / Fragment / Adapter / ViewHolder / Repository / ViewModel 等非数据载体 |
+| Model / Entity / DTO / VO / Bean 及同类数据载体 | Activity / Fragment / Adapter / ViewHolder / Repository / Presenter 等非数据载体 |
 | 含功能包内私有、`internal` 实体 | `enum`;仅含常量的 `object` / `Constants` 类 |
 | 网络响应体、跨层传递的数据对象 | 纯 UI 状态若仅为页面内部临时结构且不跨层,可豁免(跨层则按实体处理) |
 
@@ -1057,7 +1058,7 @@ class User(val id: Long, val name: String)
 
 **按功能聚合(package-by-feature),不按技术分层(package-by-layer)。**
 
-同一个功能/页面相关的所有类 —— 页面(Activity / Fragment)、其数据实体、业务逻辑(ViewModel / Presenter / UseCase)、数据访问(Repository)、列表 Adapter、UI 状态等 —— 放在**同一个功能包**下聚合,而不是按类型横切成 `activities/`、`models/`、`adapters/`、`repositories/` 这种分层包。
+同一个功能/页面相关的所有类 —— 页面(Activity / Fragment)、其数据实体、业务逻辑(Contract / Presenter)、数据访问(Repository)、列表 Adapter、UI 状态等 —— 放在**同一个功能包**下聚合,而不是按类型横切成 `activities/`、`models/`、`adapters/`、`presenters/` 这种分层包。页面架构见 `dwy-android-mvp`。
 
 **理由**:改一个功能时,相关文件都在一个包内,无需在多个分层目录间跳转;包之间按业务边界解耦,删除/迁移一个功能只动一个包;高内聚低耦合,符合就近维护。
 
@@ -1066,24 +1067,25 @@ class User(val id: Long, val name: String)
 com.example.app/
   login/                      <!-- 登录功能,自包含 -->
     LoginActivity.kt
-    LoginViewModel.kt
+    LoginContract.kt
+    LoginPresenter.kt
     LoginRepository.kt
-    LoginUiState.kt
     Credential.kt             <!-- 该功能私有实体 -->
   order/                      <!-- 订单功能 -->
     OrderListActivity.kt
     OrderDetailActivity.kt
-    OrderViewModel.kt
+    OrderListContract.kt
+    OrderListPresenter.kt
     OrderRepository.kt
     OrderAdapter.kt
     Order.kt
-  common/                     <!-- 跨功能共享:基类、工具、网络、通用实体 -->
+  common/                     <!-- 未拆四层时:本产品 Base / 工具。有 :biz-foundation 则 Base 放那个模块 -->
     base/  network/  util/  model/
 
 // ❌ 按技术分层横切 —— 改一个功能要在多个目录间反复跳
 com.example.app/
   activities/   LoginActivity.kt  OrderListActivity.kt  OrderDetailActivity.kt
-  viewmodels/   LoginViewModel.kt  OrderViewModel.kt
+  presenters/   LoginPresenter.kt  OrderListPresenter.kt
   repositories/ LoginRepository.kt  OrderRepository.kt
   adapters/     OrderAdapter.kt
   models/       Credential.kt  Order.kt

@@ -11,7 +11,7 @@ paths:
 
 # Android 四层架构与依赖
 
-适用于多模块 Android 应用。注释 / 命名 / AppCompat 见 `dwy-android-core`。本文件只管**Gradle 模块层、引用边、版本写在哪**。模块**内部** Java 包仍按功能聚合（见 `dwy-android-core`「包组织」）。
+适用于多模块 Android 应用。注释 / 命名 / AppCompat 见 `dwy-android-core`。页面 MVP 与业务 Base 见 `dwy-android-mvp`。本文件只管**Gradle 模块层、引用边、版本写在哪**。模块**内部** Java 包仍按功能聚合（见 `dwy-android-core`「包组织」）。
 
 新项目强制本结构。未拆模块的存量**不回溯拆包**；新增模块必须按本文件落层。Support 老项目另走 `dwy-android-support-only`。
 
@@ -32,7 +32,9 @@ paths:
 
 升层：第二个 Feature 或第二个产品**真在用**，才升到 BizFoundation / Foundation。禁止「可能复用」提前抽。
 
-业务内聚：一个业务域 = `:features:<name>`。域内 Activity / ViewModel / Repository 聚在该模块。禁止全局 `activities/` 模块。
+业务内聚：一个业务域 = `:features:<name>`。域内 Activity / Contract / Presenter / Repository 聚在该模块。禁止全局 `activities/` / `presenters/` 模块。
+
+`BaseActivity` / `BaseFragment` / `BaseDialog` 落在 `:biz-foundation`（本产品壳）。Foundation 不放页面基类。细则见 `dwy-android-mvp`。
 
 ---
 
@@ -135,5 +137,6 @@ dependencies {
 | Feature `implementation` 另一 Feature 或 `:foundation` 或 `:app` | 高 |
 | Feature 源码 `import` foundation 包名（即使经 `api` 透传） | 高 |
 | 开机链 / 业务编排写在 `:app` 的 Presenter | 高 |
+| 业务 BaseActivity 放在 `:foundation` 或 Feature 里 | 高 |
 | 子模块写死第三方坐标版本 | 高 |
 | `Domain` / `infra` / `core` 当层名 | 中 |
