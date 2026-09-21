@@ -2,6 +2,7 @@
   ETable 数据表格组件
   排序/行模型走 @tanstack/vue-table；virtual 走 @tanstack/vue-virtual。
   对外仍是 TableColumn / #cell-* / @sort，不泄露 TanStack 类型。
+  mobileLayout=stack 且窄屏时改渲染卡片，不藏列。
 -->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
@@ -15,6 +16,7 @@ import {
 } from '@tanstack/vue-table'
 import { useVirtualizer } from '@tanstack/vue-virtual'
 import { cn } from '@/utils/cn'
+import { useEuiMobile } from '@/composables/useEuiMobile'
 import type { ETableProps, ETableEmits } from './types'
 import type { TableColumn } from '@/types'
 
@@ -34,9 +36,16 @@ const props = withDefaults(defineProps<ETableProps>(), {
   virtual: false,
   virtualRowHeight: 48,
   resizable: false,
+  mobileLayout: 'scroll',
 })
 
 const emit = defineEmits<ETableEmits>()
+
+/** 与壳 / 分页同一 767 断点。stack 只在窄屏切卡片，避免后台宽表被默认改掉。 */
+const isMobile = useEuiMobile()
+const isStack = computed(
+  () => props.mobileLayout === 'stack' && isMobile.value,
+)
 
 const sortState = ref<{ key: string; direction: 'asc' | 'desc' | null }>({
   key: '',
@@ -293,7 +302,7 @@ const virtualItems = computed(() =>
 )
 
 const visibleRows = computed(() => {
-  if (!props.virtual) return sortedData.value
+  if (isStack.value || !props.virtual) return sortedData.value
   return virtualItems.value.map((item) => sortedData.value[item.index]).filter(Boolean)
 })
 
@@ -303,9 +312,9 @@ const totalHeight = computed(() =>
   props.virtual ? rowVirtualizer.value.getTotalSize() : 0,
 )
 
-/** 当前渲染行在全量数据中的下标（virtual 用 virtualizer index） */
+/** 当前渲染行在全量数据中的下标（virtual 用 virtualizer index；stack 已禁用窗口） */
 function dataIndex(idx: number): number {
-  if (!props.virtual) return idx
+  if (isStack.value || !props.virtual) return idx
   return virtualItems.value[idx]?.index ?? idx
 }
 
@@ -411,6 +420,7 @@ function onResizeMouseUp() {
       <LoaderCircle class="size-6 animate-spin text-muted-foreground" />
     </div>
 
+    <template v-if="!isStack">
     <table
       data-slot="table"
       :class="cn(
@@ -674,5 +684,93 @@ function onResizeMouseUp() {
         </tr>
       </tfoot>
     </table>
+    </template>
+    <div
+      v-else
+      data-slot="table-stack"
+      class="flex flex-col gap-3 p-1"
+    >
+      <div
+        v-if="!sortedData || sortedData.length === 0"
+        class="flex items-center justify-center py-10 text-muted-foreground"
+      >
+        <slot name="empty">{{ emptyText }}</slot>
+      </div>
+      <div
+        v-for="(row, idx) in visibleRows"
+        :key="getRowKey(row, dataIndex(idx))"
+        data-slot="table-stack-item"
+        :class="cn(
+          'rounded-lg border bg-card p-4 text-left',
+          getRowClassName(row, dataIndex(idx)),
+        )"
+        @click="handleRowClick(row, dataIndex(idx))"
+      >
+        <div
+          v-if="selectable"
+          class="mb-3"
+          @click.stop
+        >
+          <input
+            type="checkbox"
+            :checked="isRowSelected(row, dataIndex(idx))"
+            class="size-4 rounded border border-primary accent-primary"
+            @change="handleSelectRow(row, dataIndex(idx))"
+          />
+        </div>
+        <div class="flex flex-col gap-2">
+          <div
+            v-for="(column, colIndex) in columns"
+            :key="column.key"
+            class="flex items-start gap-3"
+          >
+            <div class="w-20 shrink-0 pt-0.5 text-xs text-muted-foreground">
+              {{ column.title }}
+            </div>
+            <div
+              :class="cn(
+                'min-w-0 flex-1 break-words text-sm',
+                colIndex === 0 && 'font-medium',
+              )"
+            >
+              <slot
+                :name="`cell-${column.key}`"
+                :row="row"
+                :index="dataIndex(idx)"
+                :value="row[column.key]"
+              >
+                {{ row[column.key] }}
+              </slot>
+            </div>
+          </div>
+        </div>
+        <div
+          v-if="expandable"
+          class="mt-2"
+          @click.stop="toggleRowExpand(row, dataIndex(idx))"
+        >
+          <button
+            type="button"
+            class="inline-flex items-center justify-center rounded p-0.5 hover:bg-muted"
+            :class="isRowExpanded(row, dataIndex(idx)) && 'rotate-90'"
+          >
+            <ChevronRight class="size-4 text-muted-foreground" />
+          </button>
+        </div>
+        <div
+          v-if="expandable && isRowExpanded(row, dataIndex(idx))"
+          class="mt-2"
+        >
+          <slot name="expand" :row="row" :index="dataIndex(idx)" />
+        </div>
+        <div
+          v-if="$slots.actions"
+          class="mt-3 flex justify-end"
+          @click.stop
+        >
+          <slot name="actions" :row="row" :index="dataIndex(idx)" />
+        </div>
+      </div>
+    </div>
   </div>
 </template>
