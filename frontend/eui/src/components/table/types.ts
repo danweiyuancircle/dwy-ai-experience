@@ -42,6 +42,11 @@ export interface ETableProps {
   virtualRowHeight?: number
   /** 是否允许拖拽列宽 */
   resizable?: boolean
+  /**
+   * 窄屏布局。scroll=横滑（默认）；stack=卡片键值。
+   * 仅 `useEuiMobile()` 为 true 时生效；桌面永远是表。
+   */
+  mobileLayout?: 'scroll' | 'stack'
 }
 
 /** ETable Emits */
