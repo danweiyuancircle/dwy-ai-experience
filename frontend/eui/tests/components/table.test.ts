@@ -1,6 +1,8 @@
 import { mount } from '@vue/test-utils'
-import { describe, it, expect, beforeAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterEach } from 'vitest'
+import { h } from 'vue'
 import ETable from '@/components/table/ETable.vue'
+import { mockViewportWidth } from '../helpers/mock-viewport'
 
 beforeAll(() => {
   window.ResizeObserver = class {
@@ -140,5 +142,119 @@ describe('ETable', () => {
     expect(wrapper.find('[data-slot="table"]').exists()).toBe(true)
     expect(wrapper.find('[data-slot="table-container"]').exists()).toBe(true)
     expect(wrapper.findAll('th').length).toBe(2)
+  })
+})
+
+describe('mobileLayout stack', () => {
+  const nativeMatchMedia = window.matchMedia
+
+  afterEach(() => {
+    window.matchMedia = nativeMatchMedia
+  })
+
+  const stackColumns = [
+    { key: 'name', title: '姓名' },
+    { key: 'logic', title: '因子逻辑' },
+  ]
+  const stackData = [
+    { id: 1, name: '张三', logic: '价量背离短逻辑' },
+  ]
+
+  it('默认 scroll 窄屏仍是表', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, { props: { columns: stackColumns, data: stackData } })
+    expect(wrapper.find('[data-slot="table"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="table-stack"]').exists()).toBe(false)
+  })
+
+  it('stack + 桌面仍是表', () => {
+    mockViewportWidth(1024)
+    const wrapper = mount(ETable, {
+      props: { columns: stackColumns, data: stackData, mobileLayout: 'stack' },
+    })
+    expect(wrapper.find('[data-slot="table"]').exists()).toBe(true)
+    expect(wrapper.find('[data-slot="table-stack"]').exists()).toBe(false)
+  })
+
+  it('stack + 窄屏出卡片', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, {
+      props: { columns: stackColumns, data: stackData, mobileLayout: 'stack' },
+    })
+    expect(wrapper.find('table').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="table-stack"]').exists()).toBe(true)
+    expect(wrapper.findAll('[data-slot="table-stack-item"]').length).toBe(1)
+  })
+
+  it('卡片含列 title 与单元格值', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, {
+      props: { columns: stackColumns, data: stackData, mobileLayout: 'stack' },
+    })
+    const item = wrapper.find('[data-slot="table-stack-item"]')
+    expect(item.text()).toContain('因子逻辑')
+    expect(item.text()).toContain('价量背离短逻辑')
+    expect(item.text()).toContain('姓名')
+    expect(item.text()).toContain('张三')
+  })
+
+  it('#cell-* 在卡片生效', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, {
+      props: { columns: stackColumns, data: stackData, mobileLayout: 'stack' },
+      slots: {
+        'cell-logic': () => h('span', { class: 'slot-logic' }, '插槽逻辑'),
+      },
+    })
+    expect(wrapper.find('.slot-logic').text()).toBe('插槽逻辑')
+    expect(wrapper.text()).not.toContain('价量背离短逻辑')
+  })
+
+  it('整卡点击 emit row-click', async () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, {
+      props: { columns: stackColumns, data: stackData, mobileLayout: 'stack' },
+    })
+    await wrapper.find('[data-slot="table-stack-item"]').trigger('click')
+    expect(wrapper.emitted('row-click')![0]).toEqual([stackData[0], 0])
+  })
+
+  it('#actions 在卡片底且不冒泡', async () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, {
+      props: { columns: stackColumns, data: stackData, mobileLayout: 'stack' },
+      slots: {
+        actions: () => h('button', { class: 'row-action' }, '操作'),
+      },
+    })
+    expect(wrapper.find('.row-action').exists()).toBe(true)
+    await wrapper.find('.row-action').trigger('click')
+    expect(wrapper.emitted('row-click')).toBeFalsy()
+  })
+
+  it('长文本换行，无 whitespace-nowrap', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, {
+      props: { columns: stackColumns, data: stackData, mobileLayout: 'stack' },
+    })
+    const html = wrapper.find('[data-slot="table-stack"]').html()
+    expect(html).toContain('break-words')
+    expect(html).not.toContain('whitespace-nowrap')
+  })
+
+  it('stack + virtual 窄屏不崩，无 virtual spacer', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, {
+      props: {
+        columns: stackColumns,
+        data: stackData,
+        mobileLayout: 'stack',
+        virtual: true,
+        virtualRowHeight: 48,
+      },
+    })
+    expect(wrapper.find('[data-slot="table-stack-item"]').exists()).toBe(true)
+    expect(wrapper.find('table').exists()).toBe(false)
+    expect(wrapper.find('[aria-hidden="true"]').exists()).toBe(false)
   })
 })
