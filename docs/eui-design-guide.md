@@ -218,7 +218,7 @@ neutral（默认）| blue | green | rose | orange | violet | slate
 | 场景 | 要求 |
 |------|------|
 | 布局壳 | `EAdminLayout` 375px 可开抽屉；顶栏不裁切 |
-| 列表 | 表格允许横滑；`EPagination` 默认 `mode="auto"` |
+| 列表 | 默认横滑。内容型列表（摘要、说明）用 `mobile-layout="stack"` 出卡片键值。操作密的后台表保持 `scroll`。**禁止**页面 `if (isMobile) 删 columns`。`EPagination` 默认 `mode="auto"` |
 | 表单 | 标签置顶 / `EField orientation="responsive"` |
 | 提示 | 禁止 hover-only 作为唯一入口（`ETooltip trigger="auto"`） |
 

@@ -340,6 +340,15 @@
 | 5 | ESheet 打开 overlay 高于顶栏 | overlay zIndex 2000，content 2001 |
 | 6 | ETable 默认 w-full | 无 `w-max`，长文案不撑破容器 |
 | 7 | ETable 数字列宽写 minWidth | 160+120 → style `min-width: 280px` |
+| 8 | 默认 scroll 窄屏仍是表 | 无 `table-stack`，有 `table` |
+| 9 | stack + 桌面仍是表 | `mobileLayout=stack` 且 1024 宽 → `table` |
+| 10 | stack + 窄屏出卡片 | 无 `table`，有 `table-stack` / `table-stack-item` |
+| 11 | 卡片含列 title 与单元格值 | 同时有「因子逻辑」和行数据 |
+| 12 | `#cell-*` 在卡片生效 | 插槽内容出现在对应卡片 |
+| 13 | 整卡点击 emit `row-click` | |
+| 14 | `#actions` 在卡片底且不冒泡 | 点操作不触发 `row-click` |
+| 15 | 长文本换行 | stack 无 `whitespace-nowrap`，有 `break-words` |
+| 16 | stack + virtual 窄屏不崩 | 渲染卡片，无 virtual spacer |
 
 ---
 
