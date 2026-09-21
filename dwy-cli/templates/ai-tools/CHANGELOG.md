@@ -52,6 +52,19 @@
 
 ---
 
+## 0.22.0 — 2026-09-21
+
+### Added
+
+- `rules/Android/dwy-android-mvp.md`：手写 Contract MVP；`BaseActivity` / `BaseFragment` / `BaseDialog` 落在 BizFoundation。简单静态页和确认框允许无 Presenter；复杂 Dialog 走 Contract。不引 Mosby / Moxy。
+
+### Changed
+
+- `rules/Android/dwy-android-core.md`：架构改指向 `dwy-android-mvp`；包组织示例 ViewModel 改为 Contract / Presenter
+- `rules/Android/dwy-android-layering.md`：域内改为 Presenter；点明业务 Base 在 `:biz-foundation`
+
+---
+
 ## 0.21.0 — 2026-09-20
 
 ### Changed
