@@ -13,7 +13,7 @@ paths:
 
 适用于 **Android 原生项目**(Java + Kotlin 混编,XML 布局,Gradle 构建脚本)。本规范**重点是代码注释**,兼带最小必要的命名 / 简约 / 反模式约束。
 
-不限制构建工具、UI 框架、SDK 版本、依赖库选型 —— 与老项目兼容。页面架构走 `dwy-android-mvp`（Contract MVP + 业务 Base）；模块四层走 `dwy-android-layering`。
+不限制构建工具、UI 框架、SDK 版本、依赖库选型 —— 与老项目兼容。页面架构走 `dwy-android-mvp`（实际 MVP 读当前项目上下文；本文件只定行为）；模块四层走 `dwy-android-layering`。
 
 ## 全面屏 / 刘海屏适配
 
@@ -228,7 +228,7 @@ class PriceText(context: Context, attrs: AttributeSet?) : AppCompatTextView(cont
 | Fragment                          | `XxxFragment`                       | `HomeFragment`                |
 | Adapter / ViewHolder              | `XxxAdapter` / `XxxViewHolder`      | `OrderAdapter`                |
 | Dialog                            | `XxxDialog`                         | `ConfirmDialog`               |
-| MVP Contract / Presenter          | `XxxContract` / `XxxPresenter`      | `LoginContract`、`LoginPresenter` |
+| MVP 相关                            | 跟当前项目已有命名                      | 常见 `XxxPresenter`（有 Contract 则跟本仓） |
 | 布尔变量 / 方法                         | `is`* / `has*` / `can*` / `should*` | `isLoading`、`hasNext`         |
 
 
@@ -1058,7 +1058,7 @@ class User(val id: Long, val name: String)
 
 **按功能聚合(package-by-feature),不按技术分层(package-by-layer)。**
 
-同一个功能/页面相关的所有类 —— 页面(Activity / Fragment)、其数据实体、业务逻辑(Contract / Presenter)、数据访问(Repository)、列表 Adapter、UI 状态等 —— 放在**同一个功能包**下聚合,而不是按类型横切成 `activities/`、`models/`、`adapters/`、`presenters/` 这种分层包。页面架构见 `dwy-android-mvp`。
+同一个功能/页面相关的所有类 —— 页面(Activity / Fragment)、其数据实体、业务逻辑(Presenter 或本仓对等角色)、数据访问(Repository)、列表 Adapter、UI 状态等 —— 放在**同一个功能包**下聚合,而不是按类型横切成 `activities/`、`models/`、`adapters/`、`presenters/` 这种分层包。页面架构见 `dwy-android-mvp`（切法跟当前项目）。
 
 **理由**:改一个功能时,相关文件都在一个包内,无需在多个分层目录间跳转;包之间按业务边界解耦,删除/迁移一个功能只动一个包;高内聚低耦合,符合就近维护。
 
@@ -1067,15 +1067,13 @@ class User(val id: Long, val name: String)
 com.example.app/
   login/                      <!-- 登录功能,自包含 -->
     LoginActivity.kt
-    LoginContract.kt
-    LoginPresenter.kt
+    LoginPresenter.kt             <!-- 或本仓已有的 Contract / XxxView，跟项目 -->
     LoginRepository.kt
     Credential.kt             <!-- 该功能私有实体 -->
   order/                      <!-- 订单功能 -->
     OrderListActivity.kt
     OrderDetailActivity.kt
-    OrderListContract.kt
-    OrderListPresenter.kt
+    OrderListPresenter.kt         <!-- 同上，不强制 Contract 文件 -->
     OrderRepository.kt
     OrderAdapter.kt
     Order.kt

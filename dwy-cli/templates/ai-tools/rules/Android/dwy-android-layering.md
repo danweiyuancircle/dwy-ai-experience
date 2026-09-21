@@ -32,7 +32,7 @@ paths:
 
 升层：第二个 Feature 或第二个产品**真在用**，才升到 BizFoundation / Foundation。禁止「可能复用」提前抽。
 
-业务内聚：一个业务域 = `:features:<name>`。域内 Activity / Contract / Presenter / Repository 聚在该模块。禁止全局 `activities/` / `presenters/` 模块。
+业务内聚：一个业务域 = `:features:<name>`。域内 Activity / Presenter（或本仓对等角色）/ Repository 聚在该模块。禁止全局 `activities/` / `presenters/` 模块（本仓已经那样切的，跟本仓）。
 
 `BaseActivity` / `BaseFragment` / `BaseDialog` 落在 `:biz-foundation`（本产品壳）。Foundation 不放页面基类。细则见 `dwy-android-mvp`。
 
