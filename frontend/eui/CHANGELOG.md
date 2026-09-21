@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.5.0
+
+### Minor Changes
+
+- **ETable `mobileLayout`**：`'scroll' | 'stack'`，默认 `'scroll'`。`stack` 且 `useEuiMobile()` 时每行改卡片键值（`data-slot="table-stack"`），列全在、长文换行。不藏列。`virtual` / `resizable` / `fixed` / `showSummary` 在该模式下忽略
+
 ## 2.4.2
 
 ### Patch Changes
