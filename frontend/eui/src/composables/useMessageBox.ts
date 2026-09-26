@@ -45,12 +45,32 @@ export function useMessageBox() {
       overlay.appendChild(box)
       document.body.appendChild(overlay)
 
+      let closed = false
       const cleanup = (result: 'confirm' | 'cancel') => {
-        overlay.className = overlay.className.replace('animate-in fade-in-0', 'animate-out fade-out-0')
-        setTimeout(() => {
+        if (closed) return
+        closed = true
+        // fill-mode 默认 none：淡出结束透明度弹回 1，节点还在就会整框闪一帧。
+        // forwards 把终态停在透明，再等遮罩自己的 animationend 拆除。
+        overlay.classList.remove('animate-in', 'fade-in-0')
+        overlay.classList.add('animate-out', 'fade-out-0')
+        overlay.style.animationFillMode = 'forwards'
+        box.classList.remove('animate-in', 'zoom-in-95', 'fade-in-0')
+        box.classList.add('animate-out', 'fade-out-0', 'zoom-out-95')
+        box.style.animationFillMode = 'forwards'
+
+        let settled = false
+        const finish = () => {
+          if (settled) return
+          settled = true
           overlay.remove()
           resolve(result)
-        }, 150)
+        }
+        overlay.addEventListener('animationend', (event) => {
+          if (event.target !== overlay) return
+          finish()
+        })
+        // 测试环境或动画被禁用时没有 animationend，避免 Promise 一直挂着。
+        window.setTimeout(finish, 200)
       }
 
       box.querySelector('.eui-msgbox-confirm')?.addEventListener('click', () => cleanup('confirm'))

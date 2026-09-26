@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.5.1
+
+### Patch Changes
+
+- **useMessageBox**：关闭时把遮罩和对话框停在淡出终态，等 `animationend` 再移除。先前 `animation-fill-mode: none`，动画结束透明度弹回 1，节点还在就会整框闪一帧
+
 ## 2.5.0
 
 ### Minor Changes
