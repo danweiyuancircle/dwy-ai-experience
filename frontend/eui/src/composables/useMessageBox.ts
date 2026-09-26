@@ -19,6 +19,7 @@ export interface MessageBoxOptions {
   showCancelButton?: boolean
 }
 
+import { DIALOG_OVERLAY_SURFACE_CLASS } from '@/components/dialog/overlay'
 import { escapeHtml } from '@/utils/escape'
 
 /**
@@ -29,7 +30,7 @@ export function useMessageBox() {
   function open(options: MessageBoxOptions): Promise<'confirm' | 'cancel'> {
     return new Promise((resolve) => {
       const overlay = document.createElement('div')
-      overlay.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 animate-in fade-in-0'
+      overlay.className = `fixed inset-0 z-[9999] flex items-center justify-center ${DIALOG_OVERLAY_SURFACE_CLASS} animate-in fade-in-0`
 
       const box = document.createElement('div')
       box.className = 'bg-background rounded-lg border shadow-lg p-6 max-w-md w-full mx-4 animate-in zoom-in-95 fade-in-0'

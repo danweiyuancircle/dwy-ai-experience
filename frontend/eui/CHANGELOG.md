@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.5.2
+
+### Patch Changes
+
+- **弹框遮罩**：`EAlertDialog`、`EConfirmDialog`、`useMessageBox` 与 `EDialog` 共用 `bg-black/30 backdrop-blur-sm`。2.1.0 只改了 `EDialog`，确认框仍是 `bg-black/80`，同一产品里遮罩深浅不一致
+
 ## 2.5.1
 
 ### Patch Changes

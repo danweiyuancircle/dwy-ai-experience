@@ -15,6 +15,7 @@ import {
   AlertDialogCancel,
 } from 'reka-ui'
 import { cn } from '@/utils/cn'
+import { DIALOG_OVERLAY_SURFACE_CLASS } from '@/components/dialog/overlay'
 import type { EAlertDialogProps, EAlertDialogEmits } from './types'
 
 const props = withDefaults(defineProps<EAlertDialogProps>(), {
@@ -52,7 +53,10 @@ function handleCancel() {
     <AlertDialogPortal>
       <AlertDialogOverlay
         data-slot="alert-dialog-overlay"
-        class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+        :class="[
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50',
+          DIALOG_OVERLAY_SURFACE_CLASS,
+        ]"
       />
       <AlertDialogContent
         data-slot="alert-dialog-content"
