@@ -203,18 +203,15 @@ Scope 由 AI 根据变更模块与项目语义自行决定，保持与现有提�
 
 ## 9. AI 署名与生成声明治理
 
-commit 的 subject、body、footer、trailer 中禁止出现任何形式的 AI 署名或生成声明。AI 应自行判断：凡由 AI 工具（Claude、ChatGPT、GPT、Copilot、Cursor、Gemini、Llama、LLM 等）生成或参与撰写的署名、尾随声明、自动生成标记，均不得写入 commit message。
+提交前先看完整的 commit 命令和 message 文件。里面有 AI 署名就删掉，再提交。环境会自己往命令里塞署名（例如 `Co-authored-by: Cursor <cursoragent@cursor.com>`），看见就去掉，不要原样执行。
 
-包括但不限于：
+hook 写死的模式会直接拦：`Co-Authored-By:`、`Generated with`、Claude / ChatGPT / GPT / Copilot / Cursor 等产品名、`noreply@anthropic.com`、`noreply@openai.com`。
 
-- `Co-Authored-By: <AI 名称> <noreply@...>`（任何 AI 产品 + 邮箱组合）
-- `Generated with Claude Code` / `Generated with ...`（任何"由 XX 生成"声明）
-- 含 AI 产品名的署名行（Claude、ChatGPT、GPT、Copilot、Cursor、Gemini、LLM 等）
-- AI 平台noreply 邮箱（noreply@anthropic.com、noreply@openai.com 等）
+名单里没有的，提交前自己判断。一行只要是在给 AI 工具、模型、Agent、机器人署名，或声明这段提交由 AI 生成、协助、代写，就删。没见过的产品名同样删。人写的正常说明留着。
 
-`git commit -m "..."` 不得附带 AI 署名 trailer。
+不要加 `--trailer`，不要多一条 `-m` 放署名，不要把署名留在 `-F` 的文件里。
 
-> PreToolUse hook `pre-git-commit-ai-signature-check.sh` 会在 commit message 中检出 Co-Authored-By / Generated with 等 AI 署名模式时硬拦截（exit 2），规则约束 + 工程兜底双保险。
+hook 拦住之后：按它指出的内容删掉，同一种署名一起删，然后重新 commit。不要绕过 hook，不要改让用户手动提交。
 
 ## 10. 参考示例
 
