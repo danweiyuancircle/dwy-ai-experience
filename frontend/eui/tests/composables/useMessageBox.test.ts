@@ -40,4 +40,27 @@ describe('useMessageBox', () => {
     const cancelBtn = document.querySelector('.eui-msgbox-cancel')
     expect(cancelBtn!.textContent).toBe('取消')
   })
+
+  it('keeps the closed overlay at the fade-out end state until animationend', async () => {
+    const msgbox = useMessageBox()
+    const pending = msgbox.confirm('确定删除这条公告？', '删除公告')
+    const cancelBtn = document.querySelector('.eui-msgbox-cancel') as HTMLButtonElement
+    const overlay = cancelBtn.parentElement!.parentElement!.parentElement as HTMLElement
+    const box = overlay.firstElementChild as HTMLElement
+
+    cancelBtn.click()
+
+    expect(document.body.contains(overlay)).toBe(true)
+    expect(overlay.classList.contains('animate-out')).toBe(true)
+    expect(overlay.classList.contains('fade-out-0')).toBe(true)
+    expect(overlay.classList.contains('animate-in')).toBe(false)
+    expect(overlay.style.animationFillMode).toBe('forwards')
+    expect(box.classList.contains('animate-out')).toBe(true)
+    expect(box.style.animationFillMode).toBe('forwards')
+
+    overlay.dispatchEvent(new Event('animationend'))
+
+    await expect(pending).resolves.toBe('cancel')
+    expect(document.body.contains(overlay)).toBe(false)
+  })
 })

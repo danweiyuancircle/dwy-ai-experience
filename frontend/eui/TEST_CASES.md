@@ -231,7 +231,7 @@
 
 ---
 
-## 8. useMessageBox XSS 防护（3 个）
+## 8. useMessageBox（4 个）
 
 `tests/composables/useMessageBox.test.ts`
 
@@ -240,6 +240,7 @@
 | 1 | 标题 XSS 防护 | `<b>title</b>` 作为 title 时被转义为纯文本，不创建 b 元素 |
 | 2 | 消息 XSS 防护 | `<script>` 作为 message 时被转义为纯文本，不创建 script 元素 |
 | 3 | 按钮文字安全 | 默认按钮文字为"确定"/"取消" |
+| 4 | 关闭停在淡出终态 | 点取消后遮罩仍在，`animation-fill-mode` 为 forwards；`animationend` 后才移除 |
 
 ---
 
