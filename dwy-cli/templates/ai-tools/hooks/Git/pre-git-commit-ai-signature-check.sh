@@ -3,7 +3,8 @@
 # 拦截 git commit message 中的 AI 署名 / 生成声明
 #
 # 背景：AI agent 常在 commit message 中附加 Co-Authored-By: Claude / Generated with Claude Code 等署名。
-# 本 hook 检出此类模式后硬拦截（exit 2），要求人工确认或清理后再提交。
+# 本 hook 只拦下面写死的模式（exit 2）。
+# 名单以外的 AI 署名由规则要求模型在提交前自行判断并删除，不要等拦截后再绕过。
 #
 # 覆盖模式（不区分大小写）：
 #   Co-Authored-By: <ai-name> <noreply@...>
@@ -47,9 +48,9 @@ if [ -n "$HIT" ]; then
     echo "$HIT"
     echo ""
     echo "commit message 中禁止出现 Co-Authored-By / Generated with 等 AI 署名。"
-    echo "请清理 AI 署名后再提交。"
-    echo ""
-    echo "如果要强制提交，请手动执行 git commit（绕过 hook）。"
+    echo "删掉命中的署名后重新 commit。同一种署名一起删。"
+    echo "名单之外的 AI 署名也要自行判断并删除。"
+    echo "不要绕过 hook，不要改让用户手动提交。"
     echo "========================================"
     exit 2  # 暂停等待人工审批
 fi

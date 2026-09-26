@@ -29,6 +29,7 @@ description: "发版/部署编排器。触发条件：用户说\"发版\"\"部�
 - 安全检查（第 5 步）是闸门，未过不进 tag / 发布。
 - **每次更新版本必须打 tag**（第 6 步）：tag 版本串与本次 changelog 新版本标题（`## x.y.z`）完全一致；细则见 `references/git-tag.md`。无 bump 的纯重发可不打新 tag。
 - 若 GA workflow 由 tag 触发，第 6 步 push tag 即触发第 7 步发布。
-- 全程 AI 自动判断、自动跑，仅搞不定时才问用户（版本级别拿不准、命令探测不到、配置缺失、构建/发布失败、需删远端 tag）。
+- **正式环境分支**：`develop` 只更新测试环境，正式环境走 `preview`。若判断当前是在用 `develop` 部署正式环境，先按 `rules/开发流程/dwy-prod-branch.md` 的提示问用户，并建议合并到 `preview`。未确认不部署。是否属于正式环境由 AI 判断。
+- 全程 AI 自动判断、自动跑，仅搞不定时才问用户（版本级别拿不准、命令探测不到、配置缺失、构建/发布失败、需删远端 tag）。用 `develop` 部署正式环境时除外，须先问用户。
 - 编排时按文件路径主动加载子 skill（`../dwy-semver`、`../dwy-sdk-spec`、`../dwy-github-action-publish`）；这些 skill 也可被用户独立触发。
 - `.dwy/` 缓存提醒用户加进 `.gitignore`。

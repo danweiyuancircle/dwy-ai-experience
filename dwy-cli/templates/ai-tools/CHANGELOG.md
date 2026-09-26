@@ -52,6 +52,27 @@
 
 ---
 
+## 0.25.0 — 2026-09-27
+
+### Changed
+
+- `rules/开发流程/dwy-git-commit.md`：提交前必须删掉 AI 署名，含环境自动塞入的 Cursor 署名。写死名单之外的由 AI 自行判断。hook 拦住后删掉再交，禁止绕过。
+- `hooks/Git/pre-git-commit-ai-signature-check.sh`：拦截提示改为删掉署名后重试，不再建议手动提交绕过 hook。
+
+---
+
+## 0.24.0 — 2026-09-27
+
+### Added
+
+- `rules/开发流程/dwy-prod-branch.md`：`develop` 只更新测试环境，正式环境用 `preview`。AI 自行判断是否在用 `develop` 部署正式环境；是则按固定提示让用户确认，并建议合并到 `preview`。未确认不部署。
+
+### Changed
+
+- `skills/发布发版/dwy-publish/SKILL.md`：发布前若判断是 `develop` 部署正式环境，先按 `dwy-prod-branch` 问用户。
+
+---
+
 ## 0.23.0 — 2026-09-21
 
 ### Changed
