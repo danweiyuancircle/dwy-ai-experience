@@ -18,6 +18,7 @@ import {
 } from 'reka-ui'
 import { cn } from '@/utils/cn'
 import type { EDialogProps, EDialogEmits } from './types'
+import { DIALOG_OVERLAY_SURFACE_CLASS } from './overlay'
 
 const props = withDefaults(defineProps<EDialogProps>(), {
   showClose: true,
@@ -120,7 +121,8 @@ function onPointerUp() {
         v-if="showOverlay"
         data-slot="dialog-overlay"
         :class="cn(
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/30 backdrop-blur-sm',
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50',
+          DIALOG_OVERLAY_SURFACE_CLASS,
         )"
       />
 

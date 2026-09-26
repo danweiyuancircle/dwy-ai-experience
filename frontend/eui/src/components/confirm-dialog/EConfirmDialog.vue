@@ -15,6 +15,7 @@ import {
   DialogDescription,
 } from 'reka-ui'
 import { cn } from '@/utils/cn'
+import { DIALOG_OVERLAY_SURFACE_CLASS } from '@/components/dialog/overlay'
 import { EButton } from '../button'
 import type { EConfirmDialogProps, EConfirmDialogEmits } from './types'
 
@@ -70,7 +71,10 @@ function handleCancel() {
   >
     <DialogPortal>
       <DialogOverlay
-        class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+        :class="[
+          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50',
+          DIALOG_OVERLAY_SURFACE_CLASS,
+        ]"
       />
       <DialogContent
         :class="cn(

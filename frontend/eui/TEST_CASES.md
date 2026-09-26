@@ -353,6 +353,21 @@
 
 ---
 
+## 15. 弹框遮罩表面（4 个）
+
+`tests/components/dialog-overlay.test.ts`
+
+EDialog 从 2.1.0 起是 `bg-black/30 backdrop-blur-sm`。确认框和命令式 MessageBox 必须同一套，不能回到 `bg-black/80`。
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | EDialog | overlay 含 `bg-black/30` 与 `backdrop-blur-sm` |
+| 2 | EAlertDialog | 与 EDialog 相同，不含 `bg-black/80` |
+| 3 | EConfirmDialog | 与 EDialog 相同 |
+| 4 | useMessageBox | 与 EDialog 相同 |
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -360,8 +375,8 @@
 cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
-# Test Files  87 passed (87)
-# Tests       715 passed (715)
+# Test Files  88 passed (88)
+# Tests       731 passed (731)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run tests/utils/cn.test.ts
