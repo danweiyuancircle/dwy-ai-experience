@@ -172,10 +172,13 @@ private async safe(name, step) {
 
 ## 9. DevEco 命令行构建（绕开 IDE，拿带 File:行:列 的错误）
 
+路径用本机 DevEco 根，不要抄某台 Mac 的默认安装位置。先找到本机安装目录，再拼 `tools/node/bin/node`、`tools/hvigor/bin/hvigorw.js` 和该布局里的 sdk。找不到就问用户。
+
 ```bash
-NODE=/Applications/DevEco-Studio.app/Contents/tools/node/bin/node
-HVIGOR=/Applications/DevEco-Studio.app/Contents/tools/hvigor/bin/hvigorw.js
-export DEVECO_SDK_HOME=/Applications/DevEco-Studio.app/Contents/sdk   # 停 daemon 后必设
+# <DEVECO> = 本机 DevEco 根。macOS 默认安装常见 /Applications/DevEco-Studio.app，不是唯一位置。
+NODE=<DEVECO>/Contents/tools/node/bin/node
+HVIGOR=<DEVECO>/Contents/tools/hvigor/bin/hvigorw.js
+export DEVECO_SDK_HOME=<DEVECO>/Contents/sdk   # 停 daemon 后必设
 
 # 配置校验
 $NODE $HVIGOR --sync -p product=default --daemon
@@ -205,14 +208,15 @@ $NODE $HVIGOR --mode module -p module=entry@default -p product=default -p pageTy
 - **正确做法**：DevEco → Project Structure → Signing Configs 自动签名写回工程；**模拟器**可装 unsigned；**真机**必须签名。
 - **适用**：CLI / CI 打包。
 
-## 12. 本地模拟器（HVD）命令行：`-hvd` + hdc `127.0.0.1:5555`
+## 12. 本地模拟器（HVD）命令行：`-hvd` + 本次 `hdc list targets`
 
 - **现象**：不知如何脱离 IDE 起模拟器、装 HAP。
 - **正确做法**：
-  - 启动：`/Applications/DevEco-Studio.app/Contents/tools/emulator/Emulator -hvd "Pura 90"`（名见 `~/.Huawei/Emulator/deployed/*.ini`）。
-  - 设备：`hdc list targets` → 常见 `127.0.0.1:5555`。
-  - 安装：`hdc -t 127.0.0.1:5555 install entry/.../entry-default-unsigned.hap`。
-  - 启动：`hdc -t 127.0.0.1:5555 shell aa start -a EntryAbility -b <bundleName>`。
+  - 模拟器名读 `~/.Huawei/Emulator/deployed/*.ini`，不要写死某一台机型。
+  - 启动：`<DEVECO>/Contents/tools/emulator/Emulator -hvd "<ini 里的名字>"`。`<DEVECO>` 与第 9 节同一台机器的安装根。
+  - 设备：`hdc list targets` 的输出就是 `-t`。`127.0.0.1:5555` 只是本机常见先验，列表里没有就用列表里的那个。
+  - 安装：`hdc -t <本次 target> install entry/.../entry-default-unsigned.hap`。
+  - 启动：`hdc -t <本次 target> shell aa start -a EntryAbility -b <bundleName>`。
 - **适用**：无 GUI / 脚本化调试。
 
 ## 13. 模拟器验不了局域网 TCP / mDNS / 设备发现

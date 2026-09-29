@@ -73,7 +73,7 @@ analyze_image() {
 
     # 2. 显式 latest
     if [ "$tag_part" = "latest" ]; then
-        record "critical" "$file" "$line" "$raw_line" "禁止使用 latest，改为固定版本如 $image_part:<N-1-minor>（用 query_dockerhub.py 查推荐版本）"
+        record "critical" "$file" "$line" "$raw_line" "禁止使用 latest，改为具体版本。版本从当次 tag 列表里选，query_dockerhub.py 只是 Docker Hub 先验"
         return
     fi
 
@@ -175,7 +175,7 @@ echo "  high:     $count_high      (浮动 tag / 单段版本号)"
 echo "  low:      $count_low       (建议补 digest)"
 echo ""
 echo "下一步："
-echo "  1. 用 query_dockerhub.py <image> 查每个违规镜像的推荐版本"
+echo "  1. 按 dwy-docker「版本探测」列每个违规镜像的当次 tag。query_dockerhub.py 失败就换 registry"
 echo "  2. 用 Edit 工具逐项修复，不要批量替换（不同环境可能用不同 tag 变体）"
 
 # 有 critical 或 high 时返回非零，方便 CI 集成

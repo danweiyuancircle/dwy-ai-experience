@@ -1,13 +1,15 @@
 ---
 name: dwy-dolphindb
-description: "DolphinDB 3.0 社区版（2核8G / 1控2节点）开发与审查 skill：写 DolphinDB Script (.dos)、用 Python SDK (dolphindb 3.0.4)、设计 DFS 分区表（TSDB/OLAP/PKEY/IMOLTP/VECTORDB 引擎选型）、导入 tick/snapshot/kline 金融数据、优化慢查询、排查 OOM / 卡死作业、Docker 部署、查询日期/字符串/聚合等内置函数、流计算、回测、集群运维。可基于项目级 .claude/dolphindb/schemas/ 真实 DDL 做查询性能评估。也用于代码审查：检查分区裁剪、链式比较、批量写入上限、SYMBOL 字节限制、STRING/BLOB 静默截断、输入校验防脚本注入、连接池配置、pool.run async/sync 用法。关键字触发：dolphindb, DDB, .dos, loadTable, loadTextEx, createPartitionedTable, append!, dropPartition, DBConnectionPool, tableAppender, PartitionedTableAppender, MultithreadedTableWriter, TSDB, OLAP, PKEY, IMOLTP, VECTORDB, getClusterPerf, getConsoleJobs, level2, tick 数据, 时序数据库, 8848 端口, 交易日历, 函数参考, K线合成, 流引擎, 回测引擎."
+description: "DolphinDB 开发与审查 skill：写 DolphinDB Script (.dos)、用与当前 server 配套的 Python SDK（一次常见配套是 dolphindb 3.0.4）、设计 DFS 分区表（TSDB/OLAP/PKEY/IMOLTP/VECTORDB 引擎选型）、导入 tick/snapshot/kline 金融数据、优化慢查询、排查 OOM / 卡死作业、Docker 部署、查询日期/字符串/聚合等内置函数、流计算、回测、集群运维。可基于项目级 .claude/dolphindb/schemas/ 真实 DDL 做查询性能评估。也用于代码审查：检查分区裁剪、链式比较、批量写入上限、SYMBOL 字节限制、STRING/BLOB 静默截断、输入校验防脚本注入、连接池配置、pool.run async/sync 用法。关键字触发：dolphindb, DDB, .dos, loadTable, loadTextEx, createPartitionedTable, append!, dropPartition, DBConnectionPool, tableAppender, PartitionedTableAppender, MultithreadedTableWriter, TSDB, OLAP, PKEY, IMOLTP, VECTORDB, getClusterPerf, getConsoleJobs, level2, tick 数据, 时序数据库, 8848 端口, 交易日历, 函数参考, K线合成, 流引擎, 回测引擎."
 source_url_base: https://docs.dolphindb.cn/zh
 fetched_at: 2026-05-19
 ---
 
 # DolphinDB 3.0 Skill
 
-## 当前环境
+## 某次实测环境（先验，不是所有任务的机器）
+
+连哪台、内存、磁盘、端口、连接数以本次 `getClusterPerf()` 和 license 为准。下表是一次社区版小集群的记录。IP、已分配内存、磁盘和当前连接数不要套到别的机器。社区版许可常见 2 核 8G，许可变了以本次 license 为准。SDK 版本跟当前 server 的配套说明走，`3.0.4` 只是这次配套。
 
 | 项 | 值 |
 |---|---|
@@ -17,7 +19,7 @@ fetched_at: 2026-05-19
 | 端口 | Web/控制 `http://localhost:8848`，集群另含 `192.168.0.107:8848` / `172.17.0.1:8848` 等 |
 | Worker | 4 线程，连接上限 512（当前 15） |
 | Python SDK | `dolphindb==3.0.4` |
-| 场景 | 个人/小团队 + 教学，**单查询内存上限按 2GB 控制** |
+| 场景 | 个人/小团队 + 教学，这次把单查询按 2GB 控制 |
 
 ## 文档分层（按访问顺序）
 
@@ -103,12 +105,12 @@ s.run("cancelJob(`xxxx)")                       // 异步作业
 s.run("cancelConsoleJob(`xxxx)")                // 同步作业
 ```
 
-## 核心原则（社区版 2 核 8G 死守）
+## 核心原则
 
-1. **单查询不超 2GB**：详见 [[review-rules/perf-baselines]]
+1. **单查询内存按这次机器的预算**：2 核 8G 上的先验是 2GB，详见 [[review-rules/perf-baselines]]。机器或许可不同就按本次内存重算，不要把 2GB 当所有集群的死刑线
 2. **任何 WHERE 必带分区列**且不被函数包裹 / 不写链式比较
 3. **TSDB sortColumns 不要选唯一/高基数列**（索引膨胀）
-4. **写入用 PartitionedTableAppender + DBConnectionPool**（pool size 3）
+4. **写入用 PartitionedTableAppender + DBConnectionPool**。pool size 按本次 worker，2 核 8G 的先验是 3
 5. **删数据按分区 `dropPartition`**，不用 `delete from`
 
 完整规则 → [[review-rules/lethal-violations]] + [[review-rules/anti-patterns]]

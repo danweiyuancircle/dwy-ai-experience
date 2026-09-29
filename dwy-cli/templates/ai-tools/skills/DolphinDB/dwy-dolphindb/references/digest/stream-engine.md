@@ -63,7 +63,7 @@ Python API：
 import dolphindb as ddb
 s = ddb.session()
 s.connect("127.0.0.1", 8848, "admin", "123456")
-s.enableStreaming(9999)  # 本机监听端口
+s.enableStreaming(9999)  # 2.00.9 之前要本机端口。2.00.9+ 反向推送，端口可省略。9999 只是示例
 
 def handler(msg):
     print(msg)  # msg 为 list 或 DataFrame，取决于 msgAsTable
@@ -121,7 +121,7 @@ subscribeTable(
 - **流计算函数限制**：响应式状态引擎只支持「状态函数」（内置滑窗/累积/topN 或 `@state` 修饰的自定义函数）；普通自定义函数若有状态依赖必须显式声明 `@state`。
 - **不支持聚合嵌套**：时序引擎 `metrics` 中禁止 `sum(spread(ask,bid))` 这种聚合套聚合。
 - **窗口边界规整**：第一个窗口起点按数据时间向 step 取整（不是数据到达时间）；窗口结束需要后续数据触发，最后一个不完整窗口不会被计算（除非用 `forceTriggerTime` / `closed=\`left` 等参数）。
-- **Python 订阅端口**：`enableStreaming(port)` 监听的是**客户端**端口，需保证防火墙放行 server → client 方向；否则订阅创建成功但 handler 收不到数据。
+- **Python 订阅端口**：2.00.9 之前 `enableStreaming(port)` 监听的是**客户端**端口，需保证防火墙放行 server → client 方向；否则订阅创建成功但 handler 收不到数据。2.00.9+ 反向推送，不要再把示例端口 9999 当成必填。先看这次 server 版本。
 - **offset 含义**：`-1` = 从订阅当下最新位置开始；`0` = 从流表第一条开始；正整数 = 从该位置开始。回测/补数据用 `0`，实盘用 `-1`。
 - **outputTable 类型**：普通 table → 终点；share streamTable → 可被下游引擎再订阅串接。
 

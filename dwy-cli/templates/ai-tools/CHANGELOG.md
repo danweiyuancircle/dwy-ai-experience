@@ -52,6 +52,47 @@
 
 ---
 
+## 0.28.0 — 2026-09-29
+
+### Changed
+
+- 会变的外部事实改为当前先验：探测失败就换源，当次结果不写回模板。团队栈（Support / Dio / SQLAlchemy、分层、署名、schema_version）不动。
+- `rules/Android/`：AndroidAutoSize 只锁 Support 兼容线，`v1.2.1` 是起点先验。
+- `rules/Flutter/`：Riverpod、freezed、mocktail 的 caret 标明不是该装的版本，实际走依赖新鲜度。
+- `rules/HarmonyOS/dwy-arkts-ui-build.md`：DevEco 路径、模拟器名、hdc 目标改为本机探测。
+- `rules/开发流程/dwy-dependency-freshness.md`：各栈查发布时间的 URL 是先验。PyPI 取最早 `upload_time`，Maven `lastUpdated` 不能单独当首次发布。
+- `rules/数据库/dwy-postgres.md`：连接池 20/10 改为冷启动先验。无上限或打满 `max_connections` 才算违规。
+- `skills/发布发版/dwy-github-action-publish/`：action tag、runner、manylinux、setuptools 下限复制前现查。
+- `skills/发布发版/dwy-ios-app-store-release/`：商店字段字数是先验。内购截图像素只留在 `screenshot-specs.yaml`。
+- `skills/安全/dwy-deploy-audit/`：镜像源名单不再打通过。公网 IP 多源探测，失败标 unknown，不用内网地址顶上。
+- `skills/自媒体/media-platform-packaging/`：小红书 20 字、视频号 16 字、YouTube 逗号改为发布页先验。
+- `skills/自媒体/dwy-doubao-tts/`：endpoint 和 `seed-icl-2.0` 移出硬约束。
+- `skills/通用/dwy-shared/SKILL.md`：npm 官方源是先验。传播延迟和源不可达分开。
+- `skills/DolphinDB/dwy-dolphindb/`：某次机器的 IP、内存、SDK `3.0.4`、500K / 65536 / 255 改为先验。语言约束仍要改。
+
+## 0.27.0 — 2026-09-29
+
+### Changed
+
+- `skills/安全/dwy-deploy-audit/references/checks-runtime.md`：内存和日志配额表改为冷启动先验。有 `docker stats` 或日志日增量时按实测判定。偏离表不再算违规。75% 内存合计和约 5% 日志天花板仍是安全上限。
+- `skills/安全/dwy-deploy-audit/scripts/check_capacity.sh`、`check_logs.sh`、`check_docker.sh`：不再把「与 10m/50m/100m 或 65% 一致」印成通过。缺上限、硬限低于实测占用、配额能占满盘，才报问题。
+- `rules/Docker/dwy-docker.md`：compose 里的 `512m` / `10m` 标明是字段示例，不是配额。
+
+---
+
+## 0.26.0 — 2026-09-29
+
+### Changed
+
+- `rules/Docker/dwy-docker.md`：镜像版本示例不再当推荐版本。镜像源是当前候选，当次探测后在内容正确的源里取延迟最低的，连通不算通过。
+- `skills/Docker/dwy-docker/`：版本必须来自当次 tag 列表。`query_dockerhub.py` 只是 Docker Hub 先验，失败要换 registry。N-1 是偏好。`version-rules.md` / `ask-templates.md` / `templates.md` 里的版本号禁止照抄。
+- `skills/Docker/dwy-mirror-source/`：取消「默认阿里云 / DaoCloud 首选」。写入前测延迟。`apply_mirrors.py` 增加 `--docker-mirrors`，按探测顺序覆盖内置列表。
+- `skills/Docker/dwy-deploy-first/`：第 1 章合规标准改为当次选出的源或私服，不再把阿里云域名写成唯一合格项。
+- `skills/安全/dwy-deploy-audit/`：镜像版本和镜像源的修复提示改指向上述探测，不再写死 N-1 数字和 `*.m.daocloud.io`。
+- `rules/开发流程/dwy-dependency-freshness.md`：Docker 一行改为查 tag 首次发布时间。Hub `last_updated` 不能当成首次发布，Hub 不通时换镜像所在 registry。
+
+---
+
 ## 0.25.0 — 2026-09-27
 
 ### Changed

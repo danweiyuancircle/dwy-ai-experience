@@ -853,6 +853,10 @@ def main():
     else:
         text, by_status = render_text(results)
         print(text)
+        # provider 来自 preference 或参数，只是候选先验，不能当成测速赢家。
+        print()
+        print(f"候选先验: {provider}。这不是赢家。")
+        print("写入前对同一工具的候选做当次探测：内容正确者中取延迟最低。连通或域名匹配不算通过。")
 
     # 退出码：有 warn / missing / deprecated → 1；error → 2；否则 0
     has_error = any(r.status == "error" for r in results)

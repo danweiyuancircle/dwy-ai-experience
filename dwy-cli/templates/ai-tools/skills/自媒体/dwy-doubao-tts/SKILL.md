@@ -18,8 +18,10 @@ description: >
 1. **私人配置唯一位置**：`~/.dwy/config.yaml`（权限 `600`），豆包段为顶层 key `doubao_tts`
 2. **禁止**把 `api_key`、音色 ID 写入 skill、项目、commit；禁止回显完整 Key
 3. 输出音频默认 `doubao_tts.output_dir`（默认 `~/Movies/doubao-tts`），不落到仓库内
-4. 模型资源：`X-Api-Resource-Id: seed-icl-2.0`
-5. 接口：`POST https://openspeech.bytedance.com/api/v3/tts/unidirectional`
+
+## 当前接口先验
+
+写作时可用的资源是 `seed-icl-2.0`，地址是 `POST https://openspeech.bytedance.com/api/v3/tts/unidirectional`。真正调用以 `~/.dwy/config.yaml` 的 `resource_id` 和 `endpoint` 为准。返回 4xx、模型下线或连不上时，查火山引擎控制台当前文档和账号已开通资源，换可用地址和资源 ID。不要把查到的新地址写回本 skill。结束码 `20000000`、`speech_rate` / `loudness_rate` 的 `[-50,100]` 只属于这条先验接口，换接口后以新文档为准。
 
 ## 全局配置约定（`~/.dwy/config.yaml`）
 

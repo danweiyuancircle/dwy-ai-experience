@@ -2,7 +2,7 @@
 name: dwy-deploy-first
 description: >-
   通用「首次部署」检查清单 skill：按章节推进新服务/新镜像的国内可构建落地。
-  当前已开放第 1 章「镜像源」——Dockerfile / 构建环境中的 apt（阿里云）与 uv/pip（阿里云 PyPI）；
+  当前已开放第 1 章「镜像源」——Dockerfile / 构建环境中的 apt 与 uv/pip。候选 URL 是先验，当次探测后用延迟最低且内容正确的源；
   禁止写死具体业务项目名。触发：用户说「首次部署」「第一次上线」「部署第一步」「配置镜像源」
   「apt 换源」「uv 阿里云」「Docker 构建慢」「国内构建」；或用户执行 /dwy-deploy-first。
   与 dwy-mirror-source（本机用户级 13 类工具）互补：本 skill 聚焦「项目首次部署构建链路」。
@@ -29,7 +29,7 @@ description: >-
 ## 总原则
 
 1. **通用模板** — 示例用 `python:3.x-slim-bookworm` 等占位；路径/服务名从用户当前项目推断，不写死历史项目。
-2. **默认阿里云** — 国内首次部署默认 `aliyun`；用户明确要求清华/中科大时再改。
+2. **镜像源当次探测** — 阿里云、清华、中科大是当前候选。在内容正确的源里选本次延迟最低的。用户指定某一家或已有私服时，跳过公网竞速。连通不等于可用。测速做法同 `dwy-mirror-source`。
 3. **先检查后改** — 扫描现有 `Dockerfile` / `Dockerfile.*` / CI 构建脚本；已合规则静默通过，违规再改。
 4. **与 dwy-docker 叠加** — 镜像 tag 仍须固定版本；本 skill 不替代版本规范。
 5. **禁止** `curl https://astral.sh/uv/install.sh` 作为默认装 uv 方式（GitHub 二进制，国内慢/易失败）。
@@ -53,15 +53,15 @@ Alpine / RHEL 系见 `references/chapter-01-mirrors.md`；本章默认以 **Debi
 
 | # | 检查项 | 合规 | 违规表现 |
 |---|--------|------|----------|
-| A1 | apt 使用国内源 | `mirrors.aliyun.com`（或团队约定的内网 apt 镜像） | 仍 `deb.debian.org` / `archive.ubuntu.com` / `security.debian.org` 且无替换 |
-| A2 | 装 uv 不走 astral.sh 默认 GitHub | `pip install -i https://mirrors.aliyun.com/pypi/simple/ uv` 等 | `curl … astral.sh/uv/install.sh` |
-| A3 | uv 索引 | `UV_INDEX_URL` / `UV_DEFAULT_INDEX` = 阿里云 simple | 未设且会访问 `pypi.org` |
-| A4 | pip 索引 | `PIP_INDEX_URL` 或 `pip -i` = 阿里云 simple | 默认官方 PyPI 且无 `-i` |
-| A5 | trusted-host | 与镜像 host 一致（`mirrors.aliyun.com`） | HTTPS 校验失败或反复警告未处理 |
+| A1 | apt 使用探测通过的国内源或团队私服 | 域名是当次延迟最低且 `Release` 正确的源，或团队内网 apt | 仍 `deb.debian.org` / `archive.ubuntu.com` / `security.debian.org` 且无替换；或写了某个镜像站但没探测 |
+| A2 | 装 uv 不走 astral.sh 默认 GitHub | `pip install -i <当次选出的 PyPI 镜像> uv` | `curl … astral.sh/uv/install.sh` |
+| A3 | uv 索引 | `UV_INDEX_URL` / `UV_DEFAULT_INDEX` = 当次选出的源 | 未设且会访问 `pypi.org` |
+| A4 | pip 索引 | `PIP_INDEX_URL` 或 `pip -i` = 当次选出的源 | 默认官方 PyPI 且无 `-i` |
+| A5 | trusted-host | 与实际使用的镜像 host 一致 | HTTPS 校验失败或反复警告未处理 |
 
 **企业内网私服**（域名非公网 mirror）：保留私服，不覆盖为阿里云；记录「已使用私服，本章跳过公网镜像」。
 
-### 1.2 默认 URL（阿里云）
+### 1.2 当前候选 URL（阿里云，写入前替换成探测赢家）
 
 ```text
 # Debian/Ubuntu apt
@@ -76,7 +76,7 @@ trusted-host: mirrors.aliyun.com
 
 ### 1.3 落地动作（Dockerfile 模式）
 
-按顺序改写（最小 diff；匹配用户现有基础镜像代号）：
+按顺序改写（最小 diff；匹配用户现有基础镜像代号）。下面片段里的阿里云域名是当前示例，落地时换成当次探测选出的源。
 
 #### A. apt → 阿里云
 
@@ -138,17 +138,17 @@ RUN uv sync --frozen
 
 1. Dockerfile / 构建脚本中 **无** 未替换的官方 Debian/Ubuntu 默认源（私服除外）
 2. **无** 默认 `astral.sh/uv/install.sh`（除非用户书面坚持并接受慢/失败风险）
-3. `UV_*` / `PIP_*` 指向 `mirrors.aliyun.com`（或约定私服）
-4. 能完整跑通一次构建（`docker build` 或 `uv sync` / `uv pip install`）且日志显示从阿里云域名拉取
+3. `UV_*` / `PIP_*` 指向当次选出的源（或约定私服）
+4. 能完整跑通一次构建（`docker build` 或 `uv sync` / `uv pip install`），日志里的下载域名是这次选中的源
 
 输出简短验收表：
 
 ```text
 第 1 章 镜像源
-- [ ] apt 阿里云
-- [ ] uv/pip 阿里云
+- [ ] apt 为当次延迟最低且内容正确的源（或私服）
+- [ ] uv/pip 为当次延迟最低且内容正确的源（或私服）
 - [ ] 禁止 astral.sh 默认装 uv
-- [ ] 构建试跑通过
+- [ ] 构建试跑通过，日志域名与所选源一致
 ```
 
 ### 1.6 完成后

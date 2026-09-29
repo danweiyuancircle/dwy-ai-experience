@@ -48,11 +48,21 @@ def fetch_tags(namespace: str, image: str, page_size: int = 100, max_pages: int 
                 data = json.loads(resp.read().decode("utf-8"))
         except HTTPError as e:
             if e.code == 404:
-                print(f"错误：DockerHub 上找不到 {namespace}/{image}", file=sys.stderr)
+                # Hub 404 只说明这条先验失效，镜像可能在 GHCR / Quay / 私有仓库。
+                print(
+                    f"Docker Hub 先验失效：hub.docker.com 上没有 {namespace}/{image}。"
+                    "不代表镜像不存在。换它所在的 registry 或厂商 release 再列 tag，"
+                    "禁止用文档里的旧版本号。",
+                    file=sys.stderr,
+                )
                 sys.exit(2)
             raise
         except URLError as e:
-            print(f"错误：访问 DockerHub 失败：{e}", file=sys.stderr)
+            print(
+                f"Docker Hub 先验失效：访问失败：{e}。"
+                "换入口再查，禁止用文档里的旧版本号。",
+                file=sys.stderr,
+            )
             sys.exit(3)
 
         tags.extend(data.get("results", []))
@@ -130,7 +140,10 @@ def main():
         })
 
     if not pure_version_tags:
-        print("未找到符合规范的稳定版本 tag。请手动确认。", file=sys.stderr)
+        print(
+            "Docker Hub 这次没有符合规范的稳定 tag。换入口再列，禁止用文档里的旧版本号。",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     # 按 (major, minor) 分组，每组取最大 patch
@@ -172,8 +185,10 @@ def main():
 
     if n_minus_1_item:
         n_major, n_minor, n_patch, _ = n_minus_1_item["version"]
-        print(f"✅ 推荐 (N-1 minor): {args.image}:{n_minus_1_item['name']}")
-        print(f"   {n_major}.{n_minor} 系列最新 patch，发布于 {format_date(n_minus_1_item['last_updated'])}")
+        # 偏好不是落盘结论：tag 须仍在本次列表，且未 EOL、发布满 7 天。
+        print(f"偏好 (N-1，须核对仍在本次列表且未 EOL): {args.image}:{n_minus_1_item['name']}")
+        print(f"   {n_major}.{n_minor} 系列最新 patch，Hub 记录日期 {format_date(n_minus_1_item['last_updated'])}")
+        print("   落盘只用本次输出里的 tag。文档版本表不能代替这次结果。")
     else:
         print("⚠️  仅找到一个 minor 系列，无法推荐 N-1，请手动确认是否可降级 major")
     print()
@@ -186,7 +201,7 @@ def main():
         if key == latest_minor:
             marker = "  ← 最新"
         elif key == n_minus_1_key:
-            marker = "  ← 推荐 (N-1)"
+            marker = "  ← 偏好 (N-1)"
         print(f"  {item['name']:20s}  {format_date(item['last_updated'])}{marker}")
 
 

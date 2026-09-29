@@ -1,6 +1,6 @@
 ---
 name: dwy-mirror-source
-description: "国内镜像源加速配置检查与修复：扫描 pip/uv/poetry/npm/pnpm/yarn/Docker/Go/Cargo/Maven/Gradle/Homebrew/Flutter 等 13 类工具的用户级和项目级配置，识别使用境外默认源或缺失配置的项，提供阿里云/清华/中科大镜像源切换。触发条件：用户说'检查镜像源'、'配置加速'、'换镜像源'、'mirror 检查'、'安装慢'、'下载慢' 时。"
+description: "国内镜像源加速配置检查与修复：扫描 pip/uv/poetry/npm/pnpm/yarn/Docker/Go/Cargo/Maven/Gradle/Homebrew/Flutter 等 13 类工具的用户级和项目级配置，识别使用境外默认源或缺失配置的项。候选 URL 只是当前先验；写入前当次探测，在内容正确的源里选延迟最低的，连通不算通过。触发条件：用户说'检查镜像源'、'配置加速'、'换镜像源'、'mirror 检查'、'安装慢'、'下载慢' 时。"
 ---
 
 # 镜像源加速配置（mirror-source）
@@ -21,19 +21,31 @@ description: "国内镜像源加速配置检查与修复：扫描 pip/uv/poetry/
 
 ---
 
-## 默认首选镜像源
+## 候选先验，不是赢家
 
-**阿里云**（覆盖最全，BGP 多线，全国质量稳定）。
+`references/mirror-providers.md` 和脚本里的 `MIRRORS` 是当前已知候选。阿里云、清华、中科大、DaoCloud 谁快，随机器和时段变。`preference.json` 的 `preferred_provider` 只表示上次人工指定，不能代替当次测速。
 
-可通过 `./preference.json` 修改：
+用户明确指定某一家，或已经是企业私服：跳过公网竞速，沿用指定源。
 
-```json
-{
-  "preferred_provider": "aliyun"
-}
-```
+### 当次探测
 
-可选值：`aliyun` / `tsinghua` / `ustc`。详细 URL 表见 `references/mirror-providers.md`。
+对同一工具的每个候选，发即将真正使用的那一种请求，记从发出到首字节的时间：
+
+| 工具 | 探测什么 |
+|------|----------|
+| pip / uv | 索引上的 `/simple/pip/` |
+| apt / apk | 该发行版的 `Release` 或仓库索引 |
+| Docker `registry-mirrors` | `{mirror}/v2/` |
+| gcr / ghcr / quay 等前缀 | `https://{前缀}/v2/` |
+| npm / Go / Cargo / Maven | 该工具实际拉取用的索引 URL |
+
+超时、证书错误、非成功状态、正文里没有目标包或 tag：淘汰。剩下的取本次延迟最低。两者差距在测量噪声内（约 20ms）且已有配置可用时，保持现有配置，避免来回改。
+
+Docker daemon 按 `registry-mirrors` 顺序用第一个成功的，所以最快的放第一位，其余只作失败回退。Dockerfile 里的 registry 前缀只能写一个域名，写赢家。
+
+测速结果（URL、毫秒、时间）写在当次说明里，不写回本 skill。候选全部不成立：另找可用源，对新候选重复上述探测。找不到再问用户。
+
+`apply_mirrors.py --provider` 只能写三家已知源。赢家属于这三家才把对应 provider 传进去。Docker 顺序用 `--docker-mirrors`，按延迟从低到高逗号分隔，否则脚本会把内置列表排到前面。赢家不在这三家里：按该 URL 改配置，先 diff，用户确认后再写。不要为了迁就脚本改选更慢的已知源。
 
 ---
 
@@ -76,7 +88,7 @@ python3 {scripts}/check_mirrors.py [--scope user|project|both] [--project-path .
 
 | 状态 | 含义 | 处理 |
 |------|------|------|
-| ✅ ok | 已用国内推荐源 | 无需操作 |
+| ✅ ok | 已用已知国内源 | 不代表当前最快。用户抱怨慢时重新测速 |
 | ⚠️ warn | 用了官方默认源（境外） | 提示可切换 |
 | ⚠️ private | 用了企业私服 | 跳过，不动 |
 | ❌ missing | 工具已安装但无配置 | 提示创建 |
@@ -121,7 +133,8 @@ python3 {scripts}/apply_mirrors.py [--tools pip,npm,docker] [--scope user]
 **参数：**
 - `--tools` — 逗号分隔的工具列表（`pip,uv,npm,pnpm,docker,go,cargo,maven,gradle,brew,flutter`），默认全部
 - `--scope` — `user` / `project` / `both`，默认 `both`
-- `--provider` — `aliyun` / `tsinghua` / `ustc`，默认读 preference.json
+- `--provider` — `aliyun` / `tsinghua` / `ustc`，只在赢家属于这三家时传入。默认读 preference.json，那个值是先验
+- `--docker-mirrors` — 逗号分隔的 https URL，按当次延迟从低到高。只在改 Docker 时传
 - `--dry-run` — 只输出 diff，不写文件
 - `--project-path` — 项目级配置的根目录，默认当前目录
 
@@ -145,13 +158,14 @@ python3 {scripts}/check_mirrors.py --only npm --verbose
 
 用户说「检查镜像源」/「配置加速」时：
 
-1. 跑 `check_mirrors.py` 输出报告
+1. 跑 `check_mirrors.py` 输出报告。报告里的 provider 是先验，不是赢家
 2. 把报告里 `warn` / `missing` 项列出来给用户看
 3. 询问要修复哪些（默认全部 `warn` + `missing`，私服项不动）
-4. 跑 `apply_mirrors.py --dry-run --tools <user-selected>` 输出 diff
-5. 等用户确认 → 跑去掉 `--dry-run` 的版本写入
-6. 修改了 Docker daemon.json → 提示用户**重启 Docker**，本 skill 不自动重启
-7. 修改了 shell rc 文件（Flutter / Homebrew）→ 提示用户 `source ~/.zshrc` 或重开终端
+4. 对要改的工具按「当次探测」选出延迟最低且内容正确的源
+5. 跑 `apply_mirrors.py --dry-run --tools <user-selected> --provider <赢家所属的已知源>`。一次命令只有一个 `--provider`，不同工具赢家不同就分开跑。Docker 额外加 `--docker-mirrors <按延迟从低到高的 https URL>`
+6. 等用户确认 → 加 `--apply` 写入。赢家不在三家已知源里时，不调用脚本硬套，按探测到的 URL 改
+7. 修改了 Docker daemon.json → 提示用户**重启 Docker**，本 skill 不自动重启
+8. 修改了 shell rc 文件（Flutter / Homebrew）→ 提示用户 `source ~/.zshrc` 或重开终端
 
 **禁止行为：**
 - ❌ 不询问就修改用户全局配置
@@ -165,7 +179,7 @@ python3 {scripts}/check_mirrors.py --only npm --verbose
 
 uv 实际有 **3 个独立的镜像源**，缺一个都会拖慢：
 
-| 层 | 配置项 | 作用 | 国内推荐源 |
+| 层 | 配置项 | 作用 | 当前候选（写入前探测） |
 |----|--------|------|-----------|
 | 1. 包索引 | `[[index]]` 或 `UV_DEFAULT_INDEX` | 装 PyPI 包 | `https://mirrors.aliyun.com/pypi/simple/` |
 | 2. **Python 解释器下载** ⭐ | `python-install-mirror` 或 `UV_PYTHON_INSTALL_MIRROR` | `uv python install 3.12` 时下载解释器 | `https://registry.npmmirror.com/-/binary/python-build-standalone` |
@@ -204,7 +218,7 @@ Docker 镜像加速分**两类，互不替代**：
 }
 ```
 
-`apply_mirrors.py --tools docker` 自动配置这一层。
+这一层用 `--docker-mirrors` 按当次延迟排序后写入。脚本内置的 DaoCloud、中科大顺序只是候选先验。
 
 ### 类型 2：gcr / ghcr / quay / k8s 等加速 — 改 image 引用
 
@@ -242,7 +256,7 @@ FROM ghcr.m.daocloud.io/astral-sh/uv:0.5.0 AS uv
 FROM gcr.m.daocloud.io/distroless/python3:nonroot
 ```
 
-**为什么不能自动配置？** 这层加速无法在 daemon.json 实现透明代理，必须显式改 image 字符串。Claude 在用户写 Dockerfile / k8s yaml 时，如发现使用了 gcr/ghcr/quay 等域名，**应主动提示**改前缀（可与 dwy-docker-image skill 协同：固定 tag 时一并替换 registry 域名）。
+**为什么不能自动配置？** 这层加速无法在 daemon.json 实现透明代理，必须显式改 image 字符串。写 Dockerfile / k8s yaml 时若看到 gcr / ghcr / quay 等域名，提示改前缀。前缀从当前候选里当次探测，选延迟最低且 `/v2/` 可用的那一个，不固定写成 DaoCloud。tag 仍按 `dwy-docker` 固定。
 
 > 提示：containerd（不是 Docker）支持 `[plugins."io.containerd.grpc.v1.cri".registry.mirrors]` 全局映射；Kubernetes 节点用 containerd 时可写到 `/etc/containerd/config.toml` 实现透明代理。Docker 引擎本身不支持。
 
@@ -262,14 +276,14 @@ FROM gcr.m.daocloud.io/distroless/python3:nonroot
 
 | 检测项 | 严重程度 | 说明 |
 |--------|---------|------|
-| Python pip 用 `pypi.org/simple` 默认源 | warn | 改 `mirrors.aliyun.com/pypi/simple/` |
-| uv 缺 `python-install-mirror` | warn | `uv python install` 卡顿，添加 npmmirror 二进制源 |
-| uv 用了不稳定 GitHub 代理（如 ghfast/gh-proxy） | warn | 改用更稳定的 npmmirror.com/-/binary |
-| npm/pnpm 用 `registry.npmjs.org` | warn | 改 `registry.npmmirror.com` |
-| Docker 无 `registry-mirrors` | warn | 添加 `docker.m.daocloud.io` |
-| Dockerfile / k8s 用 `gcr.io/...`、`ghcr.io/...`、`registry.k8s.io/...` | warn | 改前缀为 `gcr.m.daocloud.io/...` 等（改 image 字符串） |
-| Go 未设 GOPROXY 或为 `direct` | warn | 改 `https://goproxy.cn,direct` |
-| Maven 默认 Central | warn | 添加 aliyun mirror |
-| Cargo 默认 crates.io | warn | 改 `rsproxy.cn` |
+| Python pip 用 `pypi.org/simple` 默认源 | warn | 当次探测后改到延迟最低的 PyPI 镜像 |
+| uv 缺 `python-install-mirror` | warn | `uv python install` 会去拉解释器，补一个探测通过的二进制源 |
+| uv 用了不稳定 GitHub 代理（如 ghfast/gh-proxy） | warn | 换成探测通过且延迟更低的二进制源 |
+| npm/pnpm 用 `registry.npmjs.org` | warn | 当次探测后改到延迟最低的 npm 镜像 |
+| Docker 无 `registry-mirrors` | warn | 写入当次延迟从低到高的 registry-mirrors |
+| Dockerfile / k8s 用 `gcr.io/...`、`ghcr.io/...`、`registry.k8s.io/...` | warn | 改成探测通过且延迟最低的前缀（改 image 字符串） |
+| Go 未设 GOPROXY 或为 `direct` | warn | 当次探测后改到延迟最低的 GOPROXY |
+| Maven 默认 Central | warn | 当次探测后改到延迟最低的 Maven 镜像 |
+| Cargo 默认 crates.io | warn | 当次探测后改到延迟最低的 crates 镜像 |
 | 用 npm registry 但没用 https | high | 安全问题，强制换 https |
-| 镜像源 URL 已弃用（如 `npm.taobao.org`） | high | 已 EOL，必须迁移到 npmmirror.com |
+| 镜像源 URL 已弃用（如 `npm.taobao.org`） | high | 已 EOL，不能再用。替代地址当次探测后选择 |

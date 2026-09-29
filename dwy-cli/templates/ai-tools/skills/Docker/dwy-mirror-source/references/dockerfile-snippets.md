@@ -4,6 +4,8 @@ Linux 包管理（apt/apk/yum/dnf）和 Python pip 在 Dockerfile 内的换源�
 
 ## 通用原则
 
+片段里的域名是当前候选示例。写入 Dockerfile 前，按 `SKILL.md`「当次探测」把域名换成延迟最低且内容正确的源。
+
 1. **基础镜像确定后再换源** — 不同 base image 用不同包管理（Ubuntu/Debian 用 apt，Alpine 用 apk，CentOS/RockyLinux 用 yum/dnf）
 2. **多阶段构建只在需要安装包的阶段换** — 最终运行阶段如果不装包，不必加这些
 3. **CI/CD 镜像构建可能不需要换源** — 部分 CI 已在境内或自建 mirror，按团队约定

@@ -1,13 +1,16 @@
 # Python Cython SDK 跨平台 wheel + PyPI Trusted Publisher 发版 workflow 模板
 #
-# 已内置 dwy-github-action-publish skill Python wheel 场景 8 个避坑修复，开箱即用。
-# 复制到项目 .github/workflows/release.yml，只改两处：
+# action tag、runner label、manylinux 镜像、setuptools/packaging/Cython 下限都是写作时的先验。
+# 复制前对照 action 仓库的 tag 和 actions/runner-images 的 supported labels。
+# tag 404、label 退役、wheel 的 platform tag 对不上，就换这次查到的值。不要把新值写回本模板。
+#
+# 复制到项目 .github/workflows/release.yml 后还要改：
 #   1. package-dir: <PACKAGE_DIR>      —— 实际 SDK 子目录（monorepo 必填，单包仓库填 . 或省略）
 #   2. CIBW_BUILD                      —— 按需调整 Python 版本枚举
 #
-# 配套要求（缺一不可）：
-#   1. <PACKAGE_DIR>/pyproject.toml 的 [build-system].requires 含:
-#        "setuptools>=77", "packaging>=24.2", "wheel", "Cython>=3.0.10"
+# 配套：
+#   1. license expression 仍缺 packaging.licenses 时，按当前 release 说明抬 setuptools/packaging 下限。
+#      当时踩坑的起点是 "setuptools>=77", "packaging>=24.2", "wheel", "Cython>=3.0.10"
 #   2. PyPI Trusted Publisher 已配（owner/repo/workflow=release.yml/environment=pypi）
 #   3. GitHub Settings → Environments 存在名为 "pypi" 的 environment
 

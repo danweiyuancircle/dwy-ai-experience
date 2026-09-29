@@ -2,6 +2,8 @@
 
 新建 docker 工程或用户问"compose / Dockerfile / dev.sh 怎么写"时读这份文件。
 
+文中 `postgres:17.1`、`redis:7.2.6`、`nginx:1.26.2`、`node:20.18.0` 只示范 tag 长什么样。写入项目前换成「版本探测」选出的 tag。
+
 ## docker-compose.dev.yml（开发环境）
 
 **核心原则**：快速启动、热更新、方便调试。基础设施容器化，应用代码在宿主机跑（这样 `uvicorn --reload` / `vite dev` 的文件监听才能生效，不用每次改代码都 rebuild 镜像）。
@@ -10,7 +12,7 @@
 # docker-compose.dev.yml — 只跑基础设施，应用在宿主机跑
 services:
   postgres:
-    image: postgres:17.1                  # 固定具体版本，按 query_dockerhub.py 推荐
+    image: postgres:17.1                  # 格式示例。写入前换成当次探测选出的具体版本
     ports:
       - "${PG_PORT:-15432}:5432"          # 映射到宿主机非标准端口，避免与其他项目冲突
     environment:

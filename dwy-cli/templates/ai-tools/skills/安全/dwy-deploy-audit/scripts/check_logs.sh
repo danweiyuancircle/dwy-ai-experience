@@ -190,9 +190,9 @@ echo "估算 Docker 日志日均增量: ${GROWTH_MB} MB/day (基于容器存活�
 if [[ "$GROWTH_MB" -gt 0 && "$ROOT_FREE_MB" -gt 0 ]]; then
   DAYS=$(( ROOT_FREE_MB / GROWTH_MB ))
   echo "按当前增速预计可撑: ${DAYS} 天 (粗估, 仅算 docker json-log)"
-  if   [[ "$DAYS" -lt 30 ]]; then echo "[!!!] CRITICAL: 不足 30 天, 必须立即配 log-opts 或扩盘"
-  elif [[ "$DAYS" -lt 90 ]]; then echo "[!!] HIGH: 不足 90 天, 建议尽快补 log-opts max-size"
-  else echo "[OK] 撑天数 >= 90 天"
+  if   [[ "$DAYS" -lt 30 ]]; then echo "[!!!] CRITICAL: 按当前增速不足 30 天写满根盘。先确认已有 max-size；配额按这条增速收紧或扩盘，不要套用固定的 10m/50m/100m"
+  elif [[ "$DAYS" -lt 90 ]]; then echo "[!!] HIGH: 按当前增速不足 90 天写满根盘。30/90 天是告警线，不是要配成的保留天数"
+  else echo "[i] 按当前增速撑过 90 天。90 天是告警线，不是目标配额"
   fi
 else
   echo "[i] 无法估算日均增量 (容器刚起或无日志)"

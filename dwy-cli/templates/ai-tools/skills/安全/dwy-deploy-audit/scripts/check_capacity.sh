@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
 # 硬件规格识别 + 当前服务资源配置盘点 (只读)
 #
-# 输出 raw data, 由主 Claude 对照 SKILL.md 4.10 的推荐分级表生成
-# "推荐 vs 当前" 对比报告。
+# 输出实测：硬件、硬限、docker stats 单帧、日志配额。
+# 分级数字只是没有实测时的冷启动先验，见 checks-runtime.md 4.10。
+# 不要因为当前值没贴近先验就判失败。
 #
 # 检查范围:
 #   - 宿主硬件: CPU 核数 / 总内存 / 根盘容量 / swap
@@ -26,7 +27,7 @@ MEM_TOTAL_MB=$(( ${MEM_TOTAL_KB:-0} / 1024 ))
 MEM_AVAIL_MB=$(( ${MEM_AVAIL_KB:-0} / 1024 ))
 SWAP_TOTAL_MB=$(( ${SWAP_TOTAL_KB:-0} / 1024 ))
 
-# 推荐分档(对齐 SKILL.md 4.10 的 2/4/8/16 GB 表)
+# 冷启动分档。有 docker stats 时不用这档决定 mem_limit。
 if   [[ $MEM_TOTAL_MB -ge 14000 ]]; then TIER="16GB"
 elif [[ $MEM_TOTAL_MB -ge 7000  ]]; then TIER="8GB"
 elif [[ $MEM_TOTAL_MB -ge 3500  ]]; then TIER="4GB"
@@ -39,7 +40,7 @@ echo "CPU 型号: ${CPU_MODEL:-unknown}"
 echo "总内存:   ${MEM_TOTAL_MB} MB"
 echo "可用内存: ${MEM_AVAIL_MB} MB"
 echo "Swap:     ${SWAP_TOTAL_MB} MB"
-echo "推荐分档: ${TIER} (主 Claude 据此查推荐表)"
+echo "冷启动分档: ${TIER} (没有占用数据时才参考先验表)"
 
 echo ""
 echo "--- 根盘容量 ---"
@@ -90,6 +91,8 @@ echo "--- 容器实际内存占用 (docker stats 单帧) ---"
 timeout 8 docker stats --no-stream --format \
   'table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}\t{{.CPUPerc}}' 2>/dev/null \
   || echo "[i] docker stats 超时或不可用"
+# 单帧不是峰值。硬限低于这一帧才算不够；远高于这一帧不必改到先验表。
+echo "[i] 单帧采样不是峰值。有监控历史用峰值。没有数据时才用冷启动先验，不要为贴近先验表改硬限。"
 
 echo ""
 echo "--- Postgres 启动参数 (从 docker inspect Args 提取) ---"
@@ -116,10 +119,10 @@ for c in $(docker ps -q 2>/dev/null); do
     # 从 docker inspect 取 shm_size (Postgres 关键)
     shm=$(docker inspect -f '{{.HostConfig.ShmSize}}' "$c" 2>/dev/null)
     shm_mb=$(( shm / 1024 / 1024 ))
-    if [[ "$shm_mb" -lt 128 ]]; then
-      echo "  [!] MEDIUM: shm_size=${shm_mb}m 偏低 (大查询可能 'no space left on /dev/shm', 推荐 >=256m)"
-    else
-      echo "  [OK] shm_size=${shm_mb}m"
+    # 64m 是 Docker 默认。没有 /dev/shm 写满的证据时，不把 256m 当合格线。
+    echo "  shm_size=${shm_mb}m"
+    if [[ "$shm_mb" -lt 64 ]]; then
+      echo "  [i] shm_size 低于 Docker 默认 64m。仅当日志出现 no space left on /dev/shm 时再加大，不预设 256m"
     fi
 
     # 校验 shared_buffers 是否过大
@@ -200,14 +203,14 @@ for f in $COMPOSE_FILES; do
 done
 
 echo ""
-echo "--- 日志兜底推荐档 (基于根盘 + 容器规模, 对照 SKILL.md 4.10) ---"
+echo "--- 日志上限 (冷启动先验，不是目标配额) ---"
 ROOT_TOTAL_MB=$(df -BM --output=size / 2>/dev/null | tail -1 | tr -d ' M')
 ROOT_TOTAL_GB=$(( ${ROOT_TOTAL_MB:-0} / 1024 ))
 RUNNING_COUNT=$(docker ps -q 2>/dev/null | wc -l | tr -d ' ')
 echo "根盘容量: ${ROOT_TOTAL_GB} GB"
 echo "运行容器数: ${RUNNING_COUNT}"
 
-# 推荐档分级
+# 没有日志日增量时的起点。有 check_logs 的增速就用增速，不要改成跟这里一致。
 if   [[ $ROOT_TOTAL_GB -lt 50 ]];   then REC_TIER="入门"; REC_SIZE="10m"; REC_FILE="3"
 elif [[ $ROOT_TOTAL_GB -lt 150 ]]; then
   REC_TIER="标准"
@@ -215,8 +218,7 @@ elif [[ $ROOT_TOTAL_GB -lt 150 ]]; then
   else                                REC_SIZE="50m"; REC_FILE="5"; fi
 else REC_TIER="大型"; REC_SIZE="100m"; REC_FILE="5"
 fi
-echo "推荐档: ${REC_TIER}"
-echo "推荐 daemon log-opts: max-size=${REC_SIZE}, max-file=${REC_FILE}, compress=true"
+echo "冷启动先验档: ${REC_TIER} (无日志增量时才参考 max-size=${REC_SIZE}, max-file=${REC_FILE})"
 
 # 拿当前 daemon.json log-opts (复用 check_docker.sh 的逻辑)
 DAEMON_JSON=$(sudo -n cat /etc/docker/daemon.json 2>/dev/null \
@@ -227,13 +229,11 @@ CUR_FILE=$(echo "$DAEMON_JSON" | grep -oE '"max-file"[[:space:]]*:[[:space:]]*"[
             | head -1 | grep -oE '"[^"]+"$' | tr -d '"')
 echo "当前 daemon.json: max-size=${CUR_SIZE:-(未配置)}, max-file=${CUR_FILE:-(未配置)}"
 
-# 简单对比标记
+# 缺上限才是问题。和先验档相同或不同都不表示配额正确。
 if [[ -z "$CUR_SIZE" ]]; then
   echo "[!!!] CRITICAL: daemon 无 log-opts.max-size, 长跑容器日志会无限增长"
-elif [[ "$CUR_SIZE" == "$REC_SIZE" ]]; then
-  echo "[OK] max-size 与推荐档一致"
 else
-  echo "[i] 当前 max-size=${CUR_SIZE} 与推荐档 ${REC_SIZE} 不同 (主 Claude 据 SKILL.md 4.10 判定是否偏离 50%)"
+  echo "[i] 已有 max-size=${CUR_SIZE} max-file=${CUR_FILE:-(未配置)}。与冷启动先验不同不是问题，按日志增速判断。"
 fi
 
 # 估算所有容器日志合计 quota = max-size × max-file × 容器数, 看占根盘比
@@ -250,15 +250,15 @@ if [[ -n "$CUR_SIZE" ]]; then
   total_quota_mb=$(( ${size_mb:-0} * file_n * RUNNING_COUNT ))
   if [[ "$ROOT_TOTAL_MB" -gt 0 ]]; then
     pct=$(( total_quota_mb * 100 / ROOT_TOTAL_MB ))
-    echo "所有容器最大日志 quota 合计: ${total_quota_mb} MB (占根盘 ${pct}%, 期望 < 5%)"
+    echo "所有容器最大日志 quota 合计: ${total_quota_mb} MB (占根盘 ${pct}%)"
     if [[ "$pct" -gt 5 ]]; then
-      echo "[!!] HIGH: 日志 quota 合计 ${pct}% 已超根盘 5% 上限"
+      echo "[!!] HIGH: 配额天花板占根盘 ${pct}%。5% 是安全上限，超过说明 max-size/max-file 过大，不是叫你改成先验档的 10m/50m"
     fi
   fi
 fi
 
 echo ""
-echo "--- 资源占比汇总 (供 Claude 校验 65% 上限规则) ---"
+echo "--- 内存硬限占宿主比 (75% 是安全天花板，不是目标利用率) ---"
 echo "宿主总内存: ${MEM_TOTAL_MB} MB"
 TOTAL_LIMIT_MB=$(docker ps -q 2>/dev/null \
   | xargs -I{} docker inspect -f '{{.HostConfig.Memory}}' {} 2>/dev/null \
@@ -268,11 +268,9 @@ if [[ "$MEM_TOTAL_MB" -gt 0 ]]; then
   pct=$(( TOTAL_LIMIT_MB * 100 / MEM_TOTAL_MB ))
   echo "占宿主总内存: ${pct}%"
   if [[ "$pct" -gt 75 ]]; then
-    echo "[!!] HIGH: 容器硬限合计 > 75% 宿主内存, OS/nginx/监控 留 buffer 不足"
-  elif [[ "$pct" -lt 30 ]]; then
-    echo "[i] INFO: 容器硬限合计 < 30%, 可能资源利用不足"
+    echo "[!!] HIGH: 容器硬限合计 > 75% 宿主内存, OS 没有余量"
   else
-    echo "[OK] 容器硬限合计在 30%-75% 区间"
+    echo "[i] 硬限合计 ${pct}%。不要求贴近 65%。硬限低于上面的 docker stats 才要加"
   fi
 fi
 REMOTE
