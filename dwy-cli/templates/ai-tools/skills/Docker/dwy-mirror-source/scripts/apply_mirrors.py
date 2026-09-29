@@ -13,7 +13,8 @@
 选项：
     --tools T1,T2,...      逗号分隔的工具列表（默认全部）
     --scope {user,project,both}  默认 user（项目级请显式指定）
-    --provider {aliyun,tsinghua,ustc}  推荐源，默认读 preference.json
+    --provider {aliyun,tsinghua,ustc}  已知源之一，默认读 preference.json（先验，不是测速结果）
+    --docker-mirrors URL,URL  按当次延迟从低到高覆盖 Docker registry-mirrors 顺序
     --project-path PATH    默认 cwd
     --dry-run              只输出 diff，不写文件（默认开启，必须 --apply 才落盘）
     --apply                显式确认落盘（与 --dry-run 互斥）
@@ -576,6 +577,11 @@ def main():
                         help="逗号分隔的工具列表，默认全部")
     parser.add_argument("--scope", choices=["user", "project", "both"], default="user")
     parser.add_argument("--provider", choices=["aliyun", "tsinghua", "ustc"], default=None)
+    parser.add_argument(
+        "--docker-mirrors",
+        default=None,
+        help="逗号分隔的 https registry-mirrors，按当次延迟从低到高。传入后覆盖内置 Docker 顺序",
+    )
     parser.add_argument("--project-path", type=Path, default=Path("."))
     parser.add_argument("--apply", action="store_true",
                         help="实际写入（默认只 dry-run 输出 diff）")
@@ -586,6 +592,13 @@ def main():
     args = parser.parse_args()
 
     provider = args.provider or load_preference()
+    if args.docker_mirrors:
+        # 内置列表是先验。探测已经给出顺序时，不能再把 DaoCloud 排回第一位。
+        ordered = [u.strip() for u in args.docker_mirrors.split(",") if u.strip()]
+        if not ordered or any(not u.startswith("https://") for u in ordered):
+            print("错误：--docker-mirrors 必须是逗号分隔的 https URL，按延迟从低到高", file=sys.stderr)
+            sys.exit(2)
+        MIRRORS[provider]["docker"] = ordered
     project = args.project_path.resolve()
     only = [t.strip() for t in args.tools.split(",") if t.strip()] if args.tools else []
 

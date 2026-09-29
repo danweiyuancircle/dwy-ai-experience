@@ -1,12 +1,12 @@
 # 镜像源 URL 对照表
 
-各加速服务的 URL 由 `check_mirrors.py` / `apply_mirrors.py` 中的 `MIRRORS` 字典维护。本文件作为**人类可读的索引**，便于审阅、迁移、扩展新工具。
+各加速服务的 URL 由 `check_mirrors.py` / `apply_mirrors.py` 中的 `MIRRORS` 字典维护。本文件是**当前候选**，不是指定赢家。写入前按 `SKILL.md`「当次探测」测延迟，在内容正确的源里选最低的。连通不算通过。
 
-如需更新 URL，请同时改脚本里的 `MIRRORS` 字典和本文档，保持一致。
+如需更新候选 URL，请同时改脚本里的 `MIRRORS` 字典和本文档，保持一致。候选全部探测失败时，另找可用源，不要从本表挑一个「看起来还行」的。
 
-## 默认推荐：阿里云
+## 当前候选：阿里云
 
-阿里云覆盖最全、BGP 多线、对外网无依赖、稳定性高，故作默认。
+覆盖面广，常作为先验之一。快慢以当次探测为准。
 
 | 工具 | URL | 说明 |
 |------|-----|------|
@@ -27,7 +27,7 @@
 | Flutter PUB | `https://pub.flutter-io.cn` | flutter pub |
 | Flutter STORAGE | `https://storage.flutter-io.cn` | flutter SDK |
 
-## 备选：清华 TUNA
+## 当前候选：清华 TUNA
 
 教育网友好，混合源最完整。Homebrew 上清华源比阿里维护更新更勤。
 
@@ -44,7 +44,7 @@
 | Homebrew bottles | `https://mirrors.tuna.tsinghua.edu.cn/homebrew-bottles` |
 | Flutter PUB | `https://pub.flutter-io.cn`（沿用） |
 
-## 备选：中科大 USTC
+## 当前候选：中科大 USTC
 
 | 工具 | URL |
 |------|-----|
@@ -89,7 +89,7 @@ Docker 镜像加速分**两类**，互不替代：
 
 | 加速器 | URL | 备注 |
 |--------|-----|------|
-| DaoCloud | `https://docker.m.daocloud.io` | **首选**，免登录、稳定 |
+| DaoCloud | `https://docker.m.daocloud.io` | 当前候选，免登录。是否放第一位由当次延迟决定 |
 | 中科大 | `https://docker.mirrors.ustc.edu.cn` | 高校镜像 |
 | 网易 | `https://hub-mirror.c.163.com` | 偶尔波动 |
 | 阿里云专属 | `https://<your-id>.mirror.aliyuncs.com` | 阿里云用户专属，需登录获取 |
@@ -99,7 +99,7 @@ Docker 镜像加速分**两类**，互不替代：
 
 **`registry-mirrors` 字段对 gcr/ghcr/quay/k8s/mcr/nvcr 等其他 registry 完全无效**。要加速这类 image，必须**改 image 引用本身**。
 
-DaoCloud 维护的 11 个 registry 镜像（实测全部可达）：
+DaoCloud 维护的 registry 前缀是当前候选。下表是写文档时的对照，用之前对目标前缀探测 `/v2/`，延迟最低且内容正确的才写入：
 
 | 源 registry | 镜像域名 | 用途 |
 |-------------|---------|------|

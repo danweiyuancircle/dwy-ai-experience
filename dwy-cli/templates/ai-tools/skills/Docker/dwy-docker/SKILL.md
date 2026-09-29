@@ -11,7 +11,7 @@ description: "Docker 工程规范检查与镜像版本管理。触发场景：�
 
 **参考文件：** `./references/`
 - `templates.md` — compose / Dockerfile / dev.sh 模板（用户问"怎么写"时读）
-- `version-rules.md` — N-1 minor 选法 + 各类镜像表（选具体版本号时读）
+- `version-rules.md` — N-1 是偏好算法。文中版本表只是格式示例，禁止当推荐版本
 - `ask-templates.md` — AskUserQuestion 模板（违规需要询问用户时读）
 
 ---
@@ -24,7 +24,7 @@ description: "Docker 工程规范检查与镜像版本管理。触发场景：�
 |---|---|
 | 已合规（tag 固定 / Dockerfile 多阶段 / compose 分离） | **静默放行**，不打扰 |
 | 违规（latest / 浮动 tag / 单一 compose / 缺 healthcheck 等） | 自动 `AskUserQuestion`，让用户决策 |
-| AI 即将新写入（用户让我加 redis 服务） | 先 query_dockerhub.py + AskUserQuestion 选 tag，再写入 |
+| AI 即将新写入（用户让我加 redis 服务） | 先按「版本探测」拿到本次 tag 列表，再 AskUserQuestion，再写入 |
 
 **为什么这样设计**：用户写 docker 一半被中断 N 次问"要选哪个版本"会很烦；已经写了 `nginx:1.26.2` 这种合规字段也不该 AI 啰嗦"建议你改成…"。只在违规时才介入。
 
@@ -111,15 +111,26 @@ AI 看到下列情况之一，立即进入「检查清单」：
 
 ---
 
+## 版本探测
+
+目标写死：写入的 tag 是本次列表里的具体版本，不是 `latest`、单段 major、代号。偏好 N-1；算出来的 tag 不在列表里、已 EOL、或发布不满 7 天（依赖新鲜度规则）时，丢掉这条偏好，从本次列表重选。
+
+`query_dockerhub.py` 只是当前先验，只查 Docker Hub。
+
+1. 镜像在 Hub：跑 `python3 {scripts}/query_dockerhub.py <image>`。选项只能来自这次输出的 tag
+2. 脚本非 0、404、超时，或镜像不在 Hub（GHCR、Quay、私有仓库）：换该镜像真实所在的 registry 或厂商 release 再列 tag。文档里的版本表不能顶上
+3. 新入口也不成立：继续找还能列出 tag 的来源。都失败才问用户，并说明查不到，禁止用旧数字编选项
+4. AskUserQuestion 的选项必须是这次看到的 tag（模板见 `references/ask-templates.md`）
+
 ## 交互流程（三种场景）
 
 ### 1. 写入前（AI 即将新增 image / Dockerfile / compose）
 
 例：用户说"帮我加个 redis"。
 
-1. `python3 {scripts}/query_dockerhub.py redis` 查推荐版本
-2. AskUserQuestion 让用户选 tag（模板见 `references/ask-templates.md` 模板 1）
-3. 用户选完后用 Edit / Write 写入，按 `references/templates.md` 填补 healthcheck / restart 等字段
+1. 按「版本探测」拿到本次 tag 列表
+2. AskUserQuestion 让用户选 tag
+3. 用户选完后用 Edit / Write 写入，按 `references/templates.md` 填补 healthcheck / restart 等字段。模板里的版本号换成用户选的 tag
 4. 写入完成后**不再二次询问已写入的合规字段**
 
 ### 2. 检查现有文件（用户编辑或粘贴文件后）
@@ -135,7 +146,7 @@ AI 看到下列情况之一，立即进入「检查清单」：
 
 1. `bash {scripts}/scan_images.sh <project-path>`
 2. 收集违规清单
-3. 对每个 `critical` / `high` 违规：query_dockerhub.py 拿推荐 + AskUserQuestion
+3. 对每个 `critical` / `high` 违规：按「版本探测」拿本次 tag 列表 + AskUserQuestion
 4. 用户选完批量 Edit
 5. `low` / `medium` 在最后汇总告诉用户但不强制改
 
@@ -145,7 +156,7 @@ AI 看到下列情况之一，立即进入「检查清单」：
 
 1. **禁止 `latest`** — 任何位置不允许，省略 tag 等同于 `latest`。**为什么**：镜像漂移会让"昨天能跑今天炸"，CI 和 prod 跑不一样的内容
 2. **必须固定 tag** — 必须是具体版本号，禁止浮动 tag（`stable` / `alpine` / `bookworm` 等）
-3. **优先选 N-1 minor** — 当前最新稳定 minor 的前一个 minor 系列最新 patch。**为什么**：避开新版刚发布时未暴露的回归 bug，行业惯例
+3. **偏好 N-1 minor** — 当前最新稳定 minor 的前一个 minor 系列最新 patch。**为什么**：避开新版刚发布时未暴露的回归 bug。这是偏好，不是写死的版本号；探测结果对不上就重选
 4. **生产关键服务用 digest** — 数据库、消息队列、网关钉 `@sha256:...`，让 image 100% 不可篡改
 
 **完整选法（含 4 类镜像表 + LTS 例外 + 具体例子）**：见 `references/version-rules.md`。
@@ -160,7 +171,7 @@ AI 看到下列情况之一，立即进入「检查清单」：
 python3 {scripts}/query_dockerhub.py <image> [--namespace library] [--top 20]
 ```
 
-输出最近的稳定 tag 列表 + 推荐 N-1 minor。私有命名空间用 `org/image`。
+输出 Docker Hub 上最近的稳定 tag，并标出 N-1 偏好。私有命名空间用 `org/image`。退出非 0 表示这条先验失效，不是「镜像不存在」。
 
 ### `scan_images.sh`
 
@@ -170,12 +181,9 @@ bash {scripts}/scan_images.sh [project-path]
 
 扫描项目所有 Dockerfile / docker-compose / k8s yaml / CI 配置中的镜像引用，输出违规清单。**只读，不改文件**。
 
-### 降级流程（脚本不可用时）
+### 先验失效之后
 
-`query_dockerhub.py` 失败（私有仓库 / 网络不通）：
-
-1. 用 WebFetch 查 DockerHub `https://hub.docker.com/_/<image>/tags` 或官方 release page
-2. 如果仍无法拿到版本列表，**仍然走 AskUserQuestion**，措辞改为"无法自动查询版本，请手动确认"，options 提供常见稳定版本号 + "Other (我手动输入)"
+脚本失败或镜像不在 Hub 时，按「版本探测」换入口。禁止把 `references/version-rules.md` 里的旧版本号放进 AskUserQuestion。查不到列表时让用户手动输入，不提供文档里的「常见稳定版本」。
 
 ---
 

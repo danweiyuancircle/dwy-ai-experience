@@ -7,7 +7,7 @@
 ## 采集与上传
 
 1. 使用审核账号或 StoreKit 测试环境进入目标商品购买页。
-2. 在 macOS 16:10 画布导出 `1280 × 800` PNG 或 JPG，移除用户身份、支付凭据和生产数据。
+2. 按 [screenshot-specs.yaml](screenshot-specs.yaml) 的 `macos_iap_review.preferred` 导出 PNG 或 JPG，移除用户身份、支付凭据和生产数据。该条目当前先验是 `1280 × 800`。被拒后改那份规格，不要在这里另写像素。
 3. 上传前校验精确像素、RGB、无透明通道和单张文件约束。
 4. 通过 `inAppPurchaseAppStoreReviewScreenshots` 的预留、上传、提交流程写入对应内购；上传后读取资源状态确认成功。
 

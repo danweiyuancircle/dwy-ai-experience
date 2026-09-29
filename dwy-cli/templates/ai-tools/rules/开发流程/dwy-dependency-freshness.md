@@ -29,18 +29,20 @@ description: 依赖版本选择通用规则（首次技术选型只选正式版�
 
 ## 三、各栈查发布时间示例
 
-未列出的栈，按「查官方 registry 元数据 → 取发布时间」自行处理。查的对象必须是正式版，预发布条目直接跳过。
+未列出的栈，按「查这个包实际所在的 registry → 取首次发布时间」自行处理。查的对象必须是正式版，预发布条目直接跳过。
+
+表里的 URL 和字段是当前先验。包不在这个宿主、字段不是首次发布，或请求失败，就换它实际所在的 registry 或发行说明。不要用本文件里的示例版本号顶上。查到的新入口不要写回本表。
 
 | 栈 | 查发布时间方法 |
 |---|---|
-| npm / pnpm | `npm view <pkg> time --json`（取目标版本对应的时间字段） |
-| uv / pip | PyPI JSON API：`https://pypi.org/pypi/<pkg>/json` 的 `releases[<version>][0].upload_time` |
-| Docker | Docker Hub 镜像页 / API 的 `last_updated`；优先看具体 tag 的 push 时间 |
-| Android (Gradle/Maven) | Maven Central `maven-metadata.xml` 的 `<lastUpdated>`（格式 yyyyMMddHHmmss） |
-| iOS (CocoaPods) | `https://github.com/CocoaPods/Specs` 或仓库 release / tag 时间 |
+| npm / pnpm | 先验：`npm view <pkg> time --json`。官方 registry 连不上，或包不在 npmjs，改查实际所在的 registry。刚发布的传播延迟不是换源的理由 |
+| uv / pip | 先验：`https://pypi.org/pypi/<pkg>/json`。取该版本各文件里最早的 `upload_time`，不要默认 `[0]` 就是首次。包不在 pypi.org 就查它实际所在的 index |
+| Docker | 查该 tag 的首次发布时间。Hub tags API 的 `last_updated` 会因重复推送变动，不能当成首次发布。Hub 是当前先验，404 或镜像不在 Hub 时改查它所在 registry 的发布记录 |
+| Android (Gradle/Maven) | 先验：包所在仓库的 `maven-metadata.xml`。`<lastUpdated>` 会随元数据重写，不能单独当成首次发布。对不上就看该版本的发行说明或 tag。包不在 Maven Central 就查它实际的仓库 |
+| iOS (CocoaPods) | 先验：`https://github.com/CocoaPods/Specs` 或该 pod 源仓库的 release / tag。这个 pod 不在 Specs 里，就查它实际的 spec 源 |
 | iOS (SPM) | 源仓库 release / tag 时间 |
-| 鸿蒙 (ohpm) | ohpm registry 包元数据 publishTime |
-| Flutter (pub) | `https://pub.dev/packages/<pkg>/versions` 页 published 时间 |
+| 鸿蒙 (ohpm) | 先验：ohpm registry 包元数据 publishTime。这个 host 没有该包就查项目实际使用的 ohpm 源 |
+| Flutter (pub) | 先验：`https://pub.dev/packages/<pkg>` 的 published，或 pub API。私有 pub 用那个 host |
 
 ## 四、正反例
 
@@ -60,7 +62,7 @@ implementation 'com.example:lib:latest'
 # 正例：正式版，且发布 ≥7 天
 npm view some-pkg time --json      # 看候选正式版发布时间
 pnpm add some-pkg@1.2.3            # 1.2.3 是正式版，发布已满 7 天
-FROM node:20.18.1-slim             # 该 tag 是正式版，push 已满 7 天
+FROM node:<正式版且已满 7 天的具体 tag>
 ```
 
 ## 五、AI 自判提示

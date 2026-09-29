@@ -16,7 +16,7 @@ description: PostgreSQL 安全与配置规范（参数化查询、应用用户�
 | 应用用户权限 | 只授予 SELECT / INSERT / UPDATE / DELETE，**不给** DROP / CREATE / ALTER / SUPERUSER |
 | 端口暴露 | **禁止**将 `5432` 直接暴露到公网；仅允许 VPC / 内网 / 跳板机访问 |
 | 运行权限 | PostgreSQL 服务进程**禁止**以 `root` 用户运行，必须使用专用低权限系统用户 |
-| 连接池 | `pool_size ≤ 20`，`max_overflow ≤ 10` |
+| 连接池 | 没有实测时的冷启动先验：`pool_size` 20、`max_overflow` 10。有 `max_connections`、实例数和峰值连接后按实测定。无上限，或各实例合计能打满库的 `max_connections`，才算违规。大于 20 / 10 本身不是违规 |
 | SSL 连接 | 生产环境启用 `sslmode=require` |
 | 敏感字段加密 | 身份证号 / 银行卡 / 手机号原文等使用 AES 加密**存储**，不仅展示脱敏 |
 | 迁移 | 通过 Alembic 管理 schema，**禁止**手动执行 DDL（详见 `dwy-db-migration` rule） |
@@ -89,7 +89,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 | 超级用户跑应用 | 应用以 `postgres` 或其他超级用户身份连接 | **致命 → STOP** |
 | 公网开放 5432 | 安全组 / 防火墙 / LB 允许公网直连 PostgreSQL 端口 | **致命 → STOP** |
 | root 运行数据库 | PostgreSQL 服务进程以 `root` 身份运行 | **致命 → STOP** |
-| 连接池超限 | `pool_size > 20` 或 `max_overflow > 10` | 高 |
+| 连接池 | 无上限，或各实例合计能打满 `max_connections`。大于先验 20/10 本身不是违规 | 高 |
 | 无 SSL | 生产环境连接串无 `sslmode=require` | 高 |
 | 敏感字段明文 | 身份证 / 银行卡等明文落库 | 高 |
 | 硬编码连接串 | 连接串写死在代码中 | **致命 → STOP** |

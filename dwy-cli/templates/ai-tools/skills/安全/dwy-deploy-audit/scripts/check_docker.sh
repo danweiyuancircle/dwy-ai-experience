@@ -43,7 +43,7 @@ docker ps --format "{{.Names}}|{{.Ports}}" 2>/dev/null | while IFS='|' read -r n
 done
 
 echo ""
-echo "--- 镜像 tag 分级检查 (生产期望: 固定到具体 patch, 跑 /dwy-docker 选 N-1 minor) ---"
+echo "--- 镜像 tag 分级检查 (生产期望: 固定到具体 patch, 跑 /dwy-docker 按当次 tag 列表选) ---"
 # 浮动 tag 黑名单 (无版本号或仅描述类的)
 FLOATING_TAGS='^(latest|stable|mainline|edge|current|alpine|slim|bookworm|bullseye|buster|jammy|focal|noble|nightly)$'
 docker ps --format "{{.Names}}|{{.Image}}" 2>/dev/null | while IFS='|' read -r name image; do
@@ -87,7 +87,7 @@ docker ps --format "{{.Names}}|{{.Image}}" 2>/dev/null | while IFS='|' read -r n
   fi
 done
 echo ""
-echo "[i] 修复:对每条 [!!!] / [!!] / [!] 的镜像,跑 /dwy-docker 用 query_dockerhub.py 拿 N-1 minor 推荐版本"
+echo "[i] 修复:对每条 [!!!] / [!!] / [!] 的镜像,跑 /dwy-docker 按当次 tag 列表固定版本。query_dockerhub.py 只是 Hub 先验"
 
 echo ""
 echo "--- 容器是否以 root 运行 ---"
@@ -169,7 +169,7 @@ echo "max-size:   ${LOG_MAX_SIZE:-(未配置, 单容器日志可无限增长)}"
 echo "max-file:   ${LOG_MAX_FILE:-(未配置)}"
 if [[ -z "$LOG_MAX_SIZE" ]]; then
   echo "[!!] HIGH: 未限制单容器日志大小,长跑容器可能写满磁盘"
-  echo "      建议: daemon.json 加 \"log-opts\": {\"max-size\": \"100m\", \"max-file\": \"3\"}"
+  echo "      建议: daemon.json 的 log-opts 写上 max-size 和 max-file。数字按 check_logs 的日增量和根盘剩余，没有增速才用冷启动先验，不要写死 100m"
 fi
 
 echo ""
@@ -177,39 +177,36 @@ echo "--- docker compose 文件位置 (用于人工核查) ---"
 sudo -n find /home /opt /srv /root -maxdepth 5 \( -name "docker-compose*.yml" -o -name "compose.yml" \) 2>/dev/null | head -10
 
 echo ""
-echo "--- 镜像源加速检查 (国内服务器拉境外镜像必装) ---"
-# a. 时区判定 (粗判境内)
+echo "--- 镜像源 (候选名单不是合格线) ---"
+# a. 时区只说明要不要考虑公网加速，不决定哪个源合格
 TZ_VAL=$(timedatectl show -p Timezone --value 2>/dev/null || readlink -f /etc/localtime 2>/dev/null | sed 's|.*/zoneinfo/||')
 echo "服务器时区: ${TZ_VAL:-unknown}"
 LIKELY_CN=0
 case "$TZ_VAL" in
   Asia/Shanghai|Asia/Chongqing|Asia/Urumqi|Asia/Harbin|Asia/Hong_Kong|PRC) LIKELY_CN=1 ;;
 esac
-[[ "$LIKELY_CN" == "1" ]] && echo "→ 时区在 PRC, 拉境外 registry 不加速会非常慢" \
-                          || echo "→ 时区非 PRC, 加速可选"
+[[ "$LIKELY_CN" == "1" ]] && echo "→ 时区在 PRC。拉 docker.io 前先探测，私有库不参加公网竞速" \
+                          || echo "→ 时区非 PRC。加速可选"
 
 # b. daemon.json registry-mirrors
+# 主机名在候选名单里不等于通过。合格要看当次 Registry 请求的内容和延迟。
 echo ""
 MIRRORS=$(echo "$DAEMON_JSON" | grep -oE '"registry-mirrors"[[:space:]]*:[[:space:]]*\[[^]]*\]' | head -1)
 if [[ -n "$MIRRORS" ]]; then
   echo "daemon registry-mirrors:"
   echo "  $MIRRORS"
-  # 简单识别推荐源
   echo "$MIRRORS" | grep -oE 'https?://[a-zA-Z0-9.-]+' | while read u; do
     case "$u" in
       *daocloud*|*aliyun*|*aliyuncs*|*ustc*|*tsinghua*|*163*|*tencent*|*huaweicloud*)
-        echo "    [OK] $u (国内加速源)" ;;
+        echo "    [i]  $u (在候选名单里，未测延迟和内容)" ;;
       *)
-        echo "    [i]  $u (非已知国内主流源, 确认是否仍可用)" ;;
+        echo "    [i]  $u (名单外。私有库或用户指定源保持不动；公网源要当次探测)" ;;
     esac
   done
 else
-  if [[ "$LIKELY_CN" == "1" ]]; then
-    echo "[!!] HIGH: daemon.json 未配 registry-mirrors, 国内服务器拉 docker.io 镜像会非常慢"
-  else
-    echo "[i] daemon.json 未配 registry-mirrors (境外服务器一般不需要)"
-  fi
-  echo "      修复: 跑 /dwy-mirror-source 自动写入阿里云/中科大/daocloud 镜像源"
+  echo "[i] daemon.json 未配 registry-mirrors"
+  echo "    拉的是 docker.io 公网时，跑 /dwy-mirror-source，当次探测后按延迟从低到高写入"
+  echo "    不要因为没写 daocloud 判失败。私有库或用户指定源不参加公网竞速"
 fi
 
 # c. 当前运行中容器使用的境外 registry (registry-mirrors 仅对 docker.io 生效)
@@ -231,21 +228,20 @@ docker ps --format "{{.Names}}|{{.Image}}" 2>/dev/null | while IFS='|' read -r n
 
   case "$registry" in
     docker.io)
-      tag="OK 走 daemon registry-mirrors 加速"
-      [[ -z "$MIRRORS" && "$LIKELY_CN" == "1" ]] && tag="[!!] 未配 mirror 国内拉取慢"
+      tag="[i] docker.io。加速是否最快看当次探测，不看名单里有没有源"
       ;;
     gcr.io|ghcr.io|k8s.gcr.io|registry.k8s.io|quay.io|mcr.microsoft.com|nvcr.io|docker.elastic.co)
       if [[ "$LIKELY_CN" == "1" ]]; then
-        tag="[!!] HIGH 境外 registry, registry-mirrors 不生效, 必须把 image 名改 *.m.daocloud.io 前缀"
+        tag="[!!] HIGH 境外 registry, registry-mirrors 不生效, 跑 /dwy-mirror-source 选当次延迟最低且内容正确的前缀"
       else
         tag="[i] 境外 registry"
       fi
       ;;
     *daocloud*|*aliyun*|*aliyuncs*|*ustc*)
-      tag="[OK] 已用国内镜像前缀"
+      tag="[i] 用了候选前缀，未测是否本次最快"
       ;;
     *)
-      tag="[i] 自建/私有 registry"
+      tag="[i] 自建/私有 registry，不参加公网竞速"
       ;;
   esac
   printf "  %-32s registry=%-32s %s\n" "$name" "$registry" "$tag"
@@ -253,7 +249,7 @@ done
 
 echo ""
 echo "[i] 修复路径:"
-echo "      1. docker.io 加速  → /dwy-mirror-source 自动配 daemon registry-mirrors"
-echo "      2. gcr/ghcr/k8s    → 把 image 改 <registry>.m.daocloud.io 前缀, 见 dwy-mirror-source 镜像替换表"
-echo "      3. 镜像版本不固定  → /dwy-docker 选 N-1 minor 重新固定"
+echo "      1. docker.io 加速  → /dwy-mirror-source 当次探测后按延迟排序写入 registry-mirrors"
+echo "      2. gcr/ghcr/k8s    → 把 image 改成当次延迟最低的前缀, 候选见 dwy-mirror-source"
+echo "      3. 镜像版本不固定  → /dwy-docker 按当次 tag 列表固定，N-1 只是偏好"
 REMOTE

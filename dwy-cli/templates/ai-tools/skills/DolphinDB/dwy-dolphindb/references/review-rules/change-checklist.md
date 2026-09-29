@@ -7,18 +7,18 @@
 
 - [ ] WHERE 是否命中分区列？分区列是否被函数包裹（`year()` / `date()` / `temporalAdd()`）？
 - [ ] 范围条件用了 `between ... and ...` 或两个独立条件？没有链式比较 `a <= col <= b`？
-- [ ] 单次 `append` ≤ 500K 行？循环里有 `del + gc.collect()`？
+- [ ] 单次 `append` 低于当前 server 的单消息上限？写作时常见约 500K 行，以本次报错为准。循环里有 `del + gc.collect()`？
 - [ ] 大文件用 pyarrow `read_table + slice`，不是 `pd.read_feather` 全量加载？
 - [ ] 拼接 DDB 脚本时，外部输入有正则白名单校验？（防注入）
 - [ ] `pool.run()` 用 `await`（原生 async），`Session.run()` 用 `asyncio.to_thread()`？
-- [ ] 连接池大小 ≤ CPU 核数 × 2（社区版 4 worker → pool 3）？
+- [ ] 连接池大小按本次 worker？2 核 8G、4 worker 的先验是 pool 3，不是所有集群的上限。
 - [ ] `select` 只取需要的列？没有 `select *`？
 - [ ] 多次聚合查询能否合并为一次？
 - [ ] 多因子横向查询用了 `pivot by`，不是 Python 端 merge？
 - [ ] backtick 列名定义在单行内？
 - [ ] 分页用 `limit offset, count`（**不是** `LIMIT x OFFSET y`）？
-- [ ] 新建库表：单分区估算大小落在引擎区间？总分区数远低于 65536？二级高基数列走 `HASH` 不是 `VALUE`？
-- [ ] 写入 SYMBOL 列前校验 ≤ 255 字节？STRING/BLOB 有长度断言防静默截断？
+- [ ] 新建库表：单分区估算大小落在引擎区间？总分区数低于该节点 `maxPartitionNumPerQuery`（默认常见 65536）？二级高基数列走 `HASH` 不是 `VALUE`？
+- [ ] 写入 SYMBOL 列前校验当前版本字节上限（常见 255）？STRING/BLOB 有长度断言防静默截断？
 - [ ] 删数据用 `dropPartition`，不是 `delete from`？
 - [ ] pandas → DDB：`uint` 是否 `.astype('int64')`？NaN→int 是否 `.fillna(0)`？
 - [ ] Session / Pool 有 `try/finally close()`？

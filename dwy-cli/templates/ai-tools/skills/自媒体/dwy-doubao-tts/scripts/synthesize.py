@@ -206,6 +206,7 @@ def synthesize(
     timeout: int,
 ) -> dict[str, Any]:
     """发单向流式请求，拼接 base64 音频并落盘。"""
+    # 配置缺字段时才用当前先验。4xx 或模型下线不要死磕这两条，改查火山控制台文档。
     endpoint = cfg.get("endpoint") or "https://openspeech.bytedance.com/api/v3/tts/unidirectional"
     resource_id = cfg.get("resource_id") or "seed-icl-2.0"
     speaker = speaker_id(cfg, voice_key)

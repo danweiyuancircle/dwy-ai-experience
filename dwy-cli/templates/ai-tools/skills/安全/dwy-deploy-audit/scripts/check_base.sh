@@ -30,7 +30,16 @@ for cmd in nginx postgres psql redis-cli docker openssl ufw firewall-cmd iptable
 done
 
 echo "--- PUBLIC IP (best effort) ---"
-curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null || hostname -I | awk '{print $1}'
+# 回显地址是先验。一个失败换下一个。全部失败印 unknown。禁止用 hostname -I 的内网地址冒充公网 IP。
+PUB_IP=""
+for url in https://api.ipify.org https://ifconfig.me/ip https://icanhazip.com; do
+  PUB_IP=$(curl -fsS --max-time 5 "$url" 2>/dev/null | tr -d '[:space:]')
+  if printf '%s' "$PUB_IP" | grep -Eq '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
+    break
+  fi
+  PUB_IP=""
+done
+echo "${PUB_IP:-unknown}"
 echo
 
 echo "--- USER & SUDO ---"

@@ -6,8 +6,9 @@
 
 - `question` 必须**指出当前问题**（"latest 不符合规范" / "redis:7 只有 major"），而不是泛泛"选个版本"
 - `header` ≤12 字符，用 `<image> tag` / `多阶段` / `compose 分离` 这类
-- 第一个 option 永远是推荐项，标 `(推荐)` / `(N-1 推荐)`
-- `description` 必须含**理由**（为什么这个选项），含日期更好
+- 第一个 option 是本次列表里的偏好项，标 `(推荐)` / `(N-1 推荐)`。偏好 tag 不成立时，第一个 option 改为本次列表中的下一个合格 tag
+- `description` 必须含**理由**（为什么这个选项），日期用这次查到的发布日期
+- **禁止**照抄本文件里的 `1.26.2` / `1.27.3`。那些数字只示范选项结构
 - `preview` 用实际写入文件的那一行（`FROM xxx:tag` / `image: xxx:tag`）
 - 选项 2-4 个；非生产关键服务不给 digest 选项
 
@@ -25,19 +26,19 @@ AskUserQuestion({
     multiSelect: false,
     options: [
       {
-        label: "1.26.2 (N-1 推荐)",
-        description: "N-1 minor 系列最新 patch，发布 2024-08-28，已过早期回归窗口",
-        preview: "image: nginx:1.26.2"
+        label: "<本次 N-1 tag> (N-1 推荐)",
+        description: "本次列表中的 N-1 minor 最新 patch，发布 <本次日期>",
+        preview: "image: nginx:<本次 N-1 tag>"
       },
       {
-        label: "1.27.3 (最新稳定)",
-        description: "最新稳定版，2024-11-26 发布，新功能尝鲜场景再选",
-        preview: "image: nginx:1.27.3"
+        label: "<本次最新稳定 tag> (最新稳定)",
+        description: "本次列表中的最新稳定版，发布 <本次日期>，新功能尝鲜场景再选",
+        preview: "image: nginx:<本次最新稳定 tag>"
       },
       {
-        label: "1.26.2 + digest (生产关键)",
-        description: "钉到 digest，image 100% 不可篡改，生产网关推荐",
-        preview: "image: nginx:1.26.2@sha256:..."
+        label: "<本次 N-1 tag> + digest (生产关键)",
+        description: "钉到本次查到的 digest，image 不可篡改，生产网关再用",
+        preview: "image: nginx:<本次 N-1 tag>@sha256:<本次 digest>"
       }
     ]
   }]
@@ -137,6 +138,6 @@ AskUserQuestion({
 
 ## 用户选了 "Other" 自定义版本时
 
-按用户输入的值写入，但口头提醒一句："你选的 `xxx:Y.Y.Y` 不在 N-1 推荐范围内（当前推荐 N-1 是 `xxx:Z.Z.Z`），确认是出于具体原因吗？"
+按用户输入的值写入。若该值不在本次 tag 列表里，先核对它是否真实存在，再提醒一句："你选的 `xxx:Y.Y.Y` 不是本次列表里的 N-1 偏好（本次偏好是 `xxx:Z.Z.Z`）。" `Z.Z.Z` 必须来自这次探测。
 
 不要拒绝写入，但要让用户知道这是非常规选择。

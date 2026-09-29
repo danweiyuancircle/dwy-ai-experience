@@ -104,9 +104,10 @@ Compose 优先 `dimensionResource(R.dimen.xxx)` 读 dimens，不要散落 `.dp` 
 
 ### 依赖
 
-JCenter 已停，走 JitPack，版本锁 `v1.2.1`。
+JCenter 已停，走 JitPack。用仍兼容 Support、不引入 AndroidX 的正式版。已核对过的起点是 `v1.2.1`（`1.2.0+` 才兼容 Support）。新 tag 先看传递依赖，拉进 AndroidX 就丢掉。具体 tag 按依赖新鲜度现查，不要把 `v1.2.1` 当成永远唯一坐标。
 
 ```gradle
+// 起点先验。写入前确认该 tag 仍不带 androidx
 implementation 'com.github.JessYanCoding:AndroidAutoSize:v1.2.1'
 ```
 
@@ -1261,7 +1262,7 @@ if (trimmed.isNotEmpty()) { ... }
 | 23  | 字符串空判断用 `isEmpty` / `isNotEmpty` / `isNotBlank`,禁止 `length() > 0` / `== 0` / `!= 0` 及 `trim().length() > 0` 判空;详见 §八「字符串空判断」                                                                                                      | ✓        |
 | 24  | 有 AppCompat 对应类的控件必须用 AppCompat 版(XML / `new` / 自定义 View 父类),包名按当前项目推断;Switch 用 `SwitchCompat`;无对应类的布局容器保持原样                                                                                                                          | ✓        |
 | 25  | 尺寸与字号一律 `dp`，禁止 `px` / `sp` 字面量（含 Compose `16.sp` / `16.px`、`COMPLEX_UNIT_SP`）；数值走 `dimens.xml` | ✓        |
-| 26  | 屏幕适配走 AndroidAutoSize `v1.2.1`，只按宽；移动端 `design_width=390`（画布 `390×844`），TV `design_width=1280`（画布 `1280×720`）；禁止按高适配、禁止副单位；页面基类重写 `getResources()` 调 `AutoSizeCompat` | ✓        |
+| 26  | 屏幕适配走 AndroidAutoSize（Support 兼容线，起点先验 `v1.2.1`，不锁死这个 tag），只按宽；移动端 `design_width=390`（画布 `390×844`），TV `design_width=1280`（画布 `1280×720`）；禁止按高适配、禁止副单位；页面基类重写 `getResources()` 调 `AutoSizeCompat` | ✓        |
 
 
 **不执行自检就提交代码 = 违规。**

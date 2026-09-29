@@ -139,7 +139,15 @@ fi
 
 echo ""
 echo "########## 公网可达性自测 ##########"
-PUB_IP=$(curl -fsS --max-time 5 https://api.ipify.org 2>/dev/null)
+# 与 check_base.sh 同一原则：回显地址是先验，失败换下一个，禁止用内网地址顶上。
+PUB_IP=""
+for url in https://api.ipify.org https://ifconfig.me/ip https://icanhazip.com; do
+  PUB_IP=$(curl -fsS --max-time 5 "$url" 2>/dev/null | tr -d '[:space:]')
+  if printf '%s' "$PUB_IP" | grep -Eq '^[0-9]{1,3}(\.[0-9]{1,3}){3}$'; then
+    break
+  fi
+  PUB_IP=""
+done
 echo "公网 IP (best effort): ${PUB_IP:-unknown}"
 if [[ -n "$PUB_IP" ]]; then
   echo "[i] 注意: 真实公网可达性需从外网测试,此处仅本机视角"

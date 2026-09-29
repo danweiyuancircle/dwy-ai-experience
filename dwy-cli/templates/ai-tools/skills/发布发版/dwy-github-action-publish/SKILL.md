@@ -56,13 +56,26 @@ gh run view <run-id> --json jobs,conclusion
 - PyPI Trusted Publisher 需要 `permissions: id-token: write`，并绑定 workflow 和 environment。
 - artifact 名称必须包含平台和架构，避免多个 matrix 上传时互相覆盖。
 
+## 模板里的 tag、runner、依赖下限是先验
+
+`references/*.yml` 里的 `actions/*@v4`、`pypa/cibuildwheel@v3.4`、`ubuntu-24.04-arm`、`macos-15-intel`、`macos-14`、`manylinux_2_28`、`musllinux_1_2`、`setuptools>=77`、`packaging>=24.2`、`Cython>=3.0.10`、`node-version: 20` 是写作时能用的起点。
+
+复制前核对：
+
+- `uses:` 的 tag 在该 action 仓库里真实存在。没有 major alias（例如曾经的 `cibuildwheel@v3`）就换本次查到的 minor 或精确 tag。
+- runner label 在 `actions/runner-images` 当前 supported 列表里。已知退役：`macos-13` / `macos-12` / `macos-11` / `ubuntu-20.04`。新退役的同样不能用。表里没写但还在支持的不要判死。
+- manylinux / musllinux 按这次要装的 wheel 实际 platform tag 选。旧镜像装不上就换，不要把 `_2_28` 当成永远唯一。
+- `setuptools` / `packaging` / `Cython` 的下限来自 PEP 639 把旧 packaging 打爆那次。license expression 仍缺 `packaging.licenses` 时，按这几个包当前 release 的依赖说明抬下限。数字对不上就换，不要把 77 / 24.2 写成唯一修复。
+
+当次选出的 tag 和 label 不要写回本 skill 或模板，当成新的永远默认。
+
 ---
 
 ## 场景 1：Python Cython wheel + PyPI OIDC
 
 适用：含 Cython 编译扩展的 Python 包、跨平台 wheel 分发（linux x86_64/aarch64 + macOS x86_64/arm64 + Windows AMD64）、GitHub Actions + cibuildwheel + PyPI Trusted Publisher OIDC 发版。
 
-模板：复制 `./references/release-workflow-template.yml` 到目标项目 `.github/workflows/release.yml`，只改：
+模板：复制 `./references/release-workflow-template.yml` 到目标项目 `.github/workflows/release.yml`。action tag、runner label、manylinux 镜像先按上一节核对，再改：
 
 1. `package-dir: <PACKAGE_DIR>`：实际 SDK 子目录；单包仓库填 `.` 或省略。
 2. `CIBW_BUILD`：按需调整 Python 版本枚举。
@@ -75,13 +88,13 @@ rg -n "Cython|ext_modules|Extension|cibuildwheel|pypa/gh-action-pypi-publish|lic
 
 检查点：
 
-- `[build-system].requires` 含 `setuptools>=77`、`packaging>=24.2`、`wheel`、`Cython>=3.0.10`。
-- `pypa/cibuildwheel` 用 minor tag 或精确 tag，例如 `pypa/cibuildwheel@v3.4`，不要写 `@v3`。
+- `[build-system].requires` 要能通过当前的 license expression 检查。当时踩坑的下限是 `setuptools>=77`、`packaging>=24.2`、`wheel`、`Cython>=3.0.10`，以这几个包当前 release 说明为准。
+- `pypa/cibuildwheel` 用仓库里真实存在的 minor tag 或精确 tag。`@v3.4` 是当时的例子，不要写不存在的 `@v3`。复制前再查一次 tag。
 - monorepo 用 `with.package-dir`，测试命令使用 `{package}`，不要用 `{project}/tests`。
 - 跨平台 shell 参数用外单内双：`'pytest {package}/tests -v -k "not requires_server"'`。
-- Linux 依赖 pyarrow / pandas / numpy / scipy / lxml 时，manylinux 镜像用 `manylinux_2_28`。
+- Linux 依赖 pyarrow / pandas / numpy / scipy / lxml 时，manylinux 镜像按这些 wheel 当前的 platform tag 选。当时需要 `manylinux_2_28`。
 - test 阶段大依赖用 binary-only 预装：`CIBW_BEFORE_TEST: "pip install --only-binary=:all: pyarrow pandas"`。
-- macOS x86_64 用 `macos-15-intel`，不要用 `macos-13`。
+- macOS x86_64 用当次 supported 的 intel label。写作时是 `macos-15-intel`。不要用已退役的 `macos-13`。
 - 默认只发布 wheel。不要发布 sdist，避免 Cython 编译模块源码随 sdist 泄漏。
 
 ### Python 8 个高频坑
@@ -164,7 +177,9 @@ CIBW_TEST_COMMAND: "pytest {package}/tests -v -k 'not requires_server'"
 CIBW_TEST_COMMAND: 'pytest {package}/tests -v -k "not requires_server"'
 ```
 
-#### 坑 6：manylinux 镜像必须升到 `_2_28`
+#### 坑 6：manylinux 镜像低于 wheel 要求的 platform tag
+
+当时 pyarrow 等需要 `manylinux_2_28`。以这次要装的 wheel 为准，不要把 `_2_28` 当成永远唯一。
 
 ```yaml
 env:
@@ -181,7 +196,9 @@ env:
   CIBW_TEST_COMMAND: 'pytest {package}/tests -v -k "not requires_server"'
 ```
 
-#### 坑 8：macos-13 runner 已退休
+#### 坑 8：退役 runner
+
+`macos-13` 当时已退休。下面这组 label 是当时的 supported 先验，写之前再查 `actions/runner-images`。
 
 ```yaml
 matrix:
@@ -212,17 +229,17 @@ rg -n "electron|electron-builder|electron-forge|pack|dist|dmg|AppImage|nsis|appx
 检查点：
 
 - `package.json` 明确 `electron` 和打包工具版本，例如 `electron-builder`。
-- workflow 用 `actions/checkout@v4`，项目依赖 submodule 时必须 `submodules: true`。
-- Node 版本固定，例如 `actions/setup-node@v4` + `node-version: 20`。
+- workflow 用当前仍存在的 checkout tag（写作时常见 `actions/checkout@v4`）。项目依赖 submodule 时必须 `submodules: true`。tag 404 或已废弃就换本次查到的 tag。
+- Node 版本按项目引擎固定到具体版本。`actions/setup-node@v4` + `node-version: 20` 只是当时的例子，不是唯一合法版本。
 - 使用锁文件安装：npm 项目用 `npm ci`，pnpm 项目用 `pnpm install --frozen-lockfile`。
 - 每个平台在对应 runner 上打包，不要指望一个 Linux runner 交叉产出 macOS / Windows 完整安装包。
-- macOS x64 和 arm64 分开：x64 用 `macos-15-intel`，arm64 用 `macos-latest` / `macos-14`。
+- macOS x64 和 arm64 分开。写作时 x64 是 `macos-15-intel`，arm64 是 `macos-latest` / `macos-14`。写之前再查 supported labels。
 - Linux AppImage 需要系统依赖，常见为 `icnsutils graphicsmagick xz-utils`。
 - Linux runner 上 `apt-get update` 前可移除易失效的 Microsoft / Azure apt source，避免第三方源拖死打包。
 - 未配置证书但要产出 unsigned 包时，设置 `CSC_IDENTITY_AUTO_DISCOVERY: false`，避免 electron-builder 自动找证书导致 macOS job 失败。
 - 产物命名必须包含 `${version}`、`${os}`、`${arch}`，避免 Release asset 覆盖。
 - upload-artifact 只上传最终安装包：`*.dmg`、`*.exe`、`*.AppImage`；不要上传 `win-unpacked/`。
-- GitHub Release job 需要 `permissions: contents: write`，用 `actions/download-artifact@v4` + `merge-multiple: true` 汇总产物。
+- GitHub Release job 需要 `permissions: contents: write`。汇总产物用当前仍存在的 `actions/download-artifact` tag（写作时常见 `@v4`）+ `merge-multiple: true`。
 
 ### Electron 推荐 workflow 形态
 
@@ -232,7 +249,7 @@ rg -n "electron|electron-builder|electron-forge|pack|dist|dmg|AppImage|nsis|appx
 
 #### 坑 1：macOS x64 / arm64 不能混跑
 
-macOS x64 用 `macos-15-intel`。macOS arm64 用 `macos-latest` / `macos-14`。不要用已退役的 `macos-13`。
+macOS x64 用当次 supported 的 intel label（写作时是 `macos-15-intel`）。macOS arm64 用当次 arm label（写作时是 `macos-latest` / `macos-14`）。不要用已退役的 `macos-13`。
 
 #### 坑 2：Linux 打 AppImage 缺系统依赖
 
@@ -353,12 +370,12 @@ git push origin v1.2.3
 |---|---|---|
 | YAML 解析 | env / run 含 `:` 未加引号，run 几秒 fail 且 jobs 为空 | 致命 |
 | action tag | `pypa/cibuildwheel@v3` 等不存在 alias | 致命 |
-| runner | `macos-13` / `macos-12` / `ubuntu-20.04` | 致命 |
+| runner | 不在当次 supported 列表里。已知退役：`macos-13` / `macos-12` / `ubuntu-20.04` | 致命 |
 | artifact | matrix 上传同名产物或未带平台架构 | 高 |
-| Python build-system | PEP 639 license 但缺 `packaging>=24.2` | 致命 |
+| Python build-system | license expression 但构建环境缺 `packaging.licenses`（当时的下限是 `packaging>=24.2`） | 致命 |
 | Python test path | monorepo 子目录用 `{project}/tests` | 高 |
 | Python shell 引号 | Windows 跨平台命令里用单引号包参数 | 高 |
-| Python manylinux | 大型 C 库依赖仍用 manylinux2014 | 高 |
+| Python manylinux | 镜像低于这次 wheel 要求的 platform tag（当时常见仍停在 manylinux2014） | 高 |
 | Electron macOS | x64 / arm64 未拆 runner | 高 |
 | Electron Linux | AppImage 缺 `icnsutils graphicsmagick xz-utils` | 高 |
 | Electron 签名 | unsigned 构建未设 `CSC_IDENTITY_AUTO_DISCOVERY: false` | 中 |

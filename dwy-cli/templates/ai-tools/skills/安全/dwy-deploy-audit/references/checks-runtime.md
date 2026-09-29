@@ -2,7 +2,7 @@
 
 > **何时读这份：** 当 AI 即将运行 4.6 / 4.8 / 4.9 / 4.10 类检查或解读其输出时读取本文件。
 
-本文件聚焦"运行时与韧性"维度的检查规则、严重度判定与输出格式。涵盖 Docker 安全、自愈与资源耗尽防护、日志大小与防爆、硬件识别与资源推荐。
+本文件聚焦"运行时与韧性"维度的检查规则、严重度判定与输出格式。涵盖 Docker 安全、自愈与资源耗尽防护、日志大小与防爆、硬件与容器资源。内存和日志的具体数字是冷启动先验，有实测就不用表。
 
 脚本目录简称 `{scripts}` = `../scripts/`。
 
@@ -11,8 +11,8 @@
 ## 4.6 Docker 安全 — `{scripts}/check_docker.sh`
 
 > **跨 skill 联动**:本节发现的镜像版本/镜像源问题,只**报告**不修复。具体修复路径:
-> - 镜像 tag 不固定 / `:latest` / 浮动 tag → 引导用户跑 `/dwy-docker`(走 query_dockerhub.py 选 N-1 minor)
-> - daemon 未配 registry-mirrors / 容器用境外 registry → 引导用户跑 `/dwy-mirror-source`(写阿里云/中科大/daocloud)
+> - 镜像 tag 不固定 / `:latest` / 浮动 tag → 引导用户跑 `/dwy-docker`（当次列出 tag 再固定，N-1 只是偏好）
+> - daemon 未配 registry-mirrors / 容器用境外 registry → 引导用户跑 `/dwy-mirror-source`（当次探测后取延迟最低的源）
 
 | 检查项 | 期望值 | 严重级 |
 |--------|--------|--------|
@@ -30,9 +30,9 @@
 | 容器 `RestartPolicy` | `always` 或 `unless-stopped`（**服务器重启后自动起来**） | **critical** |
 | 容器 `RestartPolicy=no` 但正在 running | 不允许（重启会丢） | **critical** |
 | 容器 `RestartPolicy=on-failure` | 不推荐（手动 stop / OOM 后不会重启） | high |
-| daemon 日志驱动 `log-opts.max-size` | 已配置（≤ 100m，防容器日志写满磁盘） | high |
-| **daemon `registry-mirrors`**(时区在 PRC 时) | 至少 1 个国内源(daocloud / aliyun / ustc / tsinghua) | high(PRC 无配置)/ info(境外) |
-| **运行容器使用境外 registry**(`gcr.io` `ghcr.io` `k8s.gcr.io` `quay.io` `mcr.microsoft.com` `nvcr.io` `docker.elastic.co`)且时区在 PRC | 改用 `<registry>.m.daocloud.io` 前缀(`registry-mirrors` **不**对它们生效) | high |
+| daemon 日志驱动 `log-opts.max-size` | 已配置上限。数字按实测日志增速，不要求 ≤ 100m | high（未配置） |
+| **daemon `registry-mirrors`** | 名单里有 daocloud / aliyun / ustc 不算通过。合格看当次对 Registry API 的延迟和内容。未配置时提示去探测，不因为没写某个国内源判失败。私有库或用户指定源不参加公网竞速 | info |
+| **运行容器使用境外 registry**(`gcr.io` `ghcr.io` `k8s.gcr.io` `quay.io` `mcr.microsoft.com` `nvcr.io` `docker.elastic.co`)且时区在 PRC | 改用当次探测选出的国内前缀（`registry-mirrors` **不**对它们生效）。DaoCloud 前缀只是当前候选。私有库不改前缀 | high |
 
 **Docker 版本与暴露面判定补充：**
 
@@ -93,23 +93,40 @@
 |--------|--------|--------|
 | Docker 单容器 `*-json.log` 大小 | < 500 MB（daemon 配 log-opts max-size 时自动控） | high(>500 MB) / critical(>1 GB 且 daemon 无 log-opts) |
 | 容器自身 `LogConfig.Config` 覆盖 | 至少有 `max-size`，否则继承 daemon | high（容器 + daemon 都没配） |
-| Docker daemon `log-opts.max-size` | 已配置 ≤ 100m | high（同 check_docker.sh，本节关联展开） |
+| Docker daemon `log-opts.max-size` | 已配置上限。数字按本节实测增速，不要求 ≤ 100m | high（未配置） |
 | Nginx access.log / error.log 单文件 | < 500 MB | high |
 | `/etc/logrotate.d/nginx` | 存在 | high |
 | `journalctl --disk-usage` | < 2 GB | medium / high(≥ 2 GB 且 SystemMaxUse 未配) |
 | `/etc/systemd/journald.conf` `SystemMaxUse` | 已显式配置 | low |
 | 应用日志目录（`/var/log/<svc>` / `/opt/*/logs` / `/home/*/logs` / `/srv/*/logs`） | 列出 Top 10 供人工核对 | info |
-| 日志按当前 docker 容器存活时长粗估的撑天数 | > 90 天 | high(<90) / critical(<30) |
+| 日志按当前 docker 容器存活时长粗估的撑天数 | 按实测增速，写满根盘前有人处理。30 / 90 天是告警线，不是要配成的保留天数 | high(<90) / critical(<30) |
 
 **输出规约：** 脚本会汇总 `Docker json-log + Nginx + journal + 应用日志` 总占用，对照根盘可用空间，给出"按 docker 当前增速预计可撑 N 天"的粗估。粗估只算 docker json-log 增量，不含数据库/应用日志业务增量，因此**结论偏乐观**，作为下限警示使用。
 
 ---
 
-## 4.10 硬件识别与资源推荐 — `{scripts}/check_capacity.sh`
+## 4.10 硬件识别与资源 — `{scripts}/check_capacity.sh`
 
-> 脚本只输出 raw（硬件规格 + 当前容器 mem_limit + Postgres/Redis 启动参数 + compose 资源声明）；主 Claude 用下表生成 "推荐 vs 当前" 对比报告。详细推荐规则与配比公式参考 `dwy-docker` skill 第二部分。
+脚本输出宿主规格、容器硬限、`docker stats` 单帧占用、Postgres/Redis 参数、compose 声明、日志日增量能对上的根盘剩余。报告写「本次实测 vs 当前硬限」。**禁止**把下面的数字写成应改成的配额。
 
-**容器资源推荐分级表（按宿主总内存）**
+必须成立的只有这些：
+
+- 每个容器有内存硬限。关键服务（redis / postgres / mysql / mongo / clickhouse / elasticsearch）没有就是 high
+- Redis 设了 `maxmemory`，且容器 `mem_limit` 大于它。未设或为 0 是 **critical**
+- Postgres `shared_buffers` 不超过宿主总内存的 50%。这是 OOM 天花板，不是目标比例
+- 容器硬限合计不超过宿主总内存的 75%。超过则 OS 没有余量，是 high。不要求贴近 65%
+- 日志有 `max-size` 和 `max-file`。两边都没有是 **critical**
+- 按 `check_logs.sh` 的实测日增量，根盘会在短时间内写满，才收紧轮转。30 天 critical，90 天 high。这是告警线
+
+有 `docker stats` 或日志日增量时，用实测：
+
+- 内存硬限低于这一帧占用（或已有的监控峰值）才要加。单帧不是峰值，报告里写明
+- 硬限远高于占用，不是问题，不要为了贴近下表去改小
+- 日志配额按日增量和根盘剩余算。`max-size × max-file × 容器数` 本身就能占掉根盘约 5% 以上，说明天花板太高，是 high。5% 是安全天花板，不是目标占用
+
+没有占用、也没有日志增量（服务刚起）时，才用下面的冷启动先验。服务跑起来之后以实测替换，不把先验写回本文件。
+
+**冷启动先验：内存（没有实测时才用）**
 
 | 宿主总内存 | Backend mem_limit | Postgres mem_limit / shm_size / shared_buffers / effective_cache_size | Redis mem_limit / maxmemory |
 |-----------|-------------------|--------------------------------------------------------------------|----------------------------|
@@ -118,83 +135,70 @@
 | 8 GB | 2g | 2g / 512m / 512MB / 1536MB | 768m / 512mb |
 | 16 GB | 4g | 4g / 1g / 1GB / 3GB | 1g / 700mb |
 
-**配比原则**
+比例只解释这张先验怎么来的：硬限合计大约留出 OS 余量；Postgres `shared_buffers` 约容器硬限的 25%，`effective_cache_size` 约 75%；Redis `maxmemory` 约容器硬限的 70%，其余给 fork 时的写时复制。实测对不上就丢掉整行。
 
-- 容器 `mem_limit` 合计 ≤ 宿主总内存的 **65%**（预留 OS / 全局 nginx / 监控 agent / frpc 等）
-- Postgres `shared_buffers` = 容器 `mem_limit` 的 **25%**
-- Postgres `effective_cache_size` = 容器 `mem_limit` 的 **75%**
-- Redis `maxmemory` = 容器 `mem_limit` 的 **70%**（剩 30% 给 RDB/AOF fork 时 COW 留 buffer）
-- Redis `mem_limit` = `maxmemory ÷ 0.7` 向上取整
-
-**对比报告格式（主 Claude 在报告里生成）**
+**对比报告格式**
 
 ```
-| 服务 | 配置项 | 推荐(基于 X GB 宿主) | 当前 | 状态 |
-|------|--------|--------------------|------|------|
-| backend | mem_limit | 1g | 无 | ❌ 缺失 |
-| db | mem_limit | 1g | 1g | ✅ |
-| db | shared_buffers | 256MB | 128MB(默认) | ⚠️ 偏低 |
-| db | shm_size | 256m | 64m(默认) | ⚠️ 偏低 |
-| redis | maxmemory | 256mb | 256mb | ✅ |
-| redis | mem_limit | 384m | 384m | ✅ |
-| redis | appendonly | yes | no | ⚠️ 重启丢数据 |
+| 服务 | 配置项 | 本次实测 | 当前硬限 | 状态 |
+|------|--------|----------|----------|------|
+| backend | mem | stats 420MiB（单帧） | 无 | 缺上限 |
+| db | mem | stats 300MiB（单帧） | 1g | 硬限高于实测 |
+| db | shared_buffers | — | 超过宿主 50% | 撞上天花板 |
+| redis | maxmemory | 当前占用 | 0 | 未设 |
 ```
 
-**严重等级标记规则**
+没有实测的新机器，在「本次实测」列写「无，用冷启动先验 &lt;数字&gt;」，并注明服务跑起来后要重测。
+
+**严重等级**
 
 | 检查项 | 期望值 | 严重级 |
 |--------|--------|--------|
-| 关键服务（redis / postgres / mysql / mongo / clickhouse / elasticsearch）容器无 `mem_limit` | 已设置 | high |
-| Redis `--maxmemory` 未设置或 `0` | 已设置 | **critical** |
-| Postgres `shared_buffers` > 宿主总内存 50% | ≤ 宿主总内存 50% | high |
-| Postgres `shm_size` < 128m | ≥ 256m | medium |
-| Redis 未启用 AOF（`--appendonly yes`） | yes | medium |
-| 容器 `mem_limit` 合计 > 宿主总内存 75% | ≤ 65% | high |
-| `mem_limit` 偏离推荐表 ±50% 以上（主 Claude 判定） | 在分级表区间内 | medium |
+| 关键服务容器无 `mem_limit` | 已设置 | high |
+| 硬限低于本次 `docker stats` 占用 | 硬限高于实测 | high |
+| Redis `--maxmemory` 未设置或 `0` | 已设置，且小于容器 `mem_limit` | **critical** |
+| Postgres `shared_buffers` > 宿主总内存 50% | 不超过 | high |
+| Redis 未启用 AOF（`--appendonly yes`） | 按持久化需求，不是配额 | medium |
+| 容器 `mem_limit` 合计 > 宿主总内存 75% | 不超过。低于 75% 不要求再贴近某个比例 | high |
+
+偏离冷启动先验表 **不是** 违规。
 
 ---
 
-### 日志大小推荐分级表（防容器日志无限增长撑爆磁盘）
+### 日志轮转
 
-依据是 `<根盘容量>` × `<容器规模>`,**单容器最大日志占用 = `max-size` × `max-file`**;所有容器日志合计应 ≤ 根盘可用空间的 **5%**(留磁盘给数据/swap/OS)。
+有日增量时用增速和根盘剩余决定 `max-size` / `max-file`。没有增量时才看冷启动先验。
 
-**daemon 兜底配置(`/etc/docker/daemon.json` `log-opts`)**
+**冷启动先验：daemon `log-opts`（没有日志增量时才用）**
 
 | 宿主规格 | 根盘 | 容器数(估) | `max-size` | `max-file` | 单容器 quota | 备注 |
 |---------|------|-----------|------------|-----------|-------------|------|
-| 入门 | < 50 GB | 任意 | `10m` | `3` | ~30 MB | 2-4 GB VM 入门款,日志少留磁盘 |
-| 标准 | 50-150 GB | ≤ 5 | `50m` | `5` | ~250 MB | 4-8 GB VM 通用 |
-| 标准 | 50-150 GB | > 5 | `20m` | `5` | ~100 MB | 容器多则降单容器 quota |
-| 大型 | > 150 GB | 任意 | `100m` | `5` | ~500 MB | 16+ GB 服务器,空间充裕 |
+| 入门 | < 50 GB | 任意 | `10m` | `3` | ~30 MB | 盘小，先验从紧 |
+| 标准 | 50-150 GB | ≤ 5 | `50m` | `5` | ~250 MB | 无增速时的起点 |
+| 标准 | 50-150 GB | > 5 | `20m` | `5` | ~100 MB | 容器多，先验收紧 |
+| 大型 | > 150 GB | 任意 | `100m` | `5` | ~500 MB | 无增速时的起点 |
 
-**容器级覆盖(compose `logging.options`,优先于 daemon)**
+容器级 `logging.options` 盖过 daemon。库、反代、应用的保留条数不一样，同样只在没有该容器增速时参考，不作为合格线。
 
-| 容器类型 | `max-size` | `max-file` | 理由 |
-|---------|-----------|-----------|------|
-| 数据库 (postgres / mysql / mongo) | `20m` | `10` | 慢查询日志价值高,保留更多滚动 |
-| Web 反代 (nginx access log 走 stdout) | `50m` | `5` | 写入量大,单文件可放宽 |
-| 应用后端 (FastAPI / Node 等) | `10m` | `5` | 通用 |
-| Redis / 缓存类 | `10m` | `3` | 写入少,保留少 |
-
-**daemon.json 模板**
+字段写法示例（数字不是目标配额）：
 
 ```json
 {
   "log-driver": "json-file",
   "log-opts": {
-    "max-size": "50m",
-    "max-file": "5",
+    "max-size": "<当次算出的大小>",
+    "max-file": "<当次算出的个数>",
     "compress": "true"
   }
 }
 ```
 
-**严重等级标记(脚本侧 + 主 Claude 对照表)**
+**严重等级**
 
 | 判定 | 严重级 |
 |------|--------|
 | daemon 无 `log-opts.max-size` 且容器也无 `LogConfig.Config` | **critical** |
-| daemon `max-size` > 推荐档 50% 以上(如根盘 < 50 GB 用 100m) | high |
-| 容器无 `LogConfig.Config` 但 daemon 有兜底 | OK(走 daemon) |
-| 容器 `LogConfig.Config` 设了但 max-size 偏离推荐档 ±50% | medium |
-| 估算所有容器日志合计 > 根盘可用 5% | high |
+| 容器无单独 `LogConfig.Config`，daemon 已有上限 | 通过（走 daemon） |
+| `max-size × max-file × 容器数` > 根盘约 5% | high（配额天花板太高） |
+| 按实测日增量，不足 90 天写满根盘 | high；不足 30 天为 **critical** |
+| 当前 `max-size` 与冷启动先验不同 | 不是问题 |

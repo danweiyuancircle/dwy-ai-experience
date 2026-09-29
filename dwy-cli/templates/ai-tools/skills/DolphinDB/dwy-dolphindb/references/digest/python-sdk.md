@@ -16,9 +16,9 @@ Python 应用接入 DolphinDB：建连、连接池、批量写入、流订阅、
 
 ## 安装与版本
 
-- 包名 `dolphindb`，建议固定 `3.0.4`（与 server 主线 2.00.10+ 配套）。
-- `pip install dolphindb==3.0.4`，Python 3.8–3.11；arm64 mac 走 conda 或源码。
-- API 版本须匹配 server：1.30.x / 2.00.9 之前订阅需指定本地端口；2.00.9+ 反向推送，端口参数忽略。
+- 包名 `dolphindb`。版本跟当前 server 的发行说明走。`3.0.4`、Python 3.8–3.11 是一次配套先验，不是唯一合法安装。
+- pip 失败或 server 拒绝客户端：查当前配套 wheel。该版本没有对应平台 wheel 时再走 conda 或源码。不要把新选定的版本写回本文件。
+- API 版本须匹配 server：1.30.x / 2.00.9 之前订阅需指定本地端口；2.00.9+ 反向推送，端口参数忽略。先看这次 server 版本，再决定 `enableStreaming` 要不要端口。
 
 ## session.connect 关键参数
 

@@ -34,7 +34,7 @@ description: "Use when 用户要上架、发 iOS/macOS 版本、填 App Store Co
 
 ## 每版本处理
 
-1. **推广文本不向用户询问**。现网有内容则原样拷进 `promotional_text`。与本版卖点明显不符时自行改写，改前可上网核对卖点是否仍准确；双语各 ≤170 字。首次无现网则按名称/副标题/描述生成。细则见 [aso.md](references/aso.md)。
+1. **推广文本不向用户询问**。现网有内容则原样拷进 `promotional_text`。与本版卖点明显不符时自行改写，改前可上网核对卖点是否仍准确。双语各不超过 [aso.md](references/aso.md) 的推广文本上限（当前先验 170）。Connect 拒收后改用当前字段限制。首次无现网则按名称/副标题/描述生成。
 2. **更新说明**：后续版本 `whats_new` 双语必填。给用户看的概览，写「新增某某功能」这类句子，机制细节不写，可用「等等」。禁止把 `dwy-publish` 的 git `CHANGELOG` 或实现细节贴进商店。首次上架可空。
 3. **截图**：默认 `screenshots.update=false`，拷上一版本，不问。出现任一情况必须更新：新主界面、新核心能力、旧图已不能代表产品、**What's New 写了的能力在现网截图里看不到**。按 [screenshot-specs.yaml](references/screenshot-specs.yaml) 处理；已送审版本改图见 [screenshot-workflow.md](references/screenshot-workflow.md)「送审后锁死」。
 4. **发布策略**：向用户确认二选一——过审即发（`AFTER_APPROVAL`），或过审后几天再发（`SCHEDULED` + `delay_days`）。选几天则再问天数。未选不得提交。

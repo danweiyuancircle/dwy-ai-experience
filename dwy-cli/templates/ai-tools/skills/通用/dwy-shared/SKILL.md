@@ -222,7 +222,10 @@ git -C "$REPO_PATH" push origin master
 
 ## 工作流程 B：dwy CLI 管理
 
-固定命令封装：
+官方 registry `https://registry.npmjs.org/` 是刚发布包的先验，镜像经常落后。先用它。
+
+- 传播延迟：刚 publish，`ETARGET` 或 `npm view` 仍是旧版。打官方 registry 看 `dist-tags`。新版已经在官方源上时，等一会儿再装，不要改镜像。
+- 源不可用：官方源超时、证书失败、连不上。这才换源。换到能拿到**同一版本**内容的源，不只是 HTTP 200。在内容正确的源里取延迟最低的。私有源或用户指定的 registry 不参加公网竞速。当次选出的源不要写回本 skill。
 
 | 用户意图 | 命令 |
 |---|---|
@@ -233,17 +236,17 @@ git -C "$REPO_PATH" push origin master
 | 查 npm 上最新版 | `npm view create-dwy version` |
 | 应急重装（cache 损坏） | `npm cache clean --force && npm i -g create-dwy@latest --registry=https://registry.npmjs.org/ --prefer-online` |
 
-### CDN 延迟应急
+上表的 `--registry` 是先验。官方源不可用时，把 `--registry` 换成这次选出的源，版本号保持不变。
 
-如果用户刚 publish 完，跑 `npm view create-dwy version` 还显示旧版 / `npm i` 报 `ETARGET` —— 这是 npm CDN 传播延迟（30s ~ 几分钟），**不是失败**。
+### 传播延迟和源不可达分开
 
-直接打主 registry 旁路 CDN：
+如果用户刚 publish 完，跑 `npm view create-dwy version` 还显示旧版 / `npm i` 报 `ETARGET`，先确认是不是传播延迟（30s ~ 几分钟），不是源挂了。
 
 ```bash
 curl -s https://registry.npmjs.org/create-dwy | jq '."dist-tags".latest'
 ```
 
-如果显示是新版，等 30s 重试 `npm i` 或加 `--prefer-online --registry=https://registry.npmjs.org/`。
+官方源已经是新版：等 30s 再装，仍用官方源。官方源本身失败：按上面换内容正确、延迟最低的源。
 
 ## 错误处理速查
 

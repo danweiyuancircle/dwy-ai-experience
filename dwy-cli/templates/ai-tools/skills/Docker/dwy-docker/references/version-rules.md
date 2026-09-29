@@ -1,6 +1,8 @@
-# 镜像版本选择规则（N-1 minor）
+# 镜像版本选择（N-1 是偏好）
 
-选具体版本号时读这份。先用 `scripts/query_dockerhub.py` 查实时数据，再按下面规则推算 N-1。
+选具体版本号时读这份。版本必须来自当次列出的 tag。`scripts/query_dockerhub.py` 只查 Docker Hub，失败或镜像不在 Hub 时换入口，步骤见 `SKILL.md`「版本探测」。
+
+下面的版本表是格式示例，数字写文档时就过期了。**禁止**把表里的 tag 写进 Dockerfile、compose 或 AskUserQuestion。
 
 ## 为什么是 N-1 minor 而不是最新
 
@@ -12,12 +14,14 @@
 
 1. **禁止 `latest`** — FROM / image / containers.image / services.image 任何位置都不允许，省略 tag 等同于 `latest`
 2. **必须固定 tag** — 必须是具体版本号（如 `17.1`、`1.26.2`、`3.20`），禁止浮动 tag
-3. **优先选 N-1 minor** — 当前最新稳定 minor 的前一个 minor 系列最新 patch
+3. **偏好 N-1 minor** — 当前最新稳定 minor 的前一个 minor 系列最新 patch。该 tag 不在本次列表、已 EOL、或发布不满 7 天时，从本次列表重选
 4. **生产关键服务用 digest** — 数据库、消息队列、网关在 tag 后再钉 `@sha256:...`，让 image 100% 不可篡改
 
 ---
 
 ## 选法分类（按版本号格式）
+
+表内数字只说明算法长什么样，不是推荐版本。
 
 ### 1. semver 三段镜像（绝大多数）
 
@@ -28,7 +32,7 @@
 2. minor 减 1，得到目标 minor 系列
 3. 取该 minor 系列的最新 patch
 
-| 镜像 | 当前最新稳定 | N-1 minor 选择 | 说明 |
+| 镜像 | 当时的最新稳定（示例） | 当时的 N-1（示例，禁止照抄） | 说明 |
 |------|-------------|---------------|------|
 | `nginx` | `1.27.3` | `nginx:1.26.2` | 1.26 系列最新 patch |
 | `redis` | `7.4.1` | `redis:7.2.6` | 7.4 上一个稳定 minor 是 7.2，跳过仅维护版 |
@@ -40,7 +44,7 @@
 
 选法：minor 减 1，取该系列最新 tag。
 
-| 镜像 | 当前最新稳定 | N-1 minor 选择 |
+| 镜像 | 当时的最新稳定（示例） | 当时的 N-1（示例，禁止照抄） |
 |------|-------------|---------------|
 | `postgres` | `17.2` | `postgres:17.1` |
 | `mysql` | `8.4` | `mysql:8.3` |
@@ -52,7 +56,7 @@
 
 选法：选**上一个 LTS / stable release**，**不要**用 codename（codename 是浮动 tag，会随 release 漂移），只用版本号。
 
-| 镜像 | 当前最新 LTS | N-1 选择 |
+| 镜像 | 当时的最新 LTS（示例） | 当时的上一个 LTS（示例，禁止照抄） |
 |------|-------------|---------|
 | `ubuntu` | `24.04` | `ubuntu:22.04` |
 | `debian` | `12`（bookworm）| `debian:11`（bullseye）|

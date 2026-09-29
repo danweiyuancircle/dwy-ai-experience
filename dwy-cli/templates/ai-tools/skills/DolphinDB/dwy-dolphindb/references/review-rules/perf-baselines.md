@@ -1,9 +1,9 @@
 # 性能基线（DolphinDB 3.0 社区版 2 核 8G）
 
 > 何时引用：评估查询/写入性能、判断是否需要优化、配置 dolphindb.cfg。
-> 来源：dwy-dolphindb skill 内部规则 + 社区版实测数据。
+> 来源：一次 2 核 8G 社区版实测。有 `getClusterPerf`、license 或节点配置时以实测为准。偏离下表不是违规。超过表只说明要排查。
 
-## 资源预算（死守）
+## 资源预算（这次 2 核 8G 的冷启动先验）
 
 ```
 总内存 8 GB
@@ -29,7 +29,7 @@ where TradeDate between 2024.01.01 and 2024.01.05
 
 ## 配置调优（社区版 dolphindb.cfg）
 
-社区版固定 2 核 8G，可调的关键参数：
+下面是 2 核 8G 社区版的起点。许可或机器不同，按本次核数和内存重算，不要照抄。
 
 | 参数 | 建议值 | 说明 |
 |---|---|---|
@@ -54,7 +54,7 @@ where TradeDate between 2024.01.01 and 2024.01.05
 | Python 拉 100 万行 → DataFrame | 2-5s |
 | `PartitionedTableAppender` 写入 | 200-400 万行/s |
 
-**超过基线 2-3x 必须排查**：剪枝是否生效（`select [HINT_EXPLAIN]`）、索引是否覆盖、并发是否争抢同分区。
+**比这张表慢 2-3 倍要排查**，不是判死刑：剪枝是否生效（`select [HINT_EXPLAIN]`）、索引是否覆盖、并发是否争抢同分区。机器不同，时延表本身就作废。
 
 ## 分区粒度目标
 
@@ -63,7 +63,7 @@ where TradeDate between 2024.01.01 and 2024.01.05
 | TSDB | 400 MB - 1 GB |
 | OLAP | 100 MB - 300 MB |
 
-总分区数 < 65536，否则触达 `maxPartitionNumPerQuery` 上限。
+总分区数不要超过该节点的 `maxPartitionNumPerQuery`。默认常见 65536，配置改过就用配置值，不要死守 65536。
 
 ## 连接池大小
 

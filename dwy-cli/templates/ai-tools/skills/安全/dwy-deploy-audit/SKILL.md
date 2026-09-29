@@ -278,9 +278,9 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 ### 4.10 硬件识别与资源推荐 — `{scripts}/check_capacity.sh`
 
-输出宿主硬件规格 + 当前容器 mem_limit + Postgres/Redis 启动参数 + compose 资源声明；主 Claude 对照分级表生成"推荐 vs 当前"对比报告。
+输出宿主硬件、容器硬限、`docker stats` 单帧、Postgres/Redis 参数、compose 声明。报告写「本次实测 vs 当前硬限」。冷启动先验表只在没有占用和日志增量时使用。
 
-→ 容器资源推荐分级表、配比原则、对比报告格式、严重等级标记与日志大小推荐分级表见 `references/checks-runtime.md` §「4.10 硬件识别与资源推荐」
+→ 判定见 `references/checks-runtime.md` §「4.10 硬件识别与资源」
 
 ### 4.11 凭证强度审计 — `{scripts}/check_secrets.sh`
 
@@ -392,8 +392,8 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 ### 4.9 日志大小与防爆检查 (7/9 ✅)
 [...]
 
-### 4.10 硬件识别与资源推荐 (容器资源 5/7 + 日志推荐 4/5)
-**包含"推荐 vs 当前"对比表(见 references/checks-runtime.md §4.10),保留原对比格式**
+### 4.10 硬件识别与资源 (容器资源 + 日志轮转)
+**写「本次实测 vs 当前硬限」。没有实测才注明用了冷启动先验。不要因为没贴近先验表判失败。**
 
 ### 4.11 凭证强度审计 (12/15 ✅)
 
@@ -464,9 +464,9 @@ bash {scripts}/check_db.sh <target> [ssh_opts...]
 
 根据本次失败项归纳的可执行后续动作:
 
-- 镜像版本不固定 (4.6) → 跑 `/dwy-docker` 选 N-1 minor
-- daemon 未配 registry-mirrors (4.6) → 跑 `/dwy-mirror-source` 写国内源
-- 容器资源偏离推荐 (4.10) → 改 `docker-compose.prod.yml` 的 mem_limit/maxmemory
+- 镜像版本不固定 (4.6) → 跑 `/dwy-docker`，按当次 tag 列表固定；N-1 只是偏好
+- daemon 未配 registry-mirrors，或只是名单里有某个国内域名 (4.6) → 跑 `/dwy-mirror-source`。名单里有源不算通过。当次测延迟和内容。私有库不参加公网竞速
+- 容器无内存硬限，或硬限低于实测占用 (4.10) → 按这次的 `docker stats` 和日志增速改 `mem_limit` / `maxmemory` / `log-opts`，不套用先验表数字
 - ...
 
 ---
