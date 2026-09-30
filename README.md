@@ -49,12 +49,12 @@ Vue 3 工具库，提供 hooks、请求封装、时间处理、下载、cookie�
 npm install @dwydev/ekit
 ```
 
-### `@dwydev/admin-shell`
+### `@dwydev/admin-kit`
 
 中后台**壳路由框架**（`defineAdminModule` 模块装配 + `createAdminShell` 纯数据装配 + `AdminShell` 壳组件，meta 驱动侧栏菜单 / 面包屑 / PageHero）。视觉底座用 eui `EAdminLayout`，**不并入 eui**；用户菜单 / 通知等由宿主经 `header-center` / `header-extra` 插槽自行组装，支持 `menuFilter` 角色过滤菜单。0.2.0 起以 quant-cloud 控制台实战版为基座。
 
 ```bash
-npm install @dwydev/admin-shell
+npm install @dwydev/admin-kit
 # peers: vue vue-router @dwydev/eui @dwydev/ekit lucide-vue-next
 ```
 

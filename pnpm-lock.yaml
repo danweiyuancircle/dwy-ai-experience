@@ -205,7 +205,7 @@ importers:
 
   frontend/playground:
     dependencies:
-      '@dwydev/admin-shell':
+      '@dwydev/admin-kit':
         specifier: workspace:^
         version: link:../admin-shell
       '@dwydev/ekit':

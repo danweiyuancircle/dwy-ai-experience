@@ -1,7 +1,7 @@
 /**
  * @dwy/admin-shell
  * 管理系统扩展站路由框架：模块装配 + AdminShell 布局（EAdminLayout）+ 页头/面包屑约定。
- * 当前放 quant-cloud monorepo 内部复用；后续再抽取到 dwy-shared 以 @dwydev/admin-shell 发包。
+ * 发布包名 @dwydev/admin-kit。源码目录仍是 frontend/admin-shell。
  * 不并入 eui：本包是应用壳框架，eui 只提供 EAdminLayout 等视觉原语。
  */
 

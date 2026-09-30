@@ -1,4 +1,4 @@
-# @dwydev/admin-shell
+# @dwydev/admin-kit
 
 Vue 3 **管理系统扩展站路由框架**：模块注册侧栏菜单与路由，统一壳布局 / 页头 / 面包屑。
 
@@ -7,7 +7,7 @@ Vue 3 **管理系统扩展站路由框架**：模块注册侧栏菜单与路由�
 ## 安装
 
 ```bash
-pnpm add @dwydev/admin-shell
+pnpm add @dwydev/admin-kit
 # peers
 pnpm add vue vue-router @dwydev/eui @dwydev/ekit lucide-vue-next
 ```
@@ -15,7 +15,7 @@ pnpm add vue vue-router @dwydev/eui @dwydev/ekit lucide-vue-next
 宿主需接入 eui theme（`@dwydev/eui/theme`）与 Tailwind。若 shell 类名未生效，把 content 扫到：
 
 ```txt
-./node_modules/@dwydev/admin-shell/dist/**/*.{js,mjs}
+./node_modules/@dwydev/admin-kit/dist/**/*.{js,mjs}
 ```
 
 ### Vite 跨仓联调注意（file: / 源码 alias）
@@ -36,7 +36,7 @@ resolve: {
 ## 快速接入（壳组件模式，适合营销 + 控制台共存）
 
 ```ts
-import { createAdminShell, defineAdminModule, asMenuIcon, AdminShell } from '@dwydev/admin-shell'
+import { createAdminShell, defineAdminModule, asMenuIcon, AdminShell } from '@dwydev/admin-kit'
 import { LayoutDashboard } from 'lucide-vue-next'
 
 export const appShell = createAdminShell({

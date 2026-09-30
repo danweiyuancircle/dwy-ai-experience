@@ -1,4 +1,4 @@
-# @dwydev/admin-shell 测试用例
+# @dwydev/admin-kit 测试用例
 
 | 用例 | 文件 | 说明 |
 |------|------|------|

@@ -1,5 +1,5 @@
 /**
- * @dwydev/admin-shell 装配逻辑单测
+ * @dwydev/admin-kit 装配逻辑单测
  * 覆盖 path 归一化、菜单 order、routeMetaDefaults 合并。
  */
 import { describe, expect, it } from 'vitest'

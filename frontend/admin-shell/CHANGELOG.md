@@ -4,6 +4,8 @@
 
 ### Changed
 
+- 发布包名保持 `@dwydev/admin-kit`。`@dwydev/admin-shell` 在 npm 上不存在，OIDC 不能创建新包（PUT 返回 404）
+
 - 以 quant-cloud 控制台实战版为基座整体重写：AdminShell 收敛为「meta 驱动 + header-center/extra 插槽」,
   不再内置用户菜单 / 通知 / 主题 chrome（宿主经插槽自行组装,与 quant-cloud 用法一致）
 - logoTo / collapsedStorageKey / PageHero 壳级页级双开关 / 面包屑末项去链接 / header 插槽 pointer-events 穿透
