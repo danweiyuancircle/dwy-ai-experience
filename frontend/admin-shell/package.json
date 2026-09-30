@@ -1,5 +1,5 @@
 {
-  "name": "@dwydev/admin-shell",
+  "name": "@dwydev/admin-kit",
   "version": "0.2.0",
   "type": "module",
   "description": "Vue 3 管理系统壳路由框架（业务无关）— defineAdminModule 模块装配 + createAdminShell 纯数据装配 + AdminShell 壳组件（meta 驱动菜单/面包屑/PageHero，peer @dwydev/eui）",

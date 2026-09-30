@@ -1,5 +1,5 @@
 <!--
-  @dwydev/admin-shell 全屏预览宿主
+  @dwydev/admin-kit 全屏预览宿主
   模拟「登录后」控制台：壳 + modules 菜单;用户菜单经 header-extra 插槽
   由宿主自行组装(0.2.0 起不再内置 chrome,与 quant-cloud 用法一致)。
   不依赖业务鉴权,用户信息用本地 mock。
@@ -22,7 +22,7 @@ import {
   asMenuIcon,
   createAdminShell,
   defineAdminModule,
-} from '@dwydev/admin-shell'
+} from '@dwydev/admin-kit'
 
 const router = useRouter()
 
@@ -107,7 +107,7 @@ function onLogout() {
     <AdminShell v-bind="shellProps">
       <template #header-center>
         <span class="hidden text-xs text-muted-foreground md:inline">
-          @dwydev/admin-shell 0.2.0 预览
+          @dwydev/admin-kit 0.2.0 预览
         </span>
       </template>
       <template #header-extra>
