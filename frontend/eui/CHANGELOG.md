@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.6.0
+
+### Minor Changes
+
+- **EToggleGroupItem**：开关按钮组子项，桥接 reka-ui `ToggleGroupItem`。此前 `EToggleGroup` 只能容纳布尔 `EToggle`，子项无 `value` 概念，single 模式选中态无法联动，互斥切换控件做不出来。`variant` / `size` 缺省经 provide/inject 继承组配置，并落 `data-variant` / `data-size` 供样式定制
+
 ## 2.5.2
 
 ### Patch Changes
