@@ -25,3 +25,17 @@ export interface EToggleGroupEmits {
   /** 选中值更新，用于 v-model */
   'update:modelValue': [value: string | string[]]
 }
+
+/** EToggleGroupItem Props */
+export interface EToggleGroupItemProps {
+  /** 自定义类名 */
+  class?: HTMLAttributes['class']
+  /** 该项对应的选中值；与 EToggleGroup 的 modelValue 匹配即选中（必填，组内唯一标识） */
+  value: string
+  /** 是否禁用该项 */
+  disabled?: boolean
+  /** 视觉变体，缺省继承 EToggleGroup 注入值 */
+  variant?: ToggleVariants['variant']
+  /** 尺寸变体，缺省继承 EToggleGroup 注入值 */
+  size?: ToggleVariants['size']
+}

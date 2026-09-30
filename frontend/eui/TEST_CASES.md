@@ -1,6 +1,6 @@
 # @dwydev/eui 测试用例清单
 
-> 回测基准：58 个测试用例，5 个测试文件。版本变更后必须全部通过。
+> 回测基准：737 个测试用例，88 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd frontend/eui && pnpm vitest run`
 
@@ -368,6 +368,23 @@ EDialog 从 2.1.0 起是 `bg-black/30 backdrop-blur-sm`。确认框和命令式 
 
 ---
 
+## 16. EToggleGroupItem 开关按钮组子项（6 个）
+
+`tests/components/toggle-group.test.ts`
+
+2.6.0 新增：EToggleGroup 此前只能装布尔 EToggle，无 value 概念，无法做互斥切换；本组件桥接 reka-ui ToggleGroupItem 补齐。
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 渲染 item 元素并透传 value | `[data-slot="toggle-group-item"]` 带 `value` 属性 |
+| 2 | 选中态 data-state 与点击切换 | 命中项 `on` 其余 `off`；点击后切换 |
+| 3 | single 模式点击发 update:modelValue | emitted 值为被点项 value |
+| 4 | 点击 disabled 项不发事件 | update:modelValue 为 undefined |
+| 5 | 继承组 variant/size 并落 data 属性 | `data-variant` / `data-size` + 对应尺寸 class |
+| 6 | 自定义 class 生效 | item class 含自定义类 |
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -376,7 +393,7 @@ cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
 # Test Files  88 passed (88)
-# Tests       731 passed (731)
+# Tests       737 passed (737)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run tests/utils/cn.test.ts
