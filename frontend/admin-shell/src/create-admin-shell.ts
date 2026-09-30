@@ -7,6 +7,7 @@ import type { RouteMeta, RouteRecordRaw } from 'vue-router'
 import { defineAdminModule } from './define-admin-module'
 import {
   DEFAULT_COLLAPSED_STORAGE_KEY,
+  DEFAULT_LOGO_TO,
   DEFAULT_PAGE_HERO,
 } from './model/constants'
 import type {
@@ -106,10 +107,15 @@ export function collectRoutes(
  */
 export function createAdminShell(options: CreateAdminShellOptions): CreateAdminShellResult {
   const modules = options.modules.map((m) => defineAdminModule(m))
-  const menuItems = collectMenuItems(modules)
+  // menuFilter 只裁菜单不动路由:被过滤模块的路由仍注册,鉴权交给 meta 守卫
+  const menuItems = options.menuFilter
+    ? collectMenuItems(modules).filter(options.menuFilter)
+    : collectMenuItems(modules)
   const routes = collectRoutes(modules, options.routeMetaDefaults ?? {})
   const collapsedStorageKey = options.collapsedStorageKey ?? DEFAULT_COLLAPSED_STORAGE_KEY
   const pageHero = options.pageHero ?? DEFAULT_PAGE_HERO
+  // 显式传空串表示关闭点击；未传则用默认首页 path
+  const logoTo = options.logoTo === undefined ? DEFAULT_LOGO_TO : options.logoTo
 
   return {
     menuItems,
@@ -117,6 +123,7 @@ export function createAdminShell(options: CreateAdminShellOptions): CreateAdminS
     shellProps: {
       title: options.title,
       logo: options.logo,
+      logoTo,
       menuItems,
       collapsedStorageKey,
       pageHero,

@@ -48,7 +48,7 @@ const showBreadcrumb = computed(() => breadcrumbItems.value.length > 1)
 </script>
 
 <template>
-  <div v-if="isVisible && title" class="mb-6 space-y-3" data-slot="admin-page-hero">
+  <div v-if="isVisible && title" class="mb-3 space-y-2 shrink-0" data-slot="admin-page-hero">
     <AdminBreadcrumb v-if="showBreadcrumb" :items="breadcrumbItems" />
     <AdminPageHeader :title="title" :description="description" />
   </div>

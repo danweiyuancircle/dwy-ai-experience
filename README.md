@@ -51,7 +51,7 @@ npm install @dwydev/ekit
 
 ### `@dwydev/admin-shell`
 
-中后台**扩展站路由框架**（模块菜单 + 路由装配 + AdminShell 布局 + 页头/面包屑）。视觉底座用 eui `EAdminLayout`，**不并入 eui**。
+中后台**壳路由框架**（`defineAdminModule` 模块装配 + `createAdminShell` 纯数据装配 + `AdminShell` 壳组件，meta 驱动侧栏菜单 / 面包屑 / PageHero）。视觉底座用 eui `EAdminLayout`，**不并入 eui**；用户菜单 / 通知等由宿主经 `header-center` / `header-extra` 插槽自行组装，支持 `menuFilter` 角色过滤菜单。0.2.0 起以 quant-cloud 控制台实战版为基座。
 
 ```bash
 npm install @dwydev/admin-shell

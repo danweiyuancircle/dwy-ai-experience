@@ -62,7 +62,7 @@ valid = await provider.verify_code("user@example.com", code)
 
 ### 注册表
 
-内置与自定义走同一张表。`make_email_provider` 只按 `EMAIL__PROVIDER` 查名，业务 `register_email_provider` 后即可切换，不用改 eapi。内置名 `resend` 不可覆盖。
+内置与自定义走同一张表。\`make_email_provider\` 只按 \`EMAIL__PROVIDER\` 查名，业务 \`register_email_provider\` 后即可切换，不用改 eapi。内置名 \`resend\` 不可覆盖。
 
 ### 自定义 Provider
 

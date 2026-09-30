@@ -1,5 +1,5 @@
 /**
- * @dwydev/admin-shell 类型定义
+ * @dwy/admin-shell 类型定义
  * 管理系统扩展站路由框架的模块契约、装配选项与 RouteMeta 约定。
  * 框架不实现鉴权 / 业务 store，只负责壳布局与模块装配。
  */
@@ -75,6 +75,12 @@ export interface CreateAdminShellOptions {
   title: string
   /** 左上角 logo 图片地址。示例：`/logo.png` */
   logo?: string
+  /**
+   * 点击 logo/标题区域跳转的路由 path。
+   * 默认 `/`；控制台可设为 `/dashboard`。传空字符串可关闭点击。
+   * 示例：`/dashboard`
+   */
+  logoTo?: string
   /** 业务模块列表，按 order 排序后合并 */
   modules: AdminModule[]
   /**
@@ -82,6 +88,11 @@ export interface CreateAdminShellOptions {
    * 默认 `admin:sidebar:collapsed`。示例：`cloud:admin:sidebar:collapsed`
    */
   collapsedStorageKey?: string
+  /**
+   * 侧栏菜单过滤谓词:返回 false 的菜单项不渲染(路由仍注册,由 meta 守卫鉴权)。
+   * 典型用途:按角色隐藏管理菜单。示例:``(item) => !item.key.startsWith('group-')``。
+   */
+  menuFilter?: (item: MenuItem) => boolean
   /**
    * 壳层默认是否渲染 PageHero。
    * 可被单页 meta.pageHero 覆盖。默认 true。
@@ -103,6 +114,11 @@ export interface AdminShellProps {
   title: string
   /** 左上角 logo */
   logo?: string
+  /**
+   * logo/标题点击跳转 path；空字符串表示不可点。
+   * 默认 `/`。示例：`/dashboard`
+   */
+  logoTo?: string
   /** 合并后的侧栏菜单 */
   menuItems: MenuItem[]
   /** 折叠状态 storage key */
