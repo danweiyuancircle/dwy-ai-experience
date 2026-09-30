@@ -7,3 +7,5 @@
 | 根 path 保持为 `/` | 同上 | `''` 与 `/` |
 | 按 order 合并菜单并注入默认 meta | 同上 | 菜单顺序、children、requiresAuth/layout |
 | showInMenu=false 只注册路由 | 同上 | 菜单无该项、routes 仍有 |
+
+壳布局：`#header-center` 吃剩余宽度、`#header-extra` 靠右。中间槽默认不接收指针（空槽不挡汉堡），可点内容由插槽自己打开 `pointer-events-auto`。组件挂载用例在 `apps/web/tests/layouts/AdminShell.test.ts`。

@@ -3,7 +3,7 @@ name: Publish Admin to npm
 on:
   push:
     tags:
-      - '@dwydev/admin-kit@*'
+      - '@dwydev/admin-shell@*'
 
 jobs:
   publish:
@@ -30,7 +30,7 @@ jobs:
 
       - name: Verify tag matches package version
         id: verify
-        working-directory: frontend/admin
+        working-directory: frontend/admin-shell
         run: |
           PKG_NAME=$(node -p "require('./package.json').name")
           PKG_VERSION=$(node -p "require('./package.json').version")
@@ -48,7 +48,7 @@ jobs:
           echo "package_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build release notes
-        working-directory: frontend/admin
+        working-directory: frontend/admin-shell
         run: |
           python3 ../../.github/scripts/extract_changelog_section.py \
             CHANGELOG.md \
@@ -56,12 +56,12 @@ jobs:
             "${{ steps.verify.outputs.release_name }}" \
             > ../../.github/release-body-admin.md
 
-      # peer 依赖 eui 在 monorepo 内，先保证能 resolve 再打 admin
+      # peer 依赖 eui 在 monorepo 内，先保证能 resolve 再打 admin-shell
       - name: Build
-        run: pnpm --dir frontend/admin build
+        run: pnpm --dir frontend/admin-shell build
 
       - name: Publish
-        working-directory: frontend/admin
+        working-directory: frontend/admin-shell
         run: npm publish --access public
 
       - name: Create GitHub Release

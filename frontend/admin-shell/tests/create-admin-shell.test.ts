@@ -82,3 +82,28 @@ describe('createAdminShell', () => {
     expect(collectRoutes(modules).map((r) => r.path)).toEqual(['/hidden', '/v'])
   })
 })
+
+describe('createAdminShell menuFilter', () => {
+  const modules = [
+    { id: 'basic', menu: { key: '/basic', label: '基础' }, routes: [{ path: '/basic', name: 'basic', component: { template: '<div />' } }] },
+    { id: 'system', menu: { key: 'group-system', label: '系统' }, routes: [{ path: '/system', name: 'system', component: { template: '<div />' } }] },
+  ].map((m) => defineAdminModule(m))
+
+  it('未传 menuFilter 时菜单全量保留', () => {
+    const shell = createAdminShell({ title: 'T', modules })
+    expect(shell.menuItems.map((m) => m.key)).toEqual(['/basic', 'group-system'])
+  })
+
+  it('menuFilter 命中保留 / 未命中剔除,路由不受影响', () => {
+    const shell = createAdminShell({
+      title: 'T',
+      modules,
+      menuFilter: (item) => !item.key.startsWith('group-'),
+    })
+    expect(shell.menuItems.map((m) => m.key)).toEqual(['/basic'])
+    // 角色过滤只影响菜单,路由仍注册(由 requiresAdmin meta 守卫)
+    expect(shell.routes.map((r) => r.path)).toEqual(['/basic', '/system'])
+    // shellProps 与返回值同源
+    expect(shell.shellProps.menuItems).toBe(shell.menuItems)
+  })
+})
