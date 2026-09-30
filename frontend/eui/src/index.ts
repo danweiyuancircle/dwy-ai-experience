@@ -194,8 +194,8 @@ export { EAspectRatio } from './components/aspect-ratio'
 export type { EAspectRatioProps } from './components/aspect-ratio'
 export { EToggle, toggleVariants } from './components/toggle'
 export type { EToggleProps, EToggleEmits, ToggleVariants } from './components/toggle'
-export { EToggleGroup } from './components/toggle-group'
-export type { EToggleGroupProps, EToggleGroupEmits } from './components/toggle-group'
+export { EToggleGroup, EToggleGroupItem } from './components/toggle-group'
+export type { EToggleGroupProps, EToggleGroupEmits, EToggleGroupItemProps } from './components/toggle-group'
 export { ESlider } from './components/slider'
 export type { ESliderProps, ESliderEmits } from './components/slider'
 export { ESpinner } from './components/spinner'
@@ -325,7 +325,7 @@ import { EAvatar } from './components/avatar'
 import { EEmpty } from './components/empty'
 import { EAspectRatio } from './components/aspect-ratio'
 import { EToggle } from './components/toggle'
-import { EToggleGroup } from './components/toggle-group'
+import { EToggleGroup, EToggleGroupItem } from './components/toggle-group'
 import { ESlider } from './components/slider'
 import { ESpinner } from './components/spinner'
 import { ELabel } from './components/label'
@@ -437,6 +437,7 @@ const components: Record<string, any> = {
   EAspectRatio,
   EToggle,
   EToggleGroup,
+  EToggleGroupItem,
   ESlider,
   ESpinner,
   ELabel,
