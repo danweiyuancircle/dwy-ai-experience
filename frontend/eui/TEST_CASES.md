@@ -350,6 +350,8 @@
 | 14 | `#actions` 在卡片底且不冒泡 | 点操作不触发 `row-click` |
 | 15 | 长文本换行 | stack 无 `whitespace-nowrap`，有 `break-words` |
 | 16 | stack + virtual 窄屏不崩 | 渲染卡片，无 virtual spacer |
+| 17 | 桌面单元格锁列宽 | td 有 `width`/`max-width` 与 `overflow-hidden`，长文本不画进邻列 |
+| 18 | 窄屏横滑按内容撑开 | 表 `width: max-content` + `table-layout: auto`，td 只有 `min-width`，容器 `overflow-auto` |
 
 ---
 

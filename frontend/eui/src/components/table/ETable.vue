@@ -46,6 +46,13 @@ const isMobile = useEuiMobile()
 const isStack = computed(
   () => props.mobileLayout === 'stack' && isMobile.value,
 )
+/**
+ * 手机默认横滑。列按内容撑开，容器滚动才能看全。
+ * 不在这里裁字：overflow:hidden 会让 table 的最小内容宽度变成 0，列又被压扁，字继续盖住邻列。
+ */
+const isMobileScroll = computed(
+  () => isMobile.value && props.mobileLayout === 'scroll',
+)
 
 const sortState = ref<{ key: string; direction: 'asc' | 'desc' | null }>({
   key: '',
@@ -332,21 +339,30 @@ function getColumnWidth(column: TableColumn): number | string | undefined {
 
 function getColumnStyle(column: TableColumn): Record<string, string | undefined> {
   const w = getColumnWidth(column)
-  const widthPx = w ? (typeof w === 'number' ? `${w}px` : w) : undefined
-  // 数字 width 同时当下限：table-fixed + 100% 时列不会被压到比声明更窄，窄屏才能横滑
+  const widthPx = typeof w === 'number' ? `${w}px` : w || undefined
+  const minWidth = column.minWidth
+    ? `${column.minWidth}px`
+    : (typeof w === 'number' ? `${w}px` : undefined)
+  // 手机不锁 width/maxWidth。定宽再叠加 table-fixed，长邮箱画不进滚动宽度，会盖住右侧列。
+  if (isMobileScroll.value) {
+    return {
+      minWidth,
+      ...getFixedStyle(column),
+    }
+  }
   return {
     width: widthPx,
-    minWidth: column.minWidth
-      ? `${column.minWidth}px`
-      : (typeof w === 'number' ? `${w}px` : undefined),
+    minWidth,
+    // 桌面锁上限，配合格子 overflow:hidden，字停在本列里
+    maxWidth: typeof w === 'number' ? `${w}px` : undefined,
     ...getFixedStyle(column),
   }
 }
 
 /**
- * 声明了数字列宽时，表 min-width 取列宽之和。
+ * 声明了数字列宽时，桌面表 min-width 取列宽之和。
  * 宽于容器 → 横滑；窄于容器 → width 100% 把余量分给各列。
- * 不用 w-max：长单元格会把表撑出视口，末列（如结束日期）默认看不见。
+ * 桌面不用 w-max：长单元格会把表撑出视口，末列默认看不见。
  */
 const tableMinWidth = computed(() => {
   let sum = 0
@@ -355,6 +371,21 @@ const tableMinWidth = computed(() => {
     if (typeof w === 'number') sum += w
   }
   return sum > 0 ? `${sum}px` : undefined
+})
+
+/**
+ * 手机横滑用 inline 压过页面的 table-fixed / w-full。
+ * max-content 把 nowrap 全文算进表宽，外层 overflow 才能滑到被盖住的列。
+ */
+const tableStyle = computed(() => {
+  if (isMobileScroll.value) {
+    return {
+      width: 'max-content',
+      minWidth: '100%',
+      tableLayout: 'auto' as const,
+    }
+  }
+  return tableMinWidth.value ? { minWidth: tableMinWidth.value } : undefined
 })
 
 let resizeCol: string | null = null
@@ -408,7 +439,7 @@ function onResizeMouseUp() {
     ref="virtualContainerRef"
     data-slot="table-container"
     :class="cn(
-      'relative w-full overflow-auto overscroll-x-contain',
+      'relative w-full min-w-0 max-w-full overflow-auto overscroll-x-contain',
       bordered && 'rounded-md border',
     )"
   >
@@ -429,7 +460,7 @@ function onResizeMouseUp() {
         resizable && 'table-fixed',
         props.class,
       )"
-      :style="tableMinWidth ? { minWidth: tableMinWidth } : undefined"
+      :style="tableStyle"
     >
       <!-- Header -->
       <thead
@@ -470,6 +501,7 @@ function onResizeMouseUp() {
             data-slot="table-head"
             :class="cn(
               'text-muted-foreground h-10 px-2 align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+              !isMobileScroll && 'overflow-hidden text-ellipsis',
               column.align === 'center' && 'text-center',
               column.align === 'right' && 'text-right',
               !column.align && 'text-left',
@@ -587,11 +619,12 @@ function onResizeMouseUp() {
               data-slot="table-cell"
               :class="cn(
                 'p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+                !isMobileScroll && 'overflow-hidden text-ellipsis',
                 column.align === 'center' && 'text-center',
                 column.align === 'right' && 'text-right',
                 getFixedClass(column),
               )"
-              :style="getFixedStyle(column)"
+              :style="getColumnStyle(column)"
             >
               <slot
                 :name="`cell-${column.key}`"
@@ -666,11 +699,12 @@ function onResizeMouseUp() {
             data-slot="table-cell"
             :class="cn(
               'p-2 align-middle whitespace-nowrap',
+              !isMobileScroll && 'overflow-hidden text-ellipsis',
               column.align === 'center' && 'text-center',
               column.align === 'right' && 'text-right',
               getFixedClass(column),
             )"
-            :style="getFixedStyle(column)"
+            :style="getColumnStyle(column)"
           >
             {{ summaryValues[colIndex] }}
           </td>

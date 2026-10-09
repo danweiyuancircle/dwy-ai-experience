@@ -57,6 +57,21 @@ describe('ETable', () => {
     expect(table.attributes('style')).toMatch(/min-width:\s*280px/)
   })
 
+  it('桌面单元格锁在列宽内，长文本不画进邻列', () => {
+    const wrapper = mount(ETable, {
+      props: {
+        columns: [{ key: 'email', title: '邮箱', width: 180 }],
+        data: [{ id: 1, email: 'smallmonbaier9181@outlook.com' }],
+      },
+    })
+    const cell = wrapper.find('tbody [data-slot="table-cell"]')
+    const style = cell.attributes('style') ?? ''
+    expect(style).toContain('width: 180px')
+    expect(style).toContain('max-width: 180px')
+    expect(cell.classes()).toContain('overflow-hidden')
+    expect(cell.classes()).toContain('text-ellipsis')
+  })
+
   it('renders columns and data rows', () => {
     const wrapper = mount(ETable, {
       props: { columns, data },
@@ -165,6 +180,35 @@ describe('mobileLayout stack', () => {
     const wrapper = mount(ETable, { props: { columns: stackColumns, data: stackData } })
     expect(wrapper.find('[data-slot="table"]').exists()).toBe(true)
     expect(wrapper.find('[data-slot="table-stack"]').exists()).toBe(false)
+  })
+
+  it('窄屏横滑按内容撑开，长文本不锁死在声明列宽里', () => {
+    mockViewportWidth(375)
+    const wrapper = mount(ETable, {
+      props: {
+        class: 'table-fixed',
+        columns: [
+          { key: 'email', title: '邮箱', width: 180 },
+          { key: 'created_at', title: '注册日期', width: 176 },
+        ],
+        data: [{ id: 1, email: 'smallmonbaier9181@outlook.com', created_at: '2026-10-09 12:12' }],
+      },
+    })
+    const table = wrapper.find('[data-slot="table"]')
+    const style = table.attributes('style') ?? ''
+    expect(style).toContain('width: max-content')
+    expect(style).toContain('min-width: 100%')
+    expect(style).toContain('table-layout: auto')
+    const container = wrapper.find('[data-slot="table-container"]')
+    expect(container.classes()).toContain('overflow-auto')
+    expect(container.classes()).toContain('min-w-0')
+    expect(container.classes()).toContain('max-w-full')
+    const cell = wrapper.find('tbody [data-slot="table-cell"]')
+    const cellStyle = cell.attributes('style') ?? ''
+    expect(cellStyle).toContain('min-width: 180px')
+    expect(cellStyle).not.toContain('max-width')
+    expect(cell.classes()).not.toContain('overflow-hidden')
+    expect(cell.text()).toContain('smallmonbaier9181@outlook.com')
   })
 
   it('stack + 桌面仍是表', () => {

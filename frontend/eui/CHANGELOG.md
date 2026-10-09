@@ -1,5 +1,11 @@
 # @dwydev/eui
 
+## 2.6.1
+
+### Patch Changes
+
+- **ETable 手机横滑**：窄屏默认按单元格内容撑开列宽（`width: max-content` + `table-layout: auto`），容器 `overflow-auto` 左右滑才能看全。此前 `td` 只有 `whitespace-nowrap`、不接列宽，长文本画进邻列，滚动宽度也不含被盖住的字。桌面仍锁在声明列宽内并裁切，避免长文把末列顶出视口
+
 ## 2.6.0
 
 ### Minor Changes
