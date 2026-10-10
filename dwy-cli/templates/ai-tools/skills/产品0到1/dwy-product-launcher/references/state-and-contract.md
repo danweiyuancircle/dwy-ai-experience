@@ -106,7 +106,7 @@
 
 - 每个外部 skill 是**整个目录**（含 scripts/ 与配套 .md，不止 SKILL.md）
 - 由 `dwy` 选「刷新全局外部 skill」安装/更新（clone 两仓库的指定 stable tag → 搬整目录 + LICENSE → 写 `VERSIONS.json`）
-- `dwy claude sync` 自检：`~/.dwy/skills/` 缺失时自动装一次
+- `dwy` 日常同步自检：`~/.dwy/skills/` 缺失时自动装一次
 - 当前 stable：pm-skills **v2.0.0** | superpowers **v6.0.3**（升级改 cli 的 `skills-install.js` 清单 tag）
 - 原子 skill 运行时**只读** `~/.dwy/skills/<name>/`，缺失则提示用户先跑 `dwy`，选「刷新全局外部 skill」，不自己拉、不降级
 

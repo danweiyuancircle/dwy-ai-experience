@@ -138,6 +138,7 @@ class UserResponse(UserBase):
 | 分页 page_size | 必须有上限（≤ 100） |
 | 字符串 | 必须显式 `max_length` |
 | 文件上传 | 后端二次校验大小 + magic bytes，**禁止**只信任前端或 Nginx |
+| 图片上传 | 同时校验文件大小和像素宽高上限，防止 decompression bomb |
 
 ---
 

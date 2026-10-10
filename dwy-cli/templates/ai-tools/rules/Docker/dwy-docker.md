@@ -1,5 +1,14 @@
 ---
-description: Docker 通用规则（镜像固定版本、容器内存上限、日志大小限制、配置变更重启姿势）
+description: Docker 通用规则（镜像固定版本、容器内存上限、日志大小限制、配置变更重启姿势）。只在容器和 CI 清单上注入。
+paths:
+  - "**/Dockerfile"
+  - "**/Dockerfile.*"
+  - "**/docker-compose*.yml"
+  - "**/docker-compose*.yaml"
+  - "**/compose.yml"
+  - "**/compose.yaml"
+  - "**/.github/workflows/**"
+  - "**/k8s/**"
 ---
 
 # Docker 通用规则

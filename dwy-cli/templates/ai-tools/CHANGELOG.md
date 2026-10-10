@@ -52,6 +52,47 @@
 
 ---
 
+## 0.31.0 — 2026-10-10
+
+### Changed
+- `rules/开发流程/dwy-prod-branch.md`：只保留 `develop` 和 `preview`。`develop` 发测试环境，版本只能是 `beta` 或 `rc`；正式版只从 `preview` 发。仓库没按这个来先提醒，不自行建分支。
+- `skills/发布发版/dwy-semver` 与 `dwy-publish`：定版本和发版时遵守同一条。
+
+## 0.30.0 — 2026-10-10
+
+### Changed
+- `skills/发布发版/dwy-publish`：changelog 仍只在发版时写。工厂下有多个项目时，先查出哪些项目的前端或后端有变更，再分别写入该端自己的 `CHANGELOG.md`。没变更的端不写、不打 tag。
+
+## 0.29.0 — 2026-10-10
+
+### Added
+- `skills/通用/dwy-dependency-choice`：新装依赖时查正式版发布时间（满 7 天）和闭源商用许可。新鲜度与许可的长流程只在这里。
+- `skills/通用/dwy-git-commit`：提交顺序、冲突处理、敏感扫描、message 格式、AI 署名。通用包会一起同步。
+
+### Changed
+- `rules/开发流程/dwy-dependency-freshness.md`、`dwy-oss-commercial-license.md`、`dwy-git-commit.md` 收成硬约束短文，给没有 skill 的工具（如 Cursor）用。长流程见上面两个 skill。
+- `rules/开发流程/dwy-code-craft.md` 写入行为变更先写失败测试、测试目录和 `TEST_CASES.md`。
+- Android / iOS / Vue / Python 分层和 Flutter 规则里的版本选型改为指向 `dwy-dependency-choice`。
+
+### Removed
+- `rules/开发流程/dwy-tdd-development.md`。行为变更与测试位置改由 `dwy-code-craft.md` 在编辑源码时注入，不再单独占一份全文。
+
+## 0.28.1 — 2026-10-10
+
+### Changed
+- `CLAUDE.md`：路径改仓库内相对路径；连接串不回显密码；注释只要求公共 API 和非显而易见的约束；精简规则不再禁「的」；开源选型只在新增运行时依赖时触发。删掉「无 block 必须多 Agent」和全局输入限长。
+- 输入限长落到 `rules/Vue/dwy-vue-core.md` 与 `rules/Python/dwy-python-backend.md`（图片补像素上限）。
+- `rules/Android/dwy-android-core.md`：字号默认 `sp`，移动端不再 `setExcludeFontScale(true)`。
+- `rules/数据库/dwy-postgres.md`：敏感字段不再默认 AES；要加密时用 AES-GCM。
+- `rules/数据库/dwy-redis.md`：缓存必须 TTL；长期 key 要写原因。
+- `rules/开发流程/dwy-tdd-development.md`：只对行为变更要求测试先行。
+- 无路径的 DB / 许可 / TDD / Docker / 依赖新鲜度 / 编码大局观 / 正式环境分支补上 `paths`。`dwy-git-commit.md` 只在提交相关任务生效。
+- `skills/产品0到1/dwy-prototype` 与 `skills/通用/dwy-whiteboard-prototype` 拆开触发词。
+- `skills/通用/dwy-shared`：远程改为 GitHub `danweiyuancircle/dwy-ai-experience`，同步命令改为 `dwy`。
+
+### Fixed
+- 自成长节不再写已删除的 `dwy codex sync`，也不再把 DWY-RULES 注释标记写进基线正文（该标记会截断 `dwy-cli/AGENTS.md` 托管块）。
+
 ## 0.28.0 — 2026-09-29
 
 ### Changed

@@ -1,6 +1,6 @@
 ---
 name: dwy-whiteboard-prototype
-description: "用 HTML 白板（FigJam/draw.io 风格）画可交互 UI 原型。触发场景：用户说『画原型 / 出原型 / 画白板 / 原型图 / 做个原型 / prototype / 把某页面的各种状态画出来 / 把这几个页面的跳转画清楚』，或要在动手写 UI 代码前先验证页面与交互流程时。产出：每个页面一个 HTML 白板文件，画布二维摆放、SVG 连线表达跳转、左侧导航在白板间切换、右侧标注写交互与边界。这是项目原型的标准做法，画 iOS/移动端页面原型时务必用本 skill，别另起炉灶手搓样式与交互引擎。"
+description: "用 HTML 白板（FigJam/draw.io 风格）画可交互原型。触发场景：用户说『画白板 / 白板原型 / 把状态画出来 / 把跳转画清楚 / whiteboard』。产出：每个页面一个 HTML 白板，画布摆状态、SVG 连线表达跳转。产品 0 到 1 流程里的线框和高保真平面图不走本 skill，走 dwy-prototype。"
 ---
 
 # 白板原型（HTML 可交互）

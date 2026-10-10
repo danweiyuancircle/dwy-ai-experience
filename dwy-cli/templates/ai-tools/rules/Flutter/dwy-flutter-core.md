@@ -125,7 +125,7 @@ class App extends ConsumerWidget {
 
 ```yaml
 # pubspec.yaml
-# 下面的 caret 只示范当时能编过的下限，不是该装的版本。装之前按 dwy-dependency-freshness 现查。
+# 下面的 caret 只示范当时能编过的下限，不是该装的版本。装之前按 dwy-dependency-choice 现查。
 dependencies:
   flutter_riverpod: ^2.6.0
   riverpod_annotation: ^2.6.0
@@ -338,7 +338,7 @@ shared/widgets/               # snake_case
 
 ```yaml
 # pubspec.yaml
-# 版本号是写法示例。装之前按 dwy-dependency-freshness 现查，不要抄这里的数字。
+# 版本号是写法示例。装之前按 dwy-dependency-choice 现查，不要抄这里的数字。
 dependencies:
   freezed_annotation: ^2.4.0
   json_annotation: ^4.9.0

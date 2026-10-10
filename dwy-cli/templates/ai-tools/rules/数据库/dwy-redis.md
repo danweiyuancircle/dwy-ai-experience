@@ -1,5 +1,8 @@
 ---
-description: Redis 安全与使用规范（必须用 dwyeapi 客户端、密码、绑定、危险命令禁用、key TTL 与前缀、敏感数据禁存）
+description: Redis 安全与使用规范（必须用 dwyeapi 客户端、密码、绑定、危险命令禁用、缓存 key TTL 与前缀、敏感数据禁存）。只在后端代码上注入。
+paths:
+  - "**/*.py"
+  - "**/redis.conf"
 ---
 
 # Redis 安全与使用规范
@@ -54,7 +57,7 @@ Group=redis
 
 | 规则 | 说明 |
 |------|------|
-| 必须 TTL | 所有 key **必须**显式设置过期时间（`ex` / `pexpire`），**禁止**遗留无 TTL 的 key |
+| 缓存必须 TTL | 缓存、会话、限流计数**必须**设置过期时间（`ex` / `pexpire`）。故意不过期的 key（例如需要长期存在的配置）要在旁边写明原因 |
 | 必须项目前缀 | 所有 key 必须有项目前缀，格式 `{app}:{domain}:{detail}`（如 `myapp:token:blacklist:abc123`） |
 | snake_case | key 段用 snake_case，**禁止**驼峰或中文 |
 | 不存敏感原文 | **禁止**存储密码、身份证、银行卡、token 原文（token 存哈希） |
@@ -64,7 +67,7 @@ Group=redis
 ```python
 # 反例
 await redis.set("abc123", "1")                       # 无前缀
-await redis.set("myapp:data:xxx", value)             # 无 TTL
+await redis.set("myapp:cache:user:uuid:f7e2", json_data)  # 缓存无 TTL
 await redis.set("myapp:user:password", "123456")     # 存敏感原文
 await redis.set("myapp:userToken", "ey...")          # 驼峰命名
 

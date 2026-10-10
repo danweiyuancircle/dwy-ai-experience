@@ -20,18 +20,19 @@ pnpm build:frontend               # 同时构建 eui + ekit
 
 # 测试
 cd frontend/eui && pnpm vitest run                    # eui 全部测试
-cd frontend/eui && pnpm vitest run src/components/button  # eui 单个组件测试
+cd frontend/eui && pnpm vitest run tests/components/button.test.ts  # eui 单个组件测试
 pnpm test:eapi                                        # 后端全部测试 (pytest -v)
 cd backend && pytest tests/test_security.py -v        # 后端单个模块测试
 
 # Lint（仅后端）
 cd backend && ruff check src/ && ruff format --check src/
 
-# 发布
-pnpm build:eui && pnpm publish:eui      # @dwydev/eui → npm
-pnpm build:ekit && pnpm publish:ekit    # @dwydev/ekit → npm
-source .key && pnpm publish:eapi        # dwyeapi → PyPI (uv build && uv publish)
-git push origin create-dwy@x.y.z        # create-dwy → npm（GitHub Actions OIDC 自动发布，免 token）
+# 发布：打 tag 后 git push origin <tag>，由 GitHub Actions OIDC 发布。不要 source .key，不要 pnpm publish:*
+# @dwydev/ekit@x.y.z      → .github/workflows/publish-ekit.yml
+# @dwydev/eui@x.y.z       → .github/workflows/publish-eui.yml
+# dwyeapi@x.y.z           → .github/workflows/publish-eapi.yml
+# create-dwy@x.y.z        → .github/workflows/publish-cli.yml
+# @dwydev/admin-kit@x.y.z → .github/workflows/publish-admin.yml
 ```
 
 ## Architecture
@@ -42,7 +43,7 @@ Vue 3 组件库，89 个组件。基于 Reka-ui 原语层 + shadcn-vue 设计风
 
 - **构建**: Vite 8 → ES modules only，vite-plugin-dts 生成 .d.ts
 - **样式**: Tailwind CSS 4 (@tailwindcss/vite)，CSS 自定义属性做 design tokens
-- **组件结构**: 每个组件一个目录 `src/components/{name}/`，包含 `EName.vue` + `index.ts` + `types.ts` + 可选 `.test.ts`
+- **组件结构**: 每个组件一个目录 `src/components/{name}/`，包含 `EName.vue` + `index.ts` + `types.ts`。测试在 `frontend/eui/tests/components/{name}.test.ts`
 - **主题系统**: `src/theme/` 导出 tokens.css（设计变量）、dark.css（暗色模式）、presets.css（Tailwind 预设），通过 package.json exports 单独引入
 - **Composables**: `src/composables/` — useConfigProvider, useFormField, useMessage, useNotification, useMessageBox, useTheme
 - **关键依赖**: reka-ui, @floating-ui/vue, @tanstack/vue-table, vee-validate + zod, class-variance-authority + tailwind-merge
@@ -256,10 +257,10 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 
 | 包名 | scope | 版本文件 | 测试命令 | 构建命令 | 发布命令 | 验证命令 |
 |------|-------|---------|---------|---------|---------|---------|
-| @dwydev/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | pnpm publish:eui | npm view @dwydev/eui version |
-| @dwydev/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | pnpm publish:ekit | npm view @dwydev/ekit version |
-| dwyeapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | source .key && pnpm publish:eapi | pip index versions dwyeapi |
-| create-dwy | cli | dwy-cli/package.json | — | — | `git push origin create-dwy@x.y.z`（GitHub Actions OIDC 自动发布） | npm view create-dwy version |
+| @dwydev/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | `git push origin @dwydev/eui@x.y.z` | npm view @dwydev/eui version |
+| @dwydev/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | `git push origin @dwydev/ekit@x.y.z` | npm view @dwydev/ekit version |
+| dwyeapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | `git push origin dwyeapi@x.y.z` | pip index versions dwyeapi |
+| create-dwy | cli | dwy-cli/package.json | — | — | `git push origin create-dwy@x.y.z` | npm view create-dwy version |
 
 ### 依赖顺序
 
@@ -275,10 +276,9 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 - 命令：`pnpm changelog`
 - 工具：changelogen
 
-### PyPI 凭证
+### 发布鉴权
 
-- Token 存储在项目根目录 `.key` 文件中（已 gitignore）
-- 发布 eapi 前需先加载：`source .key`
+eui、ekit、eapi、cli、admin-kit 都走对应 workflow 的 `id-token: write`。eapi 用 `pypa/gh-action-pypi-publish`。不要把 token 放进 `.key` 再本地 `uv publish` / `npm publish`。
 
 ### create-dwy (CLI) 发布
 

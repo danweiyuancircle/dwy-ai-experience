@@ -73,14 +73,10 @@ npm install @dwydev/admin-kit
 
 - `dwy create <project-name>`
   - 创建标准项目模板
-- `dwy sync`
-  - 同步选中的共享约定到当前项目
-- `dwy claude sync`
-  - 同步技能、规则、命令与 hooks 到项目 `.claude/`
-- `dwy claude sync md`
-  - 同步仓库 `CLAUDE.md` 到全局配置
-- `dwy codex sync`
-  - 将 Claude 模板转换并同步到 `.agents/`、`.codex/hooks/`、`AGENTS.md`
+- `dwy` / `dwy sync`
+  - 开头选择：同步全局 skills，或把选中的规则 / skills / hooks 同步到当前项目
+- `dwy upgrade`
+  - 把全局安装的 `create-dwy` 升到 npm latest
 
 ### 解决的问题
 
@@ -164,8 +160,6 @@ pnpm install
 npx create-dwy your-project
 
 dwy sync
-dwy claude sync
-dwy codex sync
 ```
 
 ## 开发

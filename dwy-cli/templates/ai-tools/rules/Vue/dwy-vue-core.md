@@ -267,6 +267,14 @@ export function createUser(data: UserCreate) {
 - 模板中复杂表达式 / 内联多语句
 - `kebab-case` 组件名 / 模板中写 `.value`
 
+### 用户输入限长
+
+业务页里接收用户输入的控件（`input` / `textarea` / 富文本 / 文件 / 批量项）要有长度或大小上限，并用该页的 schema 再校验一次，防止粘贴绕过 `maxlength`。
+
+上限按字段语义定：用户名几十字符、描述几百、正文几千、图片几 MB。组件库的 Input 只提供 `maxlength` 这类 prop，不在组件内部写死业务上限。
+
+后端校验见 `dwy-python-backend`。只改组件库、没有业务表单时，不要给每个控件塞一套 schema。
+
 ---
 
 ## 八、样式规范

@@ -9,7 +9,7 @@ export const STACK_PACKS = [
   {
     id: 'common',
     label: '通用',
-    description: '开发流程 rules、Git hooks、跨栈 skill（dwy-shared / semver / 流程文档）',
+    description: '开发流程 rules、Git hooks、跨栈 skill（依赖选型 / 提交 / dwy-shared / semver / 流程文档）',
     ruleCategories: ['开发流程'],
     hookCategories: ['Git'],
     skillCategories: ['通用'],

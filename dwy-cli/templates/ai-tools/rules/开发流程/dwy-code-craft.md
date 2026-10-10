@@ -1,5 +1,7 @@
 ---
-description: 编码大局观与行文准则（动笔前四问、第二次才抽、扩展靠加文件、反屎山、任务内收口与 project-rules 自进化）；写业务页/接口/模块时始终注入
+description: 编码大局观与行文准则（动笔前四问、第二次才抽、扩展靠加文件、反屎山、行为变更先写失败测试）。编辑源码时注入。
+paths:
+  - "**/*.{py,ts,tsx,vue,js,jsx,kt,kts,swift,ets,dart}"
 ---
 
 # 编码大局观
@@ -61,10 +63,21 @@ description: 编码大局观与行文准则（动笔前四问、第二次才抽�
 
 红线仍在：大重构、换架构、清理无关死代码，仍须用户明确要求。
 
-## 六、提交前检查
+## 六、行为变更与测试位置
+
+行为变更（新功能、修 bug、会改变可观察行为的重构）先写失败测试，再写实现。文案、注释、Markdown、CI 配置直接改。
+
+- 测试放独立目录并镜像源码：`src/foo/bar.ts` → `tests/foo/bar.test.ts`；Python 用 `tests/test_*.py`。禁止把测试和 fixture 写进业务 `src/`。
+- Android 用 Gradle 测试源集 `src/test/`、`src/androidTest/`，与 `src/main` 分开，这是合规写法。
+- 上面没覆盖的栈：独立测试目录 + 镜像源码 + 该生态主流 runner。栈内目录细则见对应 `dwy-*-testing`。
+- 改完只跑受影响的测试。改了公共 fixture 或 `conftest.py` 就全量。提交前不要求全量，全量留给 CI。
+- 基础库的 `TEST_CASES.md` 跟测试目录走（`tests/TEST_CASES.md`），和测试文件一起改。
+
+## 七、提交前检查
 
 - [ ] 四问过完，同类已搜过
 - [ ] 没有新增第 2 份未抽取的重复
 - [ ] 没有用 flag/type 把本该新文件的行为塞进旧文件
 - [ ] 正在改的文件没有因本次变更更难拆
 - [ ] 踩同类坑 ≥2 次已写入 `project-rules`
+- [ ] 行为变更先有失败测试，测试不在业务 `src/` 里

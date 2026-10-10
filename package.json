@@ -11,12 +11,12 @@
     "test:eapi": "cd backend && pytest tests/ -v",
     "test:admin-shell": "pnpm -F @dwydev/admin-kit test",
     "test:admin": "pnpm -F @dwydev/admin-kit test",
-    "publish:eui": "pnpm -F @dwydev/eui publish --access public --no-git-checks",
-    "publish:ekit": "pnpm -F @dwydev/ekit publish --access public --no-git-checks",
-    "publish:admin-shell": "pnpm -F @dwydev/admin-kit publish --access public --no-git-checks",
-    "publish:admin": "pnpm -F @dwydev/admin-kit publish --access public --no-git-checks",
-    "publish:cli": "pnpm -F create-dwy publish --access public --no-git-checks",
-    "publish:eapi": "cd backend && uv build && uv publish",
+    "publish:eui": "echo '本地 publish 已停用。打 tag @dwydev/eui@<version> 并 git push origin <tag>，由 .github/workflows/publish-eui.yml 用 OIDC 发布。' && exit 1",
+    "publish:ekit": "echo '本地 publish 已停用。打 tag @dwydev/ekit@<version> 并 git push origin <tag>，由 .github/workflows/publish-ekit.yml 用 OIDC 发布。' && exit 1",
+    "publish:admin-shell": "echo '本地 publish 已停用。打 tag @dwydev/admin-kit@<version> 并 git push origin <tag>，由 .github/workflows/publish-admin.yml 用 OIDC 发布。' && exit 1",
+    "publish:admin": "echo '本地 publish 已停用。打 tag @dwydev/admin-kit@<version> 并 git push origin <tag>，由 .github/workflows/publish-admin.yml 用 OIDC 发布。' && exit 1",
+    "publish:cli": "echo '本地 publish 已停用。打 tag create-dwy@<version> 并 git push origin <tag>，由 .github/workflows/publish-cli.yml 用 OIDC 发布。' && exit 1",
+    "publish:eapi": "echo '本地 publish 已停用。打 tag dwyeapi@<version> 并 git push origin <tag>，由 .github/workflows/publish-eapi.yml 用 OIDC 发布。' && exit 1",
     "changelog": "changelogen"
   },
   "devDependencies": {

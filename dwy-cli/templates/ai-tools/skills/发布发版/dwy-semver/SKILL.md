@@ -87,6 +87,14 @@ description: "语义化版本号（SemVer 2.0.0）决策助手。涉及以下任
 
 预发布优先级排序、版本比较 11 条规则等细节见 [references/semver-spec.md](references/semver-spec.md)。
 
+## 分支上用哪个号
+
+只认两条长期分支，和 `rules/开发流程/dwy-prod-branch.md` 同一条。不在发版时不要为了这条去改版本号。
+
+- 在 `develop` 发：必须带 `-beta` 或 `-rc`。还在改用 `beta`，准备进 `preview` 用 `rc`。
+- 在 `preview` 发正式版：不带预发布。`rc` 收成正式号时用 `bump.py` 转到正式版。
+- 仓库没有这两条分支：先告诉用户，不要改用 `main` 充当正式分支。
+
 ## 算出具体版本号
 
 `scripts/bump.py` 按 SemVer 归零规则与 node-semver 预发布语义计算，避免手算出错：

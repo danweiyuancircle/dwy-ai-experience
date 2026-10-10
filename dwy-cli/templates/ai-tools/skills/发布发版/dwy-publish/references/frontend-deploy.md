@@ -19,6 +19,6 @@
 
 ## changelog / tag / 监控
 
-- changelog → `changelog.md`（写 `frontend/CHANGELOG.md`）
+- changelog → `changelog.md`（写该项目的 `frontend/CHANGELOG.md`；工厂里多个项目时每个项目各一份）
 - tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致）
 - 监控 + verify → `monitor-notify.md`（前端信号：页面访问 / 版本接口 / 产物 hash / CDN 刷新）
