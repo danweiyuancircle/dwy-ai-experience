@@ -4,7 +4,7 @@
  * 基于 @clack/core Prompt 自绘，不引入新 UI 库。
  */
 
-import { Prompt, getColumns, settings } from '@clack/core'
+import { Prompt, getColumns, settings, wrapTextWithPrefix } from '@clack/core'
 import { limitOptions } from '@clack/prompts'
 import { styleText } from 'node:util'
 import process from 'node:process'
@@ -39,39 +39,8 @@ const S_BAR_H = () => unicodeOr('─', '-')
 const S_TAB_MORE = unicodeOr('‹', '<')
 const S_TAB_MORE_RIGHT = unicodeOr('›', '>')
 
-/**
- * skill / rule / hook 的终端标记。
- * 不用 emoji：几何符号 + 固定宽度英文，无 unicode 时退回 S/R/H。
- */
-const ITEM_TYPE_META = {
-  skills: { icon: unicodeOr('◈', 'S'), word: 'skill', color: 'cyan', title: '技能' },
-  rules: { icon: unicodeOr('☰', 'R'), word: 'rule', color: 'yellow', title: '规则' },
-  hooks: { icon: unicodeOr('⤷', 'H'), word: 'hook', color: 'magenta', title: '钩子' },
-}
-
-/**
- * 取类型展示元数据。未知类型当 skill，避免列表画出空白标记。
- *
- * @param {string | undefined} type
- */
-export function itemTypeMeta(type) {
-  return ITEM_TYPE_META[type] || ITEM_TYPE_META.skills
-}
-
-/**
- * 行首类型前缀：图标 + 对齐后的 skill/rule/hook。
- *
- * @param {string | undefined} type
- */
-export function formatItemTypePrefix(type) {
-  const meta = itemTypeMeta(type)
-  return `${styleText(meta.color, meta.icon)} ${styleText(meta.color, meta.word.padEnd(5, ' '))}`
-}
-
 /** Tab 之间空格数。过密会糊成一行，过疏又浪费宽度。 */
 const TAB_GAP = 2
-/** 省略角标占位。‹/› 按 1 列计。 */
-const ELLIPSIS_W = 1
 /**
  * 技术栈 / 场景分组之间插入 `  |  ` 比普通间隙多出来的宽度。
  * 普通间隙 TAB_GAP=2；再加 `|` 和一侧间隙 → 3。
@@ -151,35 +120,31 @@ export function tabWindow(segments, activeIndex, maxWidth, groups) {
   const n = segments.length
   if (n === 0) return { start: 0, end: 0, showLeft: false, showRight: false }
   const idx = Math.min(Math.max(activeIndex, 0), n - 1)
-  const widths = segments.map(segment => segment.length)
-
-  const used = (start, end) => {
-    let w = 0
-    for (let i = start; i < end; i++) {
-      if (i > start) w += TAB_GAP
-      w += widths[i]
-    }
-    w += groupSepWidth(groups, start, end)
-    if (start > 0) w += ELLIPSIS_W + TAB_GAP
-    if (end < n) w += TAB_GAP + ELLIPSIS_W
-    return w
+  const fits = (start, end) => {
+    const gap = ' '.repeat(TAB_GAP)
+    let text = segments.slice(start, end).join(gap)
+    if (start > 0) text = `${S_TAB_MORE}${gap}${text}`
+    if (end < n) text += `${gap}${S_TAB_MORE_RIGHT}`
+    text += ' '.repeat(groupSepWidth(groups, start, end))
+    // 复用 clack 的终端宽度处理，中文分类不能按字符串 length 计算。
+    return !wrapTextWithPrefix({ columns: maxWidth }, text, '').includes('\n')
   }
 
   let start = idx
   let end = idx + 1
   // 当前段已经超宽：不再扩张，避免把邻 Tab 挤没
-  if (used(start, end) > maxWidth) {
+  if (!fits(start, end)) {
     return { start, end, showLeft: start > 0, showRight: end < n }
   }
 
   let grew = true
   while (grew) {
     grew = false
-    if (end < n && used(start, end + 1) <= maxWidth) {
+    if (end < n && fits(start, end + 1)) {
       end += 1
       grew = true
     }
-    if (start > 0 && used(start - 1, end) <= maxWidth) {
+    if (start > 0 && fits(start - 1, end)) {
       start -= 1
       grew = true
     }
@@ -330,7 +295,7 @@ function renderTabBar(segments, activeIndex, win, tabs, selectedValues) {
 
 /**
  * 打开顶部 Tab + 下方多选。
- * tabs 为空时不进交互，直接返回 []（调用方应先过滤空包）。
+ * tabs 为空时不进交互，直接返回 []（调用方应先过滤空分类）。
  *
  * @param {object} opts
  * @param {string} opts.message
@@ -380,13 +345,11 @@ export function tabMultiselect(opts) {
       const contentWidth = Math.max(cols - (withGuide ? 10 : 6), 20)
       const segments = tabBarSegments(this.tabs, selected)
       const groups = this.tabs.map(tab => tab.group)
-      const win = tabWindow(segments, this.tabIndex, contentWidth, groups)
+      const win = tabWindow(segments, this.tabIndex, contentWidth - 2, groups)
       const tabLine = renderTabBar(segments, this.tabIndex, win, this.tabs, selected)
 
       const focused = this.currentOptions[this.cursor]
-      const focusedType = itemTypeMeta(focused?.type)
-      const descRaw = (focused?.description || '').trim() || '（无说明）'
-      const desc = `${focusedType.title} · ${descRaw}`
+      const desc = (focused?.description || '').trim() || '（无说明）'
       const instructions = [
         `${styleText('dim', '←/→')} 切 Tab`,
         `${styleText('dim', '↑/↓')} 移动`,
@@ -421,7 +384,6 @@ export function tabMultiselect(opts) {
             label: opt.label ?? String(opt.value ?? ''),
             selected: selected.includes(opt.value),
             active,
-            prefix: formatItemTypePrefix(opt.type),
           }),
         })
 

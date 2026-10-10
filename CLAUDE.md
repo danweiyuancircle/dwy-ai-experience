@@ -108,7 +108,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。扁平模块：
 
 #### 当前入口（与 `dwy --help` 一致）
 
-- **`dwy`** / **`dwy sync`**：开头选动作。同步全局 skills；或同步项目配置（按场景和技术栈并预勾子条目可取消，或一个一个选）
+- **`dwy`** / **`dwy sync`**：依次选择 Skills → Rules → 全局／当前项目 → 平台 → 确认。各类用分类 Tab 逐项勾选，无回退；Hooks 按平台自动同步，Commands 停用并保留本地文件。全局同步整套配置，保留个人规则和设置；Cursor 仅支持项目规则。启动显示 dwy 品牌
 - **`dwy upgrade`**：把全局安装的 `create-dwy` 升到 npm `latest`（正式版）。源码仓不能自升级
 - **`dwy --help`** / **`dwy --version`**
 

@@ -5,7 +5,6 @@ import os from 'node:os'
 import path from 'node:path'
 import {
   ACTION_SYNC,
-  SELECTION_STYLE_PACKS,
   buildPlatformDefaultsFromLocalState,
   buildSelectionDefaultsFromSyncState,
   runDwy,
@@ -156,7 +155,7 @@ test('syncAll mirrors one selected configuration to Claude Code and Codex', asyn
   )
   assert.equal(
     await fs.readFile(path.join(projectDir, '.claude', 'commands', 'release.md'), 'utf-8'),
-    '# Release\n',
+    'old',
   )
   assert.equal(
     await fs.readFile(path.join(projectDir, '.agents', 'skills', 'dwy-shared', 'SKILL.md'), 'utf-8'),
@@ -255,7 +254,7 @@ test('syncAll keeps stale managed items until deletion is confirmed', async t =>
   assert.doesNotMatch(finalAgentsMd, /dwy-vue\.md/)
 })
 
-test('syncAll in packs style writes packs into sync-state', async t => {
+test('syncAll migrates old packs state and keeps only explicit item selections', async t => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-sync-packs-state-'))
   t.after(() => fs.remove(tempDir))
   const sourceDir = path.join(tempDir, 'templates', 'ai-tools')
@@ -268,22 +267,28 @@ test('syncAll in packs style writes packs into sync-state', async t => {
   await fs.outputJson(path.join(sourceDir, 'hook-manifests', 'hooks.json'), [])
   await fs.ensureDir(path.join(projectDir, '.claude'))
 
+  await fs.outputJson(path.join(projectDir, '.dwy', 'sync-state.json'), {
+    version: 1,
+    platforms: { claude: { skills: ['dwy-shared'], rules: [], commands: [], hooks: [] } },
+    selectionStyle: 'packs',
+    packs: { stacks: ['common', 'vue'], scenes: ['media'] },
+  })
+
   await syncAll({
     sourceDir,
     projectDir,
-    selected: {
-      ...buildSelected(),
-      packs: { stacks: ['common', 'vue'], scenes: ['media'] },
-    },
+    selected: { skills: [{ name: 'dwy-shared' }], rules: [], commands: [], hooks: [] },
     selectedPlatforms: ['claude'],
     staleRemovals: { claude: { skills: [], rules: [], commands: [], hooks: [] } },
     skillScope: { destinations: ['project'], globalSkills: [] },
-    selectionStyle: SELECTION_STYLE_PACKS,
     syncMode: 'all',
   })
 
   const state = await fs.readJson(path.join(projectDir, '.dwy', 'sync-state.json'))
-  assert.deepEqual(state.packs, { stacks: ['common', 'vue'], scenes: ['media'] })
+  assert.deepEqual(state.platforms.claude.skills, ['dwy-shared'])
+  assert.equal(await fs.pathExists(path.join(projectDir, '.claude', 'skills', 'dwy-shared', 'SKILL.md')), true)
+  assert.equal('packs' in state, false)
+  assert.equal('selectionStyle' in state, false)
 })
 
 test('runDwy action=sync 走项目同步，不进刷新分支', async t => {

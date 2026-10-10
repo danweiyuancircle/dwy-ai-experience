@@ -15,10 +15,8 @@ import {
   ACTION_INSTALL_SKILLS,
   ACTION_SYNC,
   ACTION_UPGRADE,
-  DEFAULT_SELECTION_STYLE,
   DEFAULT_SYNC_MODE,
   normalizeAction,
-  normalizeSelectionStyle,
   normalizeSyncMode,
   syncAll,
 } from '../src/sync-all.js'
@@ -182,13 +180,6 @@ test('normalizeSyncMode defaults to all and rejects unknown values', () => {
   assert.equal(normalizeSyncMode(undefined), 'all')
   assert.equal(normalizeSyncMode('skills'), 'skills')
   assert.equal(normalizeSyncMode('nope'), 'all')
-})
-
-test('normalizeSelectionStyle defaults to packs and keeps items', () => {
-  assert.equal(DEFAULT_SELECTION_STYLE, 'packs')
-  assert.equal(normalizeSelectionStyle(undefined), 'packs')
-  assert.equal(normalizeSelectionStyle('items'), 'items')
-  assert.equal(normalizeSelectionStyle('nope'), 'packs')
 })
 
 test('normalizeAction defaults to sync', () => {

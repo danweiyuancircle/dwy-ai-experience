@@ -2,8 +2,6 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
   firstTabWithSelection,
-  formatItemTypePrefix,
-  itemTypeMeta,
   tabBarSegments,
   tabSelectionStats,
   tabWindow,
@@ -59,29 +57,6 @@ test('tabWindow 以当前 Tab 为中心裁切，超出宽度两端出省略标�
   assert.equal(mid.showRight, mid.end < segs.length)
 })
 
-test('itemTypeMeta 三种类型用不同词和图标，未知类型当 skill', () => {
-  assert.equal(itemTypeMeta('skills').word, 'skill')
-  assert.equal(itemTypeMeta('skills').title, '技能')
-  assert.equal(itemTypeMeta('rules').word, 'rule')
-  assert.equal(itemTypeMeta('rules').title, '规则')
-  assert.equal(itemTypeMeta('hooks').word, 'hook')
-  assert.equal(itemTypeMeta('hooks').title, '钩子')
-  assert.equal(itemTypeMeta('nope').word, 'skill')
-  assert.notEqual(itemTypeMeta('skills').icon, itemTypeMeta('rules').icon)
-  assert.notEqual(itemTypeMeta('rules').icon, itemTypeMeta('hooks').icon)
-})
-
-test('formatItemTypePrefix 含类型词，三种互不相同', () => {
-  const skill = formatItemTypePrefix('skills')
-  const rule = formatItemTypePrefix('rules')
-  const hook = formatItemTypePrefix('hooks')
-  assert.match(skill, /skill/)
-  assert.match(rule, /rule/)
-  assert.match(hook, /hook/)
-  assert.notEqual(skill, rule)
-  assert.notEqual(rule, hook)
-})
-
 test('tabWindow 相邻 group 不同时预留分隔宽度', () => {
   const segs = ['AAAA', 'BBBB']
   const without = tabWindow(segs, 0, 11)
@@ -93,4 +68,10 @@ test('tabWindow 相邻 group 不同时预留分隔宽度', () => {
 test('tabWindow 当前段比宽度还长时仍露出这一段', () => {
   const win = tabWindow(['VERY-LONG-TAB-LABEL'], 0, 8)
   assert.deepEqual(win, { start: 0, end: 1, showLeft: false, showRight: false })
+})
+
+test('分类 Tab 按中文实际显示宽度裁切，省略标记不换行', () => {
+  assert.deepEqual(tabWindow(['安全 0/2', '产品0到1 0/20', '发布发版 0/5'], 0, 22), {
+    start: 0, end: 1, showLeft: false, showRight: true,
+  })
 })
