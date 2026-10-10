@@ -114,8 +114,9 @@ function upsertBaselineBlock(content, baselineBody) {
 
 export async function syncProjectAgentsMd(sourceDir, projectDir, selectedRules, {
   preservedRuleNames = new Set(),
+  targetPath = path.join(projectDir, 'AGENTS.md'),
 } = {}) {
-  const dest = path.join(projectDir, 'AGENTS.md')
+  const dest = targetPath
   const current = await fs.pathExists(dest) ? await fs.readFile(dest, 'utf-8') : ''
   const baselineBody = await readBaselineDoc(sourceDir)
   const selectedRuleNames = new Set(selectedRules.map(rule => rule.name))
@@ -132,6 +133,7 @@ export async function syncProjectAgentsMd(sourceDir, projectDir, selectedRules, 
   const withBaseline = upsertBaselineBlock(current, baselineBody)
   const next = upsertManagedBlock(withBaseline, blockBody)
   if (next === current) return 0
+  await fs.ensureDir(path.dirname(dest))
   await fs.writeFile(dest, next)
   const parts = []
   if (baselineBody.trim()) parts.push('baseline')
@@ -223,7 +225,7 @@ async function copyCodexHooks(hooks, proj) {
   return hooks.length
 }
 
-function buildCodexHooksJson(manifests, selectedHookNames) {
+function buildCodexHooksJson(manifests, selectedHookNames, global) {
   const hooksJson = { hooks: {} }
   const grouped = new Map()
 
@@ -237,7 +239,9 @@ function buildCodexHooksJson(manifests, selectedHookNames) {
     const hooks = grouped.get(key) || []
     hooks.push({
       type: 'command',
-      command: `bash \"$(git rev-parse --show-toplevel)\"/.codex/hooks/${manifest.name}`,
+      command: global
+        ? `bash "$HOME/.codex/hooks/${manifest.name}"`
+        : `bash "$(git rev-parse --show-toplevel)/.codex/hooks/${manifest.name}"`,
       ...(manifest.timeout ? { timeout: manifest.timeout } : {}),
     })
     grouped.set(key, hooks)
@@ -280,10 +284,10 @@ function mergeCodexHooks(existingHooks, generatedHooks, managedHookNames) {
   return Object.keys(merged).length > 0 ? merged : undefined
 }
 
-async function syncCodexHooksJson(sourceDir, proj, selectedHookNames) {
+async function syncCodexHooksJson(sourceDir, proj, selectedHookNames, global) {
   const dest = path.join(proj, '.codex', 'hooks.json')
   const manifests = await loadHookManifests(sourceDir)
-  const generated = buildCodexHooksJson(manifests, selectedHookNames)
+  const generated = buildCodexHooksJson(manifests, selectedHookNames, global)
   const managedHookNames = new Set(
     manifests
       .filter(manifest => !manifest.platforms || manifest.platforms.includes('codex'))
@@ -317,9 +321,11 @@ async function syncCodexHooksJson(sourceDir, proj, selectedHookNames) {
   return 1
 }
 
+/** 同步 Codex 配置；global 模式将规则写入用户 .codex/AGENTS.md。 */
 export async function syncCodex({
   sourceDir: sourceDirOverride,
   projectDir,
+  global = false,
   selected,
   staleRemovals = {},
   preserveMissingRules = new Set(),
@@ -340,7 +346,7 @@ export async function syncCodex({
   }
   console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.rules.length} rules, ${scans.hooks.length} hooks\n`))
 
-  const agentsMdPath = path.join(proj, 'AGENTS.md')
+  const agentsMdPath = global ? path.join(proj, '.codex', 'AGENTS.md') : path.join(proj, 'AGENTS.md')
   const agentsMdContent = await fs.pathExists(agentsMdPath) ? await fs.readFile(agentsMdPath, 'utf-8') : ''
   const existing = {
     skills: await scanExistingCodexSkills(proj),
@@ -363,9 +369,10 @@ export async function syncCodex({
   syncedCount += await copySkillsFlat(syncedSelection.skills, proj)
   syncedCount += await syncProjectAgentsMd(sourceDir, proj, syncedSelection.rules, {
     preservedRuleNames: preserveMissingRules,
+    targetPath: agentsMdPath,
   })
   syncedCount += await copyCodexHooks(syncedSelection.hooks, proj)
-  syncedCount += await syncCodexHooksJson(sourceDir, proj, selectedHookNames)
+  syncedCount += await syncCodexHooksJson(sourceDir, proj, selectedHookNames, global)
 
   const skillTemplateNames = new Set([
     ...scans.skills.map(s => s.name),

@@ -1,18 +1,12 @@
 import fs from 'fs-extra'
 import path from 'path'
 import { isCancel } from '@clack/prompts'
-import {
-  SEARCH_PLACEHOLDER,
-  searchableMultiselect,
-  searchableSelect,
-} from './searchable-select.js'
+import { tabMultiselect } from './tab-multiselect.js'
 import { chalk, DEFAULT_TEMPLATE_REPO_URL, getDwyHomeDir, runGit } from './utils.js'
 
 const CATEGORIES = [
   { key: 'skills', label: 'Skills' },
   { key: 'rules', label: 'Rules' },
-  { key: 'commands', label: 'Commands' },
-  { key: 'hooks', label: 'Hooks' },
 ]
 
 const COPY_EXCLUDE_PATTERNS = [
@@ -147,27 +141,6 @@ export async function scanRules(sourceDir) {
   return rules.sort((a, b) => a.name.localeCompare(b.name))
 }
 
-export async function scanCommands(sourceDir) {
-  const commandsDir = path.join(sourceDir, 'commands')
-  if (!await fs.pathExists(commandsDir)) return []
-
-  const entries = await fs.readdir(commandsDir, { withFileTypes: true })
-  const commands = await Promise.all(entries
-    .filter(e => e.name !== '.gitkeep' && e.name !== '.DS_Store')
-    .map(async e => ({
-      name: e.name,
-      description: await readEntryDescription(
-        path.join(commandsDir, e.name),
-        e.isDirectory() ? '命令目录' : '命令文件',
-      ),
-      category: e.isDirectory() ? '目录命令' : '文件命令',
-      sourcePath: path.join(commandsDir, e.name),
-      type: 'command',
-    })))
-
-  return commands.sort((a, b) => a.name.localeCompare(b.name))
-}
-
 export async function scanHooks(sourceDir) {
   const hooksDir = path.join(sourceDir, 'hooks')
   if (!await fs.pathExists(hooksDir)) return []
@@ -214,123 +187,58 @@ export async function scanExisting(projectTargetDir, typePlural) {
 }
 
 /**
- * 将扫描项转为可搜索扁平 options。
- * label 带分类前缀便于筛选；完整 description 进底部公共说明区（不截断塞 hint）。
+ * 按模板实际分类生成 Tab，每条独立勾选，不做包展开或跨分类关联。
  *
  * @param {Array<{ name: string, category?: string, description?: string }>} items
- * @returns {Array<{ value: string, label: string, description?: string }>}
+ * @param {'skills' | 'rules'} type
  */
-function buildSearchableOptions(items) {
-  return items
-    .slice()
-    .sort((a, b) => {
-      const catCmp = (a.category || '其他').localeCompare(b.category || '其他', 'zh')
-      if (catCmp !== 0) return catCmp
-      return a.name.localeCompare(b.name, 'zh')
+export function buildCategoryTabs(items, type) {
+  const groups = new Map()
+  for (const item of items) {
+    const category = item.category || '其他'
+    if (!groups.has(category)) groups.set(category, [])
+    groups.get(category).push({
+      value: item.name,
+      label: item.name,
+      description: item.description,
+      type,
     })
-    .map(item => {
-      const category = item.category || '其他'
-      return {
-        value: item.name,
-        label: `${category} / ${item.name}`,
-        // 完整描述给底部公共区；搜索也匹配 description
-        description: item.description || undefined,
-      }
-    })
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, 'zh'))
+    .map(([category, options]) => ({
+      id: category,
+      label: category,
+      options: options.sort((a, b) => a.label.localeCompare(b.label, 'zh')),
+    }))
 }
 
 /**
- * 可搜索多选一层。items 为空直接返回 []，不弹窗。
- * 取消返回 null，调用方必须中止整次同步。
- *
- * @param {Array<{ name: string, category?: string, description?: string }>} items
- * @param {string} label
- * @param {Iterable<string>} defaultNames
- */
-export async function promptSelection(items, label, defaultNames) {
-  if (items.length === 0) return []
-  // 可搜索多选 + 底部说明区（聚焦项描述不跟在行尾）
-  const selectedNames = await searchableMultiselect({
-    message: `选择 ${label}`,
-    options: buildSearchableOptions(items),
-    initialValues: [...defaultNames],
-    maxItems: 15,
-    required: false,
-    placeholder: SEARCH_PLACEHOLDER,
-  })
-  if (isCancel(selectedNames)) return null
-  const selectedSet = new Set(selectedNames)
-  return items.filter(item => selectedSet.has(item.name))
-}
-
-/**
- * 交互式选择：每步可回退到上一步，最后总览支持任意类别重选。
- * categories 可缩成仅 Skills，未出现的类别返回空数组（调用方不得据此删除已有项）。
- * 返回 { skills, rules, commands, hooks } 或 null（取消）。
+ * 顺序选择 Skills、Rules；Enter 进入下一类，不再提供回退或重选菜单。
+ * 完整同步默认启用全部模板 Hooks；仅 Skills 模式不得写入其他配置。
+ * 取消返回 null，调用方必须终止同步。
  *
  * @param {object} scans
- * @param {object} existing
- * @param {{ categories?: Array<{ key: string, label: string }> }} [opts]
+ * @param {{ skills: Iterable<string>, rules: Iterable<string> }} existing
+ * @param {{ skillsOnly?: boolean }} [opts]
  */
-export async function interactiveSelect(scans, existing, { categories = CATEGORIES } = {}) {
-  const sel = {
-    skills: [],
-    rules: [],
-    commands: [],
-    hooks: [],
-  }
-
-  // 第一轮：顺序遍历，每步给导航
-  let i = 0
-  while (i < categories.length) {
-    const { key, label } = categories[i]
-    const defaultNames = sel[key]?.length
-      ? new Set(sel[key].map(x => x.name))
-      : existing[key]
-    sel[key] = await promptSelection(scans[key], label, defaultNames)
-    if (sel[key] === null) return null
-
-    if (i === categories.length - 1) break
-
-    const nextLabel = categories[i + 1].label
-    const prevLabel = i > 0 ? categories[i - 1].label : null
-    // 导航步可搜索单选（选项少，交互与多选一致）
-    const nav = await searchableSelect({
-      message: `${label} 已选 ${sel[key].length} 项。下一步：`,
-      options: [
-        { label: `继续选 ${nextLabel}`, value: 'next' },
-        ...(prevLabel ? [{ label: `返回重选 ${prevLabel}`, value: 'back' }] : []),
-        { label: '取消同步', value: 'cancel' },
-      ],
-      initialValue: 'next',
-      placeholder: SEARCH_PLACEHOLDER,
+export async function interactiveSelect(scans, existing, { skillsOnly = false } = {}) {
+  const selected = { skills: [], rules: [], commands: [], hooks: skillsOnly ? [] : scans.hooks }
+  for (const { key, label } of skillsOnly ? CATEGORIES.slice(0, 1) : CATEGORIES) {
+    const tabs = buildCategoryTabs(scans[key], key)
+    const availableNames = new Set(scans[key].map(item => item.name))
+    const names = await tabMultiselect({
+      message: `选择 ${label}`,
+      tabs,
+      initialValues: [...existing[key]].filter(name => availableNames.has(name)),
+      required: false,
+      maxItems: 15,
     })
-    if (isCancel(nav) || nav === 'cancel') return null
-    i = nav === 'back' ? i - 1 : i + 1
+    if (isCancel(names)) return null
+    const selectedNames = new Set(names)
+    selected[key] = scans[key].filter(item => selectedNames.has(item.name))
   }
-
-  // 第二轮：总览 + 任意重选
-  while (true) {
-    console.log(chalk.gray('\n选择汇总：'))
-    for (const { key, label } of categories) {
-      console.log(chalk.gray(`  ${label.padEnd(10)} ${sel[key].length} 项`))
-    }
-    const final = await searchableSelect({
-      message: '确认提交还是重选？',
-      options: [
-        { label: '确认提交', value: 'confirm' },
-        ...categories.map(c => ({ label: `重选 ${c.label}`, value: c.key })),
-        { label: '取消同步', value: 'cancel' },
-      ],
-      initialValue: 'confirm',
-      placeholder: SEARCH_PLACEHOLDER,
-    })
-    if (isCancel(final) || final === 'cancel') return null
-    if (final === 'confirm') return sel
-    const cat = categories.find(c => c.key === final)
-    sel[final] = await promptSelection(scans[final], cat.label, new Set(sel[final].map(x => x.name)))
-    if (sel[final] === null) return null
-  }
+  return selected
 }
 
 export function logAction(label, color = 'green', prefix = '✓') {
@@ -431,7 +339,7 @@ async function removeUnselected(typePlural, existingNames, selectedNames, templa
   return count
 }
 
-function buildClaudeHooksSettings(manifests, selectedHookNames) {
+function buildClaudeHooksSettings(manifests, selectedHookNames, global) {
   const grouped = new Map()
 
   for (const manifest of manifests) {
@@ -444,7 +352,7 @@ function buildClaudeHooksSettings(manifests, selectedHookNames) {
     const hooks = grouped.get(key) || []
     hooks.push({
       type: 'command',
-      command: `bash $CLAUDE_PROJECT_DIR/.claude/hooks/${manifest.name}`,
+      command: `bash "${global ? '$HOME' : '$CLAUDE_PROJECT_DIR'}/.claude/hooks/${manifest.name}"`,
     })
     grouped.set(key, hooks)
   }
@@ -489,10 +397,10 @@ function mergeClaudeHooks(existingHooks, generatedHooks, managedHookNames) {
   return Object.keys(merged).length > 0 ? merged : undefined
 }
 
-async function syncSettings(sourceDir, targetDir, selectedHookNames) {
+async function syncSettings(sourceDir, targetDir, selectedHookNames, global) {
   const settingsDest = path.join(targetDir, 'settings.json')
   const manifests = await loadHookManifests(sourceDir)
-  const generatedSettings = buildClaudeHooksSettings(manifests, selectedHookNames)
+  const generatedSettings = buildClaudeHooksSettings(manifests, selectedHookNames, global)
   const managedHookNames = new Set(
     manifests
       .filter(manifest => !manifest.platforms || manifest.platforms.includes('claude'))
@@ -527,7 +435,7 @@ async function syncSettings(sourceDir, targetDir, selectedHookNames) {
   return 1
 }
 
-async function syncClaudeBaselineDoc(sourceDir, targetDir) {
+async function syncClaudeBaselineDoc(sourceDir, targetDir, global) {
   const baseline = await readBaselineDoc(sourceDir)
   if (!baseline) return 0
 
@@ -535,7 +443,15 @@ async function syncClaudeBaselineDoc(sourceDir, targetDir) {
   const current = await fs.pathExists(dest) ? await fs.readFile(dest, 'utf-8') : ''
   if (current === baseline) return 0
 
-  await fs.writeFile(dest, baseline)
+  const start = '<!-- DWY-BASELINE:START -->'
+  const end = '<!-- DWY-BASELINE:END -->'
+  const block = `${start}\n\n${baseline.trim()}\n\n${end}`
+  const next = global
+    ? (current === baseline ? `${block}\n` : /<!-- DWY-BASELINE:START[^>]*-->[\s\S]*?<!-- DWY-BASELINE:END -->/.test(current)
+      ? current.replace(/<!-- DWY-BASELINE:START[^>]*-->[\s\S]*?<!-- DWY-BASELINE:END -->/, block)
+      : `${block}\n\n${current}`)
+    : baseline
+  await fs.writeFile(dest, next)
   logAction('.claude/CLAUDE.md')
   return 1
 }
@@ -553,9 +469,11 @@ export async function resolveSourceDir() {
   return resolveTemplateDirFromRepo(repoDir)
 }
 
+/** 同步 Claude 配置；global 模式用传入的用户目录，并保留个人 CLAUDE.md 内容。 */
 export async function syncClaude({
   sourceDir: sourceDirOverride,
   projectDir,
+  global = false,
   selected,
   staleRemovals = {},
 } = {}) {
@@ -571,7 +489,6 @@ export async function syncClaude({
   const scans = {
     skills: await scanSkills(sourceDir),
     rules: await scanRules(sourceDir),
-    commands: await scanCommands(sourceDir),
     hooks: await scanHooks(sourceDir),
   }
   const availableHooks = []
@@ -588,12 +505,11 @@ export async function syncClaude({
     logAction(`hooks skipped: ${missing}`, 'yellow', '!')
   }
   scans.hooks = availableHooks
-  console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.rules.length} rules, ${scans.commands.length} commands, ${scans.hooks.length} hooks\n`))
+  console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.rules.length} rules, ${scans.hooks.length} hooks\n`))
 
   const existing = {
     skills: await scanExisting(projectTargetDir, 'skills'),
     rules: await scanExisting(projectTargetDir, 'rules'),
-    commands: await scanExisting(projectTargetDir, 'commands'),
     hooks: await scanExisting(projectTargetDir, 'hooks'),
   }
 
@@ -601,14 +517,12 @@ export async function syncClaude({
   const syncedSelection = {
     skills: scans.skills.filter(item => selectedNames('skills').has(item.name)),
     rules: scans.rules.filter(item => selectedNames('rules').has(item.name)),
-    commands: scans.commands.filter(item => selectedNames('commands').has(item.name)),
     hooks: scans.hooks.filter(item => selectedNames('hooks').has(item.name)),
   }
 
   const selectedHookNames = new Set(syncedSelection.hooks.map(h => h.name))
   const approvedStaleSkills = staleRemovals.skills || new Set()
   const approvedStaleRules = staleRemovals.rules || new Set()
-  const approvedStaleCommands = staleRemovals.commands || new Set()
   const approvedStaleHooks = staleRemovals.hooks || new Set()
 
   console.log(chalk.blue(`\nSyncing to ${projectTargetDir}...\n`))
@@ -617,20 +531,17 @@ export async function syncClaude({
   let syncedCount = 0
   let removedCount = 0
 
-  syncedCount += await syncClaudeBaselineDoc(sourceDir, projectTargetDir)
+  syncedCount += await syncClaudeBaselineDoc(sourceDir, projectTargetDir, global)
   syncedCount += await copyItems(syncedSelection.skills, projectTargetDir)
   syncedCount += await copyItems(syncedSelection.rules, projectTargetDir)
-  syncedCount += await copyItems(syncedSelection.commands, projectTargetDir)
-  syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames)
+  syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, global)
   syncedCount += await copyHooks(syncedSelection.hooks, projectTargetDir)
 
   const skillTemplateNames = new Set([...scans.skills.map(s => s.name), ...approvedStaleSkills])
   const ruleTemplateNames = new Set([...scans.rules.map(r => r.name), ...approvedStaleRules])
-  const commandTemplateNames = new Set([...scans.commands.map(c => c.name), ...approvedStaleCommands])
   const hookTemplateNames = new Set([...scans.hooks.map(h => h.name), ...approvedStaleHooks])
   removedCount += await removeUnselected('skills', existing.skills, new Set(syncedSelection.skills.map(s => s.name)), skillTemplateNames, projectTargetDir)
   removedCount += await removeUnselected('rules', existing.rules, new Set(syncedSelection.rules.map(r => r.name)), ruleTemplateNames, projectTargetDir)
-  removedCount += await removeUnselected('commands', existing.commands, new Set(syncedSelection.commands.map(c => c.name)), commandTemplateNames, projectTargetDir)
   removedCount += await removeUnselected('hooks', existing.hooks, selectedHookNames, hookTemplateNames, projectTargetDir)
 
   console.log(chalk.blue(`\nDone! ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
