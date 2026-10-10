@@ -118,7 +118,7 @@ packages:
 
 ## 四、Monorepo 版本（强制）
 
-第三方版本号**只**出现在 `pnpm-workspace.yaml` 的 `catalog`。子包用 `"catalog:"`。内部包 `"workspace:*"`。选哪个版本走 `dwy-dependency-freshness`。
+第三方版本号**只**出现在 `pnpm-workspace.yaml` 的 `catalog`。子包用 `"catalog:"`。内部包 `"workspace:*"`。选哪个版本走 skill `dwy-dependency-choice`。
 
 ```yaml
 # pnpm-workspace.yaml

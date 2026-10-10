@@ -129,7 +129,7 @@ members = ["features/*", "biz_foundation", "foundation"]
 
 ## 四、Monorepo 版本（强制）
 
-第三方版本号**只**出现在仓库根 `pyproject.toml` 的 `constraint-dependencies`。成员包只写包名。内部包用 uv workspace，不写版本。一把锁：根 `uv.lock`。选哪个版本走 `dwy-dependency-freshness`。
+第三方版本号**只**出现在仓库根 `pyproject.toml` 的 `constraint-dependencies`。成员包只写包名。内部包用 uv workspace，不写版本。一把锁：根 `uv.lock`。选哪个版本走 skill `dwy-dependency-choice`。
 
 ```toml
 # 根 pyproject.toml

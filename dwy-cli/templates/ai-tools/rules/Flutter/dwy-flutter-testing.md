@@ -72,7 +72,7 @@ testWidgets('登录页面渲染正确', (tester) async {
 
 ## 四、Mock 工具
 
-统一使用 `mocktail`（不是 mockito）。`^1.0.0` 只示范写法，实际版本按 `dwy-dependency-freshness` 现查。
+统一使用 `mocktail`（不是 mockito）。`^1.0.0` 只示范写法，实际版本按 `dwy-dependency-choice` 现查。
 
 ```yaml
 dev_dependencies:

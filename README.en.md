@@ -64,14 +64,10 @@ npm install @dwydev/ekit
 
 - `dwy create <project-name>`
   - Generate a standard project template
-- `dwy sync`
-  - Sync selected shared conventions into the current project
-- `dwy claude sync`
-  - Sync skills, rules, commands, and hooks into project `.claude/`
-- `dwy claude sync md`
-  - Sync repository `CLAUDE.md` into the global configuration
-- `dwy codex sync`
-  - Convert Claude templates and sync them into `.agents/`, `.codex/hooks/`, and `AGENTS.md`
+- `dwy` / `dwy sync`
+  - Choose an action: sync global skills, or sync selected rules / skills / hooks into the current project
+- `dwy upgrade`
+  - Upgrade the global `create-dwy` install to npm latest
 
 ### What It Solves
 
@@ -155,8 +151,6 @@ pnpm install
 npx create-dwy your-project
 
 dwy sync
-dwy claude sync
-dwy codex sync
 ```
 
 ## Development

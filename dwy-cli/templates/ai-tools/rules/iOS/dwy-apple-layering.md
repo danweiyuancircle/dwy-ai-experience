@@ -102,7 +102,7 @@ project.yml                       # 壳引用这一份 package，不重复 from:
 
 ## 四、Monorepo 版本（强制）
 
-第三方版本号**只**出现在根 `Package.swift` 的 `.package(..., from:)`。target 只写 product / 本地 target 名。`project.yml` 引用这一份 package，不重复版本。选哪个版本走 `dwy-dependency-freshness`。
+第三方版本号**只**出现在根 `Package.swift` 的 `.package(..., from:)`。target 只写 product / 本地 target 名。`project.yml` 引用这一份 package，不重复版本。选哪个版本走 skill `dwy-dependency-choice`。
 
 ```swift
 dependencies: [

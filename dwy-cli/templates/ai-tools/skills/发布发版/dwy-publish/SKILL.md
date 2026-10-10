@@ -1,6 +1,6 @@
 ---
 name: dwy-publish
-description: "发版/部署编排器。触发条件：用户说\"发版\"\"部署\"\"发布上线\"\"release\"\"publish\"\"走发版流程\"时。按应用目录确认发布方式并缓存，串起定版本→changelog→安全检查→打 tag→build/发布→监控→通知。每次更新版本必须打 git tag，tag 版本串与 changelog 新版本标题完全一致。版本号决策单独走 dwy-semver，GA 打包走 dwy-github-action-publish，发布前安全检查走 dwy-sdk-spec——本 skill 负责编排，按路径主动调它们。"
+description: "发版/部署编排器。触发条件：用户说\"发版\"\"部署\"\"发布上线\"\"release\"\"publish\"\"走发版流程\"时。按应用目录确认发布方式并缓存，串起定版本→changelog→安全检查→打 tag→build/发布→监控→通知。工厂里有多个项目时，先查出哪些项目的前端或后端有变更，再分别写 changelog。每次更新版本必须打 git tag，tag 版本串与该份 changelog 新版本标题完全一致。版本号决策单独走 dwy-semver，GA 打包走 dwy-github-action-publish，发布前安全检查走 dwy-sdk-spec——本 skill 负责编排，按路径主动调它们。"
 ---
 
 # 发版编排器
@@ -14,7 +14,7 @@ description: "发版/部署编排器。触发条件：用户说\"发版\"\"部�
 | 1 | 确认发布方式 + 探测 build/publish 命令 | 项目步 | `scripts/release_config.sh` + `references/publish-config.md` |
 | 2 | 写/校验发布配置（GA workflow / TestFlight 就绪） | 项目步 | `references/publish-config.md` |
 | 3 | 定版本号 + 多文件同步 | 通用步 | `../dwy-semver` + `references/version-sync.md` |
-| 4 | 写 changelog（按平台子目录） | 通用步 | `references/changelog.md` |
+| 4 | 写 changelog（先扫工厂内要发的项目，再按每个项目的前端/后端分别写） | 通用步 | `references/changelog.md` |
 | 5 | 安全检查（闸门，未过不发） | 通用步 | `../dwy-sdk-spec` |
 | 6 | commit 版本变更 + 打 tag 并推送 | 通用步 | `references/git-tag.md` |
 | 7 | build + 触发发布 | 项目步 | `references/<平台>.md`；走 GA 引 `../dwy-github-action-publish` |
@@ -29,7 +29,7 @@ description: "发版/部署编排器。触发条件：用户说\"发版\"\"部�
 - 安全检查（第 5 步）是闸门，未过不进 tag / 发布。
 - **每次更新版本必须打 tag**（第 6 步）：tag 版本串与本次 changelog 新版本标题（`## x.y.z`）完全一致；细则见 `references/git-tag.md`。无 bump 的纯重发可不打新 tag。
 - 若 GA workflow 由 tag 触发，第 6 步 push tag 即触发第 7 步发布。
-- **正式环境分支**：`develop` 只更新测试环境，正式环境走 `preview`。若判断当前是在用 `develop` 部署正式环境，先按 `rules/开发流程/dwy-prod-branch.md` 的提示问用户，并建议合并到 `preview`。未确认不部署。是否属于正式环境由 AI 判断。
+- **正式环境分支**：只有 `develop` 和 `preview`。`develop` 发测试环境，版本只能是 `beta` 或 `rc`。正式版只从 `preview` 发。仓库没有这两条分支就先提醒，不自行建分支。用 `develop` 发正式版时，先按 `rules/开发流程/dwy-prod-branch.md` 问用户，未确认不发。
 - 全程 AI 自动判断、自动跑，仅搞不定时才问用户（版本级别拿不准、命令探测不到、配置缺失、构建/发布失败、需删远端 tag）。用 `develop` 部署正式环境时除外，须先问用户。
 - 编排时按文件路径主动加载子 skill（`../dwy-semver`、`../dwy-sdk-spec`、`../dwy-github-action-publish`）；这些 skill 也可被用户独立触发。
 - `.dwy/` 缓存提醒用户加进 `.gitignore`。

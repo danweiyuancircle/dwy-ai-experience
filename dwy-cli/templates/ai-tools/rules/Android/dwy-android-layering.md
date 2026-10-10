@@ -104,7 +104,7 @@ settings.gradle
 
 ## 四、Monorepo 版本（强制）
 
-第三方版本号**只**出现在 `gradle/libs.versions.toml`。模块用 `libs.xxx`。内部模块 `project(':x')`。选哪个版本走 `dwy-dependency-freshness`。
+第三方版本号**只**出现在 `gradle/libs.versions.toml`。模块用 `libs.xxx`。内部模块 `project(':x')`。选哪个版本走 skill `dwy-dependency-choice`。
 
 存量若仍用根 `config.gradle` 的 `ext`，视为同一 catalog，禁止再在子模块写版本。
 

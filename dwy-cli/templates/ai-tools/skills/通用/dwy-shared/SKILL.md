@@ -1,6 +1,6 @@
 ---
 name: dwy-shared
-description: "管理 dwy-shared 模板仓库与 dwy CLI 工具。功能 1：把本机已有的 skill/rule/hook/command 文件加进 dwy-shared 仓库时，自动读现有分类目录、推荐归位、AskUserQuestion 确认后 cp/git mv + commit + push 到 Gitee，让别的项目用 dwy claude sync 拉到。功能 2：管理 dwy npm CLI（create-dwy）的安装/更新/卸载/版本查询/CDN 延迟应急。涉及以下任何场景必须使用此 skill：用户说「加 X 到 dwy-shared」「在 dwy-shared 新增 skill/rule/hook/command」「dwy 仓库整理」「dwy-shared 仓库管理」「换 dwy-shared 仓库路径」「重设 dwy-shared」「升级/装/卸/重装 dwy CLI」「dwy 拉不到最新版」「create-dwy 怎么装」「dwy --version 显示旧版」「dwy CDN 没传播」。"
+description: "管理 dwy-shared 模板仓库与 dwy CLI 工具。功能 1：把本机已有的 skill/rule/hook/command 文件加进 dwy-shared 仓库时，自动读现有分类目录、推荐归位、AskUserQuestion 确认后 cp/git mv + commit + push 到 origin。发布新的 create-dwy 后，其他项目跑 dwy，选同步项目配置。功能 2：管理 dwy npm CLI（create-dwy）的安装/更新/卸载/版本查询/CDN 延迟应急。涉及以下任何场景必须使用此 skill：用户说「加 X 到 dwy-shared」「在 dwy-shared 新增 skill/rule/hook/command」「dwy 仓库整理」「dwy-shared 仓库管理」「换 dwy-shared 仓库路径」「重设 dwy-shared」「升级/装/卸/重装 dwy CLI」「dwy 拉不到最新版」「create-dwy 怎么装」「dwy --version 显示旧版」「dwy CDN 没传播」。"
 ---
 
 # dwy-shared 仓库管理
@@ -29,7 +29,7 @@ skill 与 dwy-shared 仓库深度绑定但**不硬编码路径**。每次执行�
 ```json
 {
   "repo_path": "/绝对/路径/到/dwy-shared",
-  "git_url": "https://gitee.com/snailyuanyuan/dwy-shared.git",
+  "git_url": "https://github.com/danweiyuancircle/dwy-ai-experience.git",
   "configured_at": "2026-05-18T12:34:56Z"
 }
 ```
@@ -61,7 +61,7 @@ fi
    - **未 clone**：输出 git URL 让用户先 clone：
 
      ```
-     git clone https://gitee.com/snailyuanyuan/dwy-shared.git <你想放的位置>
+     git clone https://github.com/danweiyuancircle/dwy-ai-experience.git <你想放的位置>
      ```
 
      然后告诉路径
@@ -77,7 +77,7 @@ fi
    cat > "$HOME/.config/dwy-shared/repo.json" <<EOF
    {
      "repo_path": "$PATH",
-     "git_url": "https://gitee.com/snailyuanyuan/dwy-shared.git",
+     "git_url": "https://github.com/danweiyuancircle/dwy-ai-experience.git",
      "configured_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
    }
    EOF
@@ -216,8 +216,8 @@ git -C "$REPO_PATH" push origin master
 ### 步骤 11：完成提示
 
 告知用户：
-- ✓ 已 push 到 Gitee
-- 更新当前仓库的 `templates/ai-tools/` 后，发布新的 `create-dwy` 版本；其他项目升级 CLI 后即可使用新模板
+- ✓ 已 push 到 origin
+- 更新当前仓库的 `templates/ai-tools/` 后，发布新的 `create-dwy` 版本；其他项目升级 CLI 后跑 `dwy`，选同步项目配置
 - 提醒：如果对方 dwy CLI <0.12.0，必须先升级 CLI 才能识别分类目录结构
 
 ## 工作流程 B：dwy CLI 管理
@@ -268,7 +268,7 @@ skill 文件**零绝对路径**。换台机器装上后第一次用时自动走�
 需要用户机器满足：
 1. 装了 `git` / `jq` / `npm`（jq 用于解析缓存 JSON）
 2. clone 了 dwy-shared 仓库到任意位置（skill 引导）
-3. 对 Gitee origin 有 push 权限
+3. 对 origin（`https://github.com/danweiyuancircle/dwy-ai-experience.git`）有 push 权限
 4. 缓存文件 `~/.config/dwy-shared/repo.json` 是机器本地配置，**不**随 skill 文件同步出去
 
 ## 安全约束

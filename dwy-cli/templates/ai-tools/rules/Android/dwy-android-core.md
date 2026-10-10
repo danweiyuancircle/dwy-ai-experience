@@ -23,13 +23,13 @@ paths:
 - 全屏背景、沉浸式遮罩可以延伸到系统栏区域,但前景可交互内容默认留在安全显示区内。
 - 禁止写死状态栏高度、导航栏高度、刘海高度,统一通过系统 inset 获取。
 
-## 尺寸单位（强制 dp）
+## 尺寸单位
 
-布局、间距、圆角、描边、字号**一律 `dp`**。禁止 `px`，禁止 `sp`。**文字也用 `dp`**，不跟系统「字体大小」缩放，避免布局被撑破。
+布局、间距、圆角、描边用 `dp`。字号用 `sp`，跟随系统字体缩放。禁止 `px`。数值走 `dimens.xml`，禁止在 XML / 代码里裸写 `16dp` / `16sp`。
 
-**为什么不用 sp**：`sp` 随用户字体缩放走；本规范字号与布局同一套密度单位，大小由 dimens 控，不把缩放交给系统。
+**为什么字号用 sp**：系统大字是可访问性能力。把字号锁成 `dp`、或除掉 `fontScale`，大字模式会失效。
 
-数值仍走 `dimens.xml`，禁止在 XML / 代码里裸写 `16dp`。
+**例外**：电视，或设计明确要求不跟随系统字号的固定版式，字号资源才用 `dp`，并在资源旁写明原因。
 
 ### 禁止 / 必须
 
@@ -37,17 +37,17 @@ paths:
 | 场景 | 禁止 | 必须 |
 | --- | --- | --- |
 | XML 宽高 / 间距 / 圆角 / 描边 | `16px`、裸数字 | `@dimen/xxx`，资源值 `16dp` |
-| XML / style 字号 | `16sp`、`16px`、裸 `16dp` | `@dimen/xxx`，资源值 `16dp` |
-| 代码设字号 | 裸数字、`COMPLEX_UNIT_SP` | `setTextSize(COMPLEX_UNIT_PX, getDimension(R.dimen.xxx))`（`getDimension` 已把 dp 转成 px） |
+| XML / style 字号 | `16px`、裸 `16sp`、用 `dp` 锁死字号 | `@dimen/xxx`，资源值 `16sp` |
+| 代码设字号 | 裸数字、再除一次 `fontScale` | `setTextSize(COMPLEX_UNIT_PX, getDimension(R.dimen.xxx))`。dimen 是 `sp` 时 `getDimension` 已按当前字号缩放换成 px |
 | Jetpack Compose 布局 | `16.px`、裸 `.dp` 字面量 | `dimensionResource(R.dimen.xxx)` |
-| Jetpack Compose 字号 | `16.sp` 字面量 | 读 dp 的 dimen，再按下面示例转成 `TextUnit`（抵消 `fontScale`） |
+| Jetpack Compose 字号 | 裸 `16.sp`、`toPx() / fontScale` | 从 `sp` 的 dimen 读出后再 `.toSp()`，让系统字体缩放只生效一次 |
 
 
-系统 API 返回值本身是 px（`View.getWidth()`、`MotionEvent`、Canvas、`getDimension()`）——那是运行时像素，不是声明单位。声明尺寸、写资源时仍用 dp。
+系统 API 返回值本身是 px（`View.getWidth()`、`MotionEvent`、Canvas、`getDimension()`）——那是运行时像素，不是声明单位。声明布局尺寸仍用 dp，声明字号仍用 sp。
 
 ```xml
 <!-- res/values/dimens.xml -->
-<dimen name="text_size_title">18dp</dimen>
+<dimen name="text_size_title">18sp</dimen>
 <dimen name="padding_page">16dp</dimen>
 ```
 
@@ -56,7 +56,7 @@ paths:
 <AppCompatTextView android:textSize="16sp" android:layout_width="100px" />
 <AppCompatTextView android:textSize="16dp" />
 
-<!-- ✅ 单位 dp + 走资源 -->
+<!-- ✅ 字号 sp、间距 dp，都走资源 -->
 <AppCompatTextView
     android:textSize="@dimen/text_size_title"
     android:padding="@dimen/padding_page" />
@@ -68,24 +68,24 @@ textView.textSize = 16f
 textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
 Text("标题", fontSize = 16.sp)
 
-// ✅ View：dimen 是 dp，getDimension 已换成 px
+// ✅ View：dimen 是 sp。getDimension 已按 fontScale 换成 px，不要再套一层 SP，也不要除 fontScale。
 textView.setTextSize(
     TypedValue.COMPLEX_UNIT_PX,
     resources.getDimension(R.dimen.text_size_title)
 )
 
-// ✅ Compose：fontSize 只能吃 TextUnit。先读 dp 资源，toPx 后再除掉 fontScale，视觉等于 dp、不跟系统字体走。
-// `.sp` 只是 TextUnit 构造，禁止写成 16.sp 字面量。
-val titleDp = dimensionResource(R.dimen.text_size_title)
-val titleSize = with(LocalDensity.current) { (titleDp.toPx() / fontScale).sp }
+// ✅ Compose：dimensionResource 把 sp 资源按当前 fontScale 收成 Dp。toSp() 除掉这一次，绘制时系统再乘一次。
+val titleSize = with(LocalDensity.current) {
+    dimensionResource(R.dimen.text_size_title).toSp()
+}
 Text("标题", fontSize = titleSize)
 ```
 
-Compose 优先 `dimensionResource(R.dimen.xxx)` 读 dimens，不要散落 `.dp` / `.sp` 字面量。
+布局用 `dimensionResource(R.dimen.xxx)` 读 dimens，不要散落裸 `.dp`。字号不要写裸 `.sp`。
 
 ## 屏幕适配（AndroidAutoSize，只按宽）
 
-屏幕适配用 [JessYan AndroidAutoSize](https://github.com/JessYanCoding/AndroidAutoSize) `1.2.1`（今日头条 density 方案）。**只按宽度适配**，不按高度。布局、字号仍写 `dp`（见上一节），由框架改 `density`，让屏幕逻辑宽等于设计稿宽。
+屏幕适配用 [JessYan AndroidAutoSize](https://github.com/JessYanCoding/AndroidAutoSize) `1.2.1`（今日头条 density 方案）。**只按宽度适配**，不按高度。布局写 `dp`、字号写 `sp`（见上一节），由框架改 `density`，让屏幕逻辑宽等于设计稿宽。字号仍跟随系统字体缩放。
 
 **为什么只按宽**：高度含状态栏 / 刘海 / 手势条，按高适配会把系统栏算进设计高，全面屏变形。宽是稳定轴。
 
@@ -127,9 +127,10 @@ Manifest 按上表填当前产品。下面是移动端；TV 把宽改成 `1280`�
 ```
 
 ```java
+// 移动端保留系统字体缩放。TV、或设计写明固定字号的界面，才 setExcludeFontScale(true)。
 AutoSizeConfig.getInstance()
         .setBaseOnWidth(true)
-        .setExcludeFontScale(true);
+        .setExcludeFontScale(false);
 ```
 
 页面基类必须重写 `getResources()`，防止厂商 ROM / Dialog / 三方把 `density` 改回去导致偶发错位：
@@ -147,7 +148,8 @@ public Resources getResources() {
 ### 禁止
 
 - `setBaseOnWidth(false)` 或按高度适配
-- 副单位 `pt` / `in` / `mm`（违反一律 `dp`）
+- 移动端 `setExcludeFontScale(true)`，或用除 `fontScale` 把字号锁死
+- 副单位 `pt` / `in` / `mm`
 - 再接 `sdp` / 百分比库 / 另一套改 `density` 的方案
 - 布局改回 `px`
 
@@ -243,7 +245,7 @@ class PriceText(context: Context, attrs: AttributeSet?) : AppCompatTextView(cont
 | drawable        | `<用途>_<状态>`              | `bg_button_primary`、`ic_arrow_right`、`shape_card_corner`                       |
 | color           | `<语义>`                   | `color_primary`、`color_text_secondary`                                         |
 | string          | `<场景>_<语义>`              | `login_button_submit`、`home_title`                                             |
-| dimen           | `<语义>`，值一律 `dp`（禁止 `px` / `sp`） | `padding_normal`、`text_size_title`                                             |
+| dimen           | `<语义>`。布局 `dp`，字号 `sp`（禁止 `px`） | `padding_normal`、`text_size_title`                                             |
 | anim / animator | `<逻辑名>_<方向|序号>` 或通用动画名   | `fade_in.xml`、`push_bottom_in.xml`、`loading_001.xml`                           |
 | menu            | `menu_<场景>.xml`          | `menu_order_detail.xml`                                                        |
 | style / theme   | `PascalCase`,点号继承,从通用到特殊 | `Widget.App.Button`、`Theme.App.Dark`                                           |
@@ -1220,7 +1222,7 @@ if (trimmed.isNotEmpty()) { ... }
 | Kotlin 顶层 `var`                                                   | `val`;需可变用类封装 + 同步原语                        |
 | 内部类持有外部 Activity                                                  | `static` 内部类 + `WeakReference`              |
 | 拼接 SQL 字符串                                                        | 参数化查询                                       |
-| 硬编码尺寸 / 使用 `px` 或 `sp`（含字号）                                      | `@dimen/`，值一律 `dp`                           |
+| 硬编码尺寸 / 字号用 `px` 或用 `dp` 锁死字号                                      | 布局 `@dimen/` 值 `dp`，字号 `@dimen/` 值 `sp`                           |
 | 硬编码颜色值 `#FF0000`                                                  | `@color/color_primary`                      |
 | 用户可见文案硬编码                                                         | `@string/...`                               |
 | 单行 `if` / `for` / `while` / `do-while` 无 `{}`(Kotlin 表达式 `if` 除外) | 即使只一行也写 `{}`;详见 §四「控制流大括号」                  |
@@ -1261,7 +1263,7 @@ if (trimmed.isNotEmpty()) { ... }
 | 22  | 数据实体(Model/DTO/VO/Bean 等):Java 字段 `private` + get/set + `toString`;Kotlin 优先 `data class`+`val`(自带 toString),禁止 `@JvmField`,非 data class 必须手写 `toString`                                                                              | ✓        |
 | 23  | 字符串空判断用 `isEmpty` / `isNotEmpty` / `isNotBlank`,禁止 `length() > 0` / `== 0` / `!= 0` 及 `trim().length() > 0` 判空;详见 §八「字符串空判断」                                                                                                      | ✓        |
 | 24  | 有 AppCompat 对应类的控件必须用 AppCompat 版(XML / `new` / 自定义 View 父类),包名按当前项目推断;Switch 用 `SwitchCompat`;无对应类的布局容器保持原样                                                                                                                          | ✓        |
-| 25  | 尺寸与字号一律 `dp`，禁止 `px` / `sp` 字面量（含 Compose `16.sp` / `16.px`、`COMPLEX_UNIT_SP`）；数值走 `dimens.xml` | ✓        |
+| 25  | 布局 `dp`、字号 `sp`，禁止 `px` 和裸字面量（含 Compose `16.sp` / `16.px`）；数值走 `dimens.xml`。不要除掉 `fontScale`。TV / 固定版式才允许字号用 `dp` 并写明原因 | ✓        |
 | 26  | 屏幕适配走 AndroidAutoSize（Support 兼容线，起点先验 `v1.2.1`，不锁死这个 tag），只按宽；移动端 `design_width=390`（画布 `390×844`），TV `design_width=1280`（画布 `1280×720`）；禁止按高适配、禁止副单位；页面基类重写 `getResources()` 调 `AutoSizeCompat` | ✓        |
 
 
