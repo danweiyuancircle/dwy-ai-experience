@@ -15,14 +15,19 @@ export function maskPhone(phone: string): string {
 }
 
 /**
- * 邮箱脱敏：首字符 + *** + @域名
- * @example maskEmail('zhangsan@gmail.com') → 'z***@gmail.com'
+ * 邮箱脱敏：本地部分首尾各 1 字符，中间 ***，域名原样。
+ * 不足 2 字符的本地部分没有可隐藏的中间，原样返回。
+ * 只留首字符会让 *** 贴住 @，域名开头被看成被吃掉。
+ * @example maskEmail('zhangsan@gmail.com') → 'z***n@gmail.com'
  */
 export function maskEmail(email: string): string {
   if (!email) return email
   const match = email.match(/^([^@]+)@([^@]+)$/)
   if (!match) return email
-  return `${match[1][0]}***@${match[2]}`
+  const local = match[1]
+  const domain = match[2]
+  if (local.length < 2) return email
+  return `${local[0]}***${local[local.length - 1]}@${domain}`
 }
 
 /**

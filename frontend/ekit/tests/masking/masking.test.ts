@@ -35,8 +35,8 @@ describe('maskPhone', () => {
 })
 
 describe('maskEmail', () => {
-  it('标准邮箱', () => {
-    expect(maskEmail('zhangsan@gmail.com')).toBe('z***@gmail.com')
+  it('标准邮箱保留本地部分首尾', () => {
+    expect(maskEmail('zhangsan@gmail.com')).toBe('z***n@gmail.com')
   })
 
   it('空字符串原样返回', () => {
@@ -47,16 +47,24 @@ describe('maskEmail', () => {
     expect(maskEmail('notanemail')).toBe('notanemail')
   })
 
-  it('单字符用户名', () => {
-    expect(maskEmail('a@example.com')).toBe('a***@example.com')
+  it('单字符用户名原样返回', () => {
+    expect(maskEmail('a@example.com')).toBe('a@example.com')
   })
 
-  it('多字符用户名只保留首字符', () => {
-    expect(maskEmail('longusername@qq.com')).toBe('l***@qq.com')
+  it('两位用户名首尾都保留', () => {
+    expect(maskEmail('ab@qq.com')).toBe('a***b@qq.com')
+  })
+
+  it('多字符用户名保留首尾', () => {
+    expect(maskEmail('longusername@qq.com')).toBe('l***e@qq.com')
   })
 
   it('多个@符号原样返回', () => {
     expect(maskEmail('a@b@c.com')).toBe('a@b@c.com')
+  })
+
+  it('已脱敏的值再打一次不变', () => {
+    expect(maskEmail('z***n@gmail.com')).toBe('z***n@gmail.com')
   })
 })
 

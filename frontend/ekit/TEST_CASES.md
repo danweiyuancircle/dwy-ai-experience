@@ -315,14 +315,14 @@ useDebounce 薄封装 `@vueuse/core` 的 `refDebounced`，保持 ekit 默认 300
 
 ---
 
-## 11. masking 模块（49 个）
+## 11. masking 模块（51 个）
 
 `tests/masking/masking.test.ts`
 
 | 函数 | 用例数 | 测试要点 |
 |------|--------|---------|
 | maskPhone | 6 | 标准号码、空字符串、长度错误、非数字、不同号段 |
-| maskEmail | 6 | 标准邮箱、空字符串、无@、单字符用户名、多字符、多@符号 |
+| maskEmail | 8 | 标准邮箱首尾、空字符串、无@、单字符原样、两位首尾、多字符首尾、多@、重复脱敏不变 |
 | maskIdCard | 5 | 18位、末位X、空字符串、格式不匹配、15位原样返回 |
 | maskBankCard | 5 | 16位、19位、空字符串、位数太短、非数字 |
 | maskName | 5 | 2字、3字、4字、空字符串、单字 |

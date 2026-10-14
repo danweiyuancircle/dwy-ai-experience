@@ -1,5 +1,11 @@
 # @dwydev/ekit
 
+## 0.10.0
+
+### Breaking Changes
+
+- **`maskEmail` 保留本地部分首尾**：中间固定 `***`，域名原样。`zhangsan@gmail.com` 从 `z***@gmail.com` 变为 `z***n@gmail.com`。本地部分只有 1 个字符时原样返回。同样输入的结果变了；签名未改。
+
 ## 0.9.2
 
 ### Patch Changes
