@@ -14,7 +14,7 @@ from dwyeapi import masking
 | 函数 | 示例 |
 |------|------|
 | mask_phone | \`138****5678\` |
-| mask_email | \`z***@gmail.com\` |
+| mask_email | \`zhangsan@gmail.com\` → \`z***n@gmail.com\` |
 | mask_id_card | 身份证号掩码 |
 | mask_bank_card | 银行卡掩码 |
 | mask_name | 姓名掩码 |
