@@ -38,10 +38,10 @@ class TestMaskPhone:
 
 class TestMaskEmail:
     def test_standard_email(self):
-        assert mask_email("zhangsan@gmail.com") == "z***@gmail.com"
+        assert mask_email("zhangsan@gmail.com") == "z***n@gmail.com"
 
     def test_single_char_local(self):
-        assert mask_email("a@example.com") == "a***@example.com"
+        assert mask_email("a@example.com") == "a@example.com"
 
     def test_empty_string(self):
         assert mask_email("") == ""
@@ -53,7 +53,13 @@ class TestMaskEmail:
         assert mask_email("a@b@c.com") == "a@b@c.com"
 
     def test_short_local_part(self):
-        assert mask_email("ab@qq.com") == "a***@qq.com"
+        assert mask_email("ab@qq.com") == "a***b@qq.com"
+
+    def test_long_local_part(self):
+        assert mask_email("longusername@qq.com") == "l***e@qq.com"
+
+    def test_already_masked_is_stable(self):
+        assert mask_email("z***n@gmail.com") == "z***n@gmail.com"
 
 
 class TestMaskIdCard:

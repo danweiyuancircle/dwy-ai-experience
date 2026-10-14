@@ -337,7 +337,7 @@
 
 ---
 
-## 10. masking 模块（61 个）
+## 10. masking 模块（63 个）
 
 `tests/test_masking.py`
 
@@ -353,16 +353,18 @@
 | 6 | 非数字 | 原样返回 |
 | 7 | 带国际区号 | 原样返回 |
 
-### mask_email（6 个）
+### mask_email（8 个）
 
 | # | 用例 | 测试要点 |
 |---|------|---------|
-| 8 | 标准邮箱 | `zhangsan@gmail.com` → `z***@gmail.com` |
-| 9 | 单字符用户名 | `a@example.com` → `a***@example.com` |
+| 8 | 标准邮箱 | `zhangsan@gmail.com` → `z***n@gmail.com` |
+| 9 | 单字符用户名 | `a@example.com` 原样返回 |
 | 10 | 空字符串 | 原样返回 |
 | 11 | 无 @ 符号 | 原样返回 |
 | 12 | 多个 @ 符号 | 原样返回 |
-| 13 | 短用户名 | 首字符 + `***@` + 域名 |
+| 13 | 两位用户名 | `ab@qq.com` → `a***b@qq.com` |
+| 13a | 长用户名 | `longusername@qq.com` → `l***e@qq.com` |
+| 13b | 已脱敏再打一次 | `z***n@gmail.com` 不变 |
 
 ### mask_id_card（5 个）
 

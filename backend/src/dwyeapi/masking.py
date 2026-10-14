@@ -31,14 +31,21 @@ def mask_phone(value: str) -> str:
 
 
 def mask_email(value: str) -> str:
-    """脱敏邮箱,保留首字母和域名,示例:z***@gmail.com。"""
+    """脱敏邮箱：本地部分保留首尾各 1 字符，中间固定 ***，域名原样。
+
+    本地部分不足 2 字符时没有可隐藏的中间，原样返回。
+    只留首字符会让 *** 贴住 @，域名开头被看成被吃掉。
+    示例：zhangsan@gmail.com → z***n@gmail.com。
+    """
     if not value:
         return value
     match = _EMAIL_RE.match(value)
     if not match:
         return value
     local, domain = match.group(1), match.group(2)
-    return local[0] + "***@" + domain
+    if len(local) < 2:
+        return value
+    return f"{local[0]}***{local[-1]}@{domain}"
 
 
 def mask_id_card(value: str) -> str:
