@@ -13,10 +13,16 @@ export interface EFormDialogProps {
   open?: boolean
   /** 对话框标题 */
   title?: string
+  /** 对话框说明，供用户和辅助技术理解当前操作 */
+  description?: string
   /** 最大宽度（透传到 EDialog 的 maxWidth） */
   size?: string
-  /** 确认按钮是否处于加载态，加载时禁用取消与关闭 */
+  /** 提交加载态：禁用确认、取消、X、Esc 和遮罩关闭；父组件仍可通过 open=false 收起 */
   loading?: boolean
+  /** 业务条件未满足时禁用确认，不影响取消与关闭 */
+  confirmDisabled?: boolean
+  /** 关联原生 form 的 id；默认确认按钮提交该表单，不再派发 confirm，业务只监听表单 submit */
+  form?: string
   /** 确认按钮文案 */
   confirmText?: string
   /** 取消按钮文案 */
@@ -31,7 +37,7 @@ export interface EFormDialogProps {
 export interface EFormDialogEmits {
   /** 展开状态变化 */
   'update:open': [value: boolean]
-  /** 确认按钮点击（loading 时忽略） */
+  /** 未关联 form 时的确认按钮点击（loading 或 confirmDisabled 时忽略） */
   confirm: []
   /** 取消按钮点击 */
   cancel: []

@@ -13,14 +13,15 @@ const props = withDefaults(defineProps<EFormDialogProps>(), {
   confirmText: '确认',
   cancelText: '取消',
   loading: false,
+  confirmDisabled: false,
   showClose: true,
 })
 
 const emit = defineEmits<EFormDialogEmits>()
 
-/** 确认按钮处理：loading 中忽略点击 */
+/** 关联表单时只走原生 submit，避免与 confirm 事件形成两条提交路径。 */
 function handleConfirm() {
-  if (!props.loading) {
+  if (!props.form && !props.loading && !props.confirmDisabled) {
     emit('confirm')
   }
 }
@@ -38,7 +39,10 @@ function handleCancel() {
   <EDialog
     :open="props.open"
     :title="props.title"
+    :description="props.description"
     :show-close="props.showClose && !props.loading"
+    :close-on-click-modal="!props.loading"
+    :close-on-press-escape="!props.loading"
     :max-width="props.size"
     :class="props.class"
     @update:open="(val) => emit('update:open', val)"
@@ -51,6 +55,8 @@ function handleCancel() {
 
     <template #footer>
       <slot name="footer">
+        <!-- 业务附加操作复用默认提交按钮；整体覆盖 footer 时不渲染。 -->
+        <slot name="footer-leading" />
         <EButton
           variant="outline"
           :disabled="props.loading"
@@ -59,7 +65,9 @@ function handleCancel() {
           {{ cancelText }}
         </EButton>
         <EButton
-          :disabled="props.loading"
+          :type="props.form ? 'submit' : 'button'"
+          :form="props.form"
+          :disabled="props.loading || props.confirmDisabled"
           :loading="props.loading"
           @click="handleConfirm"
         >

@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import ETextarea from '@/components/textarea/ETextarea.vue'
 
@@ -20,6 +20,23 @@ describe('ETextarea', () => {
 
     await textarea.setValue('world')
     expect(wrapper.props('modelValue')).toBe('world')
+  })
+
+  it('父层规范化值后仍恢复 textarea 选区', async () => {
+    const wrapper = mount(ETextarea, {
+      props: {
+        'onUpdate:modelValue': (val: string) => wrapper.setProps({ modelValue: val.toUpperCase() }),
+      },
+    })
+    const textarea = wrapper.find('textarea')
+    textarea.element.value = 'abcde'
+    textarea.element.setSelectionRange(1, 3)
+    await textarea.trigger('input')
+    await flushPromises()
+    expect(textarea.element.value).toBe('ABCDE')
+    expect(textarea.element.selectionStart).toBe(1)
+    expect(textarea.element.selectionEnd).toBe(3)
+    wrapper.unmount()
   })
 
   it('placeholder prop', () => {

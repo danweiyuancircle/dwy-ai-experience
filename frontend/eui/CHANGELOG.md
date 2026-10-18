@@ -1,5 +1,17 @@
 # @dwydev/eui
 
+## 2.7.0
+
+### Minor Changes
+
+- **EFormDialog**：新增 `form`，确认按钮可关联内容区的原生表单，点击与回车统一交由 `EForm` 校验和提交；未传时保留 `confirm` 事件用法。新增 `confirmDisabled`、`description` 和 `footer-leading`，支持详情加载期间禁确认、可访问说明及恢复默认等附加操作，完整 `footer` 插槽继续可覆盖。
+
+### Patch Changes
+
+- **发布产物**：排除声明映射文件，保留运行时、类型声明与主题 CSS。
+- **EFormDialog**：提交中禁止 Esc 和遮罩关闭，与取消、关闭按钮保护一致；父组件仍可主动关闭弹层。
+- **EInput / ETextarea**：恢复光标前检查原生控件是否支持选区，避免邮箱、数字、日期等输入类型触发 `InvalidStateError`，保留文本和密码输入的光标位置。
+
 ## 2.6.1
 
 ### Patch Changes

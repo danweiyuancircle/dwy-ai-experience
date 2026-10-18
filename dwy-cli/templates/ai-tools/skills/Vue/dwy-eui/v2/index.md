@@ -37,6 +37,11 @@
 
 ## 2.x 陷阱
 
+### EFormDialog（≥2.7.0）
+
+- 新增原生表单关联：`EForm :id="formId"` + `EFormDialog :form="formId"` + `EForm @submit`；关联后不再派发 `confirm`。未传 `form` 的旧 `@confirm` 用法保持兼容。
+- `confirm-disabled`、`description` 与 `#footer-leading` 用法和 loading 关闭边界见 `../shared/form.md`；精确签名仍按安装版本查询。
+
 ### 汉堡 / 抽屉
 
 - `ESheet` / `EAdminLayout` 的 Boolean `open` / `mobileOpen` **缺省必须是 `undefined`**，不能是 `false`。`false` 会让非受控开关永远打不开（≥2.4.0）。

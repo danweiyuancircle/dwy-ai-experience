@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import EInput from '@/components/input/EInput.vue'
 
@@ -44,6 +44,88 @@ describe('EInput', () => {
     // Simulate setting value and triggering input event
     await input.setValue('hello')
     expect(wrapper.emitted('update:modelValue')?.[0]).toEqual(['hello'])
+  })
+
+  it.each([
+    ['email', 'user@example.com'],
+    ['number', '42'],
+    ['date', '2026-10-18'],
+    ['month', '2026-10'],
+    ['week', '2026-W42'],
+    ['time', '12:30'],
+    ['datetime-local', '2026-10-18T12:30'],
+    ['range', '42'],
+    ['color', '#123456'],
+  ])('%s 原生输入保持类型和值，不对无选区控件恢复光标', async (type, value) => {
+    const wrapper = mount(EInput, {
+      props: {
+        type,
+        modelValue: '',
+        'onUpdate:modelValue': (val: string) => wrapper.setProps({ modelValue: val }),
+      },
+    })
+    const input = wrapper.find('input')
+    await input.setValue(value)
+    // 排空 onInput 后的二次 nextTick，让非法 setSelectionRange 的异步异常暴露给 Vitest。
+    await flushPromises()
+    expect(input.element.type).toBe(type)
+    expect(input.element.value).toBe(value)
+    expect(wrapper.emitted('update:modelValue')).toEqual([[value]])
+    expect(input.element.selectionStart).toBeNull()
+    expect(input.element.selectionEnd).toBeNull()
+    wrapper.unmount()
+  })
+
+  it('邮箱输入保留原生格式校验，不能用 text 规避选区限制', async () => {
+    const wrapper = mount(EInput, {
+      props: {
+        type: 'email',
+        'onUpdate:modelValue': (val: string) => wrapper.setProps({ modelValue: val }),
+      },
+    })
+    const input = wrapper.find('input')
+    await input.setValue('invalid-email')
+    await flushPromises()
+    expect(input.element.type).toBe('email')
+    expect(input.element.validity.typeMismatch).toBe(true)
+    expect(wrapper.emitted('update:modelValue')).toEqual([['invalid-email']])
+    wrapper.unmount()
+  })
+
+  it.each(['text', 'search', 'tel', 'url', 'password'])('%s 输入在父层规范化值后恢复选区', async (type) => {
+    const wrapper = mount(EInput, {
+      props: {
+        type,
+        'onUpdate:modelValue': (val: string) => wrapper.setProps({ modelValue: val.toUpperCase() }),
+      },
+    })
+    const input = wrapper.find('input')
+    input.element.value = 'abcde'
+    input.element.setSelectionRange(1, 3)
+    await input.trigger('input')
+    await flushPromises()
+    expect(input.element.value).toBe('ABCDE')
+    expect(input.element.selectionStart).toBe(1)
+    expect(input.element.selectionEnd).toBe(3)
+    wrapper.unmount()
+  })
+
+  it('父层在输入后切换成 email 时，按恢复时的类型跳过选区', async () => {
+    const wrapper = mount(EInput, {
+      props: {
+        type: 'text',
+        'onUpdate:modelValue': (val: string) => wrapper.setProps({ modelValue: val, type: 'email' }),
+      },
+    })
+    const input = wrapper.find('input')
+    input.element.value = 'user@example.com'
+    input.element.setSelectionRange(2, 2)
+    await input.trigger('input')
+    await flushPromises()
+    expect(input.element.type).toBe('email')
+    expect(input.element.value).toBe('user@example.com')
+    expect(input.element.selectionStart).toBeNull()
+    wrapper.unmount()
   })
 
   it('emits blur event', async () => {

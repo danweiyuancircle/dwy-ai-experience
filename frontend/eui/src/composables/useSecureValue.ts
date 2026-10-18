@@ -43,6 +43,8 @@ export function useSecureValue(
     const el = elRef.value
     if (!el) return
     nextTick(() => {
+      // email/number/date 等类型无选区 API；在恢复时检查，覆盖父层更新 input type 的情况。
+      if (el.selectionStart === null || el.selectionEnd === null) return
       el.setSelectionRange(cursorStart, cursorEnd)
     })
   }

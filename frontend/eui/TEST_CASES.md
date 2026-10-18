@@ -140,9 +140,21 @@
 
 ---
 
-## 5. EInput 组件（21 个）
+## 5. EInput 组件（42 个）
 
-`src/components/input/EInput.test.ts`
+`tests/components/input.test.ts`
+
+### 原生类型与选区回归（16 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1–9 | email / number / date / month / week / time / datetime-local / range / color 输入 | 保留原生 type 和输入值；排空异步光标恢复后无 InvalidStateError |
+| 10 | email 原生校验 | 无效邮箱保留 typeMismatch，不降级为 text |
+| 11–15 | text / search / tel / url / password 选区恢复 | 父层规范化值后仍保留选择起止位置 |
+| 16 | 输入期间切换 type | 父层改为 email 后按恢复时能力跳过选区 |
+
+共享 `src/composables/useSecureValue.ts` 同时补充 textarea 选区回归：
+`tests/components/textarea.test.ts` 中验证父层规范化值后仍保留选区。
 
 ### 渲染
 
@@ -312,6 +324,29 @@
 | 8 | EFormDialog 打开有 DialogDescription | `tests/components/form-dialog.test.ts` |
 | 9 | EHoverCard enableTouch | `tests/components/hover-card.test.ts` |
 | 10 | EConfigProvider teleportTo | `tests/components/config-provider.test.ts` |
+
+---
+
+## EFormDialog 提交与默认 footer（14 个）
+
+`tests/components/form-dialog.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | loading 阻止 Esc | loading 时无关闭事件，结束后 Esc 正常关闭 |
+| 2 | loading 阻止遮罩关闭 | loading 时保留弹层，结束后遮罩正常关闭 |
+| 3 | loading 隐藏 X | 结束后恢复 X 并能关闭 |
+| 4 | loading 禁用取消与确认 | 无取消、确认、关闭事件；结束后取消正常关闭 |
+| 5 | loading 阻止重复确认 | 首次确认后进入 loading，忽略重复点击；结束后可重试 |
+| 6 | loading 允许父组件关闭 | open=false 仍正常卸载遮罩，不触发取消 |
+| 7 | confirmDisabled | 仅禁确认，handler 同步阻止无效确认，恢复后可确认 |
+| 8 | description | 可见说明与 aria-describedby 指向一致 |
+| 9 | footer-leading | 前置操作位于默认取消、确认之前，默认确认仍工作 |
+| 10 | footer 整体覆盖 | 自定义 footer 替换前置槽和默认按钮 |
+| 11 | 原生 form 关联 | 外部按钮 form 指向真实 EForm，点击只产生一次表单 submit，不派发 confirm |
+| 12 | 关联 form 且 loading | 禁用时不提交，恢复后正常提交且无 confirm |
+| 13 | 关联 form 且 confirmDisabled | 业务禁用时不提交，恢复后正常提交且无 confirm |
+| 14 | 无 form 兼容 | 普通 button，无 form owner，确认仍派发 confirm |
 
 ---
 
