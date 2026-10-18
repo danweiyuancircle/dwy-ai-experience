@@ -1,6 +1,6 @@
 # @dwydev/eui 测试用例清单
 
-> 回测基准：737 个测试用例，88 个测试文件。版本变更后必须全部通过。
+> 回测基准：793 个测试用例，88 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd frontend/eui && pnpm vitest run`
 
@@ -422,6 +422,29 @@ EDialog 从 2.1.0 起是 `bg-black/30 backdrop-blur-sm`。确认框和命令式 
 
 ---
 
+## 17. EDatePicker 国际化与交互（30 个）
+
+`tests/components/date-picker.test.ts`
+
+| 用例 | 数量 | 测试要点 |
+|------|------|---------|
+| 触发按钮、自定义占位、禁用、图标 | 4 | 保留原有渲染契约 |
+| 无 Provider 的默认文案 | 4 | date/month/year 为「请选择日期」，daterange 为「开始日期 至 结束日期」 |
+| 默认 Provider 文案 | 4 | 四种模式统一默认中文 |
+| Provider 文案覆盖 | 4 | 日期占位、区间起止、分隔符读取 locale |
+| 运行期局部覆盖 | 1 | 更新 Provider 后立即刷新；未覆盖键仍用默认中文 |
+| 显式日期占位优先 | 3 | date/month/year 显式文案与空串优先于 Provider |
+| 显式区间占位和分隔符优先 | 1 | 起止和分隔符显式文案与空串优先 |
+| 已选值清空 | 4 | 四种模式正确派发 undefined，清空恢复中文占位 |
+| 已选区间分隔符 | 1 | locale 分隔符用于已选值，显式 prop 优先 |
+| 真实单日选择与清空 | 1 | 点击日期派发 ISO 值和 change；清空恢复 Provider 文案 |
+| 真实区间选择与清空 | 1 | 起点不派发完整值，悬停并点击终点后派发区间；清空恢复 Provider 文案 |
+| 月、年面板选择 | 2 | 真实单元格渲染与 YYYY-MM / YYYY 选值格式 |
+
+关联回归：`tests/components/config-provider.test.ts`、`tests/components/time-picker.test.ts`、`tests/components/upload.test.ts`、`tests/components/sheet.test.ts` 与日期测试合计 65 个，覆盖共享 `useConfigProvider` 消费组件。
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -430,7 +453,7 @@ cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
 # Test Files  88 passed (88)
-# Tests       737 passed (737)
+# Tests       793 passed (793)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run tests/utils/cn.test.ts

@@ -2,6 +2,25 @@
 
 Vue 3 组件库，基于 Reka UI、Tailwind CSS 4 和 vee-validate。应用根节点必须配置 `EConfigProvider`；样式接入见仓库 `docs/eui-integration-guide.md`。
 
+## 日期选择器国际化
+
+`EDatePicker` 默认占位为「请选择日期」，区间为「开始日期 至 结束日期」。在 `EConfigProvider.locale` 中局部覆盖 `datePickerPlaceholder`、`datePickerStartPlaceholder`、`datePickerEndPlaceholder`、`datePickerRangeSeparator` 即可统一文案，运行期切换立即生效。单日、月、年模式共用 `datePickerPlaceholder`。
+
+```vue
+<EConfigProvider :locale="{
+  name: 'en-US',
+  datePickerPlaceholder: 'Pick a date',
+  datePickerStartPlaceholder: 'Start date',
+  datePickerEndPlaceholder: 'End date',
+  datePickerRangeSeparator: 'to',
+}">
+  <EDatePicker />
+  <EDatePicker type="daterange" />
+</EConfigProvider>
+```
+
+`locale.name` 仅控制日历月份、星期等日期格式，不自动翻译文案。组件显式传入的 `placeholder`、`startPlaceholder`、`endPlaceholder`、`rangeSeparator` 优先于全局配置，包括空字符串；分隔符同时用于占位和已选区间。
+
 ## 表单对话框（≥2.7.0）
 
 给 `EForm` 设置页面内唯一 `id`，用 `EFormDialog` 的 `form` 关联。默认确认按钮通过原生 `submit` 进入 `EForm` 校验，业务只处理 `EForm` 的 `@submit`。`id` 是透传至原生 `<form>` 的属性，不是新增的 `EForm` prop。

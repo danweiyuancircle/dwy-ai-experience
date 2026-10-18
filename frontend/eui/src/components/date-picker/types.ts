@@ -26,13 +26,13 @@ export interface EDatePickerProps {
   modelValue?: string | Date | [string, string] | [Date, Date]
   /** 选择模式 */
   type?: DatePickerType
-  /** 单日模式占位文本 */
+  /** 单日、月、年模式占位文本，未传时使用全局 locale；支持显式空串 */
   placeholder?: string
-  /** 区间模式起始占位文本 */
+  /** 区间模式起始占位文本，未传时使用全局 locale；支持显式空串 */
   startPlaceholder?: string
-  /** 区间模式结束占位文本 */
+  /** 区间模式结束占位文本，未传时使用全局 locale；支持显式空串 */
   endPlaceholder?: string
-  /** 区间模式的分隔符 */
+  /** 区间模式分隔符，用于占位与已选值；未传时使用全局 locale，支持显式空串 */
   rangeSeparator?: string
   /** 日期格式化 token 串，如 YYYY-MM-DD */
   format?: string

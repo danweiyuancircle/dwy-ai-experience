@@ -128,6 +128,8 @@ import { EConfigProvider } from '@dwydev/eui'
 
 locale 是一个扁平的键值对象，`name` 字段为 BCP 47 语言标签，控制日期类组件的本地化显示；其余字段为 UI 通用文案。
 
+文案支持局部覆盖并与默认中文合并；运行期更新响应式生效。`name` 不会自动翻译 UI 文案，切换语言时应同时提供对应文案。`EDatePicker` 显式的 `placeholder`、`startPlaceholder`、`endPlaceholder`、`rangeSeparator` 优先于 locale，包括显式空字符串。
+
 | 字段 | 默认值 | 说明 |
 |------|--------|------|
 | name | `'zh-CN'` | BCP 47 语言标签，控制 EDatePicker、ECalendar 等组件的月份名、星期名、年份格式 |
@@ -139,6 +141,10 @@ locale 是一个扁平的键值对象，`name` 字段为 BCP 47 语言标签，�
 | search | `'搜索'` | 搜索占位文案 |
 | selectPlaceholder | `'请选择'` | 选择器默认占位文案 |
 | inputPlaceholder | `'请输入'` | 输入框默认占位文案 |
+| datePickerPlaceholder | `'请选择日期'` | 日期、月、年模式默认占位文案 |
+| datePickerStartPlaceholder | `'开始日期'` | 区间起始占位文案 |
+| datePickerEndPlaceholder | `'结束日期'` | 区间结束占位文案 |
+| datePickerRangeSeparator | `'至'` | 区间占位及已选值分隔符 |
 
 ### 自定义配置示例
 
@@ -156,6 +162,10 @@ locale 是一个扁平的键值对象，`name` 字段为 BCP 47 语言标签，�
     search: 'Search',
     selectPlaceholder: 'Please select',
     inputPlaceholder: 'Please input',
+    datePickerPlaceholder: 'Pick a date',
+    datePickerStartPlaceholder: 'Start date',
+    datePickerEndPlaceholder: 'End date',
+    datePickerRangeSeparator: 'to',
   }"
 >
   <RouterView />

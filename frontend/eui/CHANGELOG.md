@@ -1,5 +1,12 @@
 # @dwydev/eui
 
+## 2.7.1
+
+### Patch Changes
+
+- **EDatePicker**：日期、月份、年份与日期区间的空态文案及区间分隔符接入现有 `EConfigProvider.locale`，默认中文并响应语言包更新；调用方显式传入的文案优先，保留空字符串，选择、清空与日期值格式保持兼容。
+- **EToggleGroupItem**：移除可选注入的冗余 `undefined` 默认参数，修复类型声明构建错误，运行行为保持不变。
+
 ## 2.7.0
 
 ### Minor Changes

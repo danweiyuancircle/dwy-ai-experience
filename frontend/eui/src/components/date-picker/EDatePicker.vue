@@ -60,14 +60,11 @@ import {
 import { CalendarDate } from '@internationalized/date'
 import type { DateValue } from '@internationalized/date'
 import { cn } from '@/utils/cn'
+import { useConfigProvider } from '@/composables/useConfigProvider'
 import type { EDatePickerProps, EDatePickerEmits } from './types'
 
 const props = withDefaults(defineProps<EDatePickerProps>(), {
   type: 'date',
-  placeholder: 'Pick a date',
-  startPlaceholder: 'Start date',
-  endPlaceholder: 'End date',
-  rangeSeparator: '至',
   disabled: false,
   clearable: false,
   format: 'YYYY-MM-DD',
@@ -75,6 +72,9 @@ const props = withDefaults(defineProps<EDatePickerProps>(), {
 
 const emit = defineEmits<EDatePickerEmits>()
 
+const { locale } = useConfigProvider()
+// 文案保持响应式；只对未传入的 prop 使用语言包，保留调用方显式空串。
+const rangeSeparator = computed(() => props.rangeSeparator ?? locale.value.datePickerRangeSeparator)
 const open = ref(false)
 
 // --- 辅助函数 ---
@@ -175,7 +175,7 @@ const rangeDisplayValue = computed(() => {
   if (!rangeCalendarValue.value) return ''
   const startStr = formatCalendarDate(rangeCalendarValue.value.start, effectiveFormat.value)
   const endStr = formatCalendarDate(rangeCalendarValue.value.end, effectiveFormat.value)
-  return `${startStr} ${props.rangeSeparator} ${endStr}`
+  return `${startStr} ${rangeSeparator.value} ${endStr}`
 })
 
 /** 区间模式选中：起止都就绪时才派发并关闭 */
@@ -312,9 +312,11 @@ const hasValue = computed(() => {
 
 const triggerPlaceholder = computed(() => {
   if (props.type === 'daterange') {
-    return `${props.startPlaceholder} ${props.rangeSeparator} ${props.endPlaceholder}`
+    const start = props.startPlaceholder ?? locale.value.datePickerStartPlaceholder
+    const end = props.endPlaceholder ?? locale.value.datePickerEndPlaceholder
+    return `${start} ${rangeSeparator.value} ${end}`
   }
-  return props.placeholder
+  return props.placeholder ?? locale.value.datePickerPlaceholder
 })
 
 const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 0)

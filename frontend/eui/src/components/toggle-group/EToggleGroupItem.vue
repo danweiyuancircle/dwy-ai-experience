@@ -16,10 +16,9 @@ const props = withDefaults(defineProps<EToggleGroupItemProps>(), {
   disabled: false,
 })
 
-/** 组注入的 variant/size（EToggleGroup provide）；未在组内使用时回退到自身 props */
+/** 组样式为可选注入；单参数 inject 的返回类型包含 undefined，缺省回退到自身 props。 */
 const group = inject<{ variant: { value?: EToggleGroupProps['variant'] }; size: { value?: EToggleGroupProps['size'] } }>(
   'toggleGroup',
-  undefined,
 )
 const variant = group?.variant.value ?? props.variant
 const size = group?.size.value ?? props.size
