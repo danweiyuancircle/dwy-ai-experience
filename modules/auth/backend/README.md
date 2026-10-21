@@ -38,3 +38,53 @@ Admin paths remain `/api/admin/auth/login`, `/me`, `/logout`. Cookies remain Htt
 Admin state is in memory: restarting revokes every session, with one host worker required for this existing implementation. Sessions, rate limits and credentials are independent of user access/refresh tokens. The binding grants no user Principal and contains no business queries or configuration storage.
 
 Run `pytest tests` from this directory with the dev extra installed. `tests/packaging_smoke.py` additionally runs against installed wheels in a clean environment and asserts the host, kernel and business packages are absent. PostgreSQL concurrency cases need an explicitly provided `APP_CLOUD_TEST_POSTGRES_URL`.
+
+## Email/password authentication
+
+Email/password is opt-in. Email accounts have stable random UUIDs and an independent unique `(app_id,email)` credential; email normalization only trims and lowercases. A Google account with the same email is never merged. New/reset passwords require at least 15 Unicode code points and at most 72 UTF-8 bytes; login accepts nonempty existing passwords up to 72 bytes. Passwords are never trimmed or truncated. EAPI bcrypt executes in a bounded worker pool (4 concurrent, at most 32 queued/running per service); cancellation keeps running work charged to this budget.
+
+```python
+from dwy_app_auth import EmailAuthConfig, EapiEmailCodeSender, SessionPolicy
+from dwyeapi.providers.email import make_email_provider
+
+# email_settings and challenge_secret come from the host's validated settings.
+# Every worker must share the same secret (at least 32 bytes). Never commit it.
+provider = make_email_provider(email_settings)
+service = AuthService(
+    "myapp", sessions, build_auth_tables(metadata), google_verifier,
+    email_sender=EapiEmailCodeSender(provider),
+    email_config=EmailAuthConfig(challenge_secret=challenge_secret),
+    session_policy=SessionPolicy(refresh_ttl=180 * 86400, rolling_refresh=True),
+)
+install_auth_routes(app, service)
+```
+
+Use the matching EAPI version containing `EmailProviderBase.send_verification_code`. This public transport-only method reuses existing Resend templates/domain policy and does not access Redis. Match the provider template TTL with `EmailAuthConfig.code_ttl`. The host owns the email sender/provider lifecycle. Without email configuration all email routes fail closed with `EMAIL_NOT_CONFIGURED`.
+
+| POST path | JSON input | SUCCESS data |
+|---|---|---|
+| `/api/v1/auth/email/code` | `email,purpose` (`register` or `password_reset`) | `challenge_id,expires_in,resend_after,code_length` |
+| `/api/v1/auth/register` | `email,password,code,challenge_id,device_id` | Existing `TokenResponse`; automatically logged in |
+| `/api/v1/auth/login` | `email,password,device_id` | Existing `TokenResponse` |
+| `/api/v1/auth/password/reset` | `email,password,code,challenge_id` | `{"status":"completed"}`; all existing user sessions revoked |
+
+Codes are six digits, expire after 300 seconds and have a 60-second resend cooldown by default. Response `expires_in` and `resend_after` report actual remaining database deadlines after delivery; a delivery that outlasts the challenge fails and removes that challenge. Only a successful delivery activates a challenge; a new delivered challenge invalidates older challenges for the same app/email/purpose. The database stores an HMAC bound to app/email/purpose/challenge, never the code. Conditional updates make consumption single-use; failed-attempt counters commit independently so business rollback cannot replenish attempts. Each challenge allows at most five attempts. Atomic SQL budgets apply per app, peer IP, purpose/email and action; send limits are 50/IP/hour, 1000/app/hour, 10/email/purpose/hour; verification is 100/IP/15min and 20/email/purpose/15min; login is 100/IP/15min and 10/email/15min. Expired counters/challenges are pruned on use. Configure trusted proxy middleware at the host if deployed behind a proxy; request forwarding headers are not read directly. Continue enforcing host request-body and ingress limits.
+
+Errors never echo submitted secrets. Public codes are `EMAIL_INVALID`, `PASSWORD_INVALID`, `EMAIL_PURPOSE_INVALID`, `EMAIL_CODE_INVALID` (wrong/expired/used/exhausted), `EMAIL_ALREADY_REGISTERED`, `CREDENTIALS_INVALID`, `EMAIL_RATE_LIMITED`, `EMAIL_NOT_CONFIGURED`, `EMAIL_DELIVERY_FAILED`. Schema validation uses the existing `VALIDATION_ERROR` envelope. Failed delivery remains charged to resend budgets to prevent abusive retries. Delivery to existing and unknown accounts follows the same public send contract.
+
+The default `SessionPolicy()` retains the existing fixed 30-day refresh deadline and 15-minute access lifetime. Explicit rolling policy extends refresh validity to 180 days on successful refresh. Old refresh digests remain replay evidence for at most `replay_retention` (default 30 days) and expire independently, so normal 15-minute refreshes do not accumulate a lifetime 4096 cap. The 4096 limit still bounds *unexpired* evidence (normal 30-day use is 2880); an abusive burst gets 429 without invalidating the current token. Refresh replay, device revocation and account deletion remain enforced. Account deletion removes email credentials/challenges transactionally; it preserves the anonymized UUID for independent purchase ledgers.
+
+### Host Alembic migration
+
+Fresh applications include all six auth tables via `build_auth_tables(metadata)` in their own migration. Existing Google-only databases must migrate before enabling the new package; `metadata.create_all` does not alter the old non-nullable subject column. Add a revision to the **host** Alembic history:
+
+```python
+from alembic import op
+from dwy_app_auth.migrations import upgrade_email_auth
+
+# revision/down_revision belong to the host migration history.
+def upgrade():
+    upgrade_email_auth(op)
+```
+
+The helper makes `auth_users.google_subject` nullable and creates `auth_password_credentials`, `auth_email_challenges`, `auth_rate_limits`; existing UUIDs, sessions and Google subjects remain untouched. PostgreSQL alters the column in place. SQLite uses Alembic batch mode; hosts with foreign keys enabled must follow Alembic's SQLite foreign-key PRAGMA procedure outside the transaction. Downgrade is intentionally host-owned: email-only users have null Google subjects, so restoring NOT NULL requires an explicit data-retention decision. Do not run this helper at application startup. `tests/test_email_auth.py` migrates a populated legacy Google schema and verifies both existing sessions and new email registration afterward.

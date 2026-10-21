@@ -7,9 +7,11 @@ import PackageDescription
 /// - iOS 17.0+
 /// - macOS 14.0+
 ///
-/// App 壳不在此包；用 `apple/scripts/new-app.sh` 从 Templates 生成。
+/// SwiftPM 远程依赖要求保留仓库根入口；所有实现、模板和测试统一位于 ios/。
+/// App 壳不在此包；用 `ios/scripts/new-app.sh` 从 Templates 生成。
 let package = Package(
     name: "AppleAppKit",
+    defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
         .macOS(.v14),
@@ -24,6 +26,7 @@ let package = Package(
         .library(name: "DesignKitMac", targets: ["DesignKitMac"]),
         .library(name: "PurchaseCore", targets: ["PurchaseCore"]),
         .library(name: "AuthCore", targets: ["AuthCore"]),
+        .library(name: "AuthUI", targets: ["AuthUI"]),
         .library(name: "AuthGoogleIOS", targets: ["AuthGoogleIOS"]),
     ],
     dependencies: [
@@ -37,33 +40,39 @@ let package = Package(
 
         .target(
             name: "CoreKit",
-            path: "apple/Sources/Shared/CoreKit"
+            path: "ios/Sources/Shared/CoreKit"
         ),
         .target(
             name: "L10nKit",
-            path: "apple/Sources/Shared/L10nKit"
+            path: "ios/Sources/Shared/L10nKit"
         ),
         .target(
             name: "LogKit",
             dependencies: [
                 .product(name: "Puppy", package: "Puppy"),
             ],
-            path: "apple/Sources/Shared/LogKit"
+            path: "ios/Sources/Shared/LogKit"
         ),
         .target(
             name: "CacheKit",
-            path: "apple/Sources/Shared/CacheKit"
+            path: "ios/Sources/Shared/CacheKit"
         ),
         .target(
             name: "AuthCore",
             dependencies: ["CoreKit", "L10nKit"],
-            path: "modules/auth/apple/Sources/AuthCore"
+            path: "ios/Sources/Shared/AuthCore"
+        ),
+        .target(
+            name: "AuthUI",
+            dependencies: ["AuthCore", "L10nKit"],
+            path: "ios/Sources/iOS/AuthUI",
+            resources: [.process("Resources")]
         ),
         // ThemeMode / Motion 等纯 SwiftUI 共享令牌；不含 UIKit/AppKit。
         .target(
             name: "DesignCore",
             dependencies: ["L10nKit"],
-            path: "apple/Sources/Shared/DesignCore"
+            path: "ios/Sources/Shared/DesignCore"
         ),
 
         // MARK: 平台层（两套代码，各自演进）
@@ -71,12 +80,12 @@ let package = Package(
         .target(
             name: "DesignKitIOS",
             dependencies: ["DesignCore", "L10nKit"],
-            path: "apple/Sources/iOS/DesignKit"
+            path: "ios/Sources/iOS/DesignKit"
         ),
         .target(
             name: "DesignKitMac",
             dependencies: ["DesignCore", "L10nKit"],
-            path: "apple/Sources/macOS/DesignKit"
+            path: "ios/Sources/macOS/DesignKit"
         ),
         // Google 的呈现与回调局限于 iOS；纯认证核心不依赖 SDK。
         .target(
@@ -85,48 +94,54 @@ let package = Package(
                 "AuthCore",
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS", condition: .when(platforms: [.iOS])),
             ],
-            path: "modules/auth/apple/Sources/AuthGoogleIOS"
+            path: "ios/Sources/iOS/AuthGoogleIOS"
         ),
         // 终身买断 + DEBUG 解锁。试用 / 限额留在 App 的 BizFoundation。
         .target(
             name: "PurchaseCore",
             dependencies: ["L10nKit"],
-            path: "apple/Sources/Shared/PurchaseCore"
+            path: "ios/Sources/Shared/PurchaseCore"
         ),
 
         // MARK: Tests
 
         .testTarget(
+            name: "AuthUITests",
+            dependencies: ["AuthUI", "AuthCore"],
+            path: "ios/Tests/AuthUITests",
+            exclude: ["TEST_CASES.md"]
+        ),
+        .testTarget(
             name: "AuthCoreTests",
             dependencies: ["AuthCore"],
-            path: "modules/auth/apple/Tests/AuthCoreTests",
+            path: "ios/Tests/AuthCoreTests",
             exclude: ["TEST_CASES.md"]
         ),
 
         .testTarget(
             name: "CoreKitTests",
             dependencies: ["CoreKit"],
-            path: "apple/Tests/CoreKitTests"
+            path: "ios/Tests/CoreKitTests"
         ),
         .testTarget(
             name: "LogKitTests",
             dependencies: ["LogKit"],
-            path: "apple/Tests/LogKitTests"
+            path: "ios/Tests/LogKitTests"
         ),
         .testTarget(
             name: "L10nKitTests",
             dependencies: ["L10nKit"],
-            path: "apple/Tests/L10nKitTests"
+            path: "ios/Tests/L10nKitTests"
         ),
         .testTarget(
             name: "CacheKitTests",
             dependencies: ["CacheKit"],
-            path: "apple/Tests/CacheKitTests"
+            path: "ios/Tests/CacheKitTests"
         ),
         .testTarget(
             name: "PurchaseCoreTests",
             dependencies: ["PurchaseCore"],
-            path: "apple/Tests/PurchaseCoreTests"
+            path: "ios/Tests/PurchaseCoreTests"
         ),
     ]
 )

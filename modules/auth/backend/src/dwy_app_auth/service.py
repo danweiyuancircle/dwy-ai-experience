@@ -1,5 +1,6 @@
 """数据库会话验证与轮换，原始 access/refresh token 从不持久化。"""
 
+import asyncio
 import hashlib
 import re
 import secrets
@@ -7,11 +8,13 @@ import time
 from collections.abc import Awaitable, Callable
 from uuid import UUID, uuid4
 
+import anyio
 from dwyeapi.exceptions import AuthenticationError
 from dwyeapi.identity import Principal
 from sqlalchemy import and_, delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from .email_auth import EmailAuthConfig, EmailAuthMixin, EmailCodeSender, SessionPolicy
 from .models import (
     AccountDeletion,
     AuthError,
@@ -33,13 +36,24 @@ def _tokens() -> tuple[str, str]:
     return "ac_" + secrets.token_urlsafe(32), "rf_" + secrets.token_urlsafe(48)
 
 
-class AuthService:
+class AuthService(EmailAuthMixin):
     # 撤销会话也占用账户预算到 30 天绝对到期，避免反复登录/退出绕过配额。
     MAX_UNEXPIRED_SESSIONS = 100
     # 15 分钟刷新一次的 30 天常规用量为 2880；保留充足重试余量。
     MAX_REFRESH_HISTORY = 4096
 
-    def __init__(self, app_id: str, sessions, tables: AuthTables, google_verifier: GoogleVerifier):
+    def __init__(
+        self,
+        app_id: str,
+        sessions,
+        tables: AuthTables,
+        google_verifier: GoogleVerifier,
+        *,
+        email_sender: EmailCodeSender | None = None,
+        email_config: EmailAuthConfig | None = None,
+        session_policy: SessionPolicy | None = None,
+    ):
+        """宿主显式注入邮件传输、密钥和会话策略；默认保留旧Google行为。"""
         if not re.fullmatch(r"[a-z][a-z0-9-]{0,31}", app_id):
             raise ValueError("Invalid app id")
         self.app_id, self.sessions, self.tables, self.google_verifier = (
@@ -48,6 +62,12 @@ class AuthService:
             tables,
             google_verifier,
         )
+        self.email_sender, self.email_config = email_sender, email_config
+        self.session_policy = session_policy if session_policy is not None else SessionPolicy()
+        self._password_limiter = anyio.CapacityLimiter(4)
+        self._password_inflight = 0
+        self._password_tasks: set[asyncio.Task] = set()
+        self._dummy_password_hash = "$2b$12$s6AXc3y1CJPYmZEr.1nVUOwFXwslhbh3Cv.oA9kHOFJWx3/v2Np22"
         # 清理由应用工厂显式装配；回调只能使用传入事务，不能自行提交。
         self._account_cleanup: dict[str, Callable[[AsyncSession, Principal], Awaitable[None]]] = {}
 
@@ -118,7 +138,7 @@ class AuthService:
                         access_hash=_digest(access),
                         refresh_hash=_digest(refresh),
                         access_expires_at=now + 900,
-                        refresh_expires_at=now + 30 * 86400,
+                        refresh_expires_at=now + self.session_policy.refresh_ttl,
                         created_at=now,
                     )
                 )
@@ -275,6 +295,11 @@ class AuthService:
                         access_hash=_digest(access),
                         refresh_hash=_digest(refresh),
                         access_expires_at=now + 900,
+                        refresh_expires_at=(
+                            now + self.session_policy.refresh_ttl
+                            if self.session_policy.rolling_refresh
+                            else row["refresh_expires_at"]
+                        ),
                     )
                 )
                 if result.rowcount != 1:
@@ -289,7 +314,11 @@ class AuthService:
                             app_id=self.app_id,
                             refresh_hash=old_hash,
                             session_id=row["id"],
-                            expires_at=row["refresh_expires_at"],
+                            expires_at=(
+                                min(row["refresh_expires_at"], now + self.session_policy.replay_retention)
+                                if self.session_policy.rolling_refresh
+                                else row["refresh_expires_at"]
+                            ),
                         )
                     )
                     profile = UserProfile(
@@ -415,6 +444,17 @@ class AuthService:
         u, s, now = self.tables.users, self.tables.sessions, int(time.time())
         async with self.sessions() as db, db.begin():
             await self._require_active(db, principal)
+            c, challenges = self.tables.password_credentials, self.tables.email_challenges
+            email = await db.scalar(
+                select(c.c.email).where(c.c.app_id == self.app_id, c.c.user_id == str(principal.user_id))
+            )
+            if email is not None:
+                await db.execute(
+                    delete(challenges).where(challenges.c.app_id == self.app_id, challenges.c.email == email)
+                )
+            await db.execute(
+                delete(c).where(c.c.app_id == self.app_id, c.c.user_id == str(principal.user_id))
+            )
             await db.execute(
                 update(u)
                 .where(u.c.app_id == self.app_id, u.c.id == str(principal.user_id))
@@ -454,6 +494,8 @@ class AuthService:
             )
 
     async def aclose(self) -> None:
+        if self._password_tasks:
+            await asyncio.gather(*self._password_tasks, return_exceptions=True)
         closer = getattr(self.google_verifier, "aclose", None)
         if closer is not None:
             await closer()

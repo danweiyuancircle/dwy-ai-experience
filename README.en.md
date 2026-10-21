@@ -14,7 +14,7 @@
 
 ## Overview
 
-This repository is now private. Shared Apple frameworks and separate Google-user/admin authentication modules live in `apple/` and `modules/auth/`. New packages are distributed through authenticated private GitHub Releases. Public npm/PyPI examples below apply to historical public versions; see [the private distribution guide](docs/private-distribution.md) for current installation.
+This repository is now private. All iOS/macOS frameworks, Google sign-in clients, tests, and templates live in `ios/`; backend and Web authentication modules live in `modules/auth/`. The root `Package.swift` remains the remote SwiftPM entry point, with every target under `ios/`. New packages are distributed through authenticated private GitHub Releases. Public npm/PyPI examples below apply to historical public versions; see [the private distribution guide](docs/private-distribution.md) for current installation.
 
 `dwy-ai-experience` is a monorepo built around AI development workflows. It currently brings together three major areas:
 

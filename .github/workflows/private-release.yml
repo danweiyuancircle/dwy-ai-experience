@@ -99,10 +99,10 @@ jobs:
       - name: Verify private source and Swift package
         run: |
           python3 scripts/private_release.py check
-          swift package dump-package > /tmp/apple-package.json
-          python3 -m unittest discover -s apple/Tests -p 'test_*.py'
+          swift package dump-package > /tmp/ios-package.json
+          python3 -m unittest discover -s ios/Tests -p 'test_*.py'
           swift test
-      - name: Build Google adapter against real iOS simulator SDK
+      - name: Build all products against real iOS simulator SDK
         run: |
           ios_sdk_path="$(xcrun --sdk iphonesimulator --show-sdk-path)"
-          swift build --target AuthGoogleIOS --triple arm64-apple-ios17.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios
+          swift build --triple arm64-apple-ios17.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios

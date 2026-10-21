@@ -14,7 +14,7 @@
 
 ## 简介
 
-本仓库已转为私有共享能力仓库。新增 Apple 框架、Google 用户登录和独立管理员认证模块，分别位于 `apple/` 与 `modules/auth/`。新版本统一走私有 GitHub Release；下文公共 npm/PyPI 安装示例仅适用于历史公开版本，当前安装方式见 [docs/private-distribution.md](docs/private-distribution.md)。
+本仓库已转为私有共享能力仓库。iOS/macOS 框架、Google 登录客户端、测试与模板统一位于 `ios/`；后端与 Web 认证模块位于 `modules/auth/`。仓库根 `Package.swift` 保留为远程 SwiftPM 入口，所有 target 指向 `ios/`。新版本统一走私有 GitHub Release；下文公共 npm/PyPI 安装示例仅适用于历史公开版本，当前安装方式见 [docs/private-distribution.md](docs/private-distribution.md)。
 
 `dwy-ai-experience` 是一个围绕 AI 开发体验搭建的 monorepo，当前主要覆盖三类能力：
 

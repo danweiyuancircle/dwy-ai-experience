@@ -1,0 +1,183 @@
+import Foundation
+import Observation
+
+/// 管理应用会话，不自动发请求；启动时显式 restore，业务请求前显式 refresh。
+@MainActor
+@Observable
+public final class AuthSessionStore {
+    public private(set) var session: AuthSession?
+    public private(set) var isSigningIn = false
+    @ObservationIgnored private let backend: any AuthBackend
+    @ObservationIgnored private let provider: (any GoogleIDTokenProviding)?
+    @ObservationIgnored private let tokenStore: any RefreshTokenStoring
+    @ObservationIgnored private let deviceID: UUID
+    @ObservationIgnored private let now: () -> Date
+    @ObservationIgnored private var generation = 0
+    @ObservationIgnored private var refreshTask: Task<Void, Error>?
+
+    public init(backend: any AuthBackend, provider: any GoogleIDTokenProviding, tokenStore: any RefreshTokenStoring, deviceID: UUID, now: @escaping () -> Date = Date.init) {
+        self.backend = backend
+        self.provider = provider
+        self.tokenStore = tokenStore
+        self.deviceID = deviceID
+        self.now = now
+    }
+
+    /// 邮箱宿主无需安装 Google SDK；调用无参数 signIn 时会抛配置错误。
+    public init(backend: any AuthBackend, tokenStore: any RefreshTokenStoring, deviceID: UUID, now: @escaping () -> Date = Date.init) {
+        self.backend = backend
+        self.provider = nil
+        self.tokenStore = tokenStore
+        self.deviceID = deviceID
+        self.now = now
+    }
+
+    /// 重复点击不重复弹 Google；退出或后续登录使旧请求失效。
+    public func signIn() async throws {
+        guard let provider else { throw AuthError.invalidConfiguration }
+        guard !isSigningIn else { return }
+        generation += 1
+        let operation = generation
+        refreshTask = nil
+        isSigningIn = true
+        defer { if operation == generation { isSigningIn = false } }
+        let idToken = try await provider.signIn()
+        guard operation == generation else { throw AuthError.superseded }
+        let response = try await backend.authenticate(googleIDToken: idToken, deviceID: deviceID)
+        try await install(response, operation: operation)
+    }
+
+    /// 发码不创建会话；用途与挑战由服务端校验。
+    public func sendEmailCode(email: String, purpose: EmailCodePurpose) async throws -> EmailCodeChallenge {
+        try await emailBackend().sendEmailCode(email: email, purpose: purpose)
+    }
+
+    /// 邮箱与 Google 共用会话安装及迟到回调撤销路径。
+    public func signIn(email: String, password: String) async throws {
+        let emailBackend = try emailBackend()
+        guard !isSigningIn else { return }
+        generation += 1
+        let operation = generation
+        refreshTask = nil
+        isSigningIn = true
+        defer { if operation == generation { isSigningIn = false } }
+        let response = try await emailBackend.authenticate(email: email, password: password, deviceID: deviceID)
+        try await install(response, operation: operation)
+    }
+
+    /// 注册成功立即安装后端返回的会话，不再要求重复登录。
+    public func register(email: String, password: String, code: String, challengeID: String) async throws {
+        let emailBackend = try emailBackend()
+        guard !isSigningIn else { return }
+        generation += 1
+        let operation = generation
+        refreshTask = nil
+        isSigningIn = true
+        defer { if operation == generation { isSigningIn = false } }
+        let response = try await emailBackend.register(email: email, password: password, code: code, challengeID: challengeID, deviceID: deviceID)
+        do { try await install(response, operation: operation) }
+        catch { throw AuthRegistrationError(installationError: error) }
+    }
+
+    /// 后端重置成功后清理已撤销的本地凭据；迟到响应不能清掉后续新登录。
+    public func resetPassword(email: String, password: String, code: String, challengeID: String) async throws {
+        let operation = generation
+        try await emailBackend().resetPassword(email: email, password: password, code: code, challengeID: challengeID)
+        guard operation == generation else { return }
+        generation += 1
+        refreshTask = nil
+        isSigningIn = false
+        session = nil
+        provider?.signOut()
+        // 重置已在服务端撤销旧会话，不能再携带已撤销 access 调用 logout。
+        try tokenStore.delete()
+    }
+
+    /// 页面取消时失效在途登录，但保留已经安装的会话；迟到凭据仍会被撤销。
+    public func cancelPendingAuthentication() {
+        guard isSigningIn else { return }
+        generation += 1
+        refreshTask = nil
+        isSigningIn = false
+    }
+
+    private func emailBackend() throws -> any EmailPasswordAuthBackend {
+        guard let emailBackend = backend as? any EmailPasswordAuthBackend else { throw AuthError.invalidConfiguration }
+        return emailBackend
+    }
+
+    /// 冷启动只使用应用 refresh token，不恢复 Google profile 充当已登录状态。
+    public func restore() async throws {
+        guard try tokenStore.load() != nil else { return }
+        try await refresh()
+    }
+
+    /// 业务请求前保留至少 60 秒 access 有效期；冷启动允许仅用 Keychain 恢复。
+    public func refreshIfNeeded() async throws {
+        if let session, session.expiresAt.timeIntervalSince(now()) >= 60 { return }
+        try await refresh()
+    }
+
+    /// 同时到达的业务请求共享一次刷新，避免一次性 refresh token 被并发消费。
+    public func refresh() async throws {
+        if let refreshTask { return try await refreshTask.value }
+        guard !isSigningIn else { throw AuthError.superseded }
+        guard let token = try tokenStore.load() else { throw AuthError.signedOut }
+        let operation = generation
+        let task = Task { @MainActor in
+            do {
+                let response = try await backend.refresh(refreshToken: token)
+                try await install(response, operation: operation)
+            } catch let AuthError.server(code, message) where code == "REFRESH_TOKEN_INVALID" {
+                // 永久失效与网络暂不可用分开处理；旧请求不能清掉后续账号。
+                guard operation == generation else { throw AuthError.superseded }
+                session = nil
+                provider?.signOut()
+                try tokenStore.delete()
+                throw AuthError.server(code: code, message: message)
+            }
+        }
+        refreshTask = task
+        defer { if operation == generation { refreshTask = nil } }
+        try await task.value
+    }
+
+    /// 先失效并清理本地，再通知后端；网络失败仍保持退出，错误交宿主提示。
+    public func signOut() async throws {
+        let accessToken = session?.accessToken
+        generation += 1
+        refreshTask = nil
+        isSigningIn = false
+        session = nil
+        provider?.signOut()
+        var storageError: (any Error)?
+        do { try tokenStore.delete() } catch { storageError = error }
+        // Keychain 删除失败也要尝试撤销；同时失败时保留两份错误供宿主处理。
+        if let accessToken {
+            do { try await backend.logout(accessToken: accessToken) }
+            catch {
+                if let storageError { throw AuthCleanupError(operationError: storageError, revocationError: error) }
+                throw error
+            }
+        }
+        if let storageError { throw storageError }
+    }
+
+    /// 保存 refresh 成功后才公开新会话，存储失败不形成不可恢复的半登录状态。
+    private func install(_ response: AuthTokenResponse, operation: Int) async throws {
+        guard operation == generation else { try await reject(response, error: AuthError.superseded) }
+        do { try tokenStore.save(response.refreshToken) }
+        catch {
+            session = nil
+            try await reject(response, error: error)
+        }
+        session = AuthSession(accessToken: response.accessToken, expiresAt: now().addingTimeInterval(response.expiresIn), user: response.user)
+    }
+
+    /// 已收到新凭据但不能安装时撤销新 access；不取消在途刷新而丢失撤销凭据。
+    private func reject(_ response: AuthTokenResponse, error operationError: any Error) async throws -> Never {
+        do { try await backend.logout(accessToken: response.accessToken) }
+        catch { throw AuthCleanupError(operationError: operationError, revocationError: error) }
+        throw operationError
+    }
+}

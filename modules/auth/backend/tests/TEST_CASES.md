@@ -24,3 +24,19 @@ The four Google/user/session test files were migrated from app-cloud with their 
 - `test_admin.py::test_admin_rejects_oversized_or_secret_inputs_and_limits_attempts`: bounded auth body, sanitized validation, no-store, five-attempt window and Retry-After.
 - `test_admin.py::test_admin_config_requires_a_valid_explicit_origin`: malformed origins and URLs containing paths/credentials are rejected.
 - `packaging_smoke.py`: installed wheel versions and EAPI Principal, user Google/device/deletion flow, admin/user isolation; app-cloud, cloud-kernel, cloud-auth and every business module must be absent.
+
+## Email/password authentication (`test_email_auth.py`)
+
+- Real SQLite registration/login preserves stable UUIDs, normalizes only case/whitespace, stores bcrypt/HMAC only and never merges Google users.
+- Concurrent challenge consumption and sends have one winner; app/purpose isolation, expiry, resend invalidation, five-attempt limits and committed login/send budgets reject replay/abuse.
+- Password reset revokes old access/refresh sessions; account deletion removes credentials and challenges.
+- HTTP code/register/login/reset envelopes, automatic login, no-store tokens, sensitive validation, 15-character minimum, UTF-8 72-byte ceiling and password whitespace preservation.
+- EAPI transport adapter does not use Redis; failed delivery leaves no active challenge.
+- Rolling sessions survive multiple months, prune expired evidence, retain replay revocation and bound recent evidence without a lifetime refresh cap; default fixed-policy regression remains in `test_auth.py`.
+- Cancellation does not release running bcrypt concurrency; populated legacy Google migration preserves old UUIDs/sessions and allows email-only users.
+
+- Delivery latency returns remaining code/cooldown seconds (including zero cooldown); delivery at code expiry fails and removes the challenge.
+- An in-flight old-password login paused after bcrypt is rejected after password reset commits, without issuing another session.
+- HTTP rate keys use the ASGI peer address and ignore arbitrary X-Forwarded-For/Forwarded headers.
+
+- `packaging_smoke.py`: new wheel-only environment, fixed six-table database inspection, EAPI transport availability, explicit rolling policy/secret/mail fixture assembly, email registration/login/reset revocation, Google/admin isolation and deletion; no real email is sent.

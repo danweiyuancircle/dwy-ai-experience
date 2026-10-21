@@ -1,7 +1,7 @@
 """Google 登录公开但必须验签，刷新使用独立凭据，退出使用应用会话鉴权。"""
 
 from contextlib import asynccontextmanager
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from dwyeapi import ApiResponse
@@ -11,6 +11,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from .email_auth import EmailCodeChallenge, EmailCodePurpose
 from .models import AccountDeletion, AuthError, DevicePage, DeviceQuery, TokenResponse
 from .service import AuthService
 
@@ -24,6 +25,34 @@ class GoogleLogin(BaseModel):
 class RefreshRequest(BaseModel):
     model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
     refresh_token: str = Field(min_length=1, max_length=256, repr=False)
+
+
+class EmailRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
+    email: str = Field(min_length=3, max_length=254)
+
+
+class EmailCodeRequest(EmailRequest):
+    purpose: EmailCodePurpose
+
+
+class EmailLogin(EmailRequest):
+    password: str = Field(min_length=1, max_length=72, repr=False)
+    device_id: UUID
+
+
+class PasswordReset(EmailRequest):
+    password: str = Field(min_length=15, max_length=72, repr=False)
+    code: str = Field(min_length=6, max_length=6, pattern=r"^[0-9]{6}$", repr=False)
+    challenge_id: UUID
+
+
+class EmailRegistration(PasswordReset):
+    device_id: UUID
+
+
+class PasswordResetResponse(BaseModel):
+    status: Literal["completed"] = "completed"
 
 
 def install_safe_validation_handler(app: FastAPI) -> None:
@@ -73,6 +102,51 @@ def install_auth_routes(
                 message=exc.message,
                 data=None,
             ).model_dump(mode="json"),
+        )
+
+    def remote_key(request: Request) -> str:
+        # 只信ASGI peer；代理宿主需显式配置可信proxy，禁止消费任意X-Forwarded-For。
+        return request.client.host if request.client else "unknown"
+
+    @app.post("/api/v1/auth/email/code", response_model=ApiResponse[EmailCodeChallenge])
+    async def email_code(body: EmailCodeRequest, request: Request, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        return ApiResponse.ok(
+            await service.send_email_code(body.email, body.purpose, remote_key=remote_key(request))
+        )
+
+    @app.post("/api/v1/auth/register", response_model=ApiResponse[TokenResponse])
+    async def email_register(body: EmailRegistration, request: Request, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+        return ApiResponse.ok(
+            await service.register_email(
+                body.email,
+                body.password,
+                body.code,
+                body.challenge_id,
+                body.device_id,
+                remote_key=remote_key(request),
+            )
+        )
+
+    @app.post("/api/v1/auth/login", response_model=ApiResponse[TokenResponse])
+    async def email_login(body: EmailLogin, request: Request, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Pragma"] = "no-cache"
+        return ApiResponse.ok(
+            await service.login_email(
+                body.email, body.password, body.device_id, remote_key=remote_key(request)
+            )
+        )
+
+    @app.post("/api/v1/auth/password/reset", response_model=ApiResponse[PasswordResetResponse])
+    async def password_reset(body: PasswordReset, request: Request, response: Response):
+        response.headers["Cache-Control"] = "no-store"
+        return ApiResponse.ok(
+            await service.reset_password(
+                body.email, body.password, body.code, body.challenge_id, remote_key=remote_key(request)
+            )
         )
 
     @app.post("/api/v1/auth/google", response_model=ApiResponse[TokenResponse])

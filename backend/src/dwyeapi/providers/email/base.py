@@ -80,6 +80,20 @@ class EmailProviderBase(ABC):
         """验证码 Redis key.Gmail plus/点号/googlemail 折成同一收件箱,避免别名绕过."""
         return f"{CODE_KEY_PREFIX}{canonicalize_email(target)}"
 
+    async def send_verification_code(self, target: str, code: str) -> bool:
+        """只交付调用方生成的验证码,不访问Redis;调用方必须负责限流、存储和原子核销。
+
+        供数据库事务验证码系统复用现有品牌模板与邮件通道。验证码生命周期与模板TTL需由宿主保持一致。
+        """
+        if self._require_common_domain:
+            require_common_email_domain(
+                target,
+                extra_allow=self._extra_allow,
+                allow_edu=self._allow_edu,
+                allow_edu_cn=self._allow_edu_cn,
+            )
+        return await self._send(target.strip(), code)
+
     async def send_code(self, target: str) -> bool:
         """生成验证码:先校验域名,发送成功再写入 Redis.
 
