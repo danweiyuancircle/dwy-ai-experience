@@ -1,0 +1,114 @@
+{
+  "verified_at": "2026-10-21T01:47:53.457713+00:00",
+  "toolchain": "Xcode 27.1 / Apple Swift 6.4",
+  "source_files": 89,
+  "changed_files": [
+    "apple/.gitignore",
+    "apple/CHANGELOG.md",
+    "apple/Docs/ARCHITECTURE.md",
+    "apple/Docs/EXTRACTED.md",
+    "apple/Docs/GOOGLE_AUTH.md",
+    "Package.swift",
+    "apple/README.md",
+    "apple/Templates/ios-app/App/README.md",
+    "apple/Templates/ios-app/BizFoundation/README.md",
+    "apple/Templates/ios-app/Docs/ARCHITECTURE.md",
+    "apple/Templates/ios-app/Foundation/README.md",
+    "apple/Templates/ios-app/Package.swift",
+    "apple/Templates/ios-app/project.yml",
+    "apple/Templates/macos-app/App/README.md",
+    "apple/Templates/macos-app/BizFoundation/README.md",
+    "apple/Templates/macos-app/Docs/ARCHITECTURE.md",
+    "apple/Templates/macos-app/Foundation/README.md",
+    "apple/Templates/macos-app/Package.swift",
+    "apple/Templates/macos-app/project.yml",
+    "modules/auth/apple/Tests/AuthCoreTests/TEST_CASES.md",
+    "apple/scripts/new-app.sh"
+  ],
+  "source_unchanged": true,
+  "all_migrated_swift_runtime_sources_byte_identical": true,
+  "dependency_pins_unchanged": true,
+  "macos_tests": {
+    "command": "swift test",
+    "exit_code": 0,
+    "suites": [
+      {
+        "suite": "PurchaseCoreTests.xctest",
+        "tests": 6,
+        "failures": 0
+      },
+      {
+        "suite": "LogKitTests.xctest",
+        "tests": 9,
+        "failures": 0
+      },
+      {
+        "suite": "L10nKitTests.xctest",
+        "tests": 4,
+        "failures": 0
+      },
+      {
+        "suite": "CoreKitTests.xctest",
+        "tests": 3,
+        "failures": 0
+      },
+      {
+        "suite": "CacheKitTests.xctest",
+        "tests": 3,
+        "failures": 0
+      },
+      {
+        "suite": "AuthCoreTests.xctest",
+        "tests": 18,
+        "failures": 0
+      }
+    ],
+    "total_tests": 43,
+    "total_failures": 0
+  },
+  "simulator_build": {
+    "command": "swift build --target AuthGoogleIOS --triple arm64-apple-ios17.0-simulator --sdk \"$IOS_SIMULATOR_SDK\" --scratch-path .build-ios --cache-path .build --skip-update",
+    "exit_code": 0,
+    "build_seconds": 6.51,
+    "module_artifact": ".build-ios/out/Products/Debug-iphonesimulator/AuthGoogleIOS.swiftmodule/arm64-apple-ios-simulator.swiftmodule",
+    "provider_object": ".build-ios/out/Intermediates.noindex/AppleAppKit.build/Debug-iphonesimulator/AuthGoogleIOS-t.build/Objects-normal/arm64/GoogleSignInProvider.o"
+  },
+  "template_tests": {
+    "command": "python3 -m unittest discover -s apple/Tests -p 'test_*.py'",
+    "red_failures": 2,
+    "green_tests": 3,
+    "green_failures": 0,
+    "xcodegen_platforms": [
+      "ios",
+      "macos"
+    ],
+    "package_manifest_identity": "dwy-ai-experience",
+    "root_override_red_failures": 1
+  },
+  "known_warnings": [
+    "GoogleUtilities explicit root pin is not directly used by a root target; preserved source constraint",
+    "--skip-update deprecated; used only to avoid network refresh during simulator verification"
+  ],
+  "acceptance_limits": [
+    "0.4.0 tag is planned, not published",
+    "Generated remote projects are structurally validated; future 0.4.0 resolution not claimed",
+    "No real Google OAuth / app integration / production service acceptance"
+  ],
+  "environment_note": "Select a full Xcode via DEVELOPER_DIR; obtain IOS_SIMULATOR_SDK with xcrun --sdk iphonesimulator --show-sdk-path",
+  "local_evidence_directory": "apple/validation",
+  "cleanup_validation": {
+    "verified_at": "2026-10-21T01:49:04.557088+00:00",
+    "git_diff_check_exit_code": 0,
+    "markdown_trailing_whitespace": 0,
+    "retained_machine_absolute_paths": 0,
+    "destination_hashes_match": true,
+    "runtime_swift_sources_byte_identical": true,
+    "template_discover_tests": 3,
+    "template_discover_failures": 0,
+    "local_only_outputs": [
+      "apple/validation/*.log",
+      "apple/validation/package-shape.json"
+    ],
+    "index_cleanup_owner": "Main executor removes previously staged raw evidence before restaging Task 1."
+  }
+}

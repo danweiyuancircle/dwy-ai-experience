@@ -1,0 +1,642 @@
+{
+  "source_root": "$SOURCE_ROOT",
+  "source_git_head": "b1a0bb900b44dae272ab16dd9ac90c745ad7f976",
+  "source_git_status": " M CHANGELOG.md\n M Package.resolved\n M Package.swift\n?? Docs/GOOGLE_AUTH.md\n?? Sources/Shared/AuthCore/\n?? Sources/iOS/AuthGoogle/\n?? Tests/AuthCoreTests/\n",
+  "captured_at": "2026-10-20T15:02:36.573000+00:00",
+  "exclusions": [
+    ".git",
+    ".build",
+    ".swiftpm",
+    ".DS_Store"
+  ],
+  "files": [
+    {
+      "source": "$SOURCE_ROOT/.gitignore",
+      "destination": "apple/.gitignore",
+      "source_sha256": "9a85c84cfb44bd6774b07eecbcc0ca465788e22d33af1dcfce02902253db66c1",
+      "destination_sha256": "d7b933d10c6993e0bf8b5c42af0115dca01a1905b9d020b6eeafbeb59641204a",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/CHANGELOG.md",
+      "destination": "apple/CHANGELOG.md",
+      "source_sha256": "c5e811db72df1834cc8f9ef5e42a8c7c1462ecc19d3644fddf1c52d5552c7e46",
+      "destination_sha256": "6714380d2375938e7c168ac9e12d383d596bb8a3c7d890fdc20fb26c75f551de",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Docs/ARCHITECTURE.md",
+      "destination": "apple/Docs/ARCHITECTURE.md",
+      "source_sha256": "13f5dc546fc3cd3a3085009ebe394cc254f1a0f0a2c5071a7c0096ca994c8f4d",
+      "destination_sha256": "38e110162ca4cffe06b1601c535ea490c41ae8d72828389d067820cb9a86dd54",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Docs/EXTRACTED.md",
+      "destination": "apple/Docs/EXTRACTED.md",
+      "source_sha256": "53c05e13ac60ad14b249c2d715d211ff55e75cdaf23ed24e00e705a24819baa0",
+      "destination_sha256": "bd90c55d077d9ed07037f361265facc95117cff4223f2088e0ee92b2c30d33c1",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Docs/GOOGLE_AUTH.md",
+      "destination": "apple/Docs/GOOGLE_AUTH.md",
+      "source_sha256": "5116d601f80024c7a69a21e5e60f181197f3673bea28744f978593090585b62b",
+      "destination_sha256": "6006b0923c10b7e4ba3603871ef8d9a1b0e4ef516d4bc25cacac578a703e5054",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Docs/LAYERING.md",
+      "destination": "apple/Docs/LAYERING.md",
+      "source_sha256": "c26e193f9447d33f81157c2aef5cd0f25144d4dde0bf66dd6b9faf74514cdc0d",
+      "destination_sha256": "c26e193f9447d33f81157c2aef5cd0f25144d4dde0bf66dd6b9faf74514cdc0d",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Package.resolved",
+      "destination": "Package.resolved",
+      "source_sha256": "bdff4e30a4d382a6fe1a7217bb05532c80ceadde3fe32a7498348c56dcfe8b2c",
+      "destination_sha256": "bdff4e30a4d382a6fe1a7217bb05532c80ceadde3fe32a7498348c56dcfe8b2c",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Package.swift",
+      "destination": "Package.swift",
+      "source_sha256": "d2d289f01f620a522d5e515331f568b4010e161e603f5258311777aeff575e97",
+      "destination_sha256": "b11ed34ae24ae83616491361deafa3b4a97f1758dccf9ffb9becf41fecc480be",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/README.md",
+      "destination": "apple/README.md",
+      "source_sha256": "bdf5d8d5f928a516ffdc1d10a8e965f1e177d1adcd2fa5530bb753aaea070252",
+      "destination_sha256": "dd07a3ec3644c7c73fc49f103c9aef72cf722f246f9f0d617a2f94f78b6f0696",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/AuthCore/AppCloudAuthClient.swift",
+      "destination": "modules/auth/apple/Sources/AuthCore/AppCloudAuthClient.swift",
+      "source_sha256": "0bd42388f69a93b722d7d3c991d1fd405c8ddd5f6cec846a969a8c9675673e0e",
+      "destination_sha256": "0bd42388f69a93b722d7d3c991d1fd405c8ddd5f6cec846a969a8c9675673e0e",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/AuthCore/AuthSessionStore.swift",
+      "destination": "modules/auth/apple/Sources/AuthCore/AuthSessionStore.swift",
+      "source_sha256": "3cb502939942ec35ea46ff359ea8d257f8ae92da3da68b2a64adb8b3de86f731",
+      "destination_sha256": "3cb502939942ec35ea46ff359ea8d257f8ae92da3da68b2a64adb8b3de86f731",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/AuthCore/AuthTypes.swift",
+      "destination": "modules/auth/apple/Sources/AuthCore/AuthTypes.swift",
+      "source_sha256": "8c0f03a8a803434634ee03e5a2e99a8e51e6b88dac9c4d00f4da2fa53f29af71",
+      "destination_sha256": "8c0f03a8a803434634ee03e5a2e99a8e51e6b88dac9c4d00f4da2fa53f29af71",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/AuthCore/KeychainRefreshTokenStore.swift",
+      "destination": "modules/auth/apple/Sources/AuthCore/KeychainRefreshTokenStore.swift",
+      "source_sha256": "ed8d2b50a4b1c9b8c2cc721c0ab9aef2bad85afc1bda34137564c00b439a448e",
+      "destination_sha256": "ed8d2b50a4b1c9b8c2cc721c0ab9aef2bad85afc1bda34137564c00b439a448e",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/CacheKit/DiskCache.swift",
+      "destination": "apple/Sources/Shared/CacheKit/DiskCache.swift",
+      "source_sha256": "ac95496dbe229e8a9abbaefa10d33383180a39417445f0408425db530d0f465e",
+      "destination_sha256": "ac95496dbe229e8a9abbaefa10d33383180a39417445f0408425db530d0f465e",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/CoreKit/AppError.swift",
+      "destination": "apple/Sources/Shared/CoreKit/AppError.swift",
+      "source_sha256": "c0d449dcbc7d8987b68e9a6aef8a7e38b7bca2263126ef49bbc7ec2fcde0178c",
+      "destination_sha256": "c0d449dcbc7d8987b68e9a6aef8a7e38b7bca2263126ef49bbc7ec2fcde0178c",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/CoreKit/ByteCount.swift",
+      "destination": "apple/Sources/Shared/CoreKit/ByteCount.swift",
+      "source_sha256": "85d831acc383b8654a1de1e7ffb06996aa6c5e3043cd0b6b9aba62cc5f3bce55",
+      "destination_sha256": "85d831acc383b8654a1de1e7ffb06996aa6c5e3043cd0b6b9aba62cc5f3bce55",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/CoreKit/Hex.swift",
+      "destination": "apple/Sources/Shared/CoreKit/Hex.swift",
+      "source_sha256": "898e1cfbd32ae4ddc7787dfe306755b73e96f3013619d9b6b15750390da88eee",
+      "destination_sha256": "898e1cfbd32ae4ddc7787dfe306755b73e96f3013619d9b6b15750390da88eee",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/CoreKit/TimeFormat.swift",
+      "destination": "apple/Sources/Shared/CoreKit/TimeFormat.swift",
+      "source_sha256": "b70e7aa4b2551ce8d6436b6dec5cc8e5cd985819103537c9579f2b9ca2253bd3",
+      "destination_sha256": "b70e7aa4b2551ce8d6436b6dec5cc8e5cd985819103537c9579f2b9ca2253bd3",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/DesignCore/LanguagePickerView.swift",
+      "destination": "apple/Sources/Shared/DesignCore/LanguagePickerView.swift",
+      "source_sha256": "92be3a83694cf82d4140c77e14838729274cdacdd69011ff4d33395590173518",
+      "destination_sha256": "92be3a83694cf82d4140c77e14838729274cdacdd69011ff4d33395590173518",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/DesignCore/Motion.swift",
+      "destination": "apple/Sources/Shared/DesignCore/Motion.swift",
+      "source_sha256": "7f9ccd645e6f484af83ba09e84dd5b0c8895327566cfcdd44cab775f4b1fa793",
+      "destination_sha256": "7f9ccd645e6f484af83ba09e84dd5b0c8895327566cfcdd44cab775f4b1fa793",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/DesignCore/ThemeMode.swift",
+      "destination": "apple/Sources/Shared/DesignCore/ThemeMode.swift",
+      "source_sha256": "4e1f2d779118605e73919ac9bf58752f98f38371ef87b1dc00703c4137d7604c",
+      "destination_sha256": "4e1f2d779118605e73919ac9bf58752f98f38371ef87b1dc00703c4137d7604c",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/DesignCore/ThemePickerView.swift",
+      "destination": "apple/Sources/Shared/DesignCore/ThemePickerView.swift",
+      "source_sha256": "06f550c5183e748a358a88eb948525837a0f04f564d071d975c046204d23be3d",
+      "destination_sha256": "06f550c5183e748a358a88eb948525837a0f04f564d071d975c046204d23be3d",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/L10nKit/AppLanguage.swift",
+      "destination": "apple/Sources/Shared/L10nKit/AppLanguage.swift",
+      "source_sha256": "b1843f229e417616eaab11da07026ab797fab5e66f4285b5cdaa58c360f669fd",
+      "destination_sha256": "b1843f229e417616eaab11da07026ab797fab5e66f4285b5cdaa58c360f669fd",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/L10nKit/LocalizationManager.swift",
+      "destination": "apple/Sources/Shared/L10nKit/LocalizationManager.swift",
+      "source_sha256": "a5a3fb2d88e0a0d3c192f4b6de9588423a3a19e4b39033894e8028af388e33a5",
+      "destination_sha256": "a5a3fb2d88e0a0d3c192f4b6de9588423a3a19e4b39033894e8028af388e33a5",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/LogKit/AppLog.swift",
+      "destination": "apple/Sources/Shared/LogKit/AppLog.swift",
+      "source_sha256": "b0e084faca9a8828bcf98ee25e4c7f98624ad2ffed1b24bea46119a41327de90",
+      "destination_sha256": "b0e084faca9a8828bcf98ee25e4c7f98624ad2ffed1b24bea46119a41327de90",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/LogKit/AppLogLevel.swift",
+      "destination": "apple/Sources/Shared/LogKit/AppLogLevel.swift",
+      "source_sha256": "13a24d8fa6cc0108562ff76b0a7500c4c667a3ce063c0a3cfde6c3a4d8fa469b",
+      "destination_sha256": "13a24d8fa6cc0108562ff76b0a7500c4c667a3ce063c0a3cfde6c3a4d8fa469b",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/LogKit/AppLogger.swift",
+      "destination": "apple/Sources/Shared/LogKit/AppLogger.swift",
+      "source_sha256": "b7c67dc7d5b20a796ca8672517c7e6ff4064ddb080577dfbf36dee7979ff8c03",
+      "destination_sha256": "b7c67dc7d5b20a796ca8672517c7e6ff4064ddb080577dfbf36dee7979ff8c03",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/LogKit/Internal/LevelMapping.swift",
+      "destination": "apple/Sources/Shared/LogKit/Internal/LevelMapping.swift",
+      "source_sha256": "e0fc09188ffc4d7283d9f4e72da542af7ff303329e8b1108e8c931d035c34e69",
+      "destination_sha256": "e0fc09188ffc4d7283d9f4e72da542af7ff303329e8b1108e8c931d035c34e69",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/LogKit/Internal/LogLineFormatter.swift",
+      "destination": "apple/Sources/Shared/LogKit/Internal/LogLineFormatter.swift",
+      "source_sha256": "af5dcc04ed86042ac17a4e271bc574d28800982cabc746e4e4a701e34d8a9e6a",
+      "destination_sha256": "af5dcc04ed86042ac17a4e271bc574d28800982cabc746e4e4a701e34d8a9e6a",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/LogKit/Internal/PuppyBackend.swift",
+      "destination": "apple/Sources/Shared/LogKit/Internal/PuppyBackend.swift",
+      "source_sha256": "81d22bff0cf5487b090700396f97e292ba19a316bfc05007fc1c4d7054c14663",
+      "destination_sha256": "81d22bff0cf5487b090700396f97e292ba19a316bfc05007fc1c4d7054c14663",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/LogKit/LogConfig.swift",
+      "destination": "apple/Sources/Shared/LogKit/LogConfig.swift",
+      "source_sha256": "72feced416e044a993a01be2c599a6aa323b10bfb5a3b88d046774186f02fadf",
+      "destination_sha256": "72feced416e044a993a01be2c599a6aa323b10bfb5a3b88d046774186f02fadf",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/LogKit/LogExport.swift",
+      "destination": "apple/Sources/Shared/LogKit/LogExport.swift",
+      "source_sha256": "8ca14c9525ebc5d036aa875494e817434d3cb5dfa5434cdaa9ab36e17870e21b",
+      "destination_sha256": "8ca14c9525ebc5d036aa875494e817434d3cb5dfa5434cdaa9ab36e17870e21b",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/PurchaseCore/LifetimeStore.swift",
+      "destination": "apple/Sources/Shared/PurchaseCore/LifetimeStore.swift",
+      "source_sha256": "87279b093f4b653fb6cf79a70a9e82ad79795d013affeb946b6aebea512b1a1d",
+      "destination_sha256": "87279b093f4b653fb6cf79a70a9e82ad79795d013affeb946b6aebea512b1a1d",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/PurchaseCore/PurchaseAccess.swift",
+      "destination": "apple/Sources/Shared/PurchaseCore/PurchaseAccess.swift",
+      "source_sha256": "e1b5cd6fbd648c4dc9e4fdb57852b11406bb13dd5ba3be7f2a0abc954501466a",
+      "destination_sha256": "e1b5cd6fbd648c4dc9e4fdb57852b11406bb13dd5ba3be7f2a0abc954501466a",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/Shared/PurchaseCore/StoreError.swift",
+      "destination": "apple/Sources/Shared/PurchaseCore/StoreError.swift",
+      "source_sha256": "e4c343758ebbae94547142a5d8ca46aa0165f807e05f1706182d081a8199ca03",
+      "destination_sha256": "e4c343758ebbae94547142a5d8ca46aa0165f807e05f1706182d081a8199ca03",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/iOS/AuthGoogle/GoogleSignInProvider.swift",
+      "destination": "modules/auth/apple/Sources/AuthGoogleIOS/GoogleSignInProvider.swift",
+      "source_sha256": "69b70bdf8d159a03a9db6ead99200dd4da31b538418ff41b6e61a8dfdcee8f2b",
+      "destination_sha256": "69b70bdf8d159a03a9db6ead99200dd4da31b538418ff41b6e61a8dfdcee8f2b",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/iOS/DesignKit/ThemeManager.swift",
+      "destination": "apple/Sources/iOS/DesignKit/ThemeManager.swift",
+      "source_sha256": "655a16e844221321753253c14d2e79396cd0ee8bd318da524ae58d7464914f7d",
+      "destination_sha256": "655a16e844221321753253c14d2e79396cd0ee8bd318da524ae58d7464914f7d",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Sources/macOS/DesignKit/ThemeManager.swift",
+      "destination": "apple/Sources/macOS/DesignKit/ThemeManager.swift",
+      "source_sha256": "6932e8fdab6ef7d739a036955e793274675926b2c9549b8fea68d2cd57e29da1",
+      "destination_sha256": "6932e8fdab6ef7d739a036955e793274675926b2c9549b8fea68d2cd57e29da1",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/App/AppNameApp.swift",
+      "destination": "apple/Templates/ios-app/App/AppNameApp.swift",
+      "source_sha256": "886878f6914c3513e493bf070479320b1f40f06ee90065bb2c36a8c10ee68149",
+      "destination_sha256": "886878f6914c3513e493bf070479320b1f40f06ee90065bb2c36a8c10ee68149",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/App/Info.plist",
+      "destination": "apple/Templates/ios-app/App/Info.plist",
+      "source_sha256": "520892ec7597a428e0d4e77e7c0273d8e468bcf89a0cb940ca9cf19f68b568d6",
+      "destination_sha256": "520892ec7597a428e0d4e77e7c0273d8e468bcf89a0cb940ca9cf19f68b568d6",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/App/Products.storekit",
+      "destination": "apple/Templates/ios-app/App/Products.storekit",
+      "source_sha256": "087fa5803bb4c0615ae882691485afae0fd9af96a682b3dcd3e09eef06673bec",
+      "destination_sha256": "087fa5803bb4c0615ae882691485afae0fd9af96a682b3dcd3e09eef06673bec",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/App/README.md",
+      "destination": "apple/Templates/ios-app/App/README.md",
+      "source_sha256": "bf1dc8d9d991372ba65ecb385479f4995112d2b0f4a07862388ba663d72c42c1",
+      "destination_sha256": "7c9245685d7a6fdf8771e0786202fd5b2da3c513d82def4eae3b8fba1de1ee44",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/App/ReviewPrompt.swift",
+      "destination": "apple/Templates/ios-app/App/ReviewPrompt.swift",
+      "source_sha256": "a2df3253a2f3da6cf3602b77fbe586bc94bca33618413b39c62c160a53ee8baa",
+      "destination_sha256": "a2df3253a2f3da6cf3602b77fbe586bc94bca33618413b39c62c160a53ee8baa",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/App/RootView.swift",
+      "destination": "apple/Templates/ios-app/App/RootView.swift",
+      "source_sha256": "523de0be04d1c379f5f3e653fffb5457b6a9d086a7b809553dfc0a7c8f157b1f",
+      "destination_sha256": "523de0be04d1c379f5f3e653fffb5457b6a9d086a7b809553dfc0a7c8f157b1f",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/AppNameTests/SmokeTests.swift",
+      "destination": "apple/Templates/ios-app/AppNameTests/SmokeTests.swift",
+      "source_sha256": "ff8657353d3fccff769d12c56bce8f034ac786d30a6fe7846123f77edd71543a",
+      "destination_sha256": "ff8657353d3fccff769d12c56bce8f034ac786d30a6fe7846123f77edd71543a",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/BizFoundation/AppConfig.swift",
+      "destination": "apple/Templates/ios-app/BizFoundation/AppConfig.swift",
+      "source_sha256": "45333668a224dba293d2991e684267aa0ec37a3d0e53a64548757fd4fd729879",
+      "destination_sha256": "45333668a224dba293d2991e684267aa0ec37a3d0e53a64548757fd4fd729879",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/BizFoundation/BizFoundation.swift",
+      "destination": "apple/Templates/ios-app/BizFoundation/BizFoundation.swift",
+      "source_sha256": "aa7af842392980a0703392f2c81e6f68c2a38e9798d26ce35ddc23414f106493",
+      "destination_sha256": "aa7af842392980a0703392f2c81e6f68c2a38e9798d26ce35ddc23414f106493",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/BizFoundation/README.md",
+      "destination": "apple/Templates/ios-app/BizFoundation/README.md",
+      "source_sha256": "b73dc0c31fa59c16277dbdcde33c7130045c17f28e3bf07fea514c90b3c9f64c",
+      "destination_sha256": "8dceb98f55ac734af7fe841322cb238f371608ceebf7d4ced4533e2dca6214fe",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/BizFoundation/ReviewGate.swift",
+      "destination": "apple/Templates/ios-app/BizFoundation/ReviewGate.swift",
+      "source_sha256": "2012c2a31421756e76ba4e7f6f6f0c6c6503f256dc35f52ee1e44495a2032fd1",
+      "destination_sha256": "2012c2a31421756e76ba4e7f6f6f0c6c6503f256dc35f52ee1e44495a2032fd1",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/Docs/ARCHITECTURE.md",
+      "destination": "apple/Templates/ios-app/Docs/ARCHITECTURE.md",
+      "source_sha256": "f1d087d3024f2664e2616fccbdff9a95a5c5c6ae429eae30f4ad6e859a5c5fb8",
+      "destination_sha256": "10d93174231f6f394f48f5a25a094025cdb85f16efd5add31beccb8e9c0f9d24",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/Features/Paywall/PaywallView.swift",
+      "destination": "apple/Templates/ios-app/Features/Paywall/PaywallView.swift",
+      "source_sha256": "9c85e9c775ed8db3d4424cb1d85acbe2b9d1259abb1ac5df0dbf3b30abf0779d",
+      "destination_sha256": "9c85e9c775ed8db3d4424cb1d85acbe2b9d1259abb1ac5df0dbf3b30abf0779d",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/Features/README.md",
+      "destination": "apple/Templates/ios-app/Features/README.md",
+      "source_sha256": "65acbe7358307167b49b31166363cd6a70e03e2b4b3aece33eef145287fba8e4",
+      "destination_sha256": "65acbe7358307167b49b31166363cd6a70e03e2b4b3aece33eef145287fba8e4",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/Features/Settings/SettingsView.swift",
+      "destination": "apple/Templates/ios-app/Features/Settings/SettingsView.swift",
+      "source_sha256": "66fcae315bb83d3a7af951f11c96b41a4c193133e1a60b8bdd5c52f44fc64c71",
+      "destination_sha256": "66fcae315bb83d3a7af951f11c96b41a4c193133e1a60b8bdd5c52f44fc64c71",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/Foundation/README.md",
+      "destination": "apple/Templates/ios-app/Foundation/README.md",
+      "source_sha256": "6d97c14798f96ee57a69c175f531ec004dcc71e0cdaefe219ec738fd0e543227",
+      "destination_sha256": "f23a51ea3c3e084991b111eaf65a4a7711e854cf5ac87b00cb9fb37cb87427aa",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/Package.swift",
+      "destination": "apple/Templates/ios-app/Package.swift",
+      "source_sha256": "f3e9ae5d5eb362d8a4c5291b1ce62c853b62cdcc1f626a799d1c572f7961b01f",
+      "destination_sha256": "3df076517a6cfa468e73545fdfc9d5323c32e9ac6917af2a7812c7b2d9151efa",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/Resources/Localizable.xcstrings",
+      "destination": "apple/Templates/ios-app/Resources/Localizable.xcstrings",
+      "source_sha256": "abe40a3d5bf0869a3c48e890ee600dbddb5729c733b8e3edc8bb501256d819f2",
+      "destination_sha256": "abe40a3d5bf0869a3c48e890ee600dbddb5729c733b8e3edc8bb501256d819f2",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/Tests/BizFoundationTests/BizFoundationTests.swift",
+      "destination": "apple/Templates/ios-app/Tests/BizFoundationTests/BizFoundationTests.swift",
+      "source_sha256": "b56b6a445fd33dea7ef770874bc699bb914a539698e432841fddcbf6724bbf2e",
+      "destination_sha256": "b56b6a445fd33dea7ef770874bc699bb914a539698e432841fddcbf6724bbf2e",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/ios-app/project.yml",
+      "destination": "apple/Templates/ios-app/project.yml",
+      "source_sha256": "297bd0573dc3944cbe1c77341ec81c575132a989649a080da92747d67dd9cdde",
+      "destination_sha256": "148437fc0db298b45f920a1a3444658ff691293372f2fc178efb69d650815a4c",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/App/AppNameApp.swift",
+      "destination": "apple/Templates/macos-app/App/AppNameApp.swift",
+      "source_sha256": "cf19173fef8c7c87864385c77554dbc1ccef21ef047a0436e23125bb5533fdc9",
+      "destination_sha256": "cf19173fef8c7c87864385c77554dbc1ccef21ef047a0436e23125bb5533fdc9",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/App/Info.plist",
+      "destination": "apple/Templates/macos-app/App/Info.plist",
+      "source_sha256": "8ba28e1ffc4f45da143a961bec21c64f6c07f7956f7647577961b5d9a041e497",
+      "destination_sha256": "8ba28e1ffc4f45da143a961bec21c64f6c07f7956f7647577961b5d9a041e497",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/App/Products.storekit",
+      "destination": "apple/Templates/macos-app/App/Products.storekit",
+      "source_sha256": "087fa5803bb4c0615ae882691485afae0fd9af96a682b3dcd3e09eef06673bec",
+      "destination_sha256": "087fa5803bb4c0615ae882691485afae0fd9af96a682b3dcd3e09eef06673bec",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/App/README.md",
+      "destination": "apple/Templates/macos-app/App/README.md",
+      "source_sha256": "bf1dc8d9d991372ba65ecb385479f4995112d2b0f4a07862388ba663d72c42c1",
+      "destination_sha256": "7c9245685d7a6fdf8771e0786202fd5b2da3c513d82def4eae3b8fba1de1ee44",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/App/ReviewPrompt.swift",
+      "destination": "apple/Templates/macos-app/App/ReviewPrompt.swift",
+      "source_sha256": "a2df3253a2f3da6cf3602b77fbe586bc94bca33618413b39c62c160a53ee8baa",
+      "destination_sha256": "a2df3253a2f3da6cf3602b77fbe586bc94bca33618413b39c62c160a53ee8baa",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/App/RootView.swift",
+      "destination": "apple/Templates/macos-app/App/RootView.swift",
+      "source_sha256": "056dac2ba7360b298132e00e8ee009002daaf49ab6f6559443d6fd9afffc35ea",
+      "destination_sha256": "056dac2ba7360b298132e00e8ee009002daaf49ab6f6559443d6fd9afffc35ea",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/AppNameTests/SmokeTests.swift",
+      "destination": "apple/Templates/macos-app/AppNameTests/SmokeTests.swift",
+      "source_sha256": "ff8657353d3fccff769d12c56bce8f034ac786d30a6fe7846123f77edd71543a",
+      "destination_sha256": "ff8657353d3fccff769d12c56bce8f034ac786d30a6fe7846123f77edd71543a",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/BizFoundation/AppConfig.swift",
+      "destination": "apple/Templates/macos-app/BizFoundation/AppConfig.swift",
+      "source_sha256": "45333668a224dba293d2991e684267aa0ec37a3d0e53a64548757fd4fd729879",
+      "destination_sha256": "45333668a224dba293d2991e684267aa0ec37a3d0e53a64548757fd4fd729879",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/BizFoundation/BizFoundation.swift",
+      "destination": "apple/Templates/macos-app/BizFoundation/BizFoundation.swift",
+      "source_sha256": "aa7af842392980a0703392f2c81e6f68c2a38e9798d26ce35ddc23414f106493",
+      "destination_sha256": "aa7af842392980a0703392f2c81e6f68c2a38e9798d26ce35ddc23414f106493",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/BizFoundation/README.md",
+      "destination": "apple/Templates/macos-app/BizFoundation/README.md",
+      "source_sha256": "71c64604ccd9a291e792967e71f5aa3c7df51a4028d30d29e2825fe4c67dfdf7",
+      "destination_sha256": "44739a56930f9c6ece78ace14bff0f93e527d7b0e4b1bbc0521f2d1ae32f3828",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/BizFoundation/ReviewGate.swift",
+      "destination": "apple/Templates/macos-app/BizFoundation/ReviewGate.swift",
+      "source_sha256": "2012c2a31421756e76ba4e7f6f6f0c6c6503f256dc35f52ee1e44495a2032fd1",
+      "destination_sha256": "2012c2a31421756e76ba4e7f6f6f0c6c6503f256dc35f52ee1e44495a2032fd1",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/Docs/ARCHITECTURE.md",
+      "destination": "apple/Templates/macos-app/Docs/ARCHITECTURE.md",
+      "source_sha256": "03eed1ecb586896af00db915298157bc909786b951846bb9eb7a24ac8685f0cf",
+      "destination_sha256": "342eaae39f7a290b9cedd68bb37b704659a7142c8a930971a2fde68649fbd037",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/Features/Paywall/PaywallView.swift",
+      "destination": "apple/Templates/macos-app/Features/Paywall/PaywallView.swift",
+      "source_sha256": "aaa16db6694097e0f584d90b2336ba08775a2893528e949b287f2883a32b7d68",
+      "destination_sha256": "aaa16db6694097e0f584d90b2336ba08775a2893528e949b287f2883a32b7d68",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/Features/README.md",
+      "destination": "apple/Templates/macos-app/Features/README.md",
+      "source_sha256": "65acbe7358307167b49b31166363cd6a70e03e2b4b3aece33eef145287fba8e4",
+      "destination_sha256": "65acbe7358307167b49b31166363cd6a70e03e2b4b3aece33eef145287fba8e4",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/Features/Settings/SettingsView.swift",
+      "destination": "apple/Templates/macos-app/Features/Settings/SettingsView.swift",
+      "source_sha256": "ac1fc879e2a289d51e300660906bc2f5a8c40fa2d9a10229862b00979a584e8f",
+      "destination_sha256": "ac1fc879e2a289d51e300660906bc2f5a8c40fa2d9a10229862b00979a584e8f",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/Foundation/README.md",
+      "destination": "apple/Templates/macos-app/Foundation/README.md",
+      "source_sha256": "66dd255e488ac1960946d359a78e6d53cc495a5574d5630a44662cb4f237b5ed",
+      "destination_sha256": "a06fdfef64040d0b5029cb8da276b16c1c9911ae038af86cf5262dca86dffd04",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/Package.swift",
+      "destination": "apple/Templates/macos-app/Package.swift",
+      "source_sha256": "791f4e280437f62afbd7d9b4141afbed8b2d27969c6b52057851cef2c2a57f6d",
+      "destination_sha256": "3f4baf79bbff1194dd02f3a87e652b6937c29164162e1742eef28f8fa78a55bd",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/Resources/Localizable.xcstrings",
+      "destination": "apple/Templates/macos-app/Resources/Localizable.xcstrings",
+      "source_sha256": "abe40a3d5bf0869a3c48e890ee600dbddb5729c733b8e3edc8bb501256d819f2",
+      "destination_sha256": "abe40a3d5bf0869a3c48e890ee600dbddb5729c733b8e3edc8bb501256d819f2",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/Tests/BizFoundationTests/BizFoundationTests.swift",
+      "destination": "apple/Templates/macos-app/Tests/BizFoundationTests/BizFoundationTests.swift",
+      "source_sha256": "b56b6a445fd33dea7ef770874bc699bb914a539698e432841fddcbf6724bbf2e",
+      "destination_sha256": "b56b6a445fd33dea7ef770874bc699bb914a539698e432841fddcbf6724bbf2e",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Templates/macos-app/project.yml",
+      "destination": "apple/Templates/macos-app/project.yml",
+      "source_sha256": "102a48e9f5cc594777712e2c205793a174b82cba9aa7d8c8620063ffc623a667",
+      "destination_sha256": "387e6a0e55b2046bd02732f4ffaa58caf53b6c49de59a028de9e6ce2edfaa7d1",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/AuthCoreTests/AppCloudAuthClientTests.swift",
+      "destination": "modules/auth/apple/Tests/AuthCoreTests/AppCloudAuthClientTests.swift",
+      "source_sha256": "23d02c086b776db7f6d495bbddc7ddbdd353cc0affe6f673524441bdbdb7046c",
+      "destination_sha256": "23d02c086b776db7f6d495bbddc7ddbdd353cc0affe6f673524441bdbdb7046c",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/AuthCoreTests/AuthSessionStoreTests.swift",
+      "destination": "modules/auth/apple/Tests/AuthCoreTests/AuthSessionStoreTests.swift",
+      "source_sha256": "d910dbcf802a64098da53d65988d63a4a8afd21abacf1763c0f5e5f31d914c4e",
+      "destination_sha256": "d910dbcf802a64098da53d65988d63a4a8afd21abacf1763c0f5e5f31d914c4e",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/AuthCoreTests/KeychainRefreshTokenStoreTests.swift",
+      "destination": "modules/auth/apple/Tests/AuthCoreTests/KeychainRefreshTokenStoreTests.swift",
+      "source_sha256": "0a1dc3f54f2491ec4ff1c63339150aadd786da1d2ee0e0588ee04a4157d579c9",
+      "destination_sha256": "0a1dc3f54f2491ec4ff1c63339150aadd786da1d2ee0e0588ee04a4157d579c9",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/AuthCoreTests/TEST_CASES.md",
+      "destination": "modules/auth/apple/Tests/AuthCoreTests/TEST_CASES.md",
+      "source_sha256": "8e9783a822f71afa21396bda148687fdc73eb00a94494bbb6e5c3ea942413724",
+      "destination_sha256": "3f9bfc1c95a994372ef45c0756a556ab88dd0ce41a445d9e8dc232dde8c86517",
+      "content_changed": true
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/CacheKitTests/DiskCacheTests.swift",
+      "destination": "apple/Tests/CacheKitTests/DiskCacheTests.swift",
+      "source_sha256": "c2c88f2d6e5438569af15d15aeb4f09ec5a93b30ffc362c39bbf8645fb0de058",
+      "destination_sha256": "c2c88f2d6e5438569af15d15aeb4f09ec5a93b30ffc362c39bbf8645fb0de058",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/CoreKitTests/CoreKitTests.swift",
+      "destination": "apple/Tests/CoreKitTests/CoreKitTests.swift",
+      "source_sha256": "8721ea51df17974332407fec9451de2b3833491cdf4c6fb86782a9fcdd1461b3",
+      "destination_sha256": "8721ea51df17974332407fec9451de2b3833491cdf4c6fb86782a9fcdd1461b3",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/L10nKitTests/L10nKitTests.swift",
+      "destination": "apple/Tests/L10nKitTests/L10nKitTests.swift",
+      "source_sha256": "fef59bf7fb8e9680b9aa5b60215eb1b2ac86d25e21dfa74470805d3a1dd18abb",
+      "destination_sha256": "fef59bf7fb8e9680b9aa5b60215eb1b2ac86d25e21dfa74470805d3a1dd18abb",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/LogKitTests/AppLogTests.swift",
+      "destination": "apple/Tests/LogKitTests/AppLogTests.swift",
+      "source_sha256": "fb0111dc79180dbaf234d654b7a234e4146c215d21328ecf5877876eb163b6ca",
+      "destination_sha256": "fb0111dc79180dbaf234d654b7a234e4146c215d21328ecf5877876eb163b6ca",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/LogKitTests/LogConfigTests.swift",
+      "destination": "apple/Tests/LogKitTests/LogConfigTests.swift",
+      "source_sha256": "34b82461804365979a26048781c04fc5ba2d79e6818a48dd41e95e39bcd44abc",
+      "destination_sha256": "34b82461804365979a26048781c04fc5ba2d79e6818a48dd41e95e39bcd44abc",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/Tests/PurchaseCoreTests/PurchaseCoreTests.swift",
+      "destination": "apple/Tests/PurchaseCoreTests/PurchaseCoreTests.swift",
+      "source_sha256": "ab1ea3ee22fb4f0485f679521de38a280222ef6b745214714a7b30ebaf8e7922",
+      "destination_sha256": "ab1ea3ee22fb4f0485f679521de38a280222ef6b745214714a7b30ebaf8e7922",
+      "content_changed": false
+    },
+    {
+      "source": "$SOURCE_ROOT/scripts/new-app.sh",
+      "destination": "apple/scripts/new-app.sh",
+      "source_sha256": "74afa367f09c54a53d06da78ae4622f0191b4b4b4898bea1354e959a8268e6a1",
+      "destination_sha256": "4eff4ac439b9efbdb40dccd029991f67b5def980b7dca1840ce7d49c3149f234",
+      "content_changed": true
+    }
+  ],
+  "verified_at": "2026-10-21T01:47:53.457713+00:00",
+  "source_files_unchanged": true,
+  "source_git_status_unchanged": true,
+  "source_git_head_unchanged": true,
+  "source_root_note": "Legacy ios-arc worktree; local resolution is retained only in the ignored implementation report."
+}

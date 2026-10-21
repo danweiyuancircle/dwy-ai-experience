@@ -1,0 +1,114 @@
+# =============================================================================
+# 四层目录（与 TVRemote 一致）
+#
+#   App/              ① APP 层
+#   Features/         ② Features 层
+#   BizFoundation/    ③ 业务基础层（package）
+#   Foundation/       ④ 业务无关基础层（层锚点；kits 来自统一私有包版本）
+#
+# 部署底线：macOS 14.0+
+# 规约：Docs/ARCHITECTURE.md
+# =============================================================================
+name: __APP_NAME__
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    macOS: "14.0"
+packages:
+  # ③
+  BizFoundation:
+    path: .
+  AppleAppKit:
+    url: __PACKAGE_URL__
+    from: __PACKAGE_VERSION__
+targets:
+  __APP_NAME__:
+    type: application
+    platform: macOS
+    sources:
+      # 排除各层 README，避免多份 README.md 打进 Resources 冲突
+      - path: App
+        excludes:
+          - "**/*.md"
+          - "*.storekit"
+      - path: Features
+        excludes:
+          - "**/*.md"
+      - path: Resources
+    dependencies:
+      - package: BizFoundation
+      - package: AppleAppKit
+        product: CoreKit
+      - package: AppleAppKit
+        product: L10nKit
+      - package: AppleAppKit
+        product: DesignCore
+      - package: AppleAppKit
+        product: DesignKitMac
+      - package: AppleAppKit
+        product: LogKit
+      - package: AppleAppKit
+        product: CacheKit
+      - package: AppleAppKit
+        product: PurchaseCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: __BUNDLE_ID__
+        PRODUCT_NAME: __APP_NAME__
+        PRODUCT_MODULE_NAME: __APP_NAME__
+        GENERATE_INFOPLIST_FILE: "NO"
+        SWIFT_VERSION: "6.0"
+        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        CODE_SIGNING_ALLOWED: "YES"
+        DEVELOPMENT_TEAM: "__TEAM_ID__"
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "Apple Development"
+        ENABLE_HARDENED_RUNTIME: "YES"
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+        COMBINE_HIDPI_IMAGES: "YES"
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
+        CFBundleDisplayName: __APP_NAME__
+        CFBundleName: __APP_NAME__
+        LSMinimumSystemVersion: "14.0"
+        LSApplicationCategoryType: public.app-category.productivity
+        CFBundleLocalizations:
+          - zh-Hans
+          - en
+        ITSAppUsesNonExemptEncryption: false
+  __APP_NAME__Tests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - __APP_NAME__Tests
+    dependencies:
+      - target: __APP_NAME__
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: __BUNDLE_ID__.tests
+        GENERATE_INFOPLIST_FILE: "YES"
+        SWIFT_VERSION: "6.0"
+        DEVELOPMENT_TEAM: "__TEAM_ID__"
+        CODE_SIGN_STYLE: Automatic
+        CODE_SIGN_IDENTITY: "Apple Development"
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/__APP_NAME__.app/Contents/MacOS/__APP_NAME__"
+        BUNDLE_LOADER: "$(TEST_HOST)"
+schemes:
+  __APP_NAME__:
+    build:
+      targets:
+        __APP_NAME__: all
+        __APP_NAME__Tests: [test]
+    run:
+      config: Debug
+      storeKitConfiguration: App/Products.storekit
+    test:
+      config: Debug
+      targets:
+        - __APP_NAME__Tests
+    archive:
+      config: Release

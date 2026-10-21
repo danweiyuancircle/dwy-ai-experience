@@ -1,0 +1,35 @@
+{
+  "identifier" : "TemplateLocal",
+  "nonRenewingSubscriptions" : [],
+  "products" : [
+    {
+      "displayPrice" : "9.99",
+      "familyShareable" : false,
+      "internalID" : "6500000101",
+      "localizations" : [
+        {
+          "description" : "One-time unlock. No subscription.",
+          "displayName" : "Unlock",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "一次买断，无订阅。",
+          "displayName" : "解锁",
+          "locale" : "zh_CN"
+        }
+      ],
+      "productID" : "__BUNDLE_ID__.lifetime",
+      "referenceName" : "Lifetime Unlock",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_storeKitErrors" : []
+  },
+  "subscriptionGroups" : [],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

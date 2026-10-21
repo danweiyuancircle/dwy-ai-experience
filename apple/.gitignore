@@ -1,0 +1,12 @@
+.DS_Store
+.build/
+.swiftpm/
+*.xcodeproj/
+DerivedData/
+xcuserdata/
+*.xcuserstate
+*.swp
+*~
+
+# Python 模板回归产生的解释器缓存不属于迁移源码。
+__pycache__/

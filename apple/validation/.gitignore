@@ -1,0 +1,5 @@
+# 原始验证日志和再生工程只保留本地；版本树仅保存精简结果和复现说明。
+*
+!.gitignore
+!README.md
+!results.json
