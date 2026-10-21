@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { fileURLToPath } from 'node:url'
 import { buildHelpText } from '../src/cli-help.js'
 
 test('dwy --help lists sync and upgrade, no hidden commands', () => {
@@ -22,7 +23,8 @@ test('dwy 启动展示品牌，取消后退出', async t => {
   const { spawn } = await import('node:child_process')
   const child = spawn(process.execPath, ['dwy-cli/bin/index.js'], {
     cwd: new URL('../../', import.meta.url),
-    env: { ...process.env, FORCE_COLOR: '0' },
+    // 取消交互不依赖远端认证，也不能更新开发者的共享模板缓存。
+    env: { ...process.env, FORCE_COLOR: '0', DWY_TEMPLATE_SOURCE_DIR: fileURLToPath(new URL('../templates/ai-tools', import.meta.url)) },
   })
   t.after(() => child.kill())
   let output = ''
@@ -40,7 +42,7 @@ test('dwy 启动展示品牌，取消后退出', async t => {
     child.on('error', reject)
     child.on('close', code => {
       clearTimeout(timer)
-      assert.equal(code, 0)
+      assert.equal(code, 0, output)
       resolve()
     })
   })
