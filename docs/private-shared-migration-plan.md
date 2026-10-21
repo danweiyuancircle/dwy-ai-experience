@@ -33,11 +33,11 @@
 **Consumes**：原 ios-arc 仓库当前完整框架源码、模板、脚本、测试及文档。
 **Produces**：同名 CoreKit/LogKit/L10nKit/CacheKit/DesignCore/DesignKitIOS/DesignKitMac/PurchaseCore/AuthCore/AuthGoogleIOS；Package.swift 位于仓库根。
 
-- [ ] 记录迁移来源及 SHA256；原目录保留，迁入当前未提交 AuthCore/AuthGoogleIOS。
-- [ ] 保持所有 target/product 与依赖版本，调整 target path；AuthCore/AuthGoogleIOS 物理归入 modules/auth/apple。
-- [ ] 模板生成器改为当前仓库 URL，保留按版本引用；测试生成结果不含旧仓路径。
-- [ ] swift test、iOS simulator AuthGoogleIOS 编译、模板 smoke；报告每项实际结果，不预报真实 OAuth。
-- [ ] 输出 docs/migration-reports/apple.md 和来源清单；主执行者统一提交。
+- [x] 记录迁移来源及 SHA256；原目录保留，迁入当前未提交 AuthCore/AuthGoogleIOS。
+- [x] 保持所有 target/product 与依赖版本，调整 target path；AuthCore/AuthGoogleIOS 物理归入 modules/auth/apple。
+- [x] 模板生成器改为当前仓库 URL，保留按版本引用；测试生成结果不含旧仓路径。
+- [x] swift test、iOS simulator AuthGoogleIOS 编译、模板 smoke；报告每项实际结果，不预报真实 OAuth。
+- [x] 输出 docs/migration-reports/apple.md 和来源清单；主执行者统一提交。
 
 ### Task 2: 基于 EAPI 的认证后端
 
@@ -45,11 +45,11 @@
 **Consumes**：app-cloud/packages/cloud-auth，现有 dwyeapi.ApiResponse、异常、资源工厂。
 **Produces**：独立 distribution dwy-app-auth、import dwy_app_auth；不依赖 app_cloud 或 cloud_kernel，包含用户与管理员两个明确入口。
 
-- [ ] 迁移 Google 用户认证/刷新/设备/删号及测试；Principal/验证器合同落 EAPI，cloud-kernel 兼容重导出，保持同一类型。
-- [ ] 封装管理员认证配置/服务/HTTP装配，配置显式注入；不搬业务查询/配置管理。
-- [ ] 先回归现有协议，再验证错误 audience、跨用户、刷新重放、删号/会话及 Cookie/Same-Origin 边界。
-- [ ] app-cloud 接入新私有包及 EAPI 当前版本，保留各应用迁移、数据和旧 Python 兼容入口；完整测试与三个独立安装 smoke。
-- [ ] 输出 docs/migration-reports/auth-backend.md。
+- [x] 迁移 Google 用户认证/刷新/设备/删号及测试；Principal/验证器合同落 EAPI，cloud-kernel 兼容重导出，保持同一类型。
+- [x] 封装管理员认证配置/服务/HTTP装配，配置显式注入；不搬业务查询/配置管理。
+- [x] 先回归现有协议，再验证错误 audience、跨用户、刷新重放、删号/会话及 Cookie/Same-Origin 边界。
+- [x] app-cloud 接入新私有包及 EAPI 当前版本，保留各应用迁移、数据和旧 Python 兼容入口；完整测试与三个独立安装 smoke。
+- [x] 输出 docs/migration-reports/auth-backend.md。
 
 ### Task 3: 管理员 Web 登录复用模块
 
@@ -57,9 +57,9 @@
 **Consumes**：现有 LoginPage、管理员 Cookie API/会话逻辑；已有 eui/ekit。
 **Produces**：@dwydev/auth-web，明确管理员 Cookie 认证；品牌、路由和 backend 地址可注入。
 
-- [ ] 提取登录组件/会话/API，不搬业务导航、用户列表和交易页面，不新增未实现的 Google Web 登录。
-- [ ] 组件/HTTP单测覆盖退出、错误、凭据不入localStorage、同源及输入大小；原前端构建通过。
-- [ ] 输出 docs/migration-reports/auth-web.md。
+- [x] 提取登录组件/会话/API，不搬业务导航、用户列表和交易页面，不新增未实现的 Google Web 登录。
+- [x] 组件/HTTP单测覆盖退出、错误、凭据不入localStorage、同源及输入大小；原前端构建通过。
+- [x] 输出 docs/migration-reports/auth-web.md。
 
 ### Task 4: 私有发布与仓库整合
 
@@ -67,19 +67,19 @@
 **Produces**：GitHub Actions 实际构建的 npm tgz、Python wheel/sdist 和 SwiftPM tag，私有 GitHub Release 保存产物与 SHA256 清单。
 
 - [x] 校验 GitHub admin 权限；停用五个公开 npm/PyPI 工作流；目标仓库已改 PRIVATE。
-- [ ] 既有公开工作流在源码层也禁用；私有发布运行时检查 repo private，阻止公共发布。
-- [ ] 私有 Release 作为本次不依赖收费 registry/长期 token 的分发通道；npm/Python 消费者先认证下载固定发布产物再安装，Swift 用私有 Git。
-- [ ] CI 运行 Python 回归、Web 构建/测试、macOS Swift 单测和 iOS simulator 编译；真实发布后下载产物验证 SHA256与安装。
-- [ ] 提交/推送、合并回用户主工作区，创建 SwiftPM 0.4.1 标签及私有发布；验证远端提交/标签/可见性与匿名拒绝。
-- [ ] 发布完整验收报告，列出外部 OAuth/Apple/PG 运行配置边界和可复现命令。
+- [x] 既有公开工作流在源码层也禁用；私有发布运行时检查 repo private，阻止公共发布。
+- [x] 私有 Release 作为本次不依赖收费 registry/长期 token 的分发通道；npm/Python 消费者先认证下载固定发布产物再安装，Swift 用私有 Git。
+- [x] CI 运行 Python 回归、Web 构建/测试、macOS Swift 单测和 iOS simulator 编译；真实发布后下载产物验证 SHA256与安装。
+- [x] 提交/推送、合并回用户主工作区，创建 SwiftPM 0.4.1 标签及私有发布；验证远端提交/标签/可见性与匿名拒绝。
+- [x] 发布完整验收报告，列出外部 OAuth/Apple/PG 运行配置边界和可复现命令。
 
 ### Task 5: 消费者切换与旧入口收尾
 
 **Files**：right-click/quadrant/adbox 中 AppleAppKit 配置/锁文件；ios-arc 文档；app-cloud依赖和兼容入口。
 
-- [ ] 清点每个消费者的实际使用与工作区状态；只改已确认框架依赖路径，保留无关改动。
-- [ ] 新私有 SwiftPM 标签真实解析，更新 product package identity 与 XcodeGen/Package.resolved；按项目支持执行构建/测试。
-- [ ] 旧 ios-arc 保留原工作区及迁移说明，避免双源码继续演进；旧远端在消费者完成私有访问后收紧可见性，保留旧版本回退。
+- [x] 清点每个消费者的实际使用与工作区状态；只改已确认框架依赖路径，保留无关改动。
+- [x] 新私有 SwiftPM 标签真实解析，更新 product package identity 与 XcodeGen/Package.resolved；按项目支持执行构建/测试。
+- [x] 旧 ios-arc 保留原工作区及迁移说明，避免双源码继续演进；旧远端在消费者完成私有访问后收紧可见性，保留旧版本回退。
 
 ## 执行台账
 

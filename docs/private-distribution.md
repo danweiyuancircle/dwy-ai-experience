@@ -29,6 +29,8 @@ Python 消费者显式安装已下载的 EAPI/auth wheel，避免公共索引解
 
 Node 消费者从下载目录安装所需 tgz，EUI/EKIT/admin-kit 等内部依赖也应显式选用同一私有发布产物。不能把认证 cookie 或 Google/管理员凭据放进 npm 配置或浏览器持久存储。
 
+CLI 可通过 `npm install -g /tmp/dwy-private-0.4.1/create-dwy-0.20.0.tgz` 安装。现有 CLI 的 `dwy upgrade` 与帮助中的公共 npm 安装提示仍属于历史公开分发入口；私有版本更新需重新认证下载指定 Release 后安装 tgz，不使用该公共更新命令。
+
 Apple 消费者在 Xcode/SwiftPM 配置私有 Git 访问，依赖 URL 为 `https://github.com/danweiyuancircle/dwy-ai-experience.git`，版本 `0.4.1`。产品名保持 CoreKit、CacheKit、PurchaseCore、AuthCore 等，SPM 仓库 identity 改为 `dwy-ai-experience`。
 
 ## 边界
