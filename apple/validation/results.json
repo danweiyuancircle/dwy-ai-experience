@@ -30,6 +30,7 @@
   "all_migrated_swift_runtime_sources_byte_identical": false,
   "dependency_pins_unchanged": false,
   "initial_migration_preserved_runtime_and_pins": true,
+  "final_template_default": "0.4.1",
   "post_migration_changes": [
     "GoogleSignIn 9.1.0 matches Quadrant; GoogleUtilities remains 8.1.4.",
     "GoogleSignInProvider transfers only String using the official main-queue completion."

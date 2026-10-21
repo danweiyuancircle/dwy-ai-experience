@@ -88,9 +88,9 @@ export DEST_ROOT="$DEST"
 export REPLACE_APP_NAME="$APP_NAME"
 export REPLACE_BUNDLE_ID="$BUNDLE_ID"
 export REPLACE_TEAM_ID="$TEAM_ID"
-# SwiftPM 远端 package 身份取仓库名；固定版本下限由未来 0.4.0 tag 提供。
+# SwiftPM 远端 package 身份取仓库名；固定版本下限由未来 0.4.1 tag 提供。
 export REPLACE_PACKAGE_URL="https://github.com/danweiyuancircle/dwy-ai-experience.git"
-export REPLACE_PACKAGE_VERSION="0.4.0"
+export REPLACE_PACKAGE_VERSION="0.4.1"
 export REPLACE_PACKAGE_ID="dwy-ai-experience"
 
 python3 - <<'PY'

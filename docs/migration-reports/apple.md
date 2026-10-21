@@ -76,7 +76,7 @@ iOS 实际模块：`.build-ios/out/Products/Debug-iphonesimulator/AuthGoogleIOS.
 
 保留已知警告：GoogleUtilities 为锁住 8.1.4 而显式声明，根 target 未直接使用其 product；iOS 验证的 `--skip-update` 有 deprecated 提示。最终裸 `swift test` 无 `--skip-update`。
 
-0.4.0 只是下一次 SwiftPM 发布版本，本任务未创建 tag；生成项目在该 tag 发布前不能完成远端版本解析。本次模板验证仅证明生成器、manifest、Xcode 工程结构正确。未宣称真实 Google OAuth、宿主 UI 接入、后端部署或生产验收；仍须在真实配置下验证登录/取消/恢复/刷新轮换/退出/断网/换账号。业务 App 工程与原目录均未修改。
+初次任务验证未包含远端标签解析。后续保留 `0.4.0` 源码标签，完整私有发布与模板默认版本改为 `0.4.1`，实际解析/构建结果另记于消费者及总验收报告。这里的初次模板记录不冒充真实 Google OAuth、宿主 UI 接入、后端部署或生产验收；真实账户场景仍需配置后验证。
 
 ## 验收前清理
 

@@ -34,7 +34,7 @@ MyApp/
 
 ## 生成
 
-以下命令从统一仓库根目录执行；0.4.0 tag 发布后，生成项目才能远端解析该版本。私有仓库访问通过开发者现有 Git 认证完成，模板不含凭据。
+以下命令从统一仓库根目录执行；0.4.1 tag 发布后，生成项目才能远端解析该版本。私有仓库访问通过开发者现有 Git 认证完成，模板不含凭据。
 
 ```bash
 ./apple/scripts/new-app.sh \
@@ -65,7 +65,7 @@ apple/Templates/ios-app|macos-app
 业务 App **只许版本依赖，禁止 path / 源码目录**：
 
 ```swift
-.package(url: "https://github.com/danweiyuancircle/dwy-ai-experience.git", from: "0.4.0")
+.package(url: "https://github.com/danweiyuancircle/dwy-ai-experience.git", from: "0.4.1")
 // product 的 package 名是仓库名 dwy-ai-experience
 ```
 

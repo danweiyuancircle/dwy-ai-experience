@@ -4,7 +4,7 @@ Apple App Kit（统一私有仓库中的 Apple 产品）版本记录。
 **已上线的 App 默认不升级。** 要不要 bump，只看本节：兼容性、破坏面、不升会少什么。不要靠读 diff。
 
 当前远程：https://github.com/danweiyuancircle/dwy-ai-experience.git
-发版 = 改本文件 + 打 **同号 git tag**（下一版本 `0.4.0`，未打 tag 前不视为发布）。
+发版 = 改本文件 + 打 **同号 git tag**（首个完整私有发布版本 `0.4.1`）。
 
 ## 版本规则（0.x）
 
@@ -21,9 +21,11 @@ Apple App Kit（统一私有仓库中的 Apple 产品）版本记录。
 
 ---
 
-## [Unreleased / 0.4.0 planned] - 2026-10-20
+## [0.4.1] - 2026-10-21
 
-仅源码开发，未打 tag、未发布；现有应用继续使用各自远程版本。新项目模板已切至统一私有仓库的 `from: 0.4.0`，须待该 tag 发布后才能解析。
+新项目模板切至统一私有仓库 `from: 0.4.1`。迁入通用 Apple 产品、AuthCore 与 iOS Google 适配器；Google SDK 统一到现有消费者使用的 9.1.0。私有 Release 同步提供 EAPI/auth Python 和 Web 包及 SHA256 清单。
+
+`0.4.0` 源码标签保留；其首轮产物发布因 uv 自动生成的目录标记被严格清单拒绝，未形成完整 Release。`0.4.1` 清除该构建辅助文件后再校验，不放宽产物白名单。
 
 ### 兼容性
 

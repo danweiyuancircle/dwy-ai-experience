@@ -9,7 +9,7 @@ BizFoundation/    ③ 业务基础层 — 领域纯逻辑 SPM
 Foundation/       ④ 业务无关基础层 — 层锚点；kits 来自统一私有包版本
 ```
 
-完整真源：`https://github.com/danweiyuancircle/dwy-ai-experience/blob/0.4.0/apple/Docs/ARCHITECTURE.md`
+完整真源：`https://github.com/danweiyuancircle/dwy-ai-experience/blob/0.4.1/apple/Docs/ARCHITECTURE.md`
 
 ## 依赖
 

@@ -4,7 +4,7 @@
 
 ## 发布路径
 
-GitHub Actions 工作流 `.github/workflows/private-release.yml` 在私有仓库运行 Web/Python/Swift 回归和构建。只有标准 SwiftPM 语义化标签（首版 `0.4.0`）才能创建私有 GitHub Release；分支构建不创建发布。
+GitHub Actions 工作流 `.github/workflows/private-release.yml` 在私有仓库运行 Web/Python/Swift 回归和构建。只有标准 SwiftPM 语义化标签（首版 `0.4.1`）才能创建私有 GitHub Release；分支构建不创建发布。
 
 发布包括五个 npm tgz（EUI、EKIT、admin-kit、auth-web、CLI）、EAPI/auth Python wheel 与 sdist、`release-manifest.json` 和 `SHA256SUMS`。SwiftPM 使用同一源提交的 Git 标签。工作流只使用临时 `GITHUB_TOKEN`，不配置长期 npm/PyPI 发布凭据；公开仓库可见性检查失败时立即拒绝。
 
@@ -20,7 +20,7 @@ Apple 验证通过后，Web/Python 在同一作业内构建、校验并直接上
 
 ```sh
 # 在共享仓库根目录执行。
-python3 scripts/private_release.py download --tag 0.4.0 --directory /tmp/dwy-private-0.4.0
+python3 scripts/private_release.py download --tag 0.4.1 --directory /tmp/dwy-private-0.4.1
 ```
 
 下载命令要求目标目录为空，并验证每份产物实际大小和 SHA256。`release-manifest.json` 记录源提交，不能把后续同版本本地重建包当作已发布包。
@@ -29,7 +29,7 @@ Python 消费者显式安装已下载的 EAPI/auth wheel，避免公共索引解
 
 Node 消费者从下载目录安装所需 tgz，EUI/EKIT/admin-kit 等内部依赖也应显式选用同一私有发布产物。不能把认证 cookie 或 Google/管理员凭据放进 npm 配置或浏览器持久存储。
 
-Apple 消费者在 Xcode/SwiftPM 配置私有 Git 访问，依赖 URL 为 `https://github.com/danweiyuancircle/dwy-ai-experience.git`，版本 `0.4.0`。产品名保持 CoreKit、CacheKit、PurchaseCore、AuthCore 等，SPM 仓库 identity 改为 `dwy-ai-experience`。
+Apple 消费者在 Xcode/SwiftPM 配置私有 Git 访问，依赖 URL 为 `https://github.com/danweiyuancircle/dwy-ai-experience.git`，版本 `0.4.1`。产品名保持 CoreKit、CacheKit、PurchaseCore、AuthCore 等，SPM 仓库 identity 改为 `dwy-ai-experience`。
 
 ## 边界
 

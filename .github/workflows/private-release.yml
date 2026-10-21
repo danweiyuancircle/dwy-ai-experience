@@ -68,6 +68,8 @@ jobs:
           pnpm --dir dwy-cli pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           uv build --project backend --out-dir "$GITHUB_WORKSPACE/private-dist"
           uv build --project modules/auth/backend --out-dir "$GITHUB_WORKSPACE/private-dist"
+          # uv 自动生成的目录忽略标记不是发布产物；其余非白名单文件仍需拒绝。
+          rm -f private-dist/.gitignore
           python3 scripts/private_release.py manifest --directory private-dist --tag "0.0.0-ci.$GITHUB_RUN_ID" --revision "$GITHUB_SHA"
       - name: Verify and publish immutable private release
         if: startsWith(github.ref, 'refs/tags/')

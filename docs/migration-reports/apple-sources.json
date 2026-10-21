@@ -1,5 +1,6 @@
 {
   "source_root": "$SOURCE_ROOT",
+  "verification_scope": "Source preservation flags describe the initial migration snapshot; later legacy documentation pointers and deliberate target integration changes are tracked separately.",
   "source_git_head": "b1a0bb900b44dae272ab16dd9ac90c745ad7f976",
   "source_git_status": " M CHANGELOG.md\n M Package.resolved\n M Package.swift\n?? Docs/GOOGLE_AUTH.md\n?? Sources/Shared/AuthCore/\n?? Sources/iOS/AuthGoogle/\n?? Tests/AuthCoreTests/\n",
   "captured_at": "2026-10-20T15:02:36.573000+00:00",
@@ -21,7 +22,7 @@
       "source": "$SOURCE_ROOT/CHANGELOG.md",
       "destination": "apple/CHANGELOG.md",
       "source_sha256": "c5e811db72df1834cc8f9ef5e42a8c7c1462ecc19d3644fddf1c52d5552c7e46",
-      "destination_sha256": "6714380d2375938e7c168ac9e12d383d596bb8a3c7d890fdc20fb26c75f551de",
+      "destination_sha256": "b99c775593bb5ed58d71f2cbc3dcd42fd19f4b149861ae1b2b9795e16be448e4",
       "content_changed": true
     },
     {
@@ -72,7 +73,7 @@
       "source": "$SOURCE_ROOT/README.md",
       "destination": "apple/README.md",
       "source_sha256": "bdf5d8d5f928a516ffdc1d10a8e965f1e177d1adcd2fa5530bb753aaea070252",
-      "destination_sha256": "dd07a3ec3644c7c73fc49f103c9aef72cf722f246f9f0d617a2f94f78b6f0696",
+      "destination_sha256": "91bfcf04cc02b4e68b91f6eae41e5e77fee23afaec397eed12e86825bcd872e7",
       "content_changed": true
     },
     {
@@ -360,7 +361,7 @@
       "source": "$SOURCE_ROOT/Templates/ios-app/Docs/ARCHITECTURE.md",
       "destination": "apple/Templates/ios-app/Docs/ARCHITECTURE.md",
       "source_sha256": "f1d087d3024f2664e2616fccbdff9a95a5c5c6ae429eae30f4ad6e859a5c5fb8",
-      "destination_sha256": "10d93174231f6f394f48f5a25a094025cdb85f16efd5add31beccb8e9c0f9d24",
+      "destination_sha256": "11a320b084356e6d38383d6f3428be99857c69c31477d2f3241041e47e01d130",
       "content_changed": true
     },
     {
@@ -500,7 +501,7 @@
       "source": "$SOURCE_ROOT/Templates/macos-app/Docs/ARCHITECTURE.md",
       "destination": "apple/Templates/macos-app/Docs/ARCHITECTURE.md",
       "source_sha256": "03eed1ecb586896af00db915298157bc909786b951846bb9eb7a24ac8685f0cf",
-      "destination_sha256": "342eaae39f7a290b9cedd68bb37b704659a7142c8a930971a2fde68649fbd037",
+      "destination_sha256": "a6904544b8d27b6f717b3e5c8e799455f93247cd5493f432beb3b198203b9ec4",
       "content_changed": true
     },
     {
@@ -633,7 +634,7 @@
       "source": "$SOURCE_ROOT/scripts/new-app.sh",
       "destination": "apple/scripts/new-app.sh",
       "source_sha256": "74afa367f09c54a53d06da78ae4622f0191b4b4b4898bea1354e959a8268e6a1",
-      "destination_sha256": "4eff4ac439b9efbdb40dccd029991f67b5def980b7dca1840ce7d49c3149f234",
+      "destination_sha256": "079dd1a4efa87b3186234f5e7fb7d53db4b0d437968c617c71f8c9925aebfb74",
       "content_changed": true
     }
   ],

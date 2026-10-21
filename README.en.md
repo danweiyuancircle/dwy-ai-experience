@@ -164,7 +164,7 @@ cd backend && uv sync
 
 ## Release
 
-`.github/workflows/private-release.yml` validates branches and publishes semantic tags (starting with `0.4.0`) to private GitHub Releases. SwiftPM uses the same Git tag; Web/Python packages use tgz/wheel/sdist assets with SHA256 manifests. Legacy public workflows are disabled. See [the distribution guide](docs/private-distribution.md).
+`.github/workflows/private-release.yml` validates branches and publishes semantic tags (starting with `0.4.1`) to private GitHub Releases. SwiftPM uses the same Git tag; Web/Python packages use tgz/wheel/sdist assets with SHA256 manifests. Legacy public workflows are disabled. See [the distribution guide](docs/private-distribution.md).
 
 ## Contributing
 

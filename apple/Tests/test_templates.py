@@ -28,8 +28,8 @@ class TemplateSmokeTests(unittest.TestCase):
             project = (output / "project.yml").read_text()
             self.assertIn(REPOSITORY_URL, manifest)
             self.assertIn(REPOSITORY_URL, project)
-            self.assertIn('from: "0.4.0"', manifest)
-            self.assertIn("from: 0.4.0", project)
+            self.assertIn('from: "0.4.1"', manifest)
+            self.assertIn("from: 0.4.1", project)
             self.assertIn('package: "dwy-ai-experience"', manifest)
             self.assertTrue((output / (name + "Tests") / "SmokeTests.swift").is_file())
             for path in output.rglob("*"):
@@ -40,11 +40,11 @@ class TemplateSmokeTests(unittest.TestCase):
                     self.assertNotIn(stale, text, str(path))
 
     def test_ios_template_uses_private_versioned_package(self):
-        """iOS 生成物通过统一私有包 URL 按 0.4.0 版本引用。"""
+        """iOS 生成物通过统一私有包 URL 按 0.4.1 版本引用。"""
         self.check_platform("ios")
 
     def test_macos_template_uses_private_versioned_package(self):
-        """macOS 生成物通过统一私有包 URL 按 0.4.0 版本引用。"""
+        """macOS 生成物通过统一私有包 URL 按 0.4.1 版本引用。"""
         self.check_platform("macos")
 
     def test_repository_root_override_locates_templates(self):

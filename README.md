@@ -173,7 +173,7 @@ cd backend && uv sync
 
 ## 发布
 
-工作流为 `.github/workflows/private-release.yml`。分支运行回归，语义化标签（首版 `0.4.0`）创建私有发布；SwiftPM 使用同一 Git 标签，Web/Python 使用带 SHA256 清单的 tgz/wheel/sdist。旧公共发布工作流已禁用，npm 包级 `private` 保护阻止误公开。详见 [私有分发说明](docs/private-distribution.md)。
+工作流为 `.github/workflows/private-release.yml`。分支运行回归，语义化标签（首版 `0.4.1`）创建私有发布；SwiftPM 使用同一 Git 标签，Web/Python 使用带 SHA256 清单的 tgz/wheel/sdist。旧公共发布工作流已禁用，npm 包级 `private` 保护阻止误公开。详见 [私有分发说明](docs/private-distribution.md)。
 
 ## Contributing
 

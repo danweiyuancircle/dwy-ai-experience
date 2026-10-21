@@ -165,7 +165,9 @@ def main() -> None:
         else:
             download(args.repository, args.tag, args.directory)
     except (ReleaseError, subprocess.SubprocessError, OSError) as exc:
-        parser.exit(1, f"Private release failed: {type(exc).__name__}\n")
+        # ReleaseError 均为本模块固定文案；外部异常仍只输出类型，避免泄露凭据/原始响应。
+        reason = str(exc) if isinstance(exc, ReleaseError) else type(exc).__name__
+        parser.exit(1, f"Private release failed: {reason}\n")
     print(f"Private release {args.command}: verified")
 
 
