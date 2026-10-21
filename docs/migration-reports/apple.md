@@ -40,7 +40,7 @@ swift build \
   --target AuthGoogleIOS \
   --triple arm64-apple-ios17.0-simulator \
   --sdk "$IOS_SIMULATOR_SDK" \
-  --scratch-path .build-ios --cache-path .build --skip-update
+  --scratch-path .build-ios --cache-path .build
 ```
 
 | 检查 | 实际结果 |
