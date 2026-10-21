@@ -1,5 +1,6 @@
 {
   "verified_at": "2026-10-21T01:47:53.457713+00:00",
+  "verification_scope": "Initial migration evidence. Post-migration compatibility changes require final CI and consumer acceptance recorded separately.",
   "toolchain": "Xcode 27.1 / Apple Swift 6.4",
   "source_files": 89,
   "changed_files": [
@@ -26,8 +27,13 @@
     "apple/scripts/new-app.sh"
   ],
   "source_unchanged": true,
-  "all_migrated_swift_runtime_sources_byte_identical": true,
-  "dependency_pins_unchanged": true,
+  "all_migrated_swift_runtime_sources_byte_identical": false,
+  "dependency_pins_unchanged": false,
+  "initial_migration_preserved_runtime_and_pins": true,
+  "post_migration_changes": [
+    "GoogleSignIn 9.1.0 matches Quadrant; GoogleUtilities remains 8.1.4.",
+    "GoogleSignInProvider transfers only String using the official main-queue completion."
+  ],
   "macos_tests": {
     "command": "swift test",
     "exit_code": 0,

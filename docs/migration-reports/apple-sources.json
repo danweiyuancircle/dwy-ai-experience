@@ -56,15 +56,17 @@
       "source": "$SOURCE_ROOT/Package.resolved",
       "destination": "Package.resolved",
       "source_sha256": "bdff4e30a4d382a6fe1a7217bb05532c80ceadde3fe32a7498348c56dcfe8b2c",
-      "destination_sha256": "bdff4e30a4d382a6fe1a7217bb05532c80ceadde3fe32a7498348c56dcfe8b2c",
-      "content_changed": false
+      "destination_sha256": "986d885ccf0204716e2c3ee9ff9d06ad984cd04f0358579483db23a45ace9ea4",
+      "content_changed": true,
+      "integration_note": "GoogleSignIn 9.1.0 unifies the Quadrant dependency; GoogleUtilities remains 8.1.4."
     },
     {
       "source": "$SOURCE_ROOT/Package.swift",
       "destination": "Package.swift",
       "source_sha256": "d2d289f01f620a522d5e515331f568b4010e161e603f5258311777aeff575e97",
-      "destination_sha256": "b11ed34ae24ae83616491361deafa3b4a97f1758dccf9ffb9becf41fecc480be",
-      "content_changed": true
+      "destination_sha256": "b24dfb6670abb03dfb500462f507b2da50293e908d1d60985d7f8fc294bcf2e2",
+      "content_changed": true,
+      "integration_note": "GoogleSignIn 9.1.0 unifies the Quadrant dependency; GoogleUtilities remains 8.1.4."
     },
     {
       "source": "$SOURCE_ROOT/README.md",
@@ -259,8 +261,9 @@
       "source": "$SOURCE_ROOT/Sources/iOS/AuthGoogle/GoogleSignInProvider.swift",
       "destination": "modules/auth/apple/Sources/AuthGoogleIOS/GoogleSignInProvider.swift",
       "source_sha256": "69b70bdf8d159a03a9db6ead99200dd4da31b538418ff41b6e61a8dfdcee8f2b",
-      "destination_sha256": "69b70bdf8d159a03a9db6ead99200dd4da31b538418ff41b6e61a8dfdcee8f2b",
-      "content_changed": false
+      "destination_sha256": "6fb14accc5454167a483ebb7094ec991cba3faad619a165f37a3e0ad196ed7fb",
+      "content_changed": true,
+      "integration_note": "Official main-queue completion transfers only token String."
     },
     {
       "source": "$SOURCE_ROOT/Sources/iOS/DesignKit/ThemeManager.swift",

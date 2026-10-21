@@ -28,7 +28,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/sushichop/Puppy.git", from: "0.9.0"),
-        .package(url: "https://github.com/google/GoogleSignIn-iOS.git", exact: "9.0.0"),
+        .package(url: "https://github.com/google/GoogleSignIn-iOS.git", exact: "9.1.0"),
         // 8.1.5 在 2026-10-14 发布，选型时未满 7 天；限制传递依赖使用已稳定版本。
         .package(url: "https://github.com/google/GoogleUtilities.git", exact: "8.1.4"),
     ],

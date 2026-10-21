@@ -37,9 +37,18 @@ public final class GoogleSignInProvider: GoogleIDTokenProviding {
     public func signIn() async throws -> String {
         guard let controller = presentingViewController() else { throw AuthError.invalidConfiguration }
         GIDSignIn.sharedInstance.configuration = GIDConfiguration(clientID: configuration.iOSClientID, serverClientID: configuration.serverClientID)
-        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: controller)
-        guard let token = result.user.idToken?.tokenString, !token.isEmpty else { throw AuthError.invalidResponse }
-        return token
+        // 官方 completion 在主队列执行；仅转交 String，避免旧 Swift 将非 Sendable 的 ObjC 结果跨 actor 传递。
+        return try await withCheckedThrowingContinuation { continuation in
+            GIDSignIn.sharedInstance.signIn(withPresenting: controller) { result, error in
+                if let error {
+                    continuation.resume(throwing: error)
+                } else if let token = result?.user.idToken?.tokenString, !token.isEmpty {
+                    continuation.resume(returning: token)
+                } else {
+                    continuation.resume(throwing: AuthError.invalidResponse)
+                }
+            }
+        }
     }
 
     /// 清理 SDK 自有 Google 凭据；不撤销用户对其他 Google 应用的授权。

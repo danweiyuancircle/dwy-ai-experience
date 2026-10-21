@@ -27,7 +27,7 @@
 
 先增加 `apple/Tests/test_templates.py`，在原模板实际执行后得到 2 failures，原因均为旧远程 URL；再更新生成器、SwiftPM/XcodeGen 模板和来源文档，2 项通过。随后增加 `--skeleton` 显式传仓库根的兼容回归，先得到 1 failure，再修正模板资源路径为 `apple/Templates`，最终 3 项通过。生成结果检查版本、package 身份、文件/目录重命名、旧来源缺席、占位符完全替换。历史 CHANGELOG 的旧 tag 链接保留为原发布记录。
 
-## 实际验证
+## 初次机械迁移验证
 
 环境：Xcode 27.1（27A9275）、Apple Swift 6.4。默认系统 developer directory 为 CLT，所有 Swift 命令均局部设置 `DEVELOPER_DIR`，未改全局选择。
 
@@ -60,6 +60,15 @@ iOS 实际模块：`.build-ios/out/Products/Debug-iphonesimulator/AuthGoogleIOS.
 机器可读结果为 `apple/validation/results.json`。原始红绿、模板工程、最终 Swift test、iOS build 日志均保留于本地 `apple/validation`，由 `apple/validation/.gitignore` 排除；提交内容仅保留紧凑 `apple/validation/results.json` 与路径说明 `apple/validation/README.md`。
 
 ## 环境问题与验收边界
+
+### 后续整合修正
+
+初次机械迁移保持全部运行时源码及依赖 pin 字节一致。真实远端 CI 与消费者清点随后暴露两项必要兼容修正：
+
+- 四象限已直接固定 GoogleSignIn 9.1.0，共享根升级到相同版本，避免 SwiftPM 单依赖图冲突。[官方 9.1.0](https://github.com/google/GoogleSignIn-iOS/releases/tag/9.1.0) 于 2026-01-08 发布，已稳定超过七天。GoogleUtilities 保持 8.1.4；8.1.5 于 2026-10-14 16:27 UTC 发布，本次选型时尚不足七天。
+- 远端旧 Swift 对 SDK async 返回的 `GIDSignInResult` 报非 Sendable 跨 actor 错误。适配器改用官方保证在主队列执行的 completion，在回调中取出可发送的 token String 后恢复 continuation；不关闭并发检查或把 SDK 对象标记为 unchecked Sendable。Google 取消和失败错误继续原样抛出，缺 token 仍拒绝。
+
+`apple-sources.json` 保留来源摘要，目标摘要已更新并注明上述差异。初次迁移验证记录是历史证据；最终 CI 和消费者发布验收另见总验收报告。
 
 第一次全历史 GoogleSignIn 获取超时，后续官方浅取出现 `curl 18` / early EOF；最终在目标 `.build` 使用单命令 HTTP/1.1，从官方 tag 9.0.0 抓取，revision 与原锁定值 `3996d908c7b3ce8a87d39c808f9a6b2a08fbe043` 一致。未改全局 Git 设置。
 

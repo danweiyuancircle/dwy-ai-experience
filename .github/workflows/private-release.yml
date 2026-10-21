@@ -43,6 +43,9 @@ jobs:
           uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py modules/auth/backend/src scripts/private_release.py
       - name: Web and CLI regression
         run: |
+          pnpm --dir frontend/eui build
+          pnpm --dir frontend/ekit build
+          pnpm --dir frontend/admin-shell build
           pnpm --dir frontend/eui test
           pnpm --dir frontend/ekit test
           pnpm --dir frontend/admin-shell test
@@ -51,9 +54,6 @@ jobs:
       - name: Build and pack private artifacts
         run: |
           mkdir -p private-dist
-          pnpm --dir frontend/eui build
-          pnpm --dir frontend/ekit build
-          pnpm --dir frontend/admin-shell build
           pnpm --dir modules/auth/web build
           pnpm --dir frontend/eui pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           pnpm --dir frontend/ekit pack --pack-destination "$GITHUB_WORKSPACE/private-dist"

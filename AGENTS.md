@@ -366,4 +366,9 @@ Playground imports `docs/eui-integration-guide.md` via `?raw`; it does **not** n
 
 ## CLAUDE.md
 
-See `/Users/chances/WebstormProjects/dwy-shared/CLAUDE.md` for full build/test/release details, design system references, and extended conventions. This `AGENTS.md` is the condensed quick-start; `CLAUDE.md` is the exhaustive source of truth.
+See `CLAUDE.md` for full build/test/release details, design system references, and extended conventions. This `AGENTS.md` is the condensed quick-start; `CLAUDE.md` is the exhaustive source of truth.
+
+## [自成长] 项目规则
+
+- 同文件多个补丁 hunk 必须按源文件位置排序，JSON 清单改动按原数组顺序生成。否则后一个 hunk 可能无法回到前面的文本，出现“原文存在却匹配失败”；先检查顺序和上下文再重试，避免反复扩大匹配范围。
+
