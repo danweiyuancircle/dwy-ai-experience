@@ -1,0 +1,72 @@
+[
+  {
+    "source": "app-cloud/packages/cloud-auth/src/cloud_auth/__init__.py",
+    "sha256": "b93888f33d1b34cbe8181120a389d70aabdf4ab37229f815f1202924c272ded6",
+    "destination": "modules/auth/backend/src/dwy_app_auth/__init__.py"
+  },
+  {
+    "source": "app-cloud/packages/cloud-auth/src/cloud_auth/google.py",
+    "sha256": "e47eb69522c0a4e37f442584d751dfa90f60a35569683de11104b3037c2e0ae1",
+    "destination": "modules/auth/backend/src/dwy_app_auth/google.py"
+  },
+  {
+    "source": "app-cloud/packages/cloud-auth/src/cloud_auth/http.py",
+    "sha256": "4906311e94cd3c669178934958ece659aa09b110e75da47521ca0c770841c276",
+    "destination": "modules/auth/backend/src/dwy_app_auth/http.py"
+  },
+  {
+    "source": "app-cloud/packages/cloud-auth/src/cloud_auth/models.py",
+    "sha256": "629cf5d3ea90df1f1e9d4b2c992e976d15390196589a6369642337d857f59648",
+    "destination": "modules/auth/backend/src/dwy_app_auth/models.py"
+  },
+  {
+    "source": "app-cloud/packages/cloud-auth/src/cloud_auth/service.py",
+    "sha256": "647cfd560f2f1ae28532c29e0ac31b5f818a5bf527204c4621688329219389d5",
+    "destination": "modules/auth/backend/src/dwy_app_auth/service.py"
+  },
+  {
+    "source": "app-cloud/packages/cloud-auth/src/cloud_auth/storage.py",
+    "sha256": "edb2a5033cc05cbaefedc149cfd5a2cea9f2cb32d4f714afeca59ebe6199a940",
+    "destination": "modules/auth/backend/src/dwy_app_auth/storage.py"
+  },
+  {
+    "source": "app-cloud/src/app_cloud/admin/auth.py",
+    "sha256": "a6c22b874bae6177ecefdd4fdd4d9a6ff55d1065d92c02a122ddf04b1cd950ac",
+    "destination": "extracted authentication/identity portions; business retained in host"
+  },
+  {
+    "source": "app-cloud/src/app_cloud/admin/http.py",
+    "sha256": "351bee770b1b338e7cd2114259a5767d943cbe94f26f73b570b867a1dee5f2cd",
+    "destination": "extracted authentication/identity portions; business retained in host"
+  },
+  {
+    "source": "app-cloud/packages/cloud-kernel/src/cloud_kernel/identity.py",
+    "sha256": "819c543012d9d673172da74fc9d5d8461b0cae086b310e307c791afd546526a4",
+    "destination": "extracted authentication/identity portions; business retained in host"
+  },
+  {
+    "source": "app-cloud/tests/auth/test_auth.py",
+    "sha256": "352f7bf326293e19ac5037ca84587e3211f49cc61706fede780f8fa50a12d2f9",
+    "destination": "modules/auth/backend/tests/test_auth.py"
+  },
+  {
+    "source": "app-cloud/tests/auth/test_google.py",
+    "sha256": "fcbe97cf68eabece109e7bef1b5bde0dff77ba0eb9f2ced16906933f5844d296",
+    "destination": "modules/auth/backend/tests/test_google.py"
+  },
+  {
+    "source": "app-cloud/tests/auth/test_growth.py",
+    "sha256": "5b7408fb49dbcf29905310cbfd11c8c6946599f272ad72cc87a8685ce67f8445",
+    "destination": "modules/auth/backend/tests/test_growth.py"
+  },
+  {
+    "source": "app-cloud/tests/auth/test_lifecycle.py",
+    "sha256": "bed3d1e0081feb89a8b26991c6aba69a3c5903fe45f46ea27da231e21492706b",
+    "destination": "modules/auth/backend/tests/test_lifecycle.py"
+  },
+  {
+    "source": "app-cloud/tests/auth/TEST_CASES.md",
+    "sha256": "75f440debde9e5cb50b1bba10ed73ef904147ad10959c7a1ce0a3f051d16f76e",
+    "destination": "modules/auth/backend/tests/TEST_CASES.md"
+  }
+]

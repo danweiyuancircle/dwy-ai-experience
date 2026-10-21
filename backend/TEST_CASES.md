@@ -610,3 +610,8 @@ python -m pytest tests/test_email.py -v
 python -m pytest tests/test_logger.py -v
 python -m pytest tests/test_health.py -v
 ```
+
+## Application identity (`tests/test_identity.py`)
+
+- `test_principal_is_strict_and_immutable`: canonical application/user/session/device identity rejects coerced UUIDs and mutation.
+- `test_identity_dependency_rejects_wrong_app_and_malformed_credentials`: explicitly bound Bearer verification rejects missing, malformed, oversized and foreign-app credentials.

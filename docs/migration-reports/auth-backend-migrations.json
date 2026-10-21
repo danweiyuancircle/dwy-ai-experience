@@ -1,0 +1,66 @@
+[
+  {
+    "path": "src/app_cloud/admin/migrations/versions/001_admin_configuration.py",
+    "sha256": "cb9ce5fcb684156f718079556a58a821d2d00480a28841cb185ad5c1cea80711"
+  },
+  {
+    "path": "src/app_cloud/admin/migrations/env.py",
+    "sha256": "a9c0d4fc7e2f2646aa96a8bbb958eae64829cea4c8d285ae6cb7f0ae5fc8330f"
+  },
+  {
+    "path": "packages/adbox-server/src/adbox_server/migrations/versions/2156880018b8_session_lifecycle.py",
+    "sha256": "42770abdc0b582c3fca41b017d268e8308f72d50d93efa1619d2c532b5f372ed"
+  },
+  {
+    "path": "packages/quadrant-server/src/quadrant_server/migrations/versions/7b3a25c0d9e1_quadrant_business.py",
+    "sha256": "2947ecbe09b38ed970cc5e536351043a8c1e73ac0c797139b4d0e2b108051474"
+  },
+  {
+    "path": "packages/quadrant-server/src/quadrant_server/migrations/versions/29d4d3b471b1_google_auth.py",
+    "sha256": "48515c7a9beb0d4f51162d1e6b2d78b004d5ddc32c843e80cd0586baa348ba66"
+  },
+  {
+    "path": "packages/quadrant-server/src/quadrant_server/migrations/versions/cfa627a8c9c3_initial_apple_ledger.py",
+    "sha256": "cd00b4bbc4e07e90b4485e604c87ae8af7cb4dc9c6dfb5f4c5d36b5e7a7d8f78"
+  },
+  {
+    "path": "packages/quadrant-server/src/quadrant_server/migrations/env.py",
+    "sha256": "e6b2e032a601880f4fc315119c727037938a61c983c6d5c91e8a27677da19d75"
+  },
+  {
+    "path": "packages/quadrant-server/src/quadrant_server/migrations/script.py.mako",
+    "sha256": "ff8834ff02705d28b0f2337c5f7fb8f010176430c218da3862210704a2ee08e1"
+  },
+  {
+    "path": "packages/adbox-server/src/adbox_server/migrations/env.py",
+    "sha256": "05336aba08937ca0d55ded0bb2e92f63e4749202a522ad0188c2a3be0738afd5"
+  },
+  {
+    "path": "packages/adbox-server/src/adbox_server/migrations/script.py.mako",
+    "sha256": "08ed1440aedf9231e101a21be00e5d618063e23b05671244f83ee6bd1dbd51da"
+  },
+  {
+    "path": "packages/adbox-server/src/adbox_server/migrations/versions/33715557d0ea_google_auth_and_portable_sync.py",
+    "sha256": "62c7cfdaca1e7ab9730df1dd0f4faa0929418351edcf27d18a12ba09a0278eb4"
+  },
+  {
+    "path": "packages/adbox-server/src/adbox_server/migrations/versions/aae3ec7ee1cb_initial_apple_ledger.py",
+    "sha256": "565f336b291f52d961430daade13017b23bec90e002c058f1d7c978cc6504c6e"
+  },
+  {
+    "path": "packages/rightflow-server/src/rightflow_server/migrations/env.py",
+    "sha256": "fa2f1dcbca11804c6612593e05e7c11462d23fd7bc1d5d7e177ab5a870bc879d"
+  },
+  {
+    "path": "packages/rightflow-server/src/rightflow_server/migrations/script.py.mako",
+    "sha256": "a680cb7d2664273af8da4ca29e788f304f904b3b6ce325de2ef96ade55c5f880"
+  },
+  {
+    "path": "packages/rightflow-server/src/rightflow_server/migrations/versions/058f53fe9b59_google_auth_and_portable_sync.py",
+    "sha256": "56ba4d5f72bfb9e2b25a433c066a5e9a8c671c9cfcc36d17c43a95bae6fc3320"
+  },
+  {
+    "path": "packages/rightflow-server/src/rightflow_server/migrations/versions/92c1393d430e_session_lifecycle.py",
+    "sha256": "4d51710458ef9a58d55822b6c8ca3e1b2e8a8a0eb13de78952c328ee2c780f5f"
+  }
+]
