@@ -20,6 +20,7 @@ pip install dwyeapi
 - `pagination` — PaginationParams + paginate helper
 - `logger` — Facade logger (loguru-backed) with daily + size rotation and stdlib interception; downstream code depends on `dwyeapi.logger.Logger`, not loguru directly
 - `email` — 邮箱规范化（Gmail plus / 点号 / googlemail 折成同一收件箱）+ 常见个人域名白名单（`is_common_email_domain` / `require_common_email_domain`，注册查重必须走 `canonicalize_email`）
+- `device` — 可选 `[device]` 门面，复用 Python 3.9+ 的零运行时依赖设备指纹核心；[安装、契约与原生测试](packages/device-fingerprint/README.md)。仅私有 Release 分发，根导入不强制安装。
 - `providers.email` — 邮件验证码 Provider 工厂(内置 resend;支持业务通过 `register_email_provider` 注入自定义实现；验证码 Redis key 已自动规范化)
 
 ## Environment (dev / prod)

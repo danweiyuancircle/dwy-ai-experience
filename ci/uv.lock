@@ -320,18 +320,30 @@ requires-dist = [
 provides-extras = ["dev"]
 
 [[package]]
+name = "dwy-device-fingerprint"
+version = "0.1.0"
+source = { editable = "../backend/packages/device-fingerprint" }
+
+[package.metadata]
+requires-dist = [
+    { name = "pytest", marker = "extra == 'dev'", specifier = "==8.4.2" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.15.9" },
+]
+provides-extras = ["dev"]
+
+[[package]]
 name = "dwy-shared-ci"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "dwy-app-auth", extra = ["dev"] },
-    { name = "dwyeapi", extra = ["dev"] },
+    { name = "dwyeapi", extra = ["dev", "device"] },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "dwy-app-auth", extras = ["dev"], editable = "../modules/auth/backend" },
-    { name = "dwyeapi", extras = ["dev"], editable = "../backend" },
+    { name = "dwyeapi", extras = ["dev", "device"], editable = "../backend" },
 ]
 
 [[package]]
@@ -360,6 +372,9 @@ dev = [
     { name = "resend", extra = ["async"] },
     { name = "ruff" },
 ]
+device = [
+    { name = "dwy-device-fingerprint" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -367,6 +382,7 @@ requires-dist = [
     { name = "arq", marker = "extra == 'dev'", specifier = ">=0.26.0" },
     { name = "arq", marker = "extra == 'tasks'", specifier = ">=0.26.0" },
     { name = "bcrypt", specifier = ">=4.0.0" },
+    { name = "dwy-device-fingerprint", marker = "extra == 'device'", editable = "../backend/packages/device-fingerprint" },
     { name = "fakeredis", marker = "extra == 'dev'", specifier = ">=2.0.0" },
     { name = "fastapi", specifier = ">=0.100.0" },
     { name = "httpx", marker = "extra == 'dev'", specifier = ">=0.27.0" },
@@ -383,7 +399,7 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.6.0" },
     { name = "sqlalchemy", extras = ["asyncio"], specifier = ">=2.0.0" },
 ]
-provides-extras = ["tasks", "email-resend", "email", "dev"]
+provides-extras = ["device", "tasks", "email-resend", "email", "dev"]
 
 [[package]]
 name = "ecdsa"

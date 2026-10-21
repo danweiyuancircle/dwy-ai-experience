@@ -17,6 +17,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# 核心独立分发, 不将系统采集能力变成所有 eapi 用户的强制依赖.
+device = ["dwy-device-fingerprint==0.1.0"]
+
 tasks = [
     "arq>=0.26.0",
 ]
@@ -46,6 +49,9 @@ Repository = "https://github.com/danweiyuancircle/dwy-ai-experience"
 [build-system]
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.uv.sources]
+dwy-device-fingerprint = { path = "packages/device-fingerprint", editable = true }
 
 [tool.setuptools.packages.find]
 where = ["src"]

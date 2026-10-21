@@ -17,7 +17,7 @@ concurrency:
 jobs:
   packages:
     # 同一作业直接上传实际构建的字节，避开账号 Actions 中转产物配额。
-    needs: apple
+    needs: [apple, device]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -46,7 +46,9 @@ jobs:
       - name: Python contracts and package tests
         run: |
           uv run --project ci --frozen pytest backend/tests modules/auth/backend/tests scripts/tests -q -o asyncio_mode=auto
+          uv run --project ci --frozen pytest -c backend/packages/device-fingerprint/pyproject.toml backend/packages/device-fingerprint/tests -q
           uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py modules/auth/backend/src scripts/private_release.py
+          uv run --project ci --frozen ruff check backend/src/dwyeapi/device.py backend/packages/device-fingerprint/src backend/packages/device-fingerprint/tests
       - name: Web and CLI regression
         run: |
           pnpm --dir frontend/eui build
@@ -67,6 +69,7 @@ jobs:
           pnpm --dir modules/auth/web pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           pnpm --dir dwy-cli pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           uv build --project backend --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/device-fingerprint --out-dir "$GITHUB_WORKSPACE/private-dist" --default-index https://pypi.org/simple
           uv build --project modules/auth/backend --out-dir "$GITHUB_WORKSPACE/private-dist"
           # uv 自动生成的目录忽略标记不是发布产物；其余非白名单文件仍需拒绝。
           rm -f private-dist/.gitignore
@@ -81,6 +84,9 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           python3 scripts/private_release.py download --tag "$RELEASE_TAG" --directory /tmp/published-private-packages
+
+  device:
+    uses: ./.github/workflows/device-fingerprint.yml
 
   apple:
     runs-on: macos-15

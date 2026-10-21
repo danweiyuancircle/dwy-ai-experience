@@ -1,5 +1,12 @@
 # dwyeapi
 
+## Unreleased
+
+### Added
+
+- 新增可选 `dwyeapi.device` 门面及独立 `dwy-device-fingerprint 0.1.0` 轻包。标准库采集 Windows/macOS/Linux 系统身份，按固定产品域派生指纹，失败返回明确状态；核心支持 Python 3.9+，不拉取 FastAPI 依赖。
+- 私有 Release 增加轻包构建，三系统与 Python 版本矩阵验证原生采集；本轮不改公开 SDK 分发，也不发布版本。
+
 ## 0.11.0
 
 ### Breaking Changes

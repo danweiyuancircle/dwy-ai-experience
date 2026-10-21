@@ -6,6 +6,30 @@
 
 ---
 
+## device 模块与独立核心
+
+`tests/test_device.py`：3 项门面测试，验证类型和函数复用同一核心、缺 extra 不影响 eapi 基础导入、无关导入错误不被掩盖。
+
+独立核心位于 `packages/device-fingerprint/tests/`，不加载 eapi 的全局 fixtures，当前 74 项常规测试与 1 项显式原生验收：
+
+| 测试文件 | 覆盖 |
+| --- | --- |
+| test_collector.py | 固定 HMAC 向量、namespace/timeout 边界、不可变契约、三平台规范化、元数据独立、失败语义、导入无采集副作用 |
+| test_linux.py | 有界读取、路径优先级、仅缺失回退、无权限/非法/超长主文件不回退 |
+| test_windows.py | 64 位注册表视图、类型与长度、权限/缺失错误、非 Windows 延迟加载 |
+| test_macos.py | plist、固定参数、总超时、有界 stdout、回收进程、非零退出、错误不携带原始输出 |
+| test_native.py | DWY_DEVICE_NATIVE_TEST=1 时启用，验证当前系统真实身份可读及跨进程指纹稳定，不向日志打印指纹 |
+
+在仓库根目录运行核心常规测试：
+
+```bash
+uv run --directory backend/packages/device-fingerprint --extra dev --frozen pytest
+```
+
+macOS/Windows/Linux 原生验收在 `.github/workflows/device-fingerprint.yml` 的 Python 3.9/3.11/3.15 矩阵执行。Windows runner 不运行依赖 POSIX 匿名管道的 macOS 内部测试，该部分由 Linux/macOS runner 验证。
+
+---
+
 ## 1. config 模块（14 个）
 
 `tests/test_config.py`
