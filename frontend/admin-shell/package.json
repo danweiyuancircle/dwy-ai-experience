@@ -28,7 +28,7 @@
     "access": "restricted"
   },
   "peerDependencies": {
-    "@dwydev/ekit": "^0.9.0",
+    "@dwydev/ekit": "^0.9.0 || ^0.10.0",
     "@dwydev/eui": "^2.2.0",
     "lucide-vue-next": ">=0.400.0",
     "vue": "^3.5.0",

@@ -39,7 +39,7 @@ jobs:
           uv sync --project ci --frozen
       - name: Python contracts and package tests
         run: |
-          uv run --project ci --frozen pytest backend/tests modules/auth/backend/tests scripts/tests -q
+          uv run --project ci --frozen pytest backend/tests modules/auth/backend/tests scripts/tests -q -o asyncio_mode=auto
           uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py modules/auth/backend/src scripts/private_release.py
       - name: Web and CLI regression
         run: |

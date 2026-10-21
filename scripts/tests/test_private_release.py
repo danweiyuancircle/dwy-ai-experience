@@ -4,6 +4,7 @@ import importlib.util
 import json
 import subprocess
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -39,6 +40,13 @@ class PrivateReleaseTests(unittest.TestCase):
                 value = path.read_text()
                 self.assertNotIn("npm publish", value)
                 self.assertNotIn("pypa/gh-action-pypi-publish", value)
+
+    def test_python_packages_reject_accidental_public_uploads(self):
+        """PyPI 原生拒绝 Private classifier，为 Python 包保留第二层防误发布。"""
+        for directory in ("backend", "modules/auth/backend"):
+            with self.subTest(directory=directory):
+                value = tomllib.loads((ROOT / directory / "pyproject.toml").read_text())
+                self.assertIn("Private :: Do Not Upload", value["project"].get("classifiers", []))
 
     def test_github_public_repository_is_rejected(self):
         """服务端真实可见性与预期不符时 fail closed。"""

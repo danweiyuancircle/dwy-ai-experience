@@ -8,6 +8,8 @@ GitHub Actions 工作流 `.github/workflows/private-release.yml` 在私有仓库
 
 发布包括五个 npm tgz（EUI、EKIT、admin-kit、auth-web、CLI）、EAPI/auth Python wheel 与 sdist、`release-manifest.json` 和 `SHA256SUMS`。SwiftPM 使用同一源提交的 Git 标签。工作流只使用临时 `GITHUB_TOKEN`，不配置长期 npm/PyPI 发布凭据；公开仓库可见性检查失败时立即拒绝。
 
+npm 包启用 `private: true`；两个 Python 包使用 `Private :: Do Not Upload` classifier，PyPI 会原生拒绝带该标记的上传，见 [PyPI 官方说明](https://pypi.org/classifiers/)。这些保护不影响私有归档构建和本地安装。
+
 本地 Web 验证使用 `.node-version` 指定的 Node 22.14.0，与 CI 一致。本机若使用 Node 26，其原生 Web Storage 会干扰旧版 Vitest/jsdom 的全局存储注入；可局部设置 `NODE_OPTIONS=--no-experimental-webstorage` 运行测试，无需更改业务存储实现。
 
 ## 下载与安装

@@ -1,6 +1,6 @@
 # 账户与会话测试
 
-使用 `/Users/chances/freetime/ios/app-cloud/.venv/bin/pytest tests/auth -q` 执行。
+在 `modules/auth/backend` 目录执行 `python -m pytest tests -q`，覆盖独立用户认证与管理员认证测试。
 
 | 文件 | 覆盖行为 |
 | --- | --- |
