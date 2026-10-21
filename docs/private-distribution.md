@@ -10,6 +10,8 @@ GitHub Actions 工作流 `.github/workflows/private-release.yml` 在私有仓库
 
 npm 包启用 `private: true`；两个 Python 包使用 `Private :: Do Not Upload` classifier，PyPI 会原生拒绝带该标记的上传，见 [PyPI 官方说明](https://pypi.org/classifiers/)。这些保护不影响私有归档构建和本地安装。
 
+Apple 验证通过后，Web/Python 在同一作业内构建、校验并直接上传实际包字节到 Release；不依赖账号的 Actions artifact 中转存储。只有标签构建执行上传，普通分支只做构建与校验。
+
 本地 Web 验证使用 `.node-version` 指定的 Node 22.14.0，与 CI 一致。本机若使用 Node 26，其原生 Web Storage 会干扰旧版 Vitest/jsdom 的全局存储注入；可局部设置 `NODE_OPTIONS=--no-experimental-webstorage` 运行测试，无需更改业务存储实现。
 
 ## 下载与安装

@@ -16,9 +16,15 @@ concurrency:
 
 jobs:
   packages:
+    # 同一作业直接上传实际构建的字节，避开账号 Actions 中转产物配额。
+    needs: apple
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     env:
       GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ github.ref_name }}
+      RELEASE_REVISION: ${{ github.sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
@@ -62,12 +68,17 @@ jobs:
           pnpm --dir dwy-cli pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           uv build --project backend --out-dir "$GITHUB_WORKSPACE/private-dist"
           uv build --project modules/auth/backend --out-dir "$GITHUB_WORKSPACE/private-dist"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: private-packages
-          path: private-dist/*
-          if-no-files-found: error
-          retention-days: 7
+          python3 scripts/private_release.py manifest --directory private-dist --tag "0.0.0-ci.$GITHUB_RUN_ID" --revision "$GITHUB_SHA"
+      - name: Verify and publish immutable private release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          python3 scripts/private_release.py check
+          python3 scripts/private_release.py manifest --directory private-dist --tag "$RELEASE_TAG" --revision "$RELEASE_REVISION"
+          gh release create "$RELEASE_TAG" private-dist/* --verify-tag --title "Private shared $RELEASE_TAG" --notes "Private Apple framework and EAPI authentication packages. Verify release-manifest.json and SHA256SUMS before installation."
+      - name: Download the published release and verify bytes
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          python3 scripts/private_release.py download --tag "$RELEASE_TAG" --directory /tmp/published-private-packages
 
   apple:
     runs-on: macos-15
@@ -87,28 +98,3 @@ jobs:
         run: |
           ios_sdk_path="$(xcrun --sdk iphonesimulator --show-sdk-path)"
           swift build --target AuthGoogleIOS --triple arm64-apple-ios17.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios
-
-  publish:
-    if: startsWith(github.ref, 'refs/tags/')
-    needs: [packages, apple]
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    env:
-      GH_TOKEN: ${{ github.token }}
-      RELEASE_TAG: ${{ github.ref_name }}
-      RELEASE_REVISION: ${{ github.sha }}
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
-        with:
-          name: private-packages
-          path: private-dist
-      - name: Verify and publish immutable private release
-        run: |
-          python3 scripts/private_release.py check
-          python3 scripts/private_release.py manifest --directory private-dist --tag "$RELEASE_TAG" --revision "$RELEASE_REVISION"
-          gh release create "$RELEASE_TAG" private-dist/* --verify-tag --title "Private shared $RELEASE_TAG" --notes "Private Apple framework and EAPI authentication packages. Verify release-manifest.json and SHA256SUMS before installation."
-      - name: Download the published release and verify bytes
-        run: |
-          python3 scripts/private_release.py download --tag "$RELEASE_TAG" --directory /tmp/published-private-packages
