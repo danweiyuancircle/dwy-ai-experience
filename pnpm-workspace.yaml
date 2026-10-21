@@ -1,3 +1,4 @@
 packages:
   - 'frontend/*'
   - 'dwy-cli'
+  - 'modules/auth/web'

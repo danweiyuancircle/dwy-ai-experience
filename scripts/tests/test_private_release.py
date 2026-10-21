@@ -27,7 +27,7 @@ class PrivateReleaseTests(unittest.TestCase):
 
     def test_npm_packages_cannot_be_accidentally_published(self):
         """私有源码也可能被 npm publish 公开，包级必须有拒绝保护。"""
-        for directory in ("frontend/eui", "frontend/ekit", "frontend/admin-shell", "dwy-cli"):
+        for directory in ("frontend/eui", "frontend/ekit", "frontend/admin-shell", "modules/auth/web", "dwy-cli"):
             with self.subTest(directory=directory):
                 value = json.loads((ROOT / directory / "package.json").read_text())
                 self.assertIs(value.get("private"), True)
