@@ -6,14 +6,15 @@
     <a href="./README.en.md">English</a>
   </p>
   <p>
-    <img src="https://img.shields.io/github/actions/workflow/status/danweiyuancircle/dwy-ai-experience/publish-cli.yml?label=Build%20%26%20Release%20CLI" alt="Build and Release CLI" />
-    <img src="https://img.shields.io/npm/v/create-dwy?label=create-dwy" alt="create-dwy version" />
+    <a href="https://github.com/danweiyuancircle/dwy-ai-experience/actions/workflows/private-release.yml">Private builds and releases</a>
     <img src="https://img.shields.io/github/license/danweiyuancircle/dwy-ai-experience" alt="license" />
     <img src="https://img.shields.io/badge/platform-Claude%20%2F%20Codex-blue" alt="platform" />
   </p>
 </div>
 
 ## 简介
+
+本仓库已转为私有共享能力仓库。新增 Apple 框架、Google 用户登录和独立管理员认证模块，分别位于 `apple/` 与 `modules/auth/`。新版本统一走私有 GitHub Release；下文公共 npm/PyPI 安装示例仅适用于历史公开版本，当前安装方式见 [docs/private-distribution.md](docs/private-distribution.md)。
 
 `dwy-ai-experience` 是一个围绕 AI 开发体验搭建的 monorepo，当前主要覆盖三类能力：
 
@@ -62,7 +63,7 @@ npm install @dwydev/admin-kit
 
 - 统一项目初始化、规则分发、技能同步与 hooks 同步
 - 支持 `Claude` 与 `Codex` 两套本地协作配置落地
-- npm / PyPI 发布流程收敛到 GitHub Actions OIDC
+- Swift / Python / npm 产物由 GitHub Actions 验证并分发到私有 Release
 - 内置移动端全面屏、图标库、注释规范等通用工程规则
 
 ## Claude CLI
@@ -172,15 +173,7 @@ cd backend && uv sync
 
 ## 发布
 
-### CLI
-
-- tag 规则：`create-dwy@x.y.z`
-- 发布方式：GitHub Actions + OIDC
-- 发布结果：自动发布 npm，并自动创建 GitHub Release
-
-### Libraries
-
-- `eui` 与 `ekit` 使用统一的构建与发布流程
+工作流为 `.github/workflows/private-release.yml`。分支运行回归，语义化标签（首版 `0.4.0`）创建私有发布；SwiftPM 使用同一 Git 标签，Web/Python 使用带 SHA256 清单的 tgz/wheel/sdist。旧公共发布工作流已禁用，npm 包级 `private` 保护阻止误公开。详见 [私有分发说明](docs/private-distribution.md)。
 
 ## Contributing
 

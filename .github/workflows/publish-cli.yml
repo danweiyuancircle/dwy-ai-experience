@@ -1,60 +1,15 @@
-name: Publish CLI to npm
+name: Legacy CLI public publishing disabled
 
-# 打 create-dwy@x.y.z tag 时发布 create-dwy 到 npm，使用 OIDC Trusted Publishing（免 NPM_TOKEN）
+# Private migration: only private-release.yml may distribute new artifacts.
 on:
-  push:
-    tags:
-      - 'create-dwy@*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write   # OIDC Trusted Publishing 必需
-    defaults:
-      run:
-        working-directory: dwy-cli
+  disabled:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
-
-      # OIDC Trusted Publishing 需要 npm >= 11.5.1
-      - name: Upgrade npm
-        run: npm install -g npm@latest
-
-      - name: Verify tag matches package version
-        id: verify
-        run: |
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION="${GITHUB_REF_NAME#create-dwy@}"
-          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
-            echo "::error::tag version ($TAG_VERSION) != package.json version ($PKG_VERSION)"
-            exit 1
-          fi
-          echo "publishing create-dwy@$PKG_VERSION"
-          echo "release_name=create-dwy@$PKG_VERSION" >> "$GITHUB_OUTPUT"
-          echo "package_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Build release notes
-        run: |
-          python3 ../.github/scripts/extract_changelog_section.py \
-            CHANGELOG.md \
-            "${{ steps.verify.outputs.package_version }}" \
-            "${{ steps.verify.outputs.release_name }}" \
-            > ../.github/release-body-cli.md
-
-      - name: Publish
-        run: npm publish --access public
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ steps.verify.outputs.release_name }}
-          draft: false
-          body_path: .github/release-body-cli.md
+      - run: echo 'Public publishing disabled; use the private release workflow.'

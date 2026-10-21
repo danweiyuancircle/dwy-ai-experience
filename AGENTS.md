@@ -194,6 +194,10 @@
 
 <!-- DWY-BASELINE:END -->
 
+## 私有仓库分发约束
+
+本仓库新版本禁止发布到公共 npm/PyPI。使用 `.github/workflows/private-release.yml` 以短期 `GITHUB_TOKEN` 构建并上传私有 GitHub Release，发布前查询实际仓库 private 状态。SwiftPM 使用同一语义化 Git 标签；历史公共发布规则和示例仅供旧版本参考。不得在 URL、包配置或提交文件中写入私有凭据。
+
 # AGENTS.md
 
 Compact instructions for OpenCode sessions working in `dwy-shared`.

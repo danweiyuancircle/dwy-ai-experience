@@ -1,0 +1,14 @@
+[project]
+name = "dwy-shared-ci"
+version = "0.0.0"
+requires-python = ">=3.11,<3.13"
+dependencies = ["dwyeapi[dev]==0.11.1", "dwy-app-auth[dev]==0.1.0"]
+
+[tool.uv]
+package = false
+# 固定发布时间上界，避免重建锁文件时引入发布不足七天的新依赖。
+exclude-newer = "2026-10-13T00:00:00Z"
+
+[tool.uv.sources]
+dwyeapi = { path = "../backend", editable = true }
+dwy-app-auth = { path = "../modules/auth/backend", editable = true }

@@ -1,5 +1,6 @@
 {
   "name": "create-dwy",
+  "private": true,
   "version": "0.20.0",
   "description": "项目脚手架与多平台 AI 配置同步工具",
   "type": "module",
@@ -36,6 +37,6 @@
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-    "access": "public"
+    "access": "restricted"
   }
 }

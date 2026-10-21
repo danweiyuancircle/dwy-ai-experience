@@ -1,5 +1,6 @@
 {
   "name": "@dwydev/eui",
+  "private": true,
   "version": "2.7.1",
   "type": "module",
   "description": "Vue 3 component library — shadcn-vue visuals + Element Plus API + Tailwind CSS 4",
@@ -29,7 +30,7 @@
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-    "access": "public"
+    "access": "restricted"
   },
   "peerDependencies": {
     "@vueuse/core": "^14.2.1",

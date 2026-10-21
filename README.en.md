@@ -6,14 +6,15 @@
     <a href="./README.md">中文</a>
   </p>
   <p>
-    <img src="https://img.shields.io/github/actions/workflow/status/danweiyuancircle/dwy-ai-experience/publish-cli.yml?label=Build%20%26%20Release%20CLI" alt="Build and Release CLI" />
-    <img src="https://img.shields.io/npm/v/create-dwy?label=create-dwy" alt="create-dwy version" />
+    <a href="https://github.com/danweiyuancircle/dwy-ai-experience/actions/workflows/private-release.yml">Private builds and releases</a>
     <img src="https://img.shields.io/github/license/danweiyuancircle/dwy-ai-experience" alt="license" />
     <img src="https://img.shields.io/badge/platform-Claude%20%2F%20Codex-blue" alt="platform" />
   </p>
 </div>
 
 ## Overview
+
+This repository is now private. Shared Apple frameworks and separate Google-user/admin authentication modules live in `apple/` and `modules/auth/`. New packages are distributed through authenticated private GitHub Releases. Public npm/PyPI examples below apply to historical public versions; see [the private distribution guide](docs/private-distribution.md) for current installation.
 
 `dwy-ai-experience` is a monorepo built around AI development workflows. It currently brings together three major areas:
 
@@ -53,7 +54,7 @@ npm install @dwydev/ekit
 
 - Unified project bootstrap, rules distribution, skill sync, and hooks sync
 - Supports both `Claude` and `Codex` local collaboration setup
-- npm / PyPI release flow standardized through GitHub Actions OIDC
+- Swift, Python and npm packages validated and distributed through private GitHub Actions releases
 - Shared engineering rules for mobile full-screen adaptation, icon libraries, and code annotation
 
 ## Claude CLI
@@ -163,15 +164,7 @@ cd backend && uv sync
 
 ## Release
 
-### CLI
-
-- Tag format: `create-dwy@x.y.z`
-- Pipeline: GitHub Actions + OIDC
-- Result: npm publish and GitHub Release created automatically
-
-### Libraries
-
-- `eui` and `ekit` follow a unified build and release workflow
+`.github/workflows/private-release.yml` validates branches and publishes semantic tags (starting with `0.4.0`) to private GitHub Releases. SwiftPM uses the same Git tag; Web/Python packages use tgz/wheel/sdist assets with SHA256 manifests. Legacy public workflows are disabled. See [the distribution guide](docs/private-distribution.md).
 
 ## Contributing
 

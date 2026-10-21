@@ -1,5 +1,6 @@
 {
   "name": "@dwydev/ekit",
+  "private": true,
   "version": "0.10.0",
   "type": "module",
   "description": "Shared utilities, hooks, and helpers for dwydev projects",
@@ -26,7 +27,7 @@
   ],
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
-    "access": "public"
+    "access": "restricted"
   },
   "peerDependencies": {
     "@vueuse/core": "^14.2.1",

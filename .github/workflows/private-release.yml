@@ -1,0 +1,112 @@
+name: Private shared packages
+
+on:
+  push:
+    branches: [master, 'codex/private-shared-*']
+    tags: ['0.*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: private-shared-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  packages:
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22.14.0'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11.17'
+      - name: Verify private repository and package policy
+        run: |
+          python scripts/private_release.py check
+          python -m unittest discover -s scripts/tests -p test_private_release.py
+      - name: Install fixed build tools and locked dependencies
+        run: |
+          npm install --global pnpm@10.19.0
+          python -m pip install uv==0.13.0
+          pnpm install --frozen-lockfile
+          uv sync --project ci --frozen
+      - name: Python contracts and package tests
+        run: |
+          uv run --project ci --frozen pytest backend/tests modules/auth/backend/tests scripts/tests -q
+          uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py modules/auth/backend/src scripts/private_release.py
+      - name: Web and CLI regression
+        run: |
+          pnpm --dir frontend/eui test
+          pnpm --dir frontend/ekit test
+          pnpm --dir frontend/admin-shell test
+          pnpm --dir modules/auth/web test
+          pnpm --dir dwy-cli test
+      - name: Build and pack private artifacts
+        run: |
+          mkdir -p private-dist
+          pnpm --dir frontend/eui build
+          pnpm --dir frontend/ekit build
+          pnpm --dir frontend/admin-shell build
+          pnpm --dir modules/auth/web build
+          pnpm --dir frontend/eui pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
+          pnpm --dir frontend/ekit pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
+          pnpm --dir frontend/admin-shell pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
+          pnpm --dir modules/auth/web pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
+          pnpm --dir dwy-cli pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project modules/auth/backend --out-dir "$GITHUB_WORKSPACE/private-dist"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: private-packages
+          path: private-dist/*
+          if-no-files-found: error
+          retention-days: 7
+
+  apple:
+    runs-on: macos-15
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Verify private source and Swift package
+        run: |
+          python3 scripts/private_release.py check
+          swift package dump-package > /tmp/apple-package.json
+          python3 -m unittest discover -s apple/Tests -p 'test_*.py'
+          swift test
+      - name: Build Google adapter against real iOS simulator SDK
+        run: |
+          ios_sdk_path="$(xcrun --sdk iphonesimulator --show-sdk-path)"
+          swift build --target AuthGoogleIOS --triple arm64-apple-ios17.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [packages, apple]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ github.ref_name }}
+      RELEASE_REVISION: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: private-packages
+          path: private-dist
+      - name: Verify and publish immutable private release
+        run: |
+          python3 scripts/private_release.py check
+          python3 scripts/private_release.py manifest --directory private-dist --tag "$RELEASE_TAG" --revision "$RELEASE_REVISION"
+          gh release create "$RELEASE_TAG" private-dist/* --verify-tag --title "Private shared $RELEASE_TAG" --notes "Private Apple framework and EAPI authentication packages. Verify release-manifest.json and SHA256SUMS before installation."
+      - name: Download the published release and verify bytes
+        run: |
+          python3 scripts/private_release.py download --tag "$RELEASE_TAG" --directory /tmp/published-private-packages
