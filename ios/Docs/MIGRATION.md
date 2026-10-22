@@ -10,13 +10,13 @@ AppleAppKit 已合入开发套件仓库 `dwy-shared`，统一 Git 来源为 `htt
 - `ios/Tests/`：框架、认证与模板生成测试。
 - `ios/Templates/`、`ios/scripts/`、`ios/Docs/`：模板、生成器和接入文档。
 
-仓库根 `Package.swift` / `Package.resolved` 保留为远程 SwiftPM 的必要入口和依赖锁文件，所有 target 指向 `ios/`。十个 product 名、公开 API、iOS 17 / macOS 14 部署底线保持不变。
+仓库根 `Package.swift` 保留为远程 SwiftPM 入口，`Package.resolved` 记录开发依赖版本，所有 target 指向 `ios/`。原有 product 名、公开 API、iOS 17 / macOS 14 部署底线保持不变；新增邮箱密码 UI 见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`。
 
 ## 历史版本
 
 `0.4.1` 标签与私有 Release 保持原内容；当前目录整理尚未发布新版本。业务应用继续使用原有固定版本，后续升级由各应用单独决定。
 
-来源清单和初次迁移哈希保存在 `docs/migration-reports/apple-sources.json`，历史验证记录见 `docs/migration-reports/apple.md`。其中 `apple/`、`modules/auth/apple/` 均为初次迁移的历史路径。
+来源清单和初次迁移哈希保存在 `docs/archive/migration-reports/apple-sources.json`，历史验证记录见 `docs/archive/migration-reports/apple.md`。其中 `apple/`、`modules/auth/apple/` 均为初次迁移的历史路径。
 
 旧目录中的未提交认证源码与测试已承接到本仓；Google SDK 适配器保留统一仓库现有的 9.1.0 和 Swift 并发兼容实现。应用账户、业务数据库和登录配置仍由各宿主独立维护。
 

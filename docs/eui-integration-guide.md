@@ -6,6 +6,8 @@
 
 ### 安装组件库
 
+从公开 npm 安装已发布版本，无需源码仓库权限：
+
 ```bash
 pnpm add @dwydev/eui
 ```

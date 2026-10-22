@@ -1,6 +1,6 @@
 # Google 登录与 AppCloud 会话
 
-本模块只封装 Google 登录，不读取 Gmail 邮件、不包含邮箱密码登录，也不引入 Firebase Auth。ADBox、RightFlow 尚未接入，已有应用的远程 AppleAppKit 版本引用保持不动。
+本文说明 Google 登录接入，不读取 Gmail 邮件，也不引入 Firebase Auth。邮箱密码接入见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`；宿主 App 是否启用各登录方式由自身配置决定。
 
 ## 模块与信任边界
 
@@ -119,7 +119,7 @@ generation 防止迟到登录/刷新重新写入；在途请求不主动取消�
 
 测试命令：`swift test --filter AuthCoreTests`。用例清单位于 `ios/Tests/AuthCoreTests/TEST_CASES.md`。
 
-2026-10-21 迁移目标验证：统一仓库根目录完整 `swift test` **43 项通过、0 失败**，包含 `AuthCoreTests` **18 项**；使用真实 Xcode iPhoneSimulator SDK、`arm64-apple-ios17.0-simulator` 在独立 `.build-ios` 目录编译 `AuthGoogleIOS`（包含官方 SDK 与传递依赖）通过。迁移证据见 `docs/migration-reports/apple.md`。复现目标编译：
+2026-10-21 迁移目标验证：统一仓库根目录完整 `swift test` **43 项通过、0 失败**，包含 `AuthCoreTests` **18 项**；使用真实 Xcode iPhoneSimulator SDK、`arm64-apple-ios17.0-simulator` 在独立 `.build-ios` 目录编译 `AuthGoogleIOS`（包含官方 SDK 与传递依赖）通过。迁移证据见 `docs/archive/migration-reports/apple.md`。复现目标编译：
 
 ```bash
 swift build \

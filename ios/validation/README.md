@@ -1,6 +1,6 @@
 # Apple 迁移验证证据
 
-初次迁移结果保存在 `ios/validation/results.json`，其中时间、原目录路径、命令与验证结论保留历史快照，不改写为本次目录整理的验证结果。迁移说明与来源哈希清单位于 `docs/migration-reports/apple.md`、`docs/migration-reports/apple-sources.json`。
+初次迁移结果保存在 `ios/validation/results.json`，其中时间、原目录路径、命令与验证结论保留历史快照，不改写为本次目录整理的验证结果。迁移说明与来源哈希清单位于 `docs/archive/migration-reports/apple.md`、`docs/archive/migration-reports/apple-sources.json`。
 
 2026-10-21 目录整理已将 `apple/` 与 `modules/auth/apple/` 合并到 `ios/`；下表保留初次迁移证据路径，已有本地证据随原 `apple/validation/` 移至 `ios/validation/`。
 
@@ -22,7 +22,7 @@
 
 ```bash
 swift test
-python3 -m unittest discover -s apple/Tests -p 'test_*.py'
+python3 -m unittest discover -s ios/Tests -p 'test_*.py'
 IOS_SIMULATOR_SDK="$(xcrun --sdk iphonesimulator --show-sdk-path)"
 swift build --target AuthGoogleIOS --triple arm64-apple-ios17.0-simulator \
   --sdk "$IOS_SIMULATOR_SDK" --scratch-path .build-ios

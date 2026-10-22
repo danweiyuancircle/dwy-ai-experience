@@ -18,7 +18,7 @@ async function copyItemsTo(baseDir, typeDir, items) {
   for (const item of items) {
     const dest = path.join(targetDir, item.name)
     await fs.ensureDir(path.dirname(dest))
-    await fs.copy(item.sourcePath, dest, { overwrite: true, filter: copyFilter })
+    await fs.copy(item.sourcePath, dest, { overwrite: true, filter: copyFilter(item.sourcePath) })
     logAction(`.opencode/${typeDir}/${item.name}`)
     count++
   }

@@ -1,188 +1,68 @@
-<div align="center">
-  <h1>dwy-ai-experience</h1>
-  <p><strong>dwy 的个人 AI 仓库</strong></p>
-  <p>聚焦 AI 工具链、项目脚手架、规则同步与工程化发布流程</p>
-  <p>
-    <a href="./README.en.md">English</a>
-  </p>
-  <p>
-    <a href="https://github.com/danweiyuancircle/dwy-ai-experience/actions/workflows/private-release.yml">Private builds and releases</a>
-    <img src="https://img.shields.io/github/license/danweiyuancircle/dwy-ai-experience" alt="license" />
-    <img src="https://img.shields.io/badge/platform-Claude%20%2F%20Codex-blue" alt="platform" />
-  </p>
-</div>
+# dwy-ai-experience
 
-## 简介
+团队共享基础库与开发工具 monorepo，按 CLI、后端、前端网页和 Apple 客户端四类组织。
 
-本仓库已转为私有共享能力仓库。iOS/macOS 框架、Google 登录客户端、测试与模板统一位于 `ios/`；后端与 Web 认证模块位于 `modules/auth/`。仓库根 `Package.swift` 保留为远程 SwiftPM 入口，所有 target 指向 `ios/`。新版本统一走私有 GitHub Release；下文公共 npm/PyPI 安装示例仅适用于历史公开版本，当前安装方式见 [docs/private-distribution.md](docs/private-distribution.md)。
+[English](README.en.md) · [文档索引](docs/README.md) · [源码与包分发](docs/private-distribution.md)
 
-`dwy-ai-experience` 是一个围绕 AI 开发体验搭建的 monorepo，当前主要覆盖三类能力：
+## 目录与包
 
-- `dwy-cli`：项目脚手架、规则模板、Claude/Codex 同步入口
-- `frontend/*`：前端组件库、工具库与演示站
-- `backend`：FastAPI 后端基础设施与服务模板
+| 路径 | 包 / 用途 |
+| --- | --- |
+| `dwy-cli/` | `create-dwy`：CLI、项目脚手架和 AI 配置同步 |
+| `dwy-cli/templates/ai-tools/` | 分发用 skills、rules、hooks 与 hook 清单 |
+| `dwy-cli/templates/project/` | 项目脚手架模板 |
+| `backend/src/dwyeapi/` | `dwyeapi`：FastAPI 基础设施 |
+| `backend/packages/device-fingerprint/` | `dwy-device-fingerprint`：独立设备指纹包 |
+| `backend/packages/app-auth/` | `dwy-app-auth`：应用认证与独立管理员会话 |
+| `frontend/eui/` | `@dwydev/eui`：Vue 组件库 |
+| `frontend/ekit/` | `@dwydev/ekit`：前端工具库 |
+| `frontend/admin-shell/` | `@dwydev/admin-kit`：管理端基础框架 |
+| `frontend/auth-web/` | `@dwydev/auth-web`：网页认证组件与 Cookie 会话 |
+| `frontend/playground/` | 文档与组件演示站 |
+| `ios/` | AppleAppKit：iOS/macOS 框架、客户端认证、测试与模板 |
+| `ci/`、`scripts/`、`.github/` | 跨包验证与私有构建发布工具 |
 
-这个仓库的重点不是单个包，而是把团队协作规范、项目初始化方式、AI 编码约束和发布流程统一收敛到一套可复用工具链。
+根 `Package.swift` 是远程 SwiftPM 入口，源码和测试位于 `ios/`。根 `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml` 统一管理 CLI 与前端；Python 使用 uv 独立管理。
 
-## 核心包
+根 `.claude/`、`.agents/` 是开发本仓库时使用的配置，与 CLI 分发模板分开。
 
-### `@dwydev/eui`
+## 本地开发
 
-基于 shadcn UI 样式、Element UI 写法、Tailwind CSS 4 和 Reka UI 的 Vue 3 组件库，面向中后台、管理台、业务表单和内部工具。
-
-```bash
-npm install @dwydev/eui
-```
-
-### `dwyeapi`
-
-面向 FastAPI 项目的基础设施库，提供配置、异常、数据库、安全、缓存、分页、日志等后端通用能力。
+使用 `.node-version` 指定的 Node 和根 `package.json` 指定的 pnpm。以下命令从仓库根执行：
 
 ```bash
-pip install dwyeapi
+pnpm install --frozen-lockfile
+uv sync --project ci --frozen
+
+pnpm build:frontend
+pnpm --dir frontend/auth-web build
+pnpm --dir frontend/playground dev
+node dwy-cli/bin/index.js --help
 ```
 
-### `@dwydev/ekit`
+Python 锁定开发环境统一位于 `ci/`，其中引用本仓库的 EAPI、应用认证和设备指纹源码。
 
-Vue 3 工具库，提供 hooks、请求封装、时间处理、下载、cookie、querystring 等项目常用工具能力。
+## 验证
 
 ```bash
-npm install @dwydev/ekit
+uv run --project ci --frozen pytest backend/tests backend/packages/app-auth/tests scripts/tests -q -o asyncio_mode=auto
+pnpm --dir frontend/eui test
+pnpm --dir frontend/ekit test
+pnpm --dir frontend/admin-shell test
+pnpm --dir frontend/auth-web test
+pnpm --dir dwy-cli test
+swift test
 ```
 
-### `@dwydev/admin-kit`
+Apple 验证需要完整 Xcode 环境。本机使用 Node 26 时，如 Vitest/jsdom 受实验性 Web Storage 影响，可按 [docs/private-distribution.md](docs/private-distribution.md) 局部设置测试环境。
 
-中后台**壳路由框架**（`defineAdminModule` 模块装配 + `createAdminShell` 纯数据装配 + `AdminShell` 壳组件，meta 驱动侧栏菜单 / 面包屑 / PageHero）。视觉底座用 eui `EAdminLayout`，**不并入 eui**；用户菜单 / 通知等由宿主经 `header-center` / `header-extra` 插槽自行组装，支持 `menuFilter` 角色过滤菜单。0.2.0 起以 quant-cloud 控制台实战版为基座。
+## 接入与分发
 
-```bash
-npm install @dwydev/admin-kit
-# peers: vue vue-router @dwydev/eui @dwydev/ekit lucide-vue-next
-```
+- 认证总览：[docs/auth.md](docs/auth.md)。
+- EUI 接入与设计规范、Tasks 接入等：[docs/README.md](docs/README.md)。
+- Apple 框架与示例：[ios/README.md](ios/README.md)。
+- 私有源码与公开包安装：[docs/private-distribution.md](docs/private-distribution.md)。
 
-## 主要特性
+GitHub 源码保持私有，npm/PyPI 包公开发布，允许任何人安装使用。按包标签触发 `.github/workflows/publish-*.yml`，发布使用 OIDC；`dwy upgrade` 从 npm 更新正式版。CLI 默认读取包内模板，无需源码仓库权限。SwiftPM 继续使用私有 Git 仓库的语义化标签，跨包 CI 和可选 GitHub 快照保留在 `.github/workflows/private-release.yml`。
 
-- 统一项目初始化、规则分发、技能同步与 hooks 同步
-- 支持 `Claude` 与 `Codex` 两套本地协作配置落地
-- Swift / Python / npm 产物由 GitHub Actions 验证并分发到私有 Release
-- 内置移动端全面屏、图标库、注释规范等通用工程规则
-
-## Claude CLI
-
-`dwy-cli` 是这个仓库最核心的模块，目标不是只做“创建项目”，而是把团队协作规范直接写进工具链。
-
-### 核心命令
-
-- `dwy create <project-name>`
-  - 创建标准项目模板
-- `dwy` / `dwy sync`
-  - 开头选择：同步全局 skills，或把选中的规则 / skills / hooks 同步到当前项目
-- `dwy upgrade`
-  - 把全局安装的 `create-dwy` 升到 npm latest
-
-### 解决的问题
-
-- 让新项目快速继承统一目录结构与基础工程配置
-- 让团队规则不再依赖口头约定或复制粘贴
-- 让 Claude Code / Codex 的项目级配置可持续同步
-- 让发布流程逐步收敛到可审计的 GitHub Actions
-
-## 仓库结构
-
-- `/dwy-cli`
-  - `create-dwy` CLI、本地同步逻辑、模板与规则源
-- `/frontend/eui`
-  - Vue 组件库
-- `/frontend/ekit`
-  - Vue 工具库
-- `/frontend/playground`
-  - 组件演示与文档站
-- `/backend`
-  - FastAPI 基础设施与后端模板
-
-## Libraries
-
-### `@dwydev/eui`
-
-Vue 3 组件库，定位是基于 shadcn UI 的样式、Element UI 的写法，结合 Tailwind CSS 4 和 Reka UI，提供可直接复用的业务组件能力。
-
-- 组件基础：按钮、输入框、弹层、菜单、表格、日历等
-- 风格与交互：shadcn UI 样式 + Element UI API 写法
-- 设计基座：Tailwind CSS 4 + Reka UI
-- 适用场景：中后台、管理台、内部工具、业务表单
-
-```bash
-npm install @dwydev/eui
-```
-
-### `@dwydev/ekit`
-
-Vue 3 工具库，提供项目常用 hooks、请求封装、时间处理、下载与 cookie 等通用能力，目标是减少业务项目重复造轮子。
-
-- 通用 hooks 与辅助函数
-- 请求层插件链封装
-- 文件下载、cookie、querystring 等常用工具
-
-```bash
-npm install @dwydev/ekit
-```
-
-### `dwyeapi`
-
-FastAPI 基础设施库，提供后端项目常用的配置、异常、数据库、安全、缓存、分页、日志等能力。
-
-- 配置管理：基于 `pydantic-settings`
-- 数据库：`SQLAlchemy asyncio`
-- 安全能力：JWT、密码哈希
-- 基础设施：Redis、分页、日志、统一异常处理
-
-```bash
-pip install dwyeapi
-```
-
-如需任务队列或邮件扩展：
-
-```bash
-pip install "dwyeapi[tasks]"
-pip install "dwyeapi[email]"
-```
-
-## 快速开始
-
-### 安装 CLI 依赖
-
-```bash
-cd dwy-cli
-pnpm install
-```
-
-### 创建并同步
-
-```bash
-npx create-dwy your-project
-
-dwy sync
-```
-
-## 开发
-
-```bash
-cd frontend/eui && pnpm install && pnpm build
-cd frontend/ekit && pnpm install && pnpm build
-cd backend && uv sync
-```
-
-## 发布
-
-工作流为 `.github/workflows/private-release.yml`。分支运行回归，语义化标签（首版 `0.4.1`）创建私有发布；SwiftPM 使用同一 Git 标签，Web/Python 使用带 SHA256 清单的 tgz/wheel/sdist。旧公共发布工作流已禁用，npm 包级 `private` 保护阻止误公开。详见 [私有分发说明](docs/private-distribution.md)。
-
-迁移模块、正式发布与消费者验收结果见 [迁移验收报告](docs/migration-reports/acceptance.md)。
-
-## Contributing
-
-- 遵循仓库内 [`AGENTS.md`](./AGENTS.md) 与对应模板约定
-- 跨包改动尽量拆分提交，保持变更边界清晰
-- 如果修改共享模板或规则，同步更新 `dwy-cli/templates/`
-
-## License
-
-MIT
+历史迁移来源、发布与消费者验收证据保留在 [docs/archive/README.md](docs/archive/README.md)，不作为当前接入说明。

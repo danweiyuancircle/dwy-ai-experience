@@ -12,4 +12,4 @@ exclude-newer = "2026-10-13T00:00:00Z"
 [tool.uv.sources]
 dwyeapi = { path = "../backend", editable = true }
 dwy-device-fingerprint = { path = "../backend/packages/device-fingerprint", editable = true }
-dwy-app-auth = { path = "../modules/auth/backend", editable = true }
+dwy-app-auth = { path = "../backend/packages/app-auth", editable = true }

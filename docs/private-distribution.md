@@ -1,40 +1,55 @@
-# 私有源码与产物分发
+# 私有源码与公开包分发
 
-权威源码位于私有仓库 `https://github.com/danweiyuancircle/dwy-ai-experience`。新版本不再发布到公共 npm/PyPI；旧公开版本保留供既有项目使用。
+GitHub 源码仓库 `https://github.com/danweiyuancircle/dwy-ai-experience` 保持私有。npm/PyPI 安装包公开发布，允许任何人下载使用，无需 GitHub 仓库权限。公开包包含运行所需实现与资源；仓库可见性与安装包可见性分开管理。
 
-## 发布路径
+## 发布入口
 
-GitHub Actions 工作流 `.github/workflows/private-release.yml` 在私有仓库运行 Web/Python/Swift 回归和构建。只有标准 SwiftPM 语义化标签（首版 `0.4.1`）才能创建私有 GitHub Release；分支构建不创建发布。
+| 包 | 目录 | 标签 | GitHub Actions |
+| --- | --- | --- | --- |
+| `@dwydev/eui` | `frontend/eui/` | `@dwydev/eui@VERSION` | `.github/workflows/publish-eui.yml` |
+| `@dwydev/ekit` | `frontend/ekit/` | `@dwydev/ekit@VERSION` | `.github/workflows/publish-ekit.yml` |
+| `@dwydev/admin-kit` | `frontend/admin-shell/` | `@dwydev/admin-kit@VERSION` | `.github/workflows/publish-admin.yml` |
+| `@dwydev/auth-web` | `frontend/auth-web/` | `@dwydev/auth-web@VERSION` | `.github/workflows/publish-auth-web.yml` |
+| `create-dwy` | `dwy-cli/` | `create-dwy@VERSION` | `.github/workflows/publish-cli.yml` |
+| `dwyeapi` | `backend/` | `dwyeapi@VERSION` | `.github/workflows/publish-eapi.yml` |
+| `dwy-app-auth` | `backend/packages/app-auth/` | `dwy-app-auth@VERSION` | `.github/workflows/publish-app-auth.yml` |
+| `dwy-device-fingerprint` | `backend/packages/device-fingerprint/` | `dwy-device-fingerprint@VERSION` | `.github/workflows/publish-device-fingerprint.yml` |
 
-发布包括五个 npm tgz（EUI、EKIT、admin-kit、auth-web、CLI）、EAPI/auth Python wheel 与 sdist、`release-manifest.json` 和 `SHA256SUMS`。SwiftPM 使用同一源提交的 Git 标签。工作流只使用临时 `GITHUB_TOKEN`，不配置长期 npm/PyPI 发布凭据；公开仓库可见性检查失败时立即拒绝。
+`VERSION` 必须与对应包元数据一致。正常分支推送只验证代码，不发布 registry 包。修改后需要发布新版本，不能覆盖已经存在的 npm/PyPI 版本，也不重打已交付标签。
 
-npm 包启用 `private: true`；两个 Python 包使用 `Private :: Do Not Upload` classifier，PyPI 会原生拒绝带该标记的上传，见 [PyPI 官方说明](https://pypi.org/classifiers/)。这些保护不影响私有归档构建和本地安装。
+所有发布都走 GitHub Actions + OIDC，不使用长期 npm/PyPI token；发布前使用 `scripts/private_release.py check` 验证源码仓库仍为私有。
 
-Apple 验证通过后，Web/Python 在同一作业内构建、校验并直接上传实际包字节到 Release；不依赖账号的 Actions artifact 中转存储。只有标签构建执行上传，普通分支只做构建与校验。
+每个 npm 包需要先完成包初始化，再在 npm 后台配置 Trusted Publisher，绑定本仓库及对应工作流文件；新增 npm 包不能只添加工作流就假设首发授权已经可用。PyPI 项目同样需要配置可信发布者，新项目可配置 Pending Publisher。这些后台绑定需在实际发版前核对，源码配置不能代替后台授权；不以长期发布 token 绕过这些前提。
 
-本地 Web 验证使用 `.node-version` 指定的 Node 22.14.0，与 CI 一致。本机若使用 Node 26，其原生 Web Storage 会干扰旧版 Vitest/jsdom 的全局存储注入；可局部设置 `NODE_OPTIONS=--no-experimental-webstorage` 运行测试，无需更改业务存储实现。
+首次交付按依赖顺序推进：先发布 `dwy-device-fingerprint`，再发布提供 `device` extra 的 `dwyeapi`，最后发布精确依赖该 EAPI 版本的 `dwy-app-auth`。前端包先满足 EUI/EKIT 的依赖版本，再发布依赖它们的管理端与网页认证包。
 
-## 下载与安装
+私有源码仓库可以使用 npm Trusted Publishing，但不会产生公开源码 provenance；不添加强制 provenance 参数。公开 npm 包不设置 `private: true`，scoped 包使用 `publishConfig.access: public`；根工作区仍保留 `private: true`。Python 包不使用禁止上传的 Private classifier。
 
-使用有权读取仓库的 `gh` 账号或 CI 短期身份认证。跨业务仓库 CI 应配置有只读目标仓库权限的 GitHub App 短期令牌或受控只读访问，不能把私有凭据写进依赖 URL、包配置或提交文件。
+## 安装与更新
 
-```sh
-# 在共享仓库根目录执行。
-python3 scripts/private_release.py download --tag 0.4.1 --directory /tmp/dwy-private-0.4.1
+下面命令安装 registry 中已经发布的版本；工作区中的新功能需要完成新版本发布后才会进入这些安装入口。
+
+```bash
+pnpm add @dwydev/eui @dwydev/ekit @dwydev/admin-kit @dwydev/auth-web
+npm install --global create-dwy
+dwy upgrade
+python -m pip install dwyeapi dwy-app-auth dwy-device-fingerprint
 ```
 
-下载命令要求目标目录为空，并验证每份产物实际大小和 SHA256。`release-manifest.json` 记录源提交，不能把后续同版本本地重建包当作已发布包。
+`dwy` 默认使用安装包内的 `templates/ai-tools/`，不克隆私有源码仓库。开发者可显式使用 `DWY_TEMPLATE_SOURCE_DIR` 指向本地模板目录；不存在的显式目录会报错。
 
-Python 消费者显式安装已下载的 EAPI/auth wheel，避免公共索引解析成旧包；其他第三方依赖按消费项目锁文件安装。开发时可使用固定提交的私有 Git 依赖并指定子目录。
+本地 Web 验证使用 `.node-version` 指定的 Node 22.14.0。本机若使用 Node 26，其原生 Web Storage 可能干扰 Vitest/jsdom，可局部设置 `NODE_OPTIONS=--no-experimental-webstorage` 运行测试。
 
-Node 消费者从下载目录安装所需 tgz，EUI/EKIT/admin-kit 等内部依赖也应显式选用同一私有发布产物。不能把认证 cookie 或 Google/管理员凭据放进 npm 配置或浏览器持久存储。
+## SwiftPM 与 GitHub 快照
 
-CLI 可通过 `npm install -g /tmp/dwy-private-0.4.1/create-dwy-0.20.0.tgz` 安装。现有 CLI 的 `dwy upgrade` 与帮助中的公共 npm 安装提示仍属于历史公开分发入口；私有版本更新需重新认证下载指定 Release 后安装 tgz，不使用该公共更新命令。
+Apple 消费者继续通过 Xcode/SwiftPM 访问私有 Git 仓库，使用标准语义化版本标签；需要相应仓库读取权限。公开 npm/PyPI 发布不会改变 SwiftPM 的访问方式。
 
-Apple 消费者在 Xcode/SwiftPM 配置私有 Git 访问，依赖 URL 为 `https://github.com/danweiyuancircle/dwy-ai-experience.git`，版本 `0.4.1`。产品名保持 CoreKit、CacheKit、PurchaseCore、AuthCore 等，SPM 仓库 identity 改为 `dwy-ai-experience`。
+`.github/workflows/private-release.yml` 保留跨包 Web/Python/Swift 验证，并可在语义化标签下生成私有 GitHub Release 快照。快照使用短期 `GITHUB_TOKEN`，包含实际构建产物、`release-manifest.json` 和 `SHA256SUMS`，是补充交付渠道。
 
-## 边界
+历史 `0.4.1` GitHub Release 及其原始哈希清单保留，不能把后续同版本重建产物冒充该历史发布。需要下载历史快照时，可使用 `scripts/private_release.py download`，命令会验证产物大小和哈希；日常 Node/Python 消费直接使用公开 registry。
 
-仓库私有化不会撤回已被下载的历史公开代码或包。当前方案不要求开通收费私有 registry，也不引入新常驻分发服务；后续可把同一产物推入私有 npm/Python registry。
+## 验证边界
 
-真实 Google OAuth、Apple 购买以及产品后端部署需要独立配置和验收；私有发布测试只证明构建、发布、读取和安装链，不冒充真实登录验收。
+本地构建、单测、YAML 检查和安装包 smoke 不代表 npm/PyPI 已经发布成功。正式发布还需核对可信发布者绑定，运行标签工作流，并从公共 registry 安装新版本验收。
+
+真实 Google OAuth、Apple 购买及业务后端部署分别验收，不由基础包发布测试代替。

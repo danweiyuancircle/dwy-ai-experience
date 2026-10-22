@@ -10,10 +10,10 @@ eapi 体系下独立的跨平台设备指纹核心，Python 3.9+，零运行时�
 uv pip install ./backend/packages/device-fingerprint
 ```
 
-内部消费者从私有 Release 取得并核验 wheel 后安装：
+安装公开 PyPI 已发布版本：
 
 ```bash
-python -m pip install ./private-dist/dwy_device_fingerprint-0.1.0-py3-none-any.whl
+python -m pip install dwy-device-fingerprint
 ```
 
 完整示例只打印采集状态，不把设备指纹写入日志：
@@ -65,13 +65,13 @@ if __name__ == "__main__":
 
 Python 3.11+ 且已安装匹配核心的 eapi 应用可以从 `dwyeapi.device` 导入同一入口和类型。eapi 根导入不强制加载设备模块。
 
-私有发布产物齐备后，可显式从本地 eapi wheel 安装 extra：
+EAPI 的公开版本提供 `device` extra：
 
 ```bash
-python -m pip install --find-links ./private-dist './private-dist/dwyeapi-0.11.1-py3-none-any.whl[device]'
+python -m pip install 'dwyeapi[device]'
 ```
 
-本包遵守仓库私有分发规则。公开 SDK 接入需先明确允许分发范围，再从固定版本共享源码构建内嵌模块；不能直接依赖私有包，也不能手工维护第二份实现。
+源码仓库保持私有，安装包通过 `.github/workflows/publish-device-fingerprint.yml` 公开发布。SDK 可以依赖固定版本的公开包，不需要源码仓库权限，也无需维护第二份实现。
 
 ## 测试与构建
 

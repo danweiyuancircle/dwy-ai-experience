@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 共享基础包 monorepo。pnpm workspace 管理前端 + CLI，Python (uv) 单独管理后端。
 
+顶层按 `dwy-cli/`、`backend/`、`frontend/`、`ios/` 划分。认证后端位于 `backend/packages/app-auth/`，网页认证位于 `frontend/auth-web/`，跨端接入总览见 `docs/auth.md`。CLI 分发的 skills、rules、hooks 保留在 `dwy-cli/templates/ai-tools/`；根 `.claude/`、`.agents/` 是本仓库开发配置。
+
 ## Commands
 
 ```bash
@@ -27,12 +29,8 @@ cd backend && pytest tests/test_security.py -v        # 后端单个模块测试
 # Lint（仅后端）
 cd backend && ruff check src/ && ruff format --check src/
 
-# 发布：打 tag 后 git push origin <tag>，由 GitHub Actions OIDC 发布。不要 source .key，不要 pnpm publish:*
-# @dwydev/ekit@x.y.z      → .github/workflows/publish-ekit.yml
-# @dwydev/eui@x.y.z       → .github/workflows/publish-eui.yml
-# dwyeapi@x.y.z           → .github/workflows/publish-eapi.yml
-# create-dwy@x.y.z        → .github/workflows/publish-cli.yml
-# @dwydev/admin-kit@x.y.z → .github/workflows/publish-admin.yml
+# 发布：包名@版本标签触发对应 .github/workflows/publish-*.yml，使用 OIDC 发布公开 npm/PyPI 包。
+# GitHub 源码保持私有；标准语义化标签供 SwiftPM 和可选 GitHub 快照使用，详见 docs/private-distribution.md。
 ```
 
 ## Architecture
@@ -109,7 +107,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。扁平模块：
 #### 当前入口（与 `dwy --help` 一致）
 
 - **`dwy`** / **`dwy sync`**：依次选择 Skills → Rules → 全局／当前项目 → 平台 → 确认。各类用分类 Tab 逐项勾选，无回退；Hooks 按平台自动同步，Commands 停用并保留本地文件。全局同步整套配置，保留个人规则和设置；Cursor 仅支持项目规则。启动显示 dwy 品牌
-- **`dwy upgrade`**：把全局安装的 `create-dwy` 升到 npm `latest`（正式版）。源码仓不能自升级
+- **`dwy upgrade`**：将全局安装的 `create-dwy` 更新到公开 npm 的正式版 `latest`；源码仓不自升级。
 - **`dwy --help`** / **`dwy --version`**
 
 模板随 `create-dwy` 发布包内置于 `dwy-cli/templates/ai-tools`。
@@ -134,14 +132,14 @@ skill / 工具的本机判断缓存统一存项目内 `<project_root>/.dwy/<业�
 ## 文档同步约束
 
 - `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件
-- 该文件变更后，必须同步到 `dwy-cli/templates/claude-global/skills/dwy-eui/references/eui-integration-guide.md`
+- 该文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-integration-guide.md`
 - playground 的 `EuiIntegrationDoc.vue` 通过 `?raw` 导入同一文件，无需额外同步
 - `docs/tasks-integration-guide.md` 是 Tasks 集成指南的唯一源文件
-- 该文件变更后，必须同步到 `dwy-cli/templates/claude-global/skills/dwy-eapi/references/tasks-integration-guide.md`
-- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `dwy-cli/templates/claude-global/skills/dwy-eapi/SKILL.md` 中的 tasks 章节
+- 该文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Python/dwy-eapi/references/tasks-integration-guide.md`
+- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `dwy-cli/templates/ai-tools/skills/Python/dwy-eapi/SKILL.md` 中的 tasks 章节
 - `docs/eui-design-guide.md` 是 EUI 中后台设计规范的唯一源文件
 - `docs/eui-landing-design-guide.md` 是 EUI 落地页设计规范的唯一源文件
-- 以上两个文件变更后，必须同步到 `dwy-cli/templates/claude-global/skills/dwy-eui/references/` 对应文件
+- 以上两个文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/` 对应文件
 
 ## 产品0到1 流程 schema 版本约束（强制）
 
@@ -253,44 +251,13 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 
 ## Release
 
-### 包列表
+GitHub 源码仓库保持私有，安装包通过 `.github/workflows/publish-*.yml` 公开发布到 npm/PyPI。
 
-| 包名 | scope | 版本文件 | 测试命令 | 构建命令 | 发布命令 | 验证命令 |
-|------|-------|---------|---------|---------|---------|---------|
-| @dwydev/eui | eui | frontend/eui/package.json | cd frontend/eui && pnpm vitest run | pnpm build:eui | `git push origin @dwydev/eui@x.y.z` | npm view @dwydev/eui version |
-| @dwydev/ekit | ekit | frontend/ekit/package.json | cd frontend/ekit && pnpm vitest run | pnpm build:ekit | `git push origin @dwydev/ekit@x.y.z` | npm view @dwydev/ekit version |
-| dwyeapi | eapi | backend/pyproject.toml | cd backend && pytest tests/ -v | — | `git push origin dwyeapi@x.y.z` | pip index versions dwyeapi |
-| create-dwy | cli | dwy-cli/package.json | — | — | `git push origin create-dwy@x.y.z` | npm view create-dwy version |
+- 发布前使用 `scripts/private_release.py check` 查询真实仓库可见性，公开仓库必须拒绝发布。
+- registry 发布使用 GitHub Actions OIDC；GitHub Release 快照使用短期 `GITHUB_TOKEN`，二者用途分开。
+- 根工作区保持 `private: true`；发布用 npm 包允许 public access，Python 包不加禁止上传的 Private classifier。
+- 按包维护版本文件与 CHANGELOG；`pnpm changelog` 仍可生成变更记录。
+- 以 `<package-name>@<version>` 标签发布对应包，必须与包元数据版本一致；公开安装和版本查询是发布验收的一部分。
+- 不移动或重打已经交付的版本标签；后续修正使用新版本。
 
-### 依赖顺序
-
-多包发版时按此顺序：ekit → eui → eapi → cli
-
-### Tag 命名
-
-- 单包：`@dwydev/eui@1.3.0`、`create-dwy@0.6.0`
-- 多包同时发布：每个包各打一个 tag
-
-### CHANGELOG
-
-- 命令：`pnpm changelog`
-- 工具：changelogen
-
-### 发布鉴权
-
-eui、ekit、eapi、cli、admin-kit 都走对应 workflow 的 `id-token: write`。eapi 用 `pypa/gh-action-pypi-publish`。不要把 token 放进 `.key` 再本地 `uv publish` / `npm publish`。
-
-### create-dwy (CLI) 发布
-
-走 GitHub Actions + npm OIDC Trusted Publishing，**不用 NPM_TOKEN**：
-
-1. 改 `dwy-cli/package.json` 的 `version`
-2. **补 `dwy-cli/CHANGELOG.md`**：在文件顶部（上一版本之前）加 `## x.y.z` 段 + `### Minor Changes` / `### Patch Changes` + bullet 列表。CI 的 "Build release notes" 步骤会用 `.github/scripts/extract_changelog_section.py` 抽取该段作为 GitHub Release body，**缺该段 CI 直接失败**（报 `version section not found`）
-3. commit（version + CHANGELOG 一起）推 `origin`
-4. 打 tag `create-dwy@x.y.z`（版本号须与 package.json 一致，否则 CI 校验失败）
-5. `git push origin create-dwy@x.y.z` → 触发 `.github/workflows/publish-cli.yml` 自动发布
-
-> 补救：若已推 tag 后才发现忘改 CHANGELOG，补 CHANGELOG commit → 删远程旧 tag `git push origin :refs/tags/create-dwy@x.y.z` → 本地重打 tag → 重推触发 CI。
-
-- `origin` 即 GitHub 仓库 `danweiyuancircle/dwy-ai-experience`，推 tag 即触发 CI
-- npm 侧已绑定 Trusted Publisher：`danweiyuancircle/dwy-ai-experience` + `publish-cli.yml`
+公开包发布、安装和私有 SwiftPM 消费步骤见 `docs/private-distribution.md`。`.github/workflows/private-release.yml` 继续提供跨包 CI 和可选私有快照；历史验收见 `docs/archive/README.md`。

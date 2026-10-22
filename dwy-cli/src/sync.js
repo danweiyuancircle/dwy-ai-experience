@@ -2,7 +2,7 @@ import fs from 'fs-extra'
 import path from 'path'
 import { isCancel } from '@clack/prompts'
 import { tabMultiselect } from './tab-multiselect.js'
-import { chalk, DEFAULT_TEMPLATE_REPO_URL, getDwyHomeDir, runGit } from './utils.js'
+import { chalk, PACKAGE_ROOT } from './utils.js'
 
 const CATEGORIES = [
   { key: 'skills', label: 'Skills' },
@@ -20,14 +20,9 @@ const COPY_EXCLUDE_PATTERNS = [
   /\.pyc$/,
 ]
 
-const TEMPLATE_SOURCE_CANDIDATES = [
-  ['dwy-cli', 'templates', 'ai-tools'],
-  ['claude-cli', 'templates', 'ai-tools'],
-  ['templates', 'ai-tools'],
-]
-
-export function copyFilter(src) {
-  return !COPY_EXCLUDE_PATTERNS.some(re => re.test(src))
+/** 只过滤模板内部缓存，避免 npm 安装路径中的 node_modules 导致整份模板被跳过。 */
+export function copyFilter(sourceRoot) {
+  return src => !COPY_EXCLUDE_PATTERNS.some(re => re.test(path.relative(sourceRoot, src)))
 }
 
 export function extractDescription(content) {
@@ -245,60 +240,11 @@ export function logAction(label, color = 'green', prefix = '✓') {
   console.log(chalk[color](`  ${prefix} ${label}`))
 }
 
-function getTemplateRepoCacheDir() {
-  return path.join(getDwyHomeDir(), 'cache', 'dwy')
-}
-
-async function resolveTemplateDirFromRepo(repoDir) {
-  for (const segments of TEMPLATE_SOURCE_CANDIDATES) {
-    const candidate = path.join(repoDir, ...segments)
-    if (await fs.pathExists(candidate)) return candidate
-  }
-
-  throw new Error(`ai-tools templates not found in repo: ${repoDir}`)
-}
-
-async function readGitOriginUrl(repoDir) {
-  try {
-    return await runGit(['-C', repoDir, 'remote', 'get-url', 'origin'])
-  } catch {
-    return ''
-  }
-}
-
-async function ensureTemplateRepoCache() {
-  const repoDir = getTemplateRepoCacheDir()
-  const repoRoot = path.dirname(repoDir)
-  await fs.ensureDir(repoRoot)
-
-  const hasGitDir = await fs.pathExists(path.join(repoDir, '.git'))
-  if (hasGitDir) {
-    const originUrl = await readGitOriginUrl(repoDir)
-    if (!originUrl || originUrl !== DEFAULT_TEMPLATE_REPO_URL) {
-      console.log(chalk.gray('缓存模板仓库 origin 已变更，重建缓存...'))
-      await fs.remove(repoDir)
-    }
-  } else if (await fs.pathExists(repoDir)) {
-    console.log(chalk.gray('缓存目录不是 git 仓库，重建缓存...'))
-    await fs.remove(repoDir)
-  }
-
-  if (!await fs.pathExists(path.join(repoDir, '.git'))) {
-    console.log(chalk.gray('拉取模板仓库...'))
-    await runGit(['clone', DEFAULT_TEMPLATE_REPO_URL, repoDir])
-    return repoDir
-  }
-
-  console.log(chalk.gray('更新模板仓库...'))
-  await runGit(['-C', repoDir, 'pull', '--ff-only'])
-  return repoDir
-}
-
 async function copyItems(items, targetDir) {
   for (const item of items) {
     const dest = path.join(targetDir, item.type + 's', item.name)
     await fs.ensureDir(path.dirname(dest))
-    await fs.copy(item.sourcePath, dest, { overwrite: true, filter: copyFilter })
+    await fs.copy(item.sourcePath, dest, { overwrite: true, filter: copyFilter(item.sourcePath) })
     logAction(`${item.type}s/${item.name}`)
   }
   return items.length
@@ -314,7 +260,7 @@ async function copyHooks(items, targetDir) {
       continue
     }
     const dest = path.join(hooksTargetDir, hook.name)
-    await fs.copy(hook.sourcePath, dest, { overwrite: true, filter: copyFilter })
+    await fs.copy(hook.sourcePath, dest, { overwrite: true, filter: copyFilter(hook.sourcePath) })
     if (!await fs.pathExists(dest)) {
       logAction(`hooks/${hook.name}`, 'yellow', '!')
       continue
@@ -456,6 +402,7 @@ async function syncClaudeBaselineDoc(sourceDir, targetDir, global) {
   return 1
 }
 
+/** 默认读取随包模板；仅开发者显式设置环境变量时改用外部目录，不要求仓库权限。 */
 export async function resolveSourceDir() {
   const explicitSourceDir = process.env.DWY_TEMPLATE_SOURCE_DIR
   if (explicitSourceDir) {
@@ -465,8 +412,7 @@ export async function resolveSourceDir() {
     return explicitSourceDir
   }
 
-  const repoDir = await ensureTemplateRepoCache()
-  return resolveTemplateDirFromRepo(repoDir)
+  return path.join(PACKAGE_ROOT, 'templates', 'ai-tools')
 }
 
 /** 同步 Claude 配置；global 模式用传入的用户目录，并保留个人 CLAUDE.md 内容。 */

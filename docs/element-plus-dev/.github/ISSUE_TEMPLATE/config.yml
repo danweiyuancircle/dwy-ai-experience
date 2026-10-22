@@ -1,8 +1,0 @@
-blank_issues_enabled: true
-contact_links:
-  - name: 🔗 Create new issue / 创建新 issue
-    url: https://issue.element-plus.org/
-    about: Issues created using the ⚠️ Blank issue above will be closed directly. Please click this link to create an issue using the issue helper. / 使用上面 ⚠️ Blank issue 创建的问题将会被直接关闭，请点击此链接通过 issue helper 创建.
-  - name: 🤔 Questions and Help / 问题和帮助
-    url: https://github.com/element-plus/element-plus/discussions
-    about: Ask questions and request help or other discussions.

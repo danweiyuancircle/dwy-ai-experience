@@ -1,4 +1,4 @@
-"""私有发布回归：公开仓库拒绝发布，产物必须完整、可校验且无路径逃逸。"""
+"""私有源码、公开包发布回归，以及 GitHub 快照产物的完整性校验。"""
 
 import importlib.util
 import json
@@ -25,28 +25,44 @@ class PrivateReleaseTests(unittest.TestCase):
         spec.loader.exec_module(module)
         return module
 
-    def test_npm_packages_cannot_be_accidentally_published(self):
-        """私有源码也可能被 npm publish 公开，包级必须有拒绝保护。"""
-        for directory in ("frontend/eui", "frontend/ekit", "frontend/admin-shell", "modules/auth/web", "dwy-cli"):
+    def test_npm_packages_are_publicly_publishable_but_workspace_is_not(self):
+        """源码仓库私有不应阻止包发布，根工作区仍不得作为包上传。"""
+        self.assertIs(json.loads((ROOT / "package.json").read_text())["private"], True)
+        for directory in ("frontend/eui", "frontend/ekit", "frontend/admin-shell", "frontend/auth-web", "dwy-cli"):
             with self.subTest(directory=directory):
                 value = json.loads((ROOT / directory / "package.json").read_text())
-                self.assertIs(value.get("private"), True)
-                self.assertNotEqual(value.get("publishConfig", {}).get("access"), "public")
+                self.assertIsNot(value.get("private"), True)
+                self.assertEqual(value["publishConfig"]["access"], "public")
 
-    def test_legacy_workflows_no_longer_publish_public_packages(self):
-        """即使管理员重新启用旧工作流，源码也不能恢复公共 registry 发布。"""
-        for path in (ROOT / ".github/workflows").glob("publish-*.yml"):
+    def test_public_publishing_uses_oidc_from_private_source(self):
+        """每个公开发布入口使用短期身份，并在发布前核查源码仓库私有。"""
+        workflows = {
+            "publish-eui.yml": "npm publish --access public",
+            "publish-ekit.yml": "npm publish --access public",
+            "publish-admin.yml": "npm publish --access public",
+            "publish-auth-web.yml": "npm publish --access public",
+            "publish-cli.yml": "npm publish --access public",
+            "publish-eapi.yml": "pypa/gh-action-pypi-publish@",
+            "publish-app-auth.yml": "pypa/gh-action-pypi-publish@",
+            "publish-device-fingerprint.yml": "pypa/gh-action-pypi-publish@",
+        }
+        for filename, publish in workflows.items():
+            path = ROOT / ".github/workflows" / filename
             with self.subTest(path=path.name):
                 value = path.read_text()
-                self.assertNotIn("npm publish", value)
-                self.assertNotIn("pypa/gh-action-pypi-publish", value)
+                self.assertIn(publish, value)
+                self.assertIn("id-token: write", value)
+                self.assertIn("scripts/private_release.py check", value)
+                self.assertNotIn("--provenance", value)
+                self.assertNotIn("secrets.NPM_TOKEN", value)
+                self.assertNotIn("secrets.PYPI_API_TOKEN", value)
 
-    def test_python_packages_reject_accidental_public_uploads(self):
-        """PyPI 原生拒绝 Private classifier，为 Python 包保留第二层防误发布。"""
-        for directory in ("backend", "modules/auth/backend"):
+    def test_python_packages_allow_public_uploads(self):
+        """三个 Python 分发包都允许上传公开 PyPI。"""
+        for directory in ("backend", "backend/packages/app-auth", "backend/packages/device-fingerprint"):
             with self.subTest(directory=directory):
                 value = tomllib.loads((ROOT / directory / "pyproject.toml").read_text())
-                self.assertIn("Private :: Do Not Upload", value["project"].get("classifiers", []))
+                self.assertNotIn("Private :: Do Not Upload", value["project"].get("classifiers", []))
 
     def test_github_public_repository_is_rejected(self):
         """服务端真实可见性与预期不符时 fail closed。"""

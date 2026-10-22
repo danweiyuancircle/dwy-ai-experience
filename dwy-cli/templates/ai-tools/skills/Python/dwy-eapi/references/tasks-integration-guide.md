@@ -4,13 +4,13 @@
 
 ## 1. 安装
 
+从公开 PyPI 安装已发布版本，无需源码仓库权限：
+
 ```bash
-pip install dwyeapi[tasks]
-# 或
-uv add "dwyeapi[tasks]"
+python -m pip install 'dwyeapi[tasks]'
 ```
 
-自动安装 `arq` 异步任务队列依赖。需要运行中的 Redis 实例。
+`tasks` extra 包含 `arq` 异步任务队列依赖。运行时需要 Redis 实例。
 
 ## 2. 快速接入
 

@@ -1,0 +1,31 @@
+{
+  "name": "@dwydev/auth-web",
+  "version": "0.1.0",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/danweiyuancircle/dwy-ai-experience.git",
+    "directory": "frontend/auth-web"
+  },
+  "description": "Vue 管理员同源 Cookie 登录与内存会话；独立于 Google 应用用户认证",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": { ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" } },
+  "files": ["dist", "README.md"],
+  "publishConfig": { "access": "public" },
+  "peerDependencies": { "@dwydev/eui": "^2.7.1", "lucide-vue-next": "^1.0.0", "vue": "^3.5.0" },
+  "devDependencies": {
+    "@dwydev/eui": "workspace:*",
+    "@vitejs/plugin-vue": "^6.0.0",
+    "@vue/test-utils": "^2.4.6",
+    "jsdom": "^26.1.0",
+    "lucide-vue-next": "^1.0.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.3",
+    "vite-plugin-dts": "^4.0.0",
+    "vitest": "^3.2.4",
+    "vue": "^3.5.32"
+  },
+  "scripts": { "test": "vitest run", "build": "vite build" }
+}

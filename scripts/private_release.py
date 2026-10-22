@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""以私有 GitHub Release 分发可校验产物，不向公共 npm/PyPI 发布。"""
+"""核查源码仓库私有状态并校验可选 GitHub 快照；公开 registry 发布由 OIDC 工作流负责。"""
 
 import argparse
 import hashlib

@@ -176,7 +176,7 @@ async function copySkillsFlat(skills, proj) {
   for (const s of skills) {
     const dest = path.join(root, s.name)
     await fs.ensureDir(path.dirname(dest))
-    await fs.copy(s.sourcePath, dest, { overwrite: true, filter: copyFilter })
+    await fs.copy(s.sourcePath, dest, { overwrite: true, filter: copyFilter(s.sourcePath) })
     logAction(`.agents/skills/${s.name}`)
   }
   return skills.length
@@ -214,7 +214,7 @@ async function copyCodexHooks(hooks, proj) {
       continue
     }
     const dest = path.join(dir, h.name)
-    await fs.copy(h.sourcePath, dest, { overwrite: true, filter: copyFilter })
+    await fs.copy(h.sourcePath, dest, { overwrite: true, filter: copyFilter(h.sourcePath) })
     if (!await fs.pathExists(dest)) {
       logAction(`.codex/hooks/${h.name}`, 'yellow', '!')
       continue

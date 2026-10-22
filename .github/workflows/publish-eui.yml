@@ -1,15 +1,86 @@
-name: Legacy EUI public publishing disabled
+name: Publish EUI to npm
 
-# Private migration: only private-release.yml may distribute new artifacts.
 on:
-  workflow_dispatch:
-
-permissions:
-  contents: read
+  push:
+    tags:
+      - '@dwydev/eui@*'
 
 jobs:
-  disabled:
-    if: ${{ false }}
+  publish:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      id-token: write
     steps:
-      - run: echo 'Public publishing disabled; use the private release workflow.'
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22.14.0'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Prepare fixed package managers
+        run: npm install --global npm@11.6.1 pnpm@10.19.0
+
+      - name: Verify private source
+        working-directory: ${{ github.workspace }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/private_release.py check
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify tag matches package version
+        id: verify
+        working-directory: frontend/eui
+        run: |
+          PKG_NAME=$(node -p "require('./package.json').name")
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAG_NAME="${GITHUB_REF_NAME%@*}"
+          TAG_VERSION="${GITHUB_REF_NAME##*@}"
+          if [ "$PKG_NAME" != "$TAG_NAME" ]; then
+            echo "::error::tag package ($TAG_NAME) != package.json name ($PKG_NAME)"
+            exit 1
+          fi
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::tag version ($TAG_VERSION) != package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+          echo "release_name=$PKG_NAME@$PKG_VERSION" >> "$GITHUB_OUTPUT"
+          echo "package_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build release notes
+        working-directory: frontend/eui
+        run: |
+          python3 ../../.github/scripts/extract_changelog_section.py \
+            CHANGELOG.md \
+            "${{ steps.verify.outputs.package_version }}" \
+            "${{ steps.verify.outputs.release_name }}" \
+            > ../../.github/release-body-eui.md
+
+      - name: Test
+        run: pnpm --dir frontend/eui test
+
+      - name: Build
+        run: pnpm --dir frontend/eui build
+
+      - name: Publish
+        working-directory: frontend/eui
+        run: |
+          VERSION="${{ steps.verify.outputs.package_version }}"
+          # 预发布（含 -beta / -rc）打 dist-tag beta，避免覆盖 latest
+          if [[ "$VERSION" == *-* ]]; then
+            npm publish --access public --tag beta
+          else
+            npm publish --access public
+          fi
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ steps.verify.outputs.release_name }}
+          draft: false
+          prerelease: ${{ contains(steps.verify.outputs.package_version, '-') }}
+          body_path: .github/release-body-eui.md

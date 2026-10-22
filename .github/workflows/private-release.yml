@@ -1,4 +1,4 @@
-name: Private shared packages
+name: Shared package CI and GitHub snapshot
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
       - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
         with:
           python-version: '3.11.17'
-      - name: Verify private repository and package policy
+      - name: Verify private source and public package policy
         run: |
           python scripts/private_release.py check
           python -m unittest discover -s scripts/tests -p test_private_release.py
@@ -45,9 +45,9 @@ jobs:
           uv sync --project ci --frozen
       - name: Python contracts and package tests
         run: |
-          uv run --project ci --frozen pytest backend/tests modules/auth/backend/tests scripts/tests -q -o asyncio_mode=auto
+          uv run --project ci --frozen pytest backend/tests backend/packages/app-auth/tests scripts/tests -q -o asyncio_mode=auto
           uv run --project ci --frozen pytest -c backend/packages/device-fingerprint/pyproject.toml backend/packages/device-fingerprint/tests -q
-          uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py modules/auth/backend/src scripts/private_release.py
+          uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py backend/packages/app-auth/src scripts/private_release.py
           uv run --project ci --frozen ruff check backend/src/dwyeapi/device.py backend/packages/device-fingerprint/src backend/packages/device-fingerprint/tests
       - name: Web and CLI regression
         run: |
@@ -57,20 +57,20 @@ jobs:
           pnpm --dir frontend/eui test
           pnpm --dir frontend/ekit test
           pnpm --dir frontend/admin-shell test
-          pnpm --dir modules/auth/web test
+          pnpm --dir frontend/auth-web test
           pnpm --dir dwy-cli test
       - name: Build and pack private artifacts
         run: |
           mkdir -p private-dist
-          pnpm --dir modules/auth/web build
+          pnpm --dir frontend/auth-web build
           pnpm --dir frontend/eui pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           pnpm --dir frontend/ekit pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           pnpm --dir frontend/admin-shell pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
-          pnpm --dir modules/auth/web pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
+          pnpm --dir frontend/auth-web pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           pnpm --dir dwy-cli pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           uv build --project backend --out-dir "$GITHUB_WORKSPACE/private-dist"
           uv build --project backend/packages/device-fingerprint --out-dir "$GITHUB_WORKSPACE/private-dist" --default-index https://pypi.org/simple
-          uv build --project modules/auth/backend --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/app-auth --out-dir "$GITHUB_WORKSPACE/private-dist"
           # uv 自动生成的目录忽略标记不是发布产物；其余非白名单文件仍需拒绝。
           rm -f private-dist/.gitignore
           python3 scripts/private_release.py manifest --directory private-dist --tag "0.0.0-ci.$GITHUB_RUN_ID" --revision "$GITHUB_SHA"

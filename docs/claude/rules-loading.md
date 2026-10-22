@@ -86,7 +86,7 @@ managed CLAUDE.md
 
 ## dwy 项目当前状态
 
-`dwy-cli/templates/claude-global/rules/` 下文件通过 `dwy sync claude` 同步到 `~/.claude/rules/`，所有项目生效。
+规则模板按分类保存在 `dwy-cli/templates/ai-tools/rules/`。运行 `dwy sync`，选择所需规则、全局范围和 Claude Code 平台，确认后同步到 `~/.claude/rules/`；选择当前项目范围时写入项目 `.claude/rules/`。
 
 - 无 `paths`：`dwy-git-commit.md`（短约束）每次注入。`dwy-tdd-development.md` 已删除，行为变更与测试位置写在 `dwy-code-craft.md`。
 - 有 `paths`：`dwy-python-backend.md` (`**/*.py`)、`dwy-vue-core.md` (Vue 相关) 等 → 读对应文件时注入

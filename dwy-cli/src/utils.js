@@ -11,7 +11,6 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const execFileAsync = promisify(execFile)
 
 export const PACKAGE_ROOT = path.resolve(__dirname, '..')
-export const DEFAULT_TEMPLATE_REPO_URL = process.env.DWY_REPO_URL || 'https://github.com/danweiyuancircle/dwy-ai-experience.git'
 
 export function getDwyHomeDir() {
   return process.env.DWY_HOME || path.join(os.homedir(), '.dwy')

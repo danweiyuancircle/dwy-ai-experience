@@ -194,9 +194,9 @@
 
 <!-- DWY-BASELINE:END -->
 
-## 私有仓库分发约束
+## 私有源码与公开包分发
 
-本仓库新版本禁止发布到公共 npm/PyPI。使用 `.github/workflows/private-release.yml` 以短期 `GITHUB_TOKEN` 构建并上传私有 GitHub Release，发布前查询实际仓库 private 状态。SwiftPM 使用同一语义化 Git 标签；历史公共发布规则和示例仅供旧版本参考。不得在 URL、包配置或提交文件中写入私有凭据。
+GitHub 源码仓库保持私有；npm 与 PyPI 安装包公开发布，允许任何人安装使用。所有 registry 发布必须由 `.github/workflows/publish-*.yml` 使用 OIDC 完成，不使用长期发布 token。发布前查询实际仓库 private 状态；根工作区保留 `private: true`，可发布 npm 包使用公开 access，Python 包不得包含禁止上传的 Private classifier。`.github/workflows/private-release.yml` 保留跨包 CI 与可选 GitHub 快照，不作为唯一分发渠道。SwiftPM 继续通过私有 Git 仓库的语义化标签消费。不得在 URL、包配置或提交文件中写入私有凭据。
 
 # AGENTS.md
 
@@ -208,14 +208,18 @@ Compact instructions for OpenCode sessions working in `dwy-shared`.
 |-----------|-----------------|---------|------|
 | `frontend/eui/` | pnpm | `@dwydev/eui` | Vue 3 component library (~95 components) |
 | `frontend/ekit/` | pnpm | `@dwydev/ekit` | Vue 3 utility library |
+| `frontend/admin-shell/` | pnpm | `@dwydev/admin-kit` | Vue 3 administrator framework |
+| `frontend/auth-web/` | pnpm | `@dwydev/auth-web` | Administrator login components and Cookie sessions |
 | `frontend/playground/` | pnpm | — | Docs portal (Vite SPA) |
 | `dwy-cli/` | pnpm | `create-dwy` | CLI scaffold + Claude config sync |
 | `backend/` | uv | `dwyeapi` | FastAPI infrastructure (Python 3.11+) |
+| `backend/packages/device-fingerprint/` | uv | `dwy-device-fingerprint` | Standalone native device fingerprint package |
+| `backend/packages/app-auth/` | uv | `dwy-app-auth` | Application authentication and independent administrator sessions |
 | `ios/` | SwiftPM (root `Package.swift`) | `AppleAppKit` | iOS/macOS frameworks, authentication, tests, and templates |
 
 `pnpm-workspace.yaml` only covers `frontend/*` and `dwy-cli`. Python backend is managed separately by uv and **not** in the pnpm workspace.
 
-**Package manager gotcha**: root `package.json` has a stale `packageManager: yarn@1.22.22` field. The repo actually uses **pnpm** (lockfile is `pnpm-lock.yaml`). Always use `pnpm`, never `yarn`.
+**Package manager**: use the pnpm version declared by root `package.json`; the workspace lockfile is `pnpm-lock.yaml`. Do not use yarn.
 
 ### 通用规则（语言无关）
 
@@ -269,16 +273,9 @@ cd backend && pytest tests/test_security.py -v             # single module
 cd backend && ruff check src/ && ruff format --check src/  # ruff only; no frontend linter
 ```
 
-### Publish order
+### Public package release
 
-When releasing multiple packages: **ekit → eui → eapi → cli**
-
-```bash
-# 打 tag 后 git push origin <tag>，由 GitHub Actions OIDC 发布
-# @dwydev/ekit@x.y.z  @dwydev/eui@x.y.z  dwyeapi@x.y.z  create-dwy@x.y.z
-```
-
-Tag format: `@dwydev/eui@1.3.0`, `create-dwy@0.6.0`, etc.
+Keep the Git source private and publish installable packages to public npm/PyPI through `.github/workflows/publish-*.yml` using OIDC. Each package tag is `<package-name>@<version>` and must match its manifest. The root workspace remains private; distributable npm packages use public access. Standard semantic Git tags remain the SwiftPM entry point and may create a private GitHub snapshot. See `docs/private-distribution.md`.
 
 ## Architecture Quirks
 
@@ -309,7 +306,7 @@ Tag format: `@dwydev/eui@1.3.0`, `create-dwy@0.6.0`, etc.
 
 - No build step (`build:cli` is a no-op).
 - 已实现入口必须出现在 `dwy --help`；禁止把可用命令藏成「隐藏命令」。
-- Commands: `dwy` / `dwy sync`（Skills → Rules → 全局／项目 → 平台 → 确认）；`dwy upgrade`（自升级到 npm latest）；`dwy --help` / `dwy --version`。
+- Commands: `dwy` / `dwy sync`（Skills → Rules → 全局／项目 → 平台 → 确认）；`dwy upgrade`（更新到 npm 正式版 latest）；`dwy --help` / `dwy --version`。CLI 默认读取包内模板，不要求私有源码仓库权限。
 - 项目同步依次选择 Skills / Rules，各步按实际分类显示 Tab，无回退或重选；Hooks 自动同步到支持的平台。Commands 停用并保留本地文件，启动时展示 dwy 品牌。
 - 不存在 `dwy claude sync` / `dwy codex sync` / `dwy sync md` / `dwy skills install`（平台选择与刷新外部 skill 都在 `dwy` 交互里完成）。
 - Templates are bundled with the `create-dwy` package under `dwy-cli/templates`; `dwy` 运行时不再读取或刷新外部缓存仓库。
@@ -340,10 +337,10 @@ When these docs change, sync to the dwy-cli template paths:
 
 | Source | Target sync path |
 |--------|------------------|
-| `docs/eui-integration-guide.md` | `dwy-cli/templates/claude-global/skills/dwy-eui/references/eui-integration-guide.md` |
-| `docs/eui-design-guide.md` | `dwy-cli/templates/claude-global/skills/dwy-eui/references/eui-design-guide.md` |
-| `docs/eui-landing-design-guide.md` | `dwy-cli/templates/claude-global/skills/dwy-eui/references/eui-landing-design-guide.md` |
-| `docs/tasks-integration-guide.md` | `dwy-cli/templates/claude-global/skills/dwy-eapi/references/tasks-integration-guide.md` |
+| `docs/eui-integration-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-integration-guide.md` |
+| `docs/eui-design-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-design-guide.md` |
+| `docs/eui-landing-design-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-landing-design-guide.md` |
+| `docs/tasks-integration-guide.md` | `dwy-cli/templates/ai-tools/skills/Python/dwy-eapi/references/tasks-integration-guide.md` |
 
 Playground imports `docs/eui-integration-guide.md` via `?raw`; it does **not** need a separate copy.
 
@@ -363,7 +360,7 @@ Playground imports `docs/eui-integration-guide.md` via `?raw`; it does **not** n
 - eapi test files: `backend/tests/test_{module}.py`
 - eui theme CSS: `frontend/eui/src/theme/` (tokens.css, dark.css, index.css)
 - CLI templates: `dwy-cli/templates/project/{template}/`
-- Global claude skills: `dwy-cli/templates/claude-global/skills/`
+- Distributable AI skills: `dwy-cli/templates/ai-tools/skills/`
 
 ## CLAUDE.md
 
@@ -373,3 +370,4 @@ See `CLAUDE.md` for full build/test/release details, design system references, a
 
 - 同文件多个补丁 hunk 必须按源文件位置排序，JSON 清单改动按原数组顺序生成。否则后一个 hunk 可能无法回到前面的文本，出现“原文存在却匹配失败”；先检查顺序和上下文再重试，避免反复扩大匹配范围。
 - 复用 SwiftPM Git 缓存前，不能只确认锁定 commit 存在；部分克隆可能缺少 blob，导致检出或打包失败。用 `git rev-list --objects --all --missing=print` 检查可达对象是否完整，复制后确认不通过 alternates 或本地 remote 依赖待移除的来源目录。
+- uv 离线安装失败时，不能根据已有虚拟环境推断缓存齐全；缓存受索引来源、版本和平台产物影响。先固定索引并确认缺失项，再选择联网安装，避免反复重试 `--offline`。

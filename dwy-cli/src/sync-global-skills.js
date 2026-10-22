@@ -131,7 +131,7 @@ export async function copySkillsToGlobalDirs({ skills, destIds, homeDir = os.hom
     for (const skill of skills) {
       const dest = path.join(destRoot, skill.name)
       await fs.ensureDir(path.dirname(dest))
-      await fs.copy(skill.sourcePath, dest, { overwrite: true, filter: copyFilter })
+      await fs.copy(skill.sourcePath, dest, { overwrite: true, filter: copyFilter(skill.sourcePath) })
       logAction(`${DEST_LABELS[destId] || destId}/${skill.name}`)
       count++
     }
@@ -157,7 +157,7 @@ export async function copySkillsToProjectPlatforms({ projectDir, platforms, skil
     for (const skill of skills) {
       const dest = path.join(destRoot, skill.name)
       await fs.ensureDir(path.dirname(dest))
-      await fs.copy(skill.sourcePath, dest, { overwrite: true, filter: copyFilter })
+      await fs.copy(skill.sourcePath, dest, { overwrite: true, filter: copyFilter(skill.sourcePath) })
       logAction(`${path.relative(projectDir, destRoot)}/${skill.name}`)
       count++
     }
