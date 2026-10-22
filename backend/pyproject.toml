@@ -30,6 +30,9 @@ email-resend = ["resend[async]>=2.29.0"]
 # 聚合 extras(按模块)
 email = ["resend[async]>=2.29.0"]
 
+# 认证核心不反向依赖 EAPI；聚合安装沿用 email Provider 的现有 SDK。
+auth = ["dwy-app-auth==0.1.0", "dwyeapi[email]"]
+
 dev = [
     "pytest>=8.0.0",
     "pytest-asyncio>=0.24.0",
@@ -51,6 +54,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.uv.sources]
 dwy-device-fingerprint = { path = "packages/device-fingerprint", editable = true }
+dwy-app-auth = { path = "packages/app-auth", editable = true }
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -3,7 +3,7 @@ name = "dwy-app-auth"
 version = "0.1.0"
 description = "Google and email/password user sessions and independent administrator Cookie authentication for EAPI"
 requires-python = ">=3.11,<3.13"
-dependencies = ["dwyeapi==0.11.1", "SQLAlchemy==2.0.49", "pydantic==2.13.4", "google-auth[requests]==2.62.0"]
+dependencies = ["SQLAlchemy[asyncio]==2.0.49", "pydantic==2.13.4", "google-auth[requests]==2.62.0", "anyio>=4.0.0", "bcrypt>=4.0.0", "python-jose[cryptography]>=3.3.0"]
 
 [build-system]
 requires = ["hatchling==1.27.0"]

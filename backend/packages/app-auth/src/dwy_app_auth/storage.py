@@ -16,21 +16,24 @@ from sqlalchemy import (
 
 @dataclass(frozen=True)
 class AuthTables:
+    """旧 Google 产品可以保留三表；邮箱表仅在宿主明确迁移后注册。"""
+
     users: Table
     sessions: Table
     refresh_history: Table
-    password_credentials: Table
-    email_challenges: Table
-    auth_rate_limits: Table
+    password_credentials: Table | None
+    email_challenges: Table | None
+    auth_rate_limits: Table | None
 
 
-def build_auth_tables(metadata: MetaData) -> AuthTables:
+def build_auth_tables(metadata: MetaData, *, include_email_auth: bool = True) -> AuthTables:
+    """注册宿主实际采用的 legacy schema；关闭邮箱能力不会升级旧产品数据库。"""
     users = Table(
         "auth_users",
         metadata,
         Column("app_id", String(32), primary_key=True),
         Column("id", String(36), primary_key=True),
-        Column("google_subject", String(255), nullable=True),
+        Column("google_subject", String(255), nullable=include_email_auth),
         Column("email", String(320)),
         Column("display_name", String(255)),
         Column("disabled", Boolean, nullable=False, default=False),
@@ -65,6 +68,8 @@ def build_auth_tables(metadata: MetaData) -> AuthTables:
         Column("expires_at", BigInteger, nullable=False),
         ForeignKeyConstraint(["app_id", "session_id"], ["auth_sessions.app_id", "auth_sessions.id"]),
     )
+    if not include_email_auth:
+        return AuthTables(users, sessions, refresh_history, None, None, None)
     password_credentials = Table(
         "auth_password_credentials",
         metadata,

@@ -639,3 +639,11 @@ python -m pytest tests/test_health.py -v
 
 - `test_principal_is_strict_and_immutable`: canonical application/user/session/device identity rejects coerced UUIDs and mutation.
 - `test_identity_dependency_rejects_wrong_app_and_malformed_credentials`: explicitly bound Bearer verification rejects missing, malformed, oversized and foreign-app credentials.
+
+## 通用认证运行时（2026-10-22）
+
+- `tests/test_auth_runtime.py`：8 项真实 SQLite/HTTP，邮箱闭环、应用资料与权限、可选匿名、凭据不回显、32KiB 限制、投递失败、Google 与通用 Provider 登录、绑定/解绑二次认证与请求 IP、用户名共享密码、改密撤销、应用非 JWT 会话、宿主 Authorization 上限。
+- `packages/app-auth/tests/test_runtime.py`：23 项（含参数化），业务用户适配、app_id 隔离、方法禁用、challenge/证明用途与单次核销、凭据版本失效、外部身份显式关联与最后身份保护、注销同库回滚、Provider 保留名、PostgreSQL 表名长度预算。
+- `packages/app-auth/tests/test_session_backend.py`：默认 JWT 真实 SQLite，claims/期限/跨应用、refresh CAS/重放撤销、事务回滚、64 字符 Provider、4096 次轮换资源上限。PostgreSQL 场景仅在 `APP_CLOUD_TEST_POSTGRES_URL` 配置时运行。
+- `packages/app-auth/tests/test_lifecycle.py`：legacy Google-only 三表实际登录、轮换、注销、重建账号兼容；不对已有产品隐式增加邮箱迁移。
+- 独立 wheel：core 在无 EAPI/FastAPI 环境真实异步 SQLite 操作；聚合 `dwyeapi[auth]` 自动解析 email/Resend 依赖。安装测试必须使用本轮产物，禁止旧同版本缓存替代。

@@ -11,12 +11,12 @@ from typing import Literal, Protocol
 from uuid import UUID, uuid4
 
 import anyio
-from dwyeapi.security import hash_password, verify_password
 from pydantic import BaseModel
 from sqlalchemy import delete, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
 from .models import AuthError, TokenResponse, UserProfile
+from .passwords import hash_password, verify_password
 
 EmailCodePurpose = Literal["register", "password_reset"]
 

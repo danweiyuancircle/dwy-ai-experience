@@ -203,3 +203,34 @@ async def test_http_device_bounds_and_account_contract(environment, tmp_path):
             deleted = await client.delete("/api/v1/account", headers=headers)
             assert deleted.status_code == 200 and deleted.json()["data"]["status"] == "completed"
             assert (await client.get("/api/v1/devices", headers=headers)).status_code == 401
+
+
+async def test_google_only_schema_preserves_login_refresh_and_account_deletion(tmp_path):
+    """未迁移邮箱能力的旧产品仍使用真实三表，删号不能查询不存在的邮箱凭据表。"""
+    from sqlalchemy import MetaData
+    from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+
+    from dwy_app_auth import build_auth_tables
+
+    metadata = MetaData()
+    tables = build_auth_tables(metadata, include_email_auth=False)
+    assert set(metadata.tables) == {"auth_users", "auth_sessions", "auth_refresh_history"}
+    assert tables.users.c.google_subject.nullable is False
+    engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path}/google-only.db")
+    async with engine.begin() as connection:
+        await connection.run_sync(metadata.create_all)
+    sessions = async_sessionmaker(engine)
+    service = AuthService("quadrant", sessions, tables, test_auth.VerifiedGoogle())
+    try:
+        first = await service.login("a", uuid4())
+        rotated = await service.refresh(first.refresh_token)
+        principal = await service.verify(rotated.access_token)
+        assert (await service.delete_account(principal)).status == "completed"
+        with pytest.raises(AuthenticationError):
+            await service.verify(rotated.access_token)
+        with pytest.raises(AuthError):
+            await service.refresh(rotated.refresh_token)
+        assert (await service.login("a", uuid4())).user.id != first.user.id
+    finally:
+        await service.aclose()
+        await engine.dispose()

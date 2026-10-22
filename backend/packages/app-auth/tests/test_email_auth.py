@@ -457,7 +457,7 @@ async def test_delivery_expiring_before_response_never_returns_an_active_challen
 async def test_reset_committing_after_bcrypt_blocks_inflight_old_password_login(
     email_environment, monkeypatch
 ):
-    from dwyeapi.security import verify_password
+    from dwy_app_auth.passwords import verify_password
 
     service, tables, sessions, mailbox = email_environment
     old = await register(service, mailbox)

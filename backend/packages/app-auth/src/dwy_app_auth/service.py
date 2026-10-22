@@ -445,16 +445,20 @@ class AuthService(EmailAuthMixin):
         async with self.sessions() as db, db.begin():
             await self._require_active(db, principal)
             c, challenges = self.tables.password_credentials, self.tables.email_challenges
-            email = await db.scalar(
-                select(c.c.email).where(c.c.app_id == self.app_id, c.c.user_id == str(principal.user_id))
-            )
-            if email is not None:
-                await db.execute(
-                    delete(challenges).where(challenges.c.app_id == self.app_id, challenges.c.email == email)
+            # Google-only 宿主尚未迁移邮箱表；删号仍需完整执行撤销与业务清理。
+            if c is not None:
+                email = await db.scalar(
+                    select(c.c.email).where(c.c.app_id == self.app_id, c.c.user_id == str(principal.user_id))
                 )
-            await db.execute(
-                delete(c).where(c.c.app_id == self.app_id, c.c.user_id == str(principal.user_id))
-            )
+                if email is not None:
+                    await db.execute(
+                        delete(challenges).where(
+                            challenges.c.app_id == self.app_id, challenges.c.email == email
+                        )
+                    )
+                await db.execute(
+                    delete(c).where(c.c.app_id == self.app_id, c.c.user_id == str(principal.user_id))
+                )
             await db.execute(
                 update(u)
                 .where(u.c.app_id == self.app_id, u.c.id == str(principal.user_id))
