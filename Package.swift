@@ -17,6 +17,7 @@ let package = Package(
         .macOS(.v14),
     ],
     products: [
+        .library(name: "SyncCore", targets: ["SyncCore"]),
         .library(name: "CoreKit", targets: ["CoreKit"]),
         .library(name: "LogKit", targets: ["LogKit"]),
         .library(name: "L10nKit", targets: ["L10nKit"]),
@@ -30,12 +31,24 @@ let package = Package(
         .library(name: "AuthGoogleIOS", targets: ["AuthGoogleIOS"]),
     ],
     dependencies: [
+        .package(url: "https://github.com/groue/GRDB.swift.git", exact: "7.11.1"),
         .package(url: "https://github.com/sushichop/Puppy.git", from: "0.9.0"),
         .package(url: "https://github.com/google/GoogleSignIn-iOS.git", exact: "9.1.0"),
         // 8.1.5 在 2026-10-14 发布，选型时未满 7 天；限制传递依赖使用已稳定版本。
         .package(url: "https://github.com/google/GoogleUtilities.git", exact: "8.1.4"),
     ],
     targets: [
+        .target(
+            name: "SyncCore",
+            dependencies: [.product(name: "GRDB", package: "GRDB.swift")],
+            path: "ios/Sources/Shared/SyncCore"
+        ),
+        .testTarget(
+            name: "SyncCoreTests",
+            dependencies: ["SyncCore"],
+            path: "ios/Tests/SyncCoreTests",
+            exclude: ["TEST_CASES.md"]
+        ),
         // MARK: Shared（业务无关、双平台）
 
         .target(
