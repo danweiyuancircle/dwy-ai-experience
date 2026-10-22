@@ -7,7 +7,11 @@
 - [正式发布 Actions](https://github.com/danweiyuancircle/dwy-ai-experience/actions/runs/39536538222) 全部成功，实际上传 5 个 npm tgz、2 个 Python wheel、2 个 sdist，以及 `release-manifest.json` / `SHA256SUMS`；工作流重新认证下载并核验发布字节。
 - 早先的 `0.4.0` 标签保留，但因 uv 生成的目录忽略标记被严格白名单拒绝，没有完整 Release；消费入口统一使用 `0.4.1`。
 
-## 模块边界
+## 当前目录布局
+
+2026-10-21 目录整理：iOS/macOS 框架、AuthCore、AuthGoogleIOS、测试和模板统一到 `ios/`，根 `Package.swift` 保留为远程 SwiftPM 入口。以下模块边界与发布证据描述 `0.4.1` 的历史布局；目录整理尚未发布新版本。
+
+## 0.4.1 模块边界
 
 - `apple/`：原 AppleAppKit 通用模块、模板、脚本与文档；根 `Package.swift` 暴露原产品名。
 - `modules/auth/apple/`：AuthCore、Google iOS 适配。Google-only；未新增业务 App 登录页面。

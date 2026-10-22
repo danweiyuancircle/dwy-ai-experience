@@ -211,6 +211,7 @@ Compact instructions for OpenCode sessions working in `dwy-shared`.
 | `frontend/playground/` | pnpm | — | Docs portal (Vite SPA) |
 | `dwy-cli/` | pnpm | `create-dwy` | CLI scaffold + Claude config sync |
 | `backend/` | uv | `dwyeapi` | FastAPI infrastructure (Python 3.11+) |
+| `ios/` | SwiftPM (root `Package.swift`) | `AppleAppKit` | iOS/macOS frameworks, authentication, tests, and templates |
 
 `pnpm-workspace.yaml` only covers `frontend/*` and `dwy-cli`. Python backend is managed separately by uv and **not** in the pnpm workspace.
 
@@ -371,3 +372,4 @@ See `CLAUDE.md` for full build/test/release details, design system references, a
 ## [自成长] 项目规则
 
 - 同文件多个补丁 hunk 必须按源文件位置排序，JSON 清单改动按原数组顺序生成。否则后一个 hunk 可能无法回到前面的文本，出现“原文存在却匹配失败”；先检查顺序和上下文再重试，避免反复扩大匹配范围。
+- 复用 SwiftPM Git 缓存前，不能只确认锁定 commit 存在；部分克隆可能缺少 blob，导致检出或打包失败。用 `git rev-list --objects --all --missing=print` 检查可达对象是否完整，复制后确认不通过 alternates 或本地 remote 依赖待移除的来源目录。

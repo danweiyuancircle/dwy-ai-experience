@@ -1,5 +1,7 @@
 # 私有共享仓库迁移实施计划
 
+历史计划：初次迁移按 `apple/` 与 `modules/auth/apple/` 分布；2026-10-21 后续目录整理已将客户端代码、测试与模板统一到 `ios/`。当前结构见 `ios/README.md`，本计划保留初次迁移的步骤与验收记录。
+
 **Goal**：AppleAppKit 与现有认证能力迁入 dwy-shared，以私有源码及私有产物交付，完成真实 CI 发布和消费者安装验证。
 
 **Architecture**：根 Package.swift 暴露稳定 Apple 产品，源码按 apple 与 modules/auth 归属。认证分客户端与 EAPI 后端，Google 用户会话与管理员 Cookie 会话独立；业务库不共享账户/数据库。Python、Swift、npm 独立构建。
