@@ -29,6 +29,8 @@ Apple App Kit（统一私有仓库中的 Apple 产品）版本记录。
 
 补齐 macOS 主题监听的编译平台判断，避免全产品 iOS 编译引用 `DistributedNotificationCenter`；CI 模拟器编译扩展到全部产品。
 
+修复原生 SwiftPM 构建将中文资源目录规范化为小写后，英文宿主下显式请求中文仍回退英文的问题；认证文案按 Bundle 实际支持的本地化标识查找。
+
 新增可选 `AuthUI` 产品：邮箱密码登录、验证码注册后自动登录、密码重置与中英文资源。AuthCore 新增无 Google 构造、邮箱 API、前台按需刷新、取消在途认证；密码重置清理旧会话，注册安装失败可区分账号已创建。示例工程位于 `ios/Examples/EmailPasswordAuth/`，接入见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`。后端邮件认证与可选180天滚动会话需同时升级匹配的 eapi/认证私有包并执行宿主迁移。
 
 新增可选 `SyncCore` 产品：GRDB 本地事务、离线 outbox、游标拉取、幂等重试、冲突保留与账号隔离。`SyncStore.saveLocally(_:using:)` 和 `documentLocally(id:using:)` 支持同步属性 setter 先完成落盘再发布本机投影；观察者仍异步收到单调递增的提交快照。游客可独立使用本地库，网络同步由宿主显式提供已认证身份。
