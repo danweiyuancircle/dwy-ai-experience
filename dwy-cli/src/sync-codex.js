@@ -4,9 +4,7 @@ import { chalk } from './utils.js'
 import {
   extractDescription,
   loadHookManifests,
-  readBaselineDoc,
   scanSkills,
-  scanRules,
   scanHooks,
   resolveSourceDir,
   copyFilter,
@@ -112,13 +110,37 @@ function upsertBaselineBlock(content, baselineBody) {
   return base ? `${block}\n\n${base}` : `${block}\n`
 }
 
-export async function syncProjectAgentsMd(sourceDir, projectDir, selectedRules, {
-  preservedRuleNames = new Set(),
-  targetPath = path.join(projectDir, 'AGENTS.md'),
-} = {}) {
-  const dest = targetPath
+/** 更新 CLI 全局基线，仅替换 dwy 托管块，并清除旧版写入的项目 Rules 托管块。 */
+export async function syncGlobalBaselineDoc(baseline, dest) {
+  if (!baseline.trim()) return 0
   const current = await fs.pathExists(dest) ? await fs.readFile(dest, 'utf-8') : ''
-  const baselineBody = await readBaselineDoc(sourceDir)
+  const previous = current.trim() === baseline.trim() ? '' : current
+  const next = upsertManagedBlock(upsertBaselineBlock(previous, baseline), '')
+  if (next === current) return 0
+  await fs.ensureDir(path.dirname(dest))
+  await fs.writeFile(dest, next)
+  logAction(`global baseline → ${dest}`)
+  return 1
+}
+
+/** 迁移旧入口中的基线；无托管标记时只移除与当前模板完全一致的文件。 */
+export async function removeLegacyBaseline(baseline, dest) {
+  if (!await fs.pathExists(dest)) return
+  if (!baseline.trim()) return
+  const current = await fs.readFile(dest, 'utf-8')
+  const next = current.trim() === baseline.trim() ? '' : upsertBaselineBlock(current, '')
+  if (next === current) return
+  if (next.trim()) await fs.writeFile(dest, next)
+  else await fs.remove(dest)
+  logAction(`legacy baseline → ${dest}`, 'red', '×')
+}
+
+/** 三种 CLI 共用项目根 AGENTS.md；只写所选 Rules，保留托管块之外的项目内容。 */
+export async function syncProjectAgentsMd(projectDir, selectedRules, {
+  preservedRuleNames = new Set(),
+} = {}) {
+  const dest = path.join(projectDir, 'AGENTS.md')
+  const current = await fs.pathExists(dest) ? await fs.readFile(dest, 'utf-8') : ''
   const selectedRuleNames = new Set(selectedRules.map(rule => rule.name))
   const existingSections = parseManagedRuleSections(current)
   const sections = []
@@ -130,15 +152,11 @@ export async function syncProjectAgentsMd(sourceDir, projectDir, selectedRules, 
   }
   const blockBody = sections.join('\n\n---\n\n')
 
-  const withBaseline = upsertBaselineBlock(current, baselineBody)
-  const next = upsertManagedBlock(withBaseline, blockBody)
+  const next = upsertManagedBlock(upsertBaselineBlock(current, ''), blockBody)
   if (next === current) return 0
   await fs.ensureDir(path.dirname(dest))
   await fs.writeFile(dest, next)
-  const parts = []
-  if (baselineBody.trim()) parts.push('baseline')
-  parts.push(blockBody.trim() ? `${selectedRules.length} rules` : 'rules removed')
-  logAction(`AGENTS.md — ${parts.join(', ')}`)
+  logAction(`AGENTS.md — ${blockBody.trim() ? `${selectedRules.length} rules` : 'rules removed'}`)
   return 1
 }
 
@@ -328,7 +346,6 @@ export async function syncCodex({
   global = false,
   selected,
   staleRemovals = {},
-  preserveMissingRules = new Set(),
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
@@ -341,22 +358,17 @@ export async function syncCodex({
 
   const scans = {
     skills: await scanSkills(sourceDir),
-    rules: await scanRules(sourceDir),
     hooks: await scanHooks(sourceDir),
   }
-  console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.rules.length} rules, ${scans.hooks.length} hooks\n`))
+  console.log(chalk.yellow(`Found ${scans.skills.length} skills, ${scans.hooks.length} hooks\n`))
 
-  const agentsMdPath = global ? path.join(proj, '.codex', 'AGENTS.md') : path.join(proj, 'AGENTS.md')
-  const agentsMdContent = await fs.pathExists(agentsMdPath) ? await fs.readFile(agentsMdPath, 'utf-8') : ''
   const existing = {
     skills: await scanExistingCodexSkills(proj),
-    rules: parseManagedRuleNames(agentsMdContent),
     hooks: await scanExistingCodexHooks(proj),
   }
   const selectedNames = key => new Set((selected[key] || []).map(item => item.name))
   const syncedSelection = {
     skills: scans.skills.filter(item => selectedNames('skills').has(item.name)),
-    rules: scans.rules.filter(item => selectedNames('rules').has(item.name)),
     hooks: scans.hooks.filter(item => selectedNames('hooks').has(item.name)),
   }
   const selectedHookNames = new Set(syncedSelection.hooks.map(h => h.name))
@@ -367,10 +379,6 @@ export async function syncCodex({
   let removedCount = 0
 
   syncedCount += await copySkillsFlat(syncedSelection.skills, proj)
-  syncedCount += await syncProjectAgentsMd(sourceDir, proj, syncedSelection.rules, {
-    preservedRuleNames: preserveMissingRules,
-    targetPath: agentsMdPath,
-  })
   syncedCount += await copyCodexHooks(syncedSelection.hooks, proj)
   syncedCount += await syncCodexHooksJson(sourceDir, proj, selectedHookNames, global)
 
@@ -386,7 +394,6 @@ export async function syncCodex({
   removedCount += await removeUnselectedFlat(['.codex', 'hooks'], existing.hooks, selectedHookNames, hookTemplateNames, proj)
 
   console.log(chalk.blue(`\nDone! ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
-  console.log(chalk.gray(`  Rules  → ${agentsMdPath}`))
   console.log(chalk.gray(`  Skills → ${path.join(proj, '.agents', 'skills')}`))
   console.log(chalk.gray(`  Hooks  → ${path.join(proj, '.codex')}`))
 }

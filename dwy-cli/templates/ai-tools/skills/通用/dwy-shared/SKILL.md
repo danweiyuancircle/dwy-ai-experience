@@ -188,7 +188,7 @@ git -C "$REPO_PATH" diff --cached --stat
 
 ### 步骤 8：生成 commit message
 
-按项目 `CLAUDE.md` 中 Git Commit Scope 规范：
+按项目 `AGENTS.md` 中 Git Commit Scope 规范：
 - scope: `cli`
 - type: `feat`（新模板）/ `fix`（修复模板）/ `docs`（仅文档）
 - subject: 中文动宾短语 ≤72 字符；可附 ai-tools 版本号（如 `ai-tools 0.2.0`）

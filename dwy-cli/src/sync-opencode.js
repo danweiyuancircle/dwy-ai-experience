@@ -6,10 +6,8 @@ import {
   logAction,
   resolveSourceDir,
   scanExisting,
-  scanRules,
   scanSkills,
 } from './sync.js'
-import { syncProjectAgentsMd } from './sync-codex.js'
 
 async function copyItemsTo(baseDir, typeDir, items) {
   const targetDir = path.join(baseDir, typeDir)
@@ -41,14 +39,13 @@ async function removeUnselected(typeDir, existingNames, selectedNames, templateN
   return count
 }
 
-/** 同步 OpenCode 规则和技能；global 模式使用用户 .config/opencode 目录。 */
+/** 同步 OpenCode 技能；基线和项目 Rules 由总同步入口分别处理。 */
 export async function syncOpenCode({
   sourceDir: sourceDirOverride,
   projectDir,
   global = false,
   selected,
   staleRemovals = {},
-  preserveMissingRules = new Set(),
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) {
@@ -63,13 +60,11 @@ export async function syncOpenCode({
 
   const scans = {
     skills: await scanSkills(sourceDir),
-    rules: await scanRules(sourceDir),
   }
 
   const selectedNames = key => new Set((selected[key] || []).map(item => item.name))
   const syncedSelection = {
     skills: scans.skills.filter(item => selectedNames('skills').has(item.name)),
-    rules: scans.rules.filter(item => selectedNames('rules').has(item.name)),
   }
 
   const existing = {
@@ -78,12 +73,6 @@ export async function syncOpenCode({
 
   let syncedCount = 0
   let removedCount = 0
-
-  const agentsPath = path.join(global ? openCodeDir : proj, 'AGENTS.md')
-  syncedCount += await syncProjectAgentsMd(sourceDir, proj, syncedSelection.rules, {
-    preservedRuleNames: preserveMissingRules,
-    targetPath: agentsPath,
-  })
 
   syncedCount += await copyItemsTo(openCodeDir, 'skills', syncedSelection.skills)
 
@@ -98,7 +87,6 @@ export async function syncOpenCode({
     openCodeDir,
   )
   console.log(chalk.blue(`\nDone! ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
-  console.log(chalk.gray(`  Rules    → ${agentsPath}`))
   console.log(chalk.gray(`  Skills   → ${path.join(openCodeDir, 'skills')}`))
   console.log(chalk.gray('  Hooks    → 当前适配未支持'))
 }
