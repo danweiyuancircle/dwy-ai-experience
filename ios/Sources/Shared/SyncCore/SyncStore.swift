@@ -8,6 +8,7 @@ public actor SyncStore {
     private let database: DatabaseQueue
     private let schemas: [String: AnySyncSchema]
     private var observers: [UUID: AsyncStream<SyncStoreSnapshot>.Continuation] = [:]
+    private var publishedSequence: Int64 = -1
 
     /// 文件名由完整作用域散列生成；库内再次校验作用域，防止复制错库后串账号。
     public init(directory: URL, scope: SyncScope, schemas: [AnySyncSchema]) throws {
@@ -53,6 +54,12 @@ public actor SyncStore {
 
     /// 保存业务文档与待同步标记；冻结中的请求保持原样，后续编辑累积到新 revision。
     public func save<P>(_ document: SyncDocument<P>, using schema: SyncSchema<P>) throws {
+        try saveLocally(document, using: schema)
+    }
+
+    /// 同步完成本地事务后才返回，供同步属性 setter 在发布跨进程投影前调用。
+    /// 只执行有界本地数据库操作；网络与观察者通知仍异步进行，不能在 schema 校验内访问 UI。
+    public nonisolated func saveLocally<P>(_ document: SyncDocument<P>, using schema: SyncSchema<P>) throws {
         let payload = try validatedPayload(document.payload, schema: schema)
         try transaction { db in
             var stored = try read(document.id, db: db) ?? StoredDocument(id: document.id, kind: schema.kind)
@@ -68,6 +75,11 @@ public actor SyncStore {
 
     /// 不存在或墓碑返回 nil；损坏正文和 schema 不匹配必须抛错。
     public func document<P>(id: UUID, using schema: SyncSchema<P>) throws -> SyncDocument<P>? {
+        try documentLocally(id: id, using: schema)
+    }
+
+    /// 本地启动恢复不依赖网络，也不需要把同步 setter 桥接成阻塞等待 actor 的任务。
+    public nonisolated func documentLocally<P>(id: UUID, using schema: SyncSchema<P>) throws -> SyncDocument<P>? {
         try registered(schema)
         return try database.read { db in
             guard let stored = try read(id, db: db), !stored.deleted else { return nil }
@@ -367,23 +379,32 @@ public actor SyncStore {
 
     private func removeObserver(_ id: UUID) { observers.removeValue(forKey: id) }
 
-    private func transaction(_ body: (Database) throws -> Void) throws {
-        try database.write { db in
+    private nonisolated func transaction(_ body: (Database) throws -> Void) throws {
+        let value = try database.write { db in
             try body(db)
             var metadata = try Self.readMetadata(db)
             metadata.changeSequence += 1
             try Self.writeMetadata(metadata, db: db)
+            return SyncStoreSnapshot(
+                pendingCount: try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE pending = 1 AND conflicted = 0")!,
+                conflictCount: try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE conflicted = 1")!,
+                changeSequence: metadata.changeSequence)
         }
-        let value = try snapshot()
+        Task { await publish(value) }
+    }
+
+    private func publish(_ value: SyncStoreSnapshot) {
+        guard value.changeSequence > publishedSequence else { return }
+        publishedSequence = value.changeSequence
         for observer in observers.values { observer.yield(value) }
     }
 
-    private func registered<P>(_ schema: SyncSchema<P>) throws {
+    private nonisolated func registered<P>(_ schema: SyncSchema<P>) throws {
         guard let registered = schemas[schema.kind] else { throw SyncError.unknownKind(schema.kind) }
         guard registered.maxPayloadBytes == schema.maxPayloadBytes else { throw SyncError.invalidConfiguration("schema configuration differs from registration") }
     }
 
-    private func validatedPayload<P>(_ payload: P, schema: SyncSchema<P>) throws -> [String: SyncJSON] {
+    private nonisolated func validatedPayload<P>(_ payload: P, schema: SyncSchema<P>) throws -> [String: SyncJSON] {
         try registered(schema)
         try schema.validate(payload)
         let data = try Self.encode(payload)
@@ -395,7 +416,7 @@ public actor SyncStore {
         return object
     }
 
-    private func validatePayload(_ payload: [String: SyncJSON]) throws {
+    private nonisolated func validatePayload(_ payload: [String: SyncJSON]) throws {
         guard SyncWireValidation.validPayload(payload, deleted: false) else {
             throw SyncError.invalidPayload("invalid JSON or kind boundary")
         }
@@ -409,7 +430,7 @@ public actor SyncStore {
         try schema.validateData(Self.encode(business))
     }
 
-    private func validateRecord(_ record: SyncRecord) throws {
+    private nonisolated func validateRecord(_ record: SyncRecord) throws {
         guard SyncWireValidation.validRecord(record) else {
             throw SyncError.protocolViolation("invalid record metadata")
         }
@@ -417,13 +438,13 @@ public actor SyncStore {
     }
 
     /// 墓碑不带 kind；其他候选不得利用另一个已注册模型改变同一 UUID 的类型。
-    private func validateKind(_ record: SyncRecord, for stored: StoredDocument) throws {
+    private nonisolated func validateKind(_ record: SyncRecord, for stored: StoredDocument) throws {
         guard record.deleted || stored.kind.isEmpty || kind(record.payload) == stored.kind else {
             throw SyncError.invalidPayload("remote kind changed")
         }
     }
 
-    private func typed<P>(_ stored: StoredDocument, schema: SyncSchema<P>) throws -> SyncDocument<P> {
+    private nonisolated func typed<P>(_ stored: StoredDocument, schema: SyncSchema<P>) throws -> SyncDocument<P> {
         guard stored.kind == schema.kind, let payload = stored.payload else { throw SyncError.invalidPayload("stored kind or payload mismatch") }
         try validatePayload(payload)
         var business = payload
@@ -431,16 +452,16 @@ public actor SyncStore {
         return SyncDocument(id: stored.id, payload: try JSONDecoder().decode(P.self, from: Self.encode(business)))
     }
 
-    private func kind(_ payload: [String: SyncJSON]?) -> String? {
+    private nonisolated func kind(_ payload: [String: SyncJSON]?) -> String? {
         guard case .string(let value) = payload?["kind"] else { return nil }
         return value
     }
 
-    private func read(_ id: UUID, db: Database) throws -> StoredDocument? {
+    private nonisolated func read(_ id: UUID, db: Database) throws -> StoredDocument? {
         try Data.fetchOne(db, sql: "SELECT body FROM documents WHERE id = ?", arguments: [id.uuidString]).map(decodeStored)
     }
 
-    private func decodeStored(_ data: Data) throws -> StoredDocument {
+    private nonisolated func decodeStored(_ data: Data) throws -> StoredDocument {
         let stored = try JSONDecoder().decode(StoredDocument.self, from: data)
         guard stored.deleted == (stored.payload == nil) else {
             throw SyncError.invalidPayload("stored tombstone and payload disagree")
@@ -457,7 +478,7 @@ public actor SyncStore {
         return stored
     }
 
-    private func write(_ stored: StoredDocument, db: Database) throws {
+    private nonisolated func write(_ stored: StoredDocument, db: Database) throws {
         try db.execute(sql: "INSERT INTO documents(id, kind, deleted, pending, conflicted, body) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, deleted=excluded.deleted, pending=excluded.pending, conflicted=excluded.conflicted, body=excluded.body",
                        arguments: [stored.id.uuidString, stored.kind, stored.deleted, stored.dirty || stored.frozen != nil, stored.conflictReason != nil, try Self.encode(stored)])
     }

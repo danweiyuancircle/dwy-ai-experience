@@ -29,6 +29,7 @@ let package = Package(
         .library(name: "AuthCore", targets: ["AuthCore"]),
         .library(name: "AuthUI", targets: ["AuthUI"]),
         .library(name: "AuthGoogleIOS", targets: ["AuthGoogleIOS"]),
+        .library(name: "AuthGoogleMac", targets: ["AuthGoogleMac"]),
     ],
     dependencies: [
         .package(url: "https://github.com/groue/GRDB.swift.git", exact: "7.11.1"),
@@ -100,7 +101,7 @@ let package = Package(
             dependencies: ["DesignCore", "L10nKit"],
             path: "ios/Sources/macOS/DesignKit"
         ),
-        // Google 的呈现与回调局限于 iOS；纯认证核心不依赖 SDK。
+        // iOS 呈现适配只在 iOS 链接 SDK；纯认证核心不依赖 SDK。
         .target(
             name: "AuthGoogleIOS",
             dependencies: [
@@ -108,6 +109,17 @@ let package = Package(
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS", condition: .when(platforms: [.iOS])),
             ],
             path: "ios/Sources/iOS/AuthGoogleIOS"
+        ),
+        // macOS 窗口呈现单独适配，避免 AuthCore 引入 AppKit 或 Google SDK。
+        .target(
+            name: "AuthGoogleMac",
+            dependencies: ["AuthCore", .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS", condition: .when(platforms: [.macOS]))],
+            path: "ios/Sources/macOS/AuthGoogleMac"
+        ),
+        .testTarget(
+            name: "AuthGoogleMacTests",
+            dependencies: ["AuthGoogleMac", "AuthCore"],
+            path: "ios/Tests/AuthGoogleMacTests"
         ),
         // 终身买断 + DEBUG 解锁。试用 / 限额留在 App 的 BizFoundation。
         .target(
