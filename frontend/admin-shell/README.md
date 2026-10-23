@@ -1,6 +1,6 @@
 # @dwydev/admin-kit
 
-Vue 3 **管理系统扩展站路由框架**：模块注册侧栏菜单与路由，统一壳布局 / 页头 / 面包屑。
+Vue 3 **管理框架与通用组合组件**：模块装配菜单与路由，统一壳布局、页头、面包屑、列表状态和管理页面展示。不读取产品 API、store 或领域模型。
 
 视觉底座用 [`@dwydev/eui`](https://www.npmjs.com/package/@dwydev/eui) 的 `EAdminLayout`，**不并入 eui**（eui 只提供 UI 原语）。
 
@@ -99,6 +99,71 @@ export const appShell = createAdminShell({
 ## 不负责
 
 鉴权守卫、角色模型、业务 header 内容、HTTP / Pinia。
+
+## 0.3 通用管理组件
+
+0.3 保留原根入口，新增以下显式子路径。EUI peer 下限为已修复标签关联与键盘输入操作的 2.7.2。
+
+```ts
+import { PagedTable, RecordSearch, RequestFeedback, ConfigFieldControl } from '@dwydev/admin-kit/components'
+import { usePagedList } from '@dwydev/admin-kit/composables'
+import { STATUS_TONE } from '@dwydev/admin-kit/status/tone'
+```
+
+`components` 还提供总览/统计卡、记录详情/代码/省略/日期展示、状态徽章、筛选器、图表容器及确认执行。`OverviewCard` 与 `WindowToggle` 旧名保持兼容；图表容器不引入 Plotly。密码字段和产品领域页面不在本包内。
+
+加载样式并让 Tailwind 扫描实际安装的构建产物：
+
+```css
+@import '@dwydev/eui/theme';
+@import '@dwydev/admin-kit/style.css';
+@source '../node_modules/@dwydev/eui/dist/**/*.js';
+@source '../node_modules/@dwydev/admin-kit/dist/**/*.js';
+```
+
+扫描路径以宿主 CSS 文件为基准。产品已有相应配置时只调整路径，不重复加载主题。
+
+### 分页状态
+
+`RecordSearch` 的 `label` 提供持久、视觉隐藏的输入标签；省略时沿用 `placeholder`。输入法合成回车不提交。用户手动删空或点击清空按钮时会先更新 `modelValue`，再各发一次 `clear` 与 `search`；`clear` 只用于通知，宿主统一在 `search` 中请求，避免重复加载。外部直接清空 `modelValue` 不触发搜索。
+
+`PagedTable` 在实际横向溢出时显示滑动提示，并使滚动区可键盘聚焦。需要常驻的行操作列直接使用既有列属性 `{ key: 'actions', title: '操作', width: 80, fixed: 'right' }`；仅固定较窄的操作列，避免占满窄屏。列定义及 `#cell-*` 插槽仍原样转交 EUI。
+
+`RecordEllipsis` 仅在文本实际截断时开启全文提示与键盘停靠，完整文本与占位符不增加 Tab 次数。
+
+```ts
+const list = usePagedList({
+  fetcher: async ({ page, pageSize, keyword }, request) => {
+    const result = await hostApi.list({ page, pageSize, keyword })
+    if (request.isCurrent()) hostSummary.value = result.summary
+    return { items: result.items, total: result.total }
+  },
+})
+```
+
+`hostApi` 与 `hostSummary` 由产品提供。单参数 fetcher 继续兼容；`paged-list` 子路径与 `composables` 导出同一实现。
+
+- `error` 保留原始失败对象；当前失败清空数据但不向调用方抛出，便于页面区分失败和零条记录。
+- 每次 `load` 开始清旧错误，旧请求成功/失败/finally 不得覆盖新请求。
+- `invalidate()` 停止 loading 并淘汰在途请求，保留数据、错误与筛选，允许之后再次加载。
+- `reset()` 另清空数据/错误/关键词，恢复初始每页条数和排序。
+- Vue 作用域销毁时自动 invalidate；底层 HTTP 不会被取消。
+
+### 构建与实际制品验收
+
+在仓库根执行：
+
+```sh
+pnpm --dir frontend/eui build
+pnpm --dir frontend/ekit build
+pnpm --dir frontend/admin-shell test
+pnpm --dir frontend/admin-shell build
+pnpm --dir frontend/admin-shell smoke:pack
+```
+
+smoke 将本轮实际 admin-kit/EUI/ekit tgz 安装到干净目录，检查根/子入口、类型、分页生命周期和 Vite 打包后的真实 EUI SSR；不依赖源码 alias 或共享仓库外的私有产物。它验证 Vue/Vite 消费模式，不承诺现有 ekit 可由原生 Node 无打包直接加载。其他固定依赖从官方 npm registry 安装，冷缓存需要网络。
+
+两产品可暂保留 `@dwy/components` 转出口；本地准备脚本将本包 tgz 复制到各自 `.shared-packages`，不把临时绝对路径写进 package/lock。正式 registry 接入在另行发行后切换，制品验收通过不表示已经发布。
 
 ## 开发
 

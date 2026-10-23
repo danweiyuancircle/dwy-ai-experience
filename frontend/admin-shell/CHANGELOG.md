@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.0
+
+- 新增 components、composables、paged-list、status/tone 子入口和显式 style.css，原根 API 保持兼容。
+- 收口 quant 与 App Cloud 已复用的管理组合组件，保留 OverviewCard 和 WindowToggle 兼容名。
+- usePagedList 合并 error、invalidate、reset、isCurrent 及作用域销毁保护。
+- EUI peer 下限调整为 2.7.2，包含标签关联及输入操作可访问性修复；声明生成出现 TypeScript 错误时构建失败。
+- 搜索支持持久标签、清空后恢复查询及输入法组合保护；折叠首页保留名称，长文本支持键盘全文提示，表格横向溢出可通过键盘操作并显示提示。
+- 新增真实组件交互、跨请求状态及干净 tarball 消费/类型验收。
+
 ## 0.2.0
 
 ### Changed

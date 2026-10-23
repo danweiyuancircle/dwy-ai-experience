@@ -69,6 +69,12 @@ jobs:
       - name: Build
         run: pnpm --dir frontend/admin-shell build
 
+      - name: Verify published EUI dependency
+        working-directory: frontend/admin-shell
+        run: |
+          EUI_RANGE=$(node -p "require('./package.json').peerDependencies['@dwydev/eui']")
+          npm view "@dwydev/eui@$EUI_RANGE" version --registry=https://registry.npmjs.org/
+
       - name: Publish
         working-directory: frontend/admin-shell
         run: npm publish --access public

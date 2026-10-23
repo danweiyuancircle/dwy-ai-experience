@@ -1,0 +1,30 @@
+/**
+ * 管理系统页面基础件。
+ * 做后台页先来这里找。换一个产品还能原样拿走，组件不读接口，名字里不出现本产品名词。
+ */
+export { PagedTable, LIST_PAGE_SIZES, DEFAULT_LIST_PAGE_SIZE } from './paged-table'
+export { RecordBoard, RecordMetric } from './record-board'
+export { RecordSearch } from './record-search'
+export { RecordEllipsis } from './record-ellipsis'
+export { StatCard } from './stat-card'
+export { ActionLinkCard } from './action-link-card'
+export { default as OverviewCard } from './overview-card/OverviewCard.vue'
+export { MetricGrid } from './metric-grid'
+export { MetricSection } from './metric-section'
+export { ChartCard } from './chart-card'
+export { SegmentedFilter } from './segmented-filter'
+/** 旧名。新页面用 SegmentedFilter。 */
+export { SegmentedFilter as WindowToggle } from './segmented-filter'
+export type { SegmentedOption, SegmentedOption as WindowOption } from './segmented-filter'
+export { confirmThen } from './confirm-then'
+export type { ConfirmBox, ConfirmThenOptions, ConfirmToast } from './confirm-then'
+export { RecordCode } from './record-code'
+export { RecordProfile } from './record-profile'
+export { RecordPeriod } from './record-period'
+export { ConfigFieldControl } from './config-field'
+export type { ConfigFieldKind, ConfigFieldOption, ConfigFieldSpec } from './config-field'
+export { DataOverview } from './data-overview'
+export type { OverviewLink, OverviewMetric, OverviewSection } from './data-overview'
+export { StatusBadge, STATUS_TONE, completionClass, presenceClass } from './status'
+export type { StatusTone } from './status'
+export { RequestFeedback } from './request-feedback'

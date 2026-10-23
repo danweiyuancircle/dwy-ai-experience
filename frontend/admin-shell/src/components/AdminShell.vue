@@ -9,6 +9,7 @@
 import { EAdminLayout } from '@dwydev/eui'
 import type { MenuItem } from '@dwydev/eui'
 import { useStorage } from '@dwydev/ekit'
+import { Home } from 'lucide-vue-next'
 import {
   DEFAULT_COLLAPSED_STORAGE_KEY,
   DEFAULT_LOGO_TO,
@@ -72,6 +73,7 @@ const isLogoLink = () => !!props.logoTo
       <router-link
         v-if="isLogoLink()"
         :to="logoTo"
+        :aria-label="`${title}首页`"
         class="flex min-w-0 flex-1 items-center gap-2 rounded-md text-foreground no-underline outline-none transition-opacity hover:opacity-80 focus-visible:ring-2 focus-visible:ring-ring"
       >
         <img
@@ -80,6 +82,7 @@ const isLogoLink = () => !!props.logoTo
           class="h-7 w-7 shrink-0 object-contain"
           alt=""
         />
+        <Home v-else-if="collapsed" class="h-7 w-7 shrink-0" aria-hidden="true" />
         <span
           v-if="title && !collapsed"
           class="truncate text-sm font-semibold"
@@ -94,6 +97,7 @@ const isLogoLink = () => !!props.logoTo
           class="h-7 w-7 shrink-0 object-contain"
           alt=""
         />
+        <Home v-else-if="collapsed" class="h-7 w-7 shrink-0" aria-hidden="true" />
         <span
           v-if="title && !collapsed"
           class="truncate text-sm font-semibold"

@@ -1,8 +1,8 @@
 {
   "name": "@dwydev/admin-kit",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
-  "description": "Vue 3 管理系统壳路由框架（业务无关）— defineAdminModule 模块装配 + createAdminShell 纯数据装配 + AdminShell 壳组件（meta 驱动菜单/面包屑/PageHero，peer @dwydev/eui）",
+  "description": "Vue 3 管理框架与通用组合组件：模块、菜单、路由、数据展示及分页状态；业务与认证由宿主注入",
   "license": "MIT",
   "author": "dwydev",
   "repository": {
@@ -14,10 +14,28 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    }
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.js"
+    },
+    "./composables": {
+      "types": "./dist/composables/index.d.ts",
+      "import": "./dist/composables/index.js"
+    },
+    "./paged-list": {
+      "types": "./dist/paged-list/index.d.ts",
+      "import": "./dist/paged-list/index.js"
+    },
+    "./status/tone": {
+      "types": "./dist/components/status/tone.d.ts",
+      "import": "./dist/components/status/tone.js"
+    },
+    "./style.css": "./dist/style.css"
   },
+  "sideEffects": ["**/*.css"],
   "files": [
     "dist",
     "README.md"
@@ -28,7 +46,7 @@
   },
   "peerDependencies": {
     "@dwydev/ekit": "^0.9.0 || ^0.10.0",
-    "@dwydev/eui": "^2.2.0",
+    "@dwydev/eui": "^2.7.2",
     "lucide-vue-next": ">=0.400.0",
     "vue": "^3.5.0",
     "vue-router": "^4.4.0"
@@ -50,6 +68,7 @@
   "scripts": {
     "build": "vite build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "smoke:pack": "node scripts/smoke-pack.mjs"
   }
 }
