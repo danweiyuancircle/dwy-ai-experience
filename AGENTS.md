@@ -371,3 +371,4 @@ See `CLAUDE.md` for full build/test/release details, design system references, a
 - 同文件多个补丁 hunk 必须按源文件位置排序，JSON 清单改动按原数组顺序生成。否则后一个 hunk 可能无法回到前面的文本，出现“原文存在却匹配失败”；先检查顺序和上下文再重试，避免反复扩大匹配范围。
 - 复用 SwiftPM Git 缓存前，不能只确认锁定 commit 存在；部分克隆可能缺少 blob，导致检出或打包失败。用 `git rev-list --objects --all --missing=print` 检查可达对象是否完整，复制后确认不通过 alternates 或本地 remote 依赖待移除的来源目录。
 - uv 离线安装失败时，不能根据已有虚拟环境推断缓存齐全；缓存受索引来源、版本和平台产物影响。先固定索引并确认缺失项，再选择联网安装，避免反复重试 `--offline`。
+- npm 发布工作流成功或 `latest` 更新后，包文件仍可能因分发延迟或旧 404 缓存暂不可用。先核对指定版本元数据和 `dist.tarball` 的实际下载状态，再在独立目录按精确版本安装验收；不要重复发布同版本或重打标签。下载耗时较长时使用可续查的任务，避免反复因短超时中断安装。
