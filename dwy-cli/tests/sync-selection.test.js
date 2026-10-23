@@ -181,6 +181,30 @@ test('完整同步自动安装 Hooks，旧包记录不展开；停用 Commands �
 })
 
 
+test('全局旧 Rules 不会成为新项目的默认选择', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-rule-defaults-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates')
+  const projectDir = path.join(root, 'project')
+  const homeDir = path.join(root, 'home')
+  await fs.ensureDir(projectDir)
+  await fs.outputFile(path.join(sourceDir, 'AGENTS.md'), '# Baseline')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# Skill')
+  await fs.outputFile(path.join(sourceDir, 'rules/通用/sample.md'), '# Rule')
+  await fs.outputJson(path.join(homeDir, '.dwy/sync-state.json'), {
+    version: 1, platforms: { claude: { rules: ['sample.md'] } },
+  })
+  const options = { sourceDir, projectDir, homeDir, selectedPlatforms: ['claude'], scope: 'project', confirmed: true }
+  await runProgram(t, `
+    import { syncAll } from './dwy-cli/src/sync-all.js';
+    await syncAll(${JSON.stringify(options)});
+    console.log('RESULT:{}');
+  `, [{ label: 'Skills', keys: '\r' }, { label: 'Rules', keys: '\r' }])
+  assert.equal(await fs.pathExists(path.join(projectDir, 'AGENTS.md')), false)
+  const state = await fs.readJson(path.join(projectDir, '.dwy/sync-state.json'))
+  assert.deepEqual(state.platforms.claude.rules, [])
+})
+
 test('主交互按内容、位置、平台、确认完成，取消前不写入', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-flow-'))
   t.after(() => fs.remove(root))

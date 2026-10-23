@@ -1,5 +1,17 @@
 # create-dwy
 
+## 0.21.0
+
+### Minor Changes
+
+- 通用基线默认写入所选 AI CLI 的全局入口：Claude Code 使用 `~/.claude/CLAUDE.md`，Codex 使用 `$CODEX_HOME/AGENTS.md`（默认 `~/.codex/AGENTS.md`），OpenCode 使用 `~/.config/opencode/AGENTS.md`。
+- Claude Code、Codex、OpenCode 的所选 Rules 共用项目根 `AGENTS.md` 的托管规则块，项目不再重复注入通用基线。位置选择仅控制 Skills / Hooks；Cursor Rules 始终写入项目。
+- 基线源文件及项目脚手架模板统一使用 `AGENTS.md`，新增新功能开发前的官方／成熟社区工具发现与风险评估规则。
+- 迁移可识别的旧托管基线和 Rules，保留个人内容；全局历史 Rules 不再成为新项目的默认选择，切换 CLI 后取消的共享规则不会重新勾选。
+- 更新确认预览、命令行帮助和接入说明，覆盖全局基线、项目 Rules、旧配置迁移及取消无写入的验证。
+
+---
+
 ## 0.20.0
 
 ### Minor Changes

@@ -13,6 +13,7 @@ import { chalk } from './utils.js'
 import {
   interactiveSelect,
   logAction,
+  readBaselineDoc,
   resolveSourceDir,
   scanExisting,
   scanHooks,
@@ -22,9 +23,12 @@ import {
 } from './sync.js'
 import {
   parseManagedRuleNames,
+  removeLegacyBaseline,
   scanExistingCodexHooks,
   scanExistingCodexSkills,
   syncCodex,
+  syncGlobalBaselineDoc,
+  syncProjectAgentsMd,
 } from './sync-codex.js'
 import { scanExistingCursorRules, syncCursor } from './sync-cursor.js'
 import { syncOpenCode } from './sync-opencode.js'
@@ -203,15 +207,14 @@ async function syncSkillsOnly({
   }
 }
 
-async function selectPlatforms(projectDir, global) {
+async function selectPlatforms(projectDir) {
   const initialValues = await buildPlatformDefaultsFromLocalState(projectDir)
 
-  if (global) console.log(chalk.gray('Cursor 全局规则通过应用设置管理，本次不提供文件同步。'))
   // 可搜索多选 + 底部说明区
   const result = await searchableMultiselect({
     message: '选择要同步的平台',
-    options: PLATFORM_OPTIONS.filter(option => !global || option.value !== 'cursor'),
-    initialValues: initialValues.filter(value => !global || value !== 'cursor'),
+    options: PLATFORM_OPTIONS,
+    initialValues,
     required: true,
     maxItems: 6,
     placeholder: SEARCH_PLACEHOLDER,
@@ -277,7 +280,7 @@ async function collectCurrentManagedNames(projectDir, global = false) {
   return {
     claude: {
       skills: await scanExisting(claudeDir, 'skills'),
-      rules: await scanExisting(claudeDir, 'rules'),
+      rules: unionSets(await scanExisting(claudeDir, 'rules'), parseManagedRuleNames(agentsMdContent)),
       hooks: await scanExisting(claudeDir, 'hooks'),
     },
     codex: {
@@ -422,12 +425,13 @@ export async function syncAll({
   selected: selectedOverride,
   selectedPlatforms: selectedPlatformsOverride,
   staleRemovals: staleRemovalsOverride,
-  // 兼容已有脚本；主交互只选择整套配置的位置。
+  // 兼容已有脚本；主交互的位置只控制 Skills / Hooks。
   skillScope: skillScopeOverride,
   // all = 完整同步；skills = 只写 skill，测试/脚本可注入
   syncMode: syncModeOverride,
   // 全局配置根目录；测试必须注入临时用户目录。
   homeDir = os.homedir(),
+  codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'),
   scope: scopeOverride,
   confirmed,
 } = {}) {
@@ -450,6 +454,7 @@ export async function syncAll({
   const projectDefaults = buildSelectionDefaultsFromSyncState(existing, syncState)
   const globalDefaults = buildSelectionDefaultsFromSyncState({ skills: new Set(), rules: new Set(), hooks: new Set() }, globalState)
   const selectionDefaults = Object.fromEntries(['skills', 'rules', 'hooks'].map(type => [type, unionSets(projectDefaults[type], globalDefaults[type])]))
+  selectionDefaults.rules = projectDefaults.rules
   const syncMode = normalizeSyncMode(syncModeOverride)
   const selected = selectedOverride || await interactiveSelect(scans, selectionDefaults, {
     skillsOnly: syncMode === SYNC_MODE_SKILLS,
@@ -462,10 +467,10 @@ export async function syncAll({
   if (syncMode === SYNC_MODE_ALL) selected.hooks = scans.hooks
 
   const scopeResult = scopeOverride || (selectedOverride || selectedPlatformsOverride ? 'project' : await searchableSelect({
-    message: '选择同步位置',
+    message: '选择同步位置（Skills / Hooks）',
     options: [
-      { value: 'project', label: '当前项目', description: '仅当前项目生效' },
-      { value: 'global', label: '全局', description: '所有项目生效' },
+      { value: 'project', label: '当前项目', description: 'Skills / Hooks 写入项目；基线固定全局，Rules 固定项目' },
+      { value: 'global', label: '全局', description: 'Skills / Hooks 写入用户目录；基线固定全局，Rules 固定项目' },
     ],
     initialValue: 'project',
   }))
@@ -473,27 +478,62 @@ export async function syncAll({
   if (!['project', 'global'].includes(scopeResult)) throw new Error('无效同步位置')
   const global = scopeResult === 'global'
   const targetRoot = global ? homeDir : projectDir
-  const targetState = global ? await loadSyncState(homeDir) : syncState
-  const selectedPlatforms = selectedPlatformsOverride || await selectPlatforms(targetRoot, global)
+  const targetState = global ? globalState : syncState
+  const selectedPlatforms = selectedPlatformsOverride || await selectPlatforms(projectDir)
   if (selectedPlatforms === null) { console.log(chalk.yellow('已取消同步。')); return }
-  if (selectedPlatforms.some(platform => !PLATFORM_SYNC_TYPES[platform] || (global && platform === 'cursor'))) {
+  if (selectedPlatforms.some(platform => !PLATFORM_SYNC_TYPES[platform])) {
     throw new Error('所选平台不支持此同步位置')
   }
-  const staleEntriesRaw = await collectStaleEntries(targetRoot, scans, targetState, selectedPlatforms, global)
+  const projectStaleEntries = await collectStaleEntries(projectDir, scans, syncState, selectedPlatforms)
+  const staleEntriesRaw = global
+    ? await collectStaleEntries(targetRoot, scans, targetState, selectedPlatforms, true)
+    : projectStaleEntries
+  for (const platform of selectedPlatforms) {
+    staleEntriesRaw[platform].rules = projectStaleEntries[platform].rules || []
+  }
   const staleEntries = syncMode === SYNC_MODE_SKILLS ? retainSkillStaleEntries(staleEntriesRaw) : staleEntriesRaw
   const approvedStaleRemovals = normalizeRemovalInput(staleRemovalsOverride || staleEntries)
   const skillScope = normalizeSkillScope(skillScopeOverride)
+  const baseline = syncMode === SYNC_MODE_ALL ? await readBaselineDoc(sourceDir) : ''
+  const cliPlatforms = selectedPlatforms.filter(platform => platform !== 'cursor')
+  const baselinePaths = {
+    claude: path.join(homeDir, '.claude', 'CLAUDE.md'),
+    codex: path.join(codexHome, 'AGENTS.md'),
+    opencode: path.join(homeDir, '.config', 'opencode', 'AGENTS.md'),
+  }
+  const legacyClaudeRules = new Set()
+  if (syncMode === SYNC_MODE_ALL && selectedPlatforms.includes('claude')) {
+    for (const [root, previousNames] of [
+      [projectDir, approvedStaleRemovals.claude?.rules || []],
+      ...(baseline.trim() ? [[homeDir, globalState.platforms.claude?.rules || []]] : []),
+    ]) {
+      for (const name of new Set([...scans.rules.map(rule => rule.name), ...previousNames])) {
+        if (path.basename(name) !== name || !name.endsWith('.md')) continue
+        const dest = path.join(root, '.claude', 'rules', name)
+        if (await fs.pathExists(dest)) legacyClaudeRules.add(dest)
+      }
+    }
+  }
   if ((!selectedOverride && confirmed !== true) || confirmed === false) {
     const currentManaged = await collectCurrentManagedNames(targetRoot, global)
+    const projectManaged = await collectCurrentManagedNames(projectDir)
+    for (const platform of selectedPlatforms) currentManaged[platform].rules = projectManaged[platform].rules
     const templateNames = getCurrentTemplateNames(scans)
     console.log(`\nSkills：${selected.skills.map(item => item.name).join('、') || '未选择'}`)
     console.log(`Rules：${selected.rules.map(item => item.name).join('、') || '未选择'}`)
-    console.log(`位置：${global ? '全局' : '当前项目'}；平台：${selectedPlatforms.map(platform => PLATFORM_LABELS[platform]).join('、')}`)
+    console.log(`Skills / Hooks 位置：${global ? '全局' : '当前项目'}；平台：${selectedPlatforms.map(platform => PLATFORM_LABELS[platform]).join('、')}`)
+    if (syncMode === SYNC_MODE_ALL) {
+      for (const platform of cliPlatforms) console.log(`全局基线 ${PLATFORM_LABELS[platform]} → ${baselinePaths[platform]}（替换基线并清除旧托管 Rules）`)
+      if (cliPlatforms.length) console.log(`项目 Rules → ${path.join(projectDir, 'AGENTS.md')}（保留手写内容，移除旧托管基线）`)
+      if (selectedPlatforms.includes('claude')) console.log('旧 Claude 基线入口仅清理 dwy 托管块或与当前模板完全一致的内容。')
+      for (const dest of legacyClaudeRules) console.log(`删除旧 Claude Rules → ${dest}`)
+    }
     console.log('Hooks 按支持的平台自动启用。')
     for (const platform of selectedPlatforms) {
       for (const type of PLATFORM_SYNC_TYPES[platform]) {
         const existingNames = currentManaged[platform]?.[type] || new Set()
-        const previous = [...new Set([...templateNames[type], ...(targetState.platforms[platform]?.[type] || [])])]
+        const previousState = type === 'rules' ? syncState : targetState
+        const previous = [...new Set([...templateNames[type], ...(previousState.platforms[platform]?.[type] || [])])]
           .filter(name => existingNames.has(platform === 'cursor' && type === 'rules' ? buildCursorRuleName(name) : name))
         const names = new Set((selected[type] || []).map(item => item.name))
         const removed = previous.filter(name => !names.has(name))
@@ -527,7 +567,19 @@ export async function syncAll({
     syncedAnySupportedPlatform = selectedPlatforms.some(platform => resolveProjectSkillDir(projectDir, platform))
       || skillScope.destinations.some(id => id !== 'project')
   } else {
+    for (const platform of cliPlatforms) await syncGlobalBaselineDoc(baseline, baselinePaths[platform])
+    if (cliPlatforms.length) {
+      const preservedRuleNames = unionSets(...cliPlatforms.map(platform => getPreservedStaleNames(staleEntries, approvedStaleRemovals, platform, 'rules')))
+      const ruleNames = new Set(selected.rules.map(rule => rule.name))
+      await syncProjectAgentsMd(projectDir, scans.rules.filter(rule => ruleNames.has(rule.name)), { preservedRuleNames })
+    }
     if (selectedPlatforms.includes('claude')) {
+      await removeLegacyBaseline(baseline, path.join(homeDir, '.claude', 'AGENTS.md'))
+      for (const name of ['AGENTS.md', 'CLAUDE.md']) await removeLegacyBaseline(baseline, path.join(projectDir, '.claude', name))
+      for (const dest of legacyClaudeRules) {
+        await fs.remove(dest)
+        logAction(`legacy rule → ${dest}`, 'red', '×')
+      }
       syncedAnySupportedPlatform = true
       console.log(chalk.blue('\nSyncing Claude Code configuration...\n'))
       await syncClaude({
@@ -548,7 +600,6 @@ export async function syncAll({
         global,
         selected,
         staleRemovals: approvedStaleRemovals.codex,
-        preserveMissingRules: getPreservedStaleNames(staleEntries, approvedStaleRemovals, 'codex', 'rules'),
       })
     }
 
@@ -556,8 +607,7 @@ export async function syncAll({
       syncedAnySupportedPlatform = true
       await syncCursor({
         sourceDir,
-        projectDir: targetRoot,
-        global,
+        projectDir,
         selected,
         staleRemovals: approvedStaleRemovals.cursor,
       })
@@ -571,7 +621,6 @@ export async function syncAll({
         global,
         selected,
         staleRemovals: approvedStaleRemovals.opencode,
-        preserveMissingRules: getPreservedStaleNames(staleEntries, approvedStaleRemovals, 'opencode', 'rules'),
       })
     }
 
@@ -600,12 +649,42 @@ export async function syncAll({
     }
   } else {
     for (const platform of selectedPlatforms) {
-      targetState.platforms[platform] = buildNextPlatformState(selected, staleEntries, approvedStaleRemovals, platform)
+      const next = buildNextPlatformState(selected, staleEntries, approvedStaleRemovals, platform)
+      if (global) {
+        syncState.platforms[platform] = {
+          ...(syncState.platforms[platform] || createEmptyPlatformState()),
+          rules: next.rules,
+        }
+        if (platform !== 'cursor') targetState.platforms[platform] = { ...next, rules: [] }
+      } else {
+        targetState.platforms[platform] = next
+      }
+      if (platform !== 'cursor') {
+        globalState.platforms[platform] = { ...globalState.platforms[platform], rules: [] }
+      }
+    }
+  }
+  if (syncMode === SYNC_MODE_ALL && cliPlatforms.length) {
+    const agentsPath = path.join(projectDir, 'AGENTS.md')
+    const content = await fs.pathExists(agentsPath) ? await fs.readFile(agentsPath, 'utf-8') : ''
+    const rules = [...parseManagedRuleNames(content)].sort((a, b) => a.localeCompare(b, 'zh'))
+    // 三个 CLI 共用同一规则块，已有记录必须一起更新，避免切换平台后恢复已取消的规则。
+    for (const platform of Object.keys(baselinePaths)) {
+      if (syncState.platforms[platform]) syncState.platforms[platform].rules = rules
     }
   }
   targetState.skillScope = skillScope
   targetState.syncMode = syncMode
-  await saveSyncState(targetRoot, targetState)
+  if (syncMode === SYNC_MODE_ALL && global) {
+    syncState.syncMode = syncMode
+    await saveSyncState(projectDir, syncState)
+    if (cliPlatforms.length) await saveSyncState(homeDir, targetState)
+  } else {
+    await saveSyncState(targetRoot, targetState)
+    if (syncMode === SYNC_MODE_ALL && cliPlatforms.length && baseline.trim()) {
+      await saveSyncState(homeDir, globalState)
+    }
+  }
 
   if (!syncedAnySupportedPlatform) {
     console.log(chalk.yellow('未选择已接入平台，本次未执行同步。'))

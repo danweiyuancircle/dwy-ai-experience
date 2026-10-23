@@ -223,7 +223,7 @@ test('syncAll keeps stale managed items until deletion is confirmed', async t =>
   })
 
   assert.equal(await fs.pathExists(path.join(projectDir, '.claude', 'skills', 'dwy-shared', 'SKILL.md')), true)
-  assert.equal(await fs.pathExists(path.join(projectDir, '.claude', 'rules', 'dwy-vue.md')), true)
+  assert.equal(await fs.pathExists(path.join(projectDir, '.claude', 'rules', 'dwy-vue.md')), false)
   assert.equal(await fs.pathExists(path.join(projectDir, '.agents', 'skills', 'dwy-shared', 'SKILL.md')), true)
 
   const preservedAgentsMd = await fs.readFile(path.join(projectDir, 'AGENTS.md'), 'utf-8')

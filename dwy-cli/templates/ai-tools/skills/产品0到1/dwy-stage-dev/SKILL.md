@@ -19,7 +19,7 @@ description: "【dwy·TDD开发阶段】产品 0 到 1 的第四阶段编排。�
 调度前**必须先分析每个任务的前后 block 关系**（由任务 Interfaces 推出：`Consumes`=被谁 block、`Produces`=block 谁）。判定铁律：
 - **无 block 的任务 → 多 Agent 并行**
 - **有 block 的任务 → 串行**，被 block 的下游必须等其所有前置 block 任务 done 才能启动
-- 与 `ai-tools/CLAUDE.md`「任务执行前必须先分析 block；无 block 的任务用多 Agent 并行」一致
+- 与 `ai-tools/AGENTS.md`「任务执行前必须先分析 block；无 block 的任务用多 Agent 并行」一致
 
 ### 第二步·agent 池调度
 - 按 block 分析结果建 **ready 队列**（所有前置 block 已 done 的任务，即当前无 block 的）

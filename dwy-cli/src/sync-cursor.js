@@ -4,7 +4,6 @@ import { chalk } from './utils.js'
 import {
   extractDescription,
   logAction,
-  readBaselineDoc,
   scanRules,
   resolveSourceDir,
 } from './sync.js'
@@ -79,28 +78,6 @@ async function syncCursorRules(selectedRules, projectDir) {
   return syncedCount
 }
 
-async function syncCursorBaselineRule(sourceDir, projectDir) {
-  const baseline = await readBaselineDoc(sourceDir)
-  if (!baseline) return 0
-
-  const rulesDir = path.join(projectDir, '.cursor', 'rules')
-  const destPath = path.join(rulesDir, BASELINE_RULE_NAME)
-  const content = [
-    '---',
-    `description: ${JSON.stringify('[dwy] Global baseline')}`,
-    'alwaysApply: true',
-    '---',
-    '',
-    baseline.trim(),
-    '',
-  ].join('\n')
-
-  await fs.ensureDir(rulesDir)
-  await fs.writeFile(destPath, content)
-  logAction(`.cursor/rules/${BASELINE_RULE_NAME}`)
-  return 1
-}
-
 async function removeUnselectedCursorRules(existingNames, selectedNames, managedNames, projectDir) {
   const rulesDir = path.join(projectDir, '.cursor', 'rules')
   let removedCount = 0
@@ -159,9 +136,7 @@ export async function syncCursor({
   let syncedCount = 0
   let removedCount = 0
 
-  syncedCount += await syncCursorBaselineRule(sourceDir, proj)
   syncedCount += await syncCursorRules(syncedSelection, proj)
-  nextRuleNames.add(BASELINE_RULE_NAME)
   removedCount += await removeUnselectedCursorRules(existingRules, nextRuleNames, managedRuleNames, proj)
 
   console.log(chalk.blue(`\nDone! ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))

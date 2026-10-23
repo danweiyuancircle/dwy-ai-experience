@@ -56,6 +56,21 @@ swift test
 
 Apple 验证需要完整 Xcode 环境。本机使用 Node 26 时，如 Vitest/jsdom 受实验性 Web Storage 影响，可按 [docs/private-distribution.md](docs/private-distribution.md) 局部设置测试环境。
 
+## AI 配置基线
+
+`dwy-cli/templates/ai-tools/AGENTS.md` 是通用基线源文件，包含新功能开发前的工具发现与风险评估规则。`dwy` 默认将基线写入所选 AI CLI 的全局入口，所选 Rules 固定写入当前项目。位置选择仅控制 Skills / Hooks。项目脚手架统一生成 `AGENTS.md`；Claude Code 的用户级全局入口使用原生的 `CLAUDE.md`。
+
+| 平台 | 所选 Rules 的项目位置 | 通用基线的全局位置 |
+|------|----------|------------------------|
+| Claude Code | 根 `AGENTS.md` 的托管规则块 | `~/.claude/CLAUDE.md` |
+| Codex | 根 `AGENTS.md` 的托管规则块 | `$CODEX_HOME/AGENTS.md`，默认 `~/.codex/AGENTS.md` |
+| OpenCode | 根 `AGENTS.md` 的托管规则块 | `~/.config/opencode/AGENTS.md` |
+| Cursor | `.cursor/rules/dwy-<规则名>.mdc` | 不支持文件同步，使用应用设置 |
+
+三种 CLI 共用项目根 `AGENTS.md`，基线不再重复注入项目。同步会更新 dwy 托管块、迁移旧基线和项目 Rules 的落点，保留托管块之外的手写内容。旧 Claude 基线文件无托管标记时，仅在其内容与当前模板完全一致时清理；无法确认归属的文件保留。确认步骤会列出全局基线位置、项目 Rules 位置和旧 Claude Rules 删除项；取消不写入任何配置。
+
+Claude Code 直接读取项目 `AGENTS.md` 需要 v2.1.277 或更新版本，并启用对应内置插件；默认情况下，工作目录及祖先目录中若存在 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md`，会优先读取这些旧文件。全局 `~/.claude/CLAUDE.md` 会与项目指令一起加载。加载条件见 [Claude Code 官方说明](https://code.claude.com/docs/en/memory#agents-md)。
+
 ## 接入与分发
 
 - 认证总览：[docs/auth.md](docs/auth.md)。

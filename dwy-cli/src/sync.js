@@ -169,7 +169,7 @@ export async function loadHookManifests(sourceDir) {
 }
 
 export async function readBaselineDoc(sourceDir) {
-  const baselinePath = path.join(sourceDir, 'CLAUDE.md')
+  const baselinePath = path.join(sourceDir, 'AGENTS.md')
   if (!await fs.pathExists(baselinePath)) return ''
   return fs.readFile(baselinePath, 'utf-8')
 }
@@ -381,27 +381,6 @@ async function syncSettings(sourceDir, targetDir, selectedHookNames, global) {
   return 1
 }
 
-async function syncClaudeBaselineDoc(sourceDir, targetDir, global) {
-  const baseline = await readBaselineDoc(sourceDir)
-  if (!baseline) return 0
-
-  const dest = path.join(targetDir, 'CLAUDE.md')
-  const current = await fs.pathExists(dest) ? await fs.readFile(dest, 'utf-8') : ''
-  if (current === baseline) return 0
-
-  const start = '<!-- DWY-BASELINE:START -->'
-  const end = '<!-- DWY-BASELINE:END -->'
-  const block = `${start}\n\n${baseline.trim()}\n\n${end}`
-  const next = global
-    ? (current === baseline ? `${block}\n` : /<!-- DWY-BASELINE:START[^>]*-->[\s\S]*?<!-- DWY-BASELINE:END -->/.test(current)
-      ? current.replace(/<!-- DWY-BASELINE:START[^>]*-->[\s\S]*?<!-- DWY-BASELINE:END -->/, block)
-      : `${block}\n\n${current}`)
-    : baseline
-  await fs.writeFile(dest, next)
-  logAction('.claude/CLAUDE.md')
-  return 1
-}
-
 /** 默认读取随包模板；仅开发者显式设置环境变量时改用外部目录，不要求仓库权限。 */
 export async function resolveSourceDir() {
   const explicitSourceDir = process.env.DWY_TEMPLATE_SOURCE_DIR
@@ -415,7 +394,7 @@ export async function resolveSourceDir() {
   return path.join(PACKAGE_ROOT, 'templates', 'ai-tools')
 }
 
-/** 同步 Claude 配置；global 模式用传入的用户目录，并保留个人 CLAUDE.md 内容。 */
+/** 同步 Claude Skills 与 Hooks；基线和项目 Rules 由总同步入口分别处理。 */
 export async function syncClaude({
   sourceDir: sourceDirOverride,
   projectDir,
@@ -462,7 +441,6 @@ export async function syncClaude({
   const selectedNames = key => new Set((selected[key] || []).map(item => item.name))
   const syncedSelection = {
     skills: scans.skills.filter(item => selectedNames('skills').has(item.name)),
-    rules: scans.rules.filter(item => selectedNames('rules').has(item.name)),
     hooks: scans.hooks.filter(item => selectedNames('hooks').has(item.name)),
   }
 
@@ -477,9 +455,7 @@ export async function syncClaude({
   let syncedCount = 0
   let removedCount = 0
 
-  syncedCount += await syncClaudeBaselineDoc(sourceDir, projectTargetDir, global)
   syncedCount += await copyItems(syncedSelection.skills, projectTargetDir)
-  syncedCount += await copyItems(syncedSelection.rules, projectTargetDir)
   syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, global)
   syncedCount += await copyHooks(syncedSelection.hooks, projectTargetDir)
 
@@ -487,7 +463,7 @@ export async function syncClaude({
   const ruleTemplateNames = new Set([...scans.rules.map(r => r.name), ...approvedStaleRules])
   const hookTemplateNames = new Set([...scans.hooks.map(h => h.name), ...approvedStaleHooks])
   removedCount += await removeUnselected('skills', existing.skills, new Set(syncedSelection.skills.map(s => s.name)), skillTemplateNames, projectTargetDir)
-  removedCount += await removeUnselected('rules', existing.rules, new Set(syncedSelection.rules.map(r => r.name)), ruleTemplateNames, projectTargetDir)
+  removedCount += await removeUnselected('rules', existing.rules, new Set(), ruleTemplateNames, projectTargetDir)
   removedCount += await removeUnselected('hooks', existing.hooks, selectedHookNames, hookTemplateNames, projectTargetDir)
 
   console.log(chalk.blue(`\nDone! ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
