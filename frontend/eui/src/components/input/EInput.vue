@@ -4,12 +4,16 @@
   使用 useSecureValue 处理中文输入法合成，避免拼音中间态丢字符
 -->
 <script setup lang="ts">
-import { computed, nextTick, ref, shallowRef, useSlots } from 'vue'
+import { computed, nextTick, ref, shallowRef, useAttrs, useSlots } from 'vue'
+import type { StyleValue } from 'vue'
 import { X, Eye, EyeOff } from 'lucide-vue-next'
 import { cn } from '@/utils/cn'
 import { useSecureValue } from '@/composables/useSecureValue'
 import { useFormField } from '@/composables/useFormField'
+import { useConfigProvider } from '@/composables/useConfigProvider'
 import type { EInputProps, EInputEmits } from './types'
+
+defineOptions({ inheritAttrs: false })
 
 const props = withDefaults(defineProps<EInputProps>(), {
   type: 'text',
@@ -21,6 +25,27 @@ const props = withDefaults(defineProps<EInputProps>(), {
 })
 
 const slots = useSlots()
+const attrs = useAttrs()
+const { locale } = useConfigProvider()
+
+// class / style 保持作用于布局容器，其余原生属性和事件交给真正的输入框。
+// useAttrs 不可被 computed 缓存；在每次渲染时读取，以接收运行期属性更新。
+function inputAttrs() {
+  const { style: _style, ...nativeAttrs } = attrs
+  // 密码即使切为明文仍关闭拼写与自动纠正；普通输入保留调用方的原生属性值。
+  if (props.type === 'password' || props.showPassword) {
+    nativeAttrs.spellcheck = false
+    nativeAttrs.autocorrect = 'off'
+  }
+  return nativeAttrs
+}
+
+function describedBy() {
+  const ids = [attrs['aria-describedby'], formField?.error.value ? formField.formMessageId : undefined]
+    .filter((id): id is string => typeof id === 'string' && !!id.trim())
+    .flatMap(id => id.trim().split(/\s+/))
+  return ids.length ? [...new Set(ids)].join(' ') : undefined
+}
 
 const emit = defineEmits<EInputEmits>()
 
@@ -103,13 +128,17 @@ function onFocus(event: FocusEvent) {
 }
 
 /** 清空按钮点击：置空值并派发 clear 事件 */
-function onClear() {
+async function onClear() {
+  if (props.disabled || props.readonly) return
   emit('update:modelValue', '')
   emit('clear')
+  await nextTick()
+  inputRef.value?.focus()
 }
 
 /** 切换密码明文/密文显示 */
 function togglePasswordVisibility() {
+  if (props.disabled) return
   passwordVisible.value = !passwordVisible.value
 }
 </script>
@@ -118,6 +147,7 @@ function togglePasswordVisibility() {
   <div
     data-slot="input-root"
     :class="cn('w-full min-w-0', props.class)"
+    :style="attrs.style as StyleValue"
   >
     <div
       data-slot="input-wrapper"
@@ -133,11 +163,12 @@ function togglePasswordVisibility() {
         <slot name="prefix" />
       </span>
       <input
+        v-bind="inputAttrs()"
         ref="inputRef"
         data-slot="input"
-        :id="formField?.formItemId"
-        :aria-invalid="formField?.error.value ? true : undefined"
-        :aria-describedby="formField?.error.value ? formField.formMessageId : undefined"
+        :id="formField?.formItemId ?? attrs.id as string | undefined"
+        :aria-invalid="formField?.error.value ? true : attrs['aria-invalid'] as 'true' | 'false' | undefined"
+        :aria-describedby="describedBy()"
         :type="inputType"
         :placeholder="placeholder"
         :disabled="disabled"
@@ -145,8 +176,6 @@ function togglePasswordVisibility() {
         :name="name ?? formField?.name"
         :maxlength="maxlength"
         :autocomplete="autocomplete"
-        :autocorrect="type === 'password' ? 'off' : undefined"
-        :spellcheck="type === 'password' ? false : undefined"
         :class="cn(
           'file:text-foreground placeholder:text-muted-foreground selection:bg-primary selection:text-primary-foreground dark:bg-input/30 border-input w-full min-w-0 rounded-md border bg-transparent px-3 py-1 shadow-xs transition-[color,box-shadow] outline-none file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
           'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
@@ -165,25 +194,29 @@ function togglePasswordVisibility() {
       <button
         v-if="showClearButton && !showPassword"
         type="button"
-        tabindex="-1"
+        :aria-label="locale.inputClear"
         :class="cn(
           'absolute right-2 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors',
+          'size-6 rounded-sm focus-visible:outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px]',
         )"
         @click="onClear"
       >
-        <X class="size-4" />
+        <X class="size-4" aria-hidden="true" />
       </button>
       <button
         v-if="showPassword"
         type="button"
-        tabindex="-1"
+        :aria-label="passwordVisible ? locale.inputHidePassword : locale.inputShowPassword"
+        :aria-pressed="passwordVisible"
+        :disabled="disabled"
         :class="cn(
           'absolute right-2 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors',
+          'size-6 rounded-sm focus-visible:outline-none focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
         )"
         @click="togglePasswordVisibility"
       >
-        <EyeOff v-if="passwordVisible" class="size-4" />
-        <Eye v-else class="size-4" />
+        <EyeOff v-if="passwordVisible" class="size-4" aria-hidden="true" />
+        <Eye v-else class="size-4" aria-hidden="true" />
       </button>
       <span
         v-if="hasSuffix && !showClearButton && !showPassword"

@@ -55,11 +55,11 @@ import {
   PopoverContent,
   PopoverPortal,
   PopoverRoot,
-  PopoverTrigger,
 } from 'reka-ui'
 import { CalendarDate } from '@internationalized/date'
 import type { DateValue } from '@internationalized/date'
 import { cn } from '@/utils/cn'
+import DatePickerTrigger from './DatePickerTrigger.vue'
 import { useConfigProvider } from '@/composables/useConfigProvider'
 import type { EDatePickerProps, EDatePickerEmits } from './types'
 
@@ -325,7 +325,7 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
 <template>
   <PopoverRoot v-model:open="open">
     <PopoverAnchor as-child>
-      <PopoverTrigger as-child>
+      <DatePickerTrigger>
         <button
           :disabled="disabled"
           :class="cn(
@@ -347,7 +347,7 @@ const hasShortcuts = computed(() => props.shortcuts && props.shortcuts.length > 
             @click.stop="onClear"
           />
         </button>
-      </PopoverTrigger>
+      </DatePickerTrigger>
     </PopoverAnchor>
 
     <PopoverPortal>

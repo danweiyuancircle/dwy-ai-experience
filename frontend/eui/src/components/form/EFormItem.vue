@@ -104,10 +104,7 @@ provide(FORM_ITEM_INJECTION_KEY, fieldContext)
     <!-- Control + error -->
     <div>
       <div
-        :id="`${id}-form-item`"
         :class="cn(!isTopLabel && 'min-h-9 flex items-center w-full [&>*]:w-full')"
-        :aria-invalid="!!errorMessage"
-        :aria-describedby="errorMessage ? `${id}-form-item-message` : undefined"
       >
         <slot />
       </div>

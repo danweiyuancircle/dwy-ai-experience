@@ -1,6 +1,6 @@
 # @dwydev/eui 测试用例清单
 
-> 回测基准：793 个测试用例，88 个测试文件。版本变更后必须全部通过。
+> 回测基准：815 个测试用例，89 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd frontend/eui && pnpm vitest run`
 
@@ -140,9 +140,20 @@
 
 ---
 
-## 5. EInput 组件（42 个）
+## 5. EInput 组件（49 个）
 
 `tests/components/input.test.ts`
+
+### 原生属性与键盘操作回归（7 个）
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1 | 原生属性和事件正确透传 | id、aria-label、aria-labelledby、aria-describedby、inputmode、required 作用于 input；class/style 保留根容器；Enter 只触发一次；属性更新同步生效 |
+| 2 | 键盘清空与焦点恢复 | 清空按钮有名称、可 Tab 到达；清空后移除按钮并回焦 input；clear 只派发一次 |
+| 3 | 密码可见性语义 | 按钮可 Tab 到达，名称与 aria-pressed 随状态更新；禁用后不可切换 |
+| 4 | 操作文案国际化 | 清空、显示密码、隐藏密码使用 Provider locale，支持运行期局部覆盖 |
+| 5 | 普通输入纠错属性透传 | spellcheck=false/true/空串、autocorrect=on/off/空串保留原生含义；tabindex=0 不被当成缺省值 |
+| 6–7 | 密码输入纠错保护 | type=password 和 showPassword 模式均强制 spellcheck=false、autocorrect=off；显示明文仍保护，退出密码模式后恢复调用方属性 |
 
 ### 原生类型与选区回归（16 个）
 
@@ -350,7 +361,7 @@
 
 ---
 
-## 13. EForm 边输边校（6 个）
+## 13. EForm 字段关联与边输边校（10 个）
 
 `tests/components/form.test.ts`
 
@@ -362,6 +373,21 @@
 | 4 | 确认密码已填时改密码提示不一致 | `return new Error(...)` 必须显示，不能被 vee-validate 当成通过 |
 | 5 | 确认密码为空时改密码不出确认错误 | 未触碰的确认栏保持干净 |
 | 6 | 提交空表单仍拦截并显示必填 | native submit 出「请输入密码」 |
+| 7 | 标签真实关联输入 | 整个表单 id 唯一，每个 label.control 指向对应原生 input |
+| 8 | 错误描述保留辅助说明 | aria-describedby 合并调用方帮助文本与错误消息；字段生成 id 优先，label 关联保持有效 |
+| 9 | clearValidate 保留草稿 | 清除当前错误、aria-invalid、aria-describedby，输入与 model 不变，再次校验仍正常拦截 |
+| 10 | clearValidate 清自定义/未挂载/嵌套错误 | 清除字段多条错误及无控件的字段错误，保留模型中的草稿、0、false 和空串 |
+
+---
+
+## EFormItem 管理字段关联（11 个）
+
+`tests/components/form-field-controls.test.ts`
+
+| # | 用例 | 测试要点 |
+|---|------|---------|
+| 1–9 | 开关、单选/多选下拉、数字两种按钮布局、日期/日期区间/月份/年份 | 每种渲染两个字段，label.control 指向真实按钮或 input；所有 ID 唯一；校验错误 aria-invalid 与 aria-describedby 指向本字段消息；clearValidate 后移除错误和过期 aria 引用 |
+| 10–11 | 日期弹层在表单内与表单外 | 打开弹层后 aria-labelledby 始终指向真实触发按钮；独立日期组件保留 Reka 默认 ID |
 
 ---
 

@@ -7,6 +7,7 @@
 import { computed } from 'vue'
 import { SwitchRoot, SwitchThumb } from 'reka-ui'
 import { cn } from '@/utils/cn'
+import { useFormField } from '@/composables/useFormField'
 import type { ESwitchProps, ESwitchEmits } from './types'
 
 const props = withDefaults(defineProps<ESwitchProps>(), {
@@ -14,6 +15,7 @@ const props = withDefaults(defineProps<ESwitchProps>(), {
 })
 
 const emit = defineEmits<ESwitchEmits>()
+const formField = useFormField()
 
 const checked = computed({
   get: () => props.modelValue ?? false,
@@ -46,6 +48,9 @@ const thumbSizeClass = computed(() => {
   >
     <SwitchRoot
       v-model="checked"
+      :id="formField?.formItemId"
+      :aria-invalid="formField?.error.value ? true : undefined"
+      :aria-describedby="formField?.error.value ? formField.formMessageId : undefined"
       data-slot="switch"
       :disabled="disabled"
       :class="cn(

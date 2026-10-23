@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
-import { defineComponent, reactive } from 'vue'
+import { defineComponent, h, reactive } from 'vue'
 import { describe, it, expect } from 'vitest'
+import { useFormContext } from 'vee-validate'
 import EForm from '@/components/form/EForm.vue'
 import EFormItem from '@/components/form/EFormItem.vue'
 import EInput from '@/components/input/EInput.vue'
@@ -84,7 +85,7 @@ async function flushValidation() {
   await flushPromises()
 }
 
-function mountPasswordPairForm() {
+function mountPasswordPairForm(inputAttrs: Record<string, string> = {}) {
   const model = reactive({ password: '', confirmPassword: '' })
   const wrapper = mount(
     defineComponent({
@@ -103,12 +104,12 @@ function mountPasswordPairForm() {
             },
           ],
         }
-        return { model, rules }
+        return { model, rules, inputAttrs }
       },
       template: `
         <EForm :model="model" :rules="rules">
           <EFormItem prop="password" label="密码">
-            <EInput v-model="model.password" />
+            <EInput v-model="model.password" v-bind="inputAttrs" />
           </EFormItem>
           <EFormItem prop="confirmPassword" label="确认密码">
             <EInput v-model="model.confirmPassword" />
@@ -121,6 +122,80 @@ function mountPasswordPairForm() {
 }
 
 describe('EForm 边输边校', () => {
+  it('clearValidate removes current errors without resetting the input draft or model', async () => {
+    const { wrapper, model } = mountPasswordPairForm()
+    await wrapper.findAll('input')[0].setValue('draft')
+    await flushValidation()
+    expect(wrapper.text()).toContain('密码至少 8 位')
+    const form = wrapper.findComponent(EForm)
+    ;(form.vm as unknown as { clearValidate: () => void }).clearValidate()
+    await flushValidation()
+    const input = wrapper.findAll('input')[0]
+    expect(wrapper.find('[data-slot="form-message"]').exists()).toBe(false)
+    expect(input.attributes('aria-invalid')).toBeUndefined()
+    expect(input.attributes('aria-describedby')).toBeUndefined()
+    expect(input.element.value).toBe('draft')
+    expect(model).toEqual({ password: 'draft', confirmPassword: '' })
+    await (form.vm as unknown as { validate: () => Promise<boolean> }).validate()
+    await flushValidation()
+    expect(wrapper.text()).toContain('密码至少 8 位')
+  })
+
+  it('clearValidate also clears custom errors for unmounted and nested fields without changing their values', async () => {
+    let context: ReturnType<typeof useFormContext> | undefined
+    const Probe = defineComponent({
+      setup() {
+        context = useFormContext()
+        return () => h('span')
+      },
+    })
+    const model = reactive({ visible: 'draft', hidden: 0, enabled: false, profile: { email: '' } })
+    const wrapper = mount(EForm, {
+      props: { model },
+      slots: {
+        default: () => [h(Probe), h(EFormItem, { prop: 'visible', label: '名称' }, {
+          default: () => h(EInput, { modelValue: model.visible }),
+        })],
+      },
+    })
+    try {
+      context!.setFieldError('visible', '服务端错误')
+      context!.setFieldError('hidden', ['隐藏字段错误一', '隐藏字段错误二'])
+      context!.setFieldError('profile.email', '嵌套字段错误')
+      await flushPromises()
+      expect(Object.keys(context!.errors.value)).toHaveLength(3)
+      expect(wrapper.text()).toContain('服务端错误')
+      ;(wrapper.vm as unknown as { clearValidate: () => void }).clearValidate()
+      await flushPromises()
+      expect(context!.errors.value).toEqual({})
+      // vee-validate 对未挂载字段保留空数组条目；它们应不再包含任何错误消息。
+      expect(Object.values(context!.errorBag.value).every(messages => messages.length === 0)).toBe(true)
+      expect(wrapper.find('[data-slot="form-message"]').exists()).toBe(false)
+      expect(model).toEqual({ visible: 'draft', hidden: 0, enabled: false, profile: { email: '' } })
+    } finally { wrapper.unmount() }
+  })
+
+  it('each label owns its input and generated ids are unique across the whole form', () => {
+    const { wrapper } = mountPasswordPairForm()
+    const ids = wrapper.findAll('[id]').map(node => node.attributes('id'))
+    expect(new Set(ids).size).toBe(ids.length)
+    wrapper.findAll('label').forEach((label, index) => {
+      expect(label.element.control).toBe(wrapper.findAll('input')[index].element)
+    })
+  })
+
+  it('validation descriptions preserve caller help text and form labels', async () => {
+    const { wrapper } = mountPasswordPairForm({ id: 'caller-id', 'aria-describedby': 'password-help' })
+    const input = wrapper.findAllComponents(EInput)[0]
+    await input.get('input').setValue('a')
+    await flushValidation()
+    const nativeInput = input.get('input')
+    const messageId = wrapper.get('[data-slot="form-message"]').attributes('id')
+    expect(nativeInput.attributes('aria-describedby')?.split(' ')).toEqual(['password-help', messageId])
+    expect(wrapper.findAll('label')[0].element.control).toBe(nativeInput.element)
+    expect(wrapper.findAll(`[id="${nativeInput.attributes('id')}"]`)).toHaveLength(1)
+  })
+
   it('挂载时空字段不显示校验信息', () => {
     const { wrapper } = mountPasswordPairForm()
     expect(wrapper.find('[data-slot="form-message"]').exists()).toBe(false)

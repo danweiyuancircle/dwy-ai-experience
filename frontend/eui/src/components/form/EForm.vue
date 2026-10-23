@@ -134,7 +134,7 @@ const validationSchema = computed(() => {
 // 深拷贝初始值快照，保证 resetFields 能恢复到表单挂载时的状态
 const initialSnapshot = JSON.parse(JSON.stringify(props.model ?? {}))
 
-const { handleSubmit, resetForm, setErrors, validate: veeValidate, validateField: veeValidateField, setFieldValue } = useForm({
+const { handleSubmit, resetForm, errors, setFieldError, validate: veeValidate, validateField: veeValidateField, setFieldValue } = useForm({
   validationSchema,
   initialValues: initialSnapshot,
   // 进页空表不能出红字；提交 / 值变化再校
@@ -171,7 +171,10 @@ function resetFields() {
 
 /** 清空所有字段的校验错误 */
 function clearValidate() {
-  setErrors({})
+  // setErrors({}) 只合并错误，不会删除已有条目；逐个清除当前字段错误且保留草稿值。
+  for (const field of Object.keys(errors.value)) {
+    setFieldError(field, undefined)
+  }
 }
 
 provide(FORM_CONTEXT_KEY, {

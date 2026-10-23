@@ -13,6 +13,7 @@ import {
   NumberFieldRoot,
 } from 'reka-ui'
 import { cn } from '@/utils/cn'
+import { useFormField } from '@/composables/useFormField'
 import type { ENumberFieldProps, ENumberFieldEmits } from './types'
 
 const props = withDefaults(defineProps<ENumberFieldProps>(), {
@@ -22,6 +23,7 @@ const props = withDefaults(defineProps<ENumberFieldProps>(), {
 })
 
 const emit = defineEmits<ENumberFieldEmits>()
+const formField = useFormField()
 
 const sizeClass = {
   sm: 'h-8 text-xs',
@@ -50,6 +52,7 @@ function onUpdate(value: number) {
 <template>
   <NumberFieldRoot
     data-slot="number-field"
+    :id="formField?.formItemId"
     :model-value="modelValue"
     :min="min"
     :max="max"
@@ -67,6 +70,8 @@ function onUpdate(value: number) {
     >
       <NumberFieldInput
         data-slot="input"
+        :aria-invalid="formField?.error.value ? true : undefined"
+        :aria-describedby="formField?.error.value ? formField.formMessageId : undefined"
         :placeholder="placeholder"
         :class="cn(
           'flex w-full rounded-md border border-input bg-transparent py-1 pr-9 pl-3 text-left shadow-xs transition-[color,box-shadow] placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
@@ -113,6 +118,8 @@ function onUpdate(value: number) {
 
       <NumberFieldInput
         data-slot="input"
+        :aria-invalid="formField?.error.value ? true : undefined"
+        :aria-describedby="formField?.error.value ? formField.formMessageId : undefined"
         :placeholder="placeholder"
         :class="cn(
           'flex w-full rounded-md border border-input bg-transparent py-1 text-center shadow-xs transition-[color,box-shadow] placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',

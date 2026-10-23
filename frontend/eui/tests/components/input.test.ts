@@ -1,8 +1,123 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { describe, it, expect } from 'vitest'
 import EInput from '@/components/input/EInput.vue'
+import EConfigProvider from '@/components/config-provider/EConfigProvider.vue'
 
 describe('EInput', () => {
+  it('forwards native attributes and keyboard listeners to input, retaining root styles', async () => {
+    let enterCount = 0
+    const wrapper = mount(EInput, {
+      props: { class: 'search-width' },
+      attrs: {
+        id: 'user-search', 'aria-label': '用户搜索', 'aria-labelledby': 'search-title',
+        'aria-describedby': 'search-help', inputmode: 'search', required: true,
+        style: { width: '240px' },
+        onKeydown: (event: KeyboardEvent) => { if (event.key === 'Enter') enterCount++ },
+      },
+    })
+    const input = wrapper.get('input')
+    expect(input.attributes()).toMatchObject({
+      id: 'user-search', 'aria-label': '用户搜索', 'aria-labelledby': 'search-title',
+      'aria-describedby': 'search-help', inputmode: 'search', required: '',
+    })
+    expect(wrapper.classes()).toContain('search-width')
+    expect(wrapper.attributes('style')).toContain('width: 240px')
+    expect(wrapper.attributes('aria-label')).toBeUndefined()
+    expect(wrapper.attributes('id')).toBeUndefined()
+    await input.trigger('keydown', { key: 'Enter' })
+    expect(enterCount).toBe(1)
+    await wrapper.setProps({ 'aria-label': '更新后的搜索' })
+    expect(input.attributes('aria-label')).toBe('更新后的搜索')
+  })
+
+  it('preserves explicit text correction attributes and valid falsy native values', async () => {
+    const wrapper = mount(EInput, {
+      attrs: { spellcheck: false, autocorrect: 'on', tabindex: 0 },
+    })
+    const input = wrapper.get('input')
+    expect(input.attributes('spellcheck')).toBe('false')
+    expect(input.attributes('autocorrect')).toBe('on')
+    expect(input.element.tabIndex).toBe(0)
+    await wrapper.setProps({ spellcheck: '', autocorrect: '' })
+    expect(input.attributes('spellcheck')).toBe('')
+    expect(input.attributes('autocorrect')).toBe('')
+    await wrapper.setProps({ spellcheck: true, autocorrect: 'off' })
+    expect(input.attributes('spellcheck')).toBe('true')
+    expect(input.attributes('autocorrect')).toBe('off')
+  })
+
+  it.each([
+    { type: 'password' },
+    { showPassword: true },
+  ])('password input overrides correction attributes even when visibility changes: %o', async (props) => {
+    const wrapper = mount(EInput, {
+      props,
+      attrs: { spellcheck: true, autocorrect: 'on' },
+    })
+    const input = wrapper.get('input')
+    expect(input.attributes('spellcheck')).toBe('false')
+    expect(input.attributes('autocorrect')).toBe('off')
+    if (props.showPassword) {
+      await wrapper.get('button').trigger('click')
+      expect(input.attributes('type')).toBe('text')
+      expect(input.attributes('spellcheck')).toBe('false')
+      expect(input.attributes('autocorrect')).toBe('off')
+    }
+    await wrapper.setProps(props.showPassword ? { showPassword: false } : { type: 'text' })
+    expect(input.attributes('spellcheck')).toBe('true')
+    expect(input.attributes('autocorrect')).toBe('on')
+  })
+
+  it('clear button has a keyboard-accessible name and returns focus to the input', async () => {
+    const wrapper = mount(EInput, {
+      attachTo: document.body,
+      props: {
+        clearable: true, modelValue: 'text',
+        'onUpdate:modelValue': (value: string) => wrapper.setProps({ modelValue: value }),
+      },
+    })
+    try {
+      const button = wrapper.get('button')
+      expect(button.attributes('aria-label')).toBe('清空输入')
+      expect(button.element.tabIndex).toBe(0)
+      button.element.focus()
+      await button.trigger('click')
+      await flushPromises()
+      expect(wrapper.find('button').exists()).toBe(false)
+      expect(document.activeElement).toBe(wrapper.get('input').element)
+      expect(wrapper.get('input').element.value).toBe('')
+      expect(wrapper.emitted('clear')).toHaveLength(1)
+    } finally { wrapper.unmount() }
+  })
+
+  it('password toggle exposes its action, state and keyboard access', async () => {
+    const wrapper = mount(EInput, { props: { showPassword: true, modelValue: 'secret' } })
+    const button = wrapper.get('button')
+    expect(button.attributes('aria-label')).toBe('显示密码')
+    expect(button.attributes('aria-pressed')).toBe('false')
+    expect(button.element.tabIndex).toBe(0)
+    await button.trigger('click')
+    expect(button.attributes('aria-label')).toBe('隐藏密码')
+    expect(button.attributes('aria-pressed')).toBe('true')
+    await wrapper.setProps({ disabled: true })
+    expect(button.element.disabled).toBe(true)
+    await button.trigger('click')
+    expect(wrapper.get('input').attributes('type')).toBe('text')
+  })
+
+  it('input action names follow provider locale updates', async () => {
+    const wrapper = mount(EConfigProvider, {
+      props: { locale: { inputClear: 'Clear input', inputShowPassword: 'Show password', inputHidePassword: 'Hide password' } },
+      slots: { default: '<div><EInput clearable model-value="query" /><EInput show-password /></div>' },
+      global: { components: { EInput } },
+    })
+    expect(wrapper.findAll('button').map(button => button.attributes('aria-label'))).toEqual(['Clear input', 'Show password'])
+    await wrapper.findAll('button')[1].trigger('click')
+    expect(wrapper.findAll('button')[1].attributes('aria-label')).toBe('Hide password')
+    await wrapper.setProps({ locale: { inputClear: '清除查询' } })
+    expect(wrapper.findAll('button')[0].attributes('aria-label')).toBe('清除查询')
+  })
+
   it('renders an input element', () => {
     const wrapper = mount(EInput)
     expect(wrapper.find('input').exists()).toBe(true)
