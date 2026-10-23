@@ -5,6 +5,12 @@ on:
   push:
     tags:
       - 'create-dwy@*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '已有 CLI 发布标签，例如 create-dwy@0.21.0'
+        required: true
+        type: string
 
 jobs:
   publish:
@@ -12,11 +18,15 @@ jobs:
     permissions:
       contents: write
       id-token: write   # OIDC Trusted Publishing 必需
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     defaults:
       run:
         working-directory: dwy-cli
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
@@ -42,7 +52,11 @@ jobs:
         id: verify
         run: |
           PKG_VERSION=$(node -p "require('./package.json').version")
-          TAG_VERSION="${GITHUB_REF_NAME#create-dwy@}"
+          if [[ "$RELEASE_TAG" != create-dwy@* ]]; then
+            echo "::error::expected a create-dwy@VERSION tag"
+            exit 1
+          fi
+          TAG_VERSION="${RELEASE_TAG#create-dwy@}"
           if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
             echo "::error::tag version ($TAG_VERSION) != package.json version ($PKG_VERSION)"
             exit 1
@@ -65,7 +79,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.RELEASE_TAG }}
           name: ${{ steps.verify.outputs.release_name }}
           draft: false
           body_path: .github/release-body-cli.md
