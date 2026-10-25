@@ -4,7 +4,7 @@
 
 ## 安装与依赖
 
-发布后使用 `pip install "dwyeapi[auth]"`，同时安装认证和现有邮件组件。独立 `dwy-app-auth` 不依赖 EAPI/FastAPI，应用可注入自己的邮件发送和会话实现。当前版本号尚未调整，安装旧同版本包不能获得本轮功能；本地使用本轮构建的 wheel，正式发布另走版本与 GitHub Actions 流程。
+发布后使用 `pip install "dwyeapi[auth]"`，同时安装认证和现有邮件组件。独立 `dwy-auth` 不依赖 EAPI/FastAPI，应用可注入自己的邮件发送和会话实现。当前版本号尚未调整，安装旧同版本包不能获得本轮功能；本地使用本轮构建的 wheel，正式发布另走版本与 GitHub Actions 流程。
 
 ## 装配合同
 

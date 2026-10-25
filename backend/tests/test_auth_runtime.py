@@ -17,11 +17,11 @@ PASSWORD = "correct horse battery staple"
 async def environment(
     tmp_path, *, app_id="adbox", session_backend_factory=None, providers=None, authorization_limit=8192
 ):
-    from dwy_app_auth.email_auth import EmailAuthConfig
-    from dwy_app_auth.runtime import AuthRuntime
-    from dwy_app_auth.runtime_storage import build_runtime_tables
-    from dwy_app_auth.session_backend import JWTSessionBackend
-    from dwy_app_auth.session_storage import register_session_tables
+    from dwy_auth.email_auth import EmailAuthConfig
+    from dwy_auth.runtime import AuthRuntime
+    from dwy_auth.runtime_storage import build_runtime_tables
+    from dwy_auth.session_backend import JWTSessionBackend
+    from dwy_auth.session_storage import register_session_tables
 
     from dwyeapi.auth import install_runtime_auth
 
@@ -86,7 +86,7 @@ async def environment(
         return {"id": principal.subject, "email": email, "display_name": "Application profile"}
 
     binding = install_runtime_auth(app, runtime, profile_loader=profile, authorization_limit=authorization_limit)
-    from dwy_app_auth.contracts import AuthPrincipal
+    from dwy_auth.contracts import AuthPrincipal
 
     optional_principal = Annotated[AuthPrincipal | None, Depends(binding.optional_principal)]
     required_principal = Annotated[AuthPrincipal, Depends(binding.require_principal)]
@@ -175,7 +175,7 @@ async def test_request_language_selects_resend_mail_contents(tmp_path, monkeypat
     """真实 HTTP、运行时和通道适配器一起决定主题、HTML 与纯文本语言。"""
     from unittest.mock import AsyncMock
 
-    from dwy_app_auth.email_auth import EapiEmailCodeSender
+    from dwy_auth.email_auth import EapiEmailCodeSender
 
     from dwyeapi.providers.email.resend import ResendEmailProvider
 
@@ -293,8 +293,8 @@ async def test_failed_delivery_does_not_report_success_and_disabled_google_stays
 
 
 async def test_registered_google_and_generic_external_login_share_application_subject(tmp_path):
-    from dwy_app_auth import GoogleIdentity
-    from dwy_app_auth.providers import GoogleIdentityProvider
+    from dwy_auth import GoogleIdentity
+    from dwy_auth.providers import GoogleIdentityProvider
 
     class VerifiedGoogle:
         async def verify(self, token):
@@ -312,8 +312,8 @@ async def test_registered_google_and_generic_external_login_share_application_su
 
 
 async def test_username_password_change_and_external_binding_require_current_credentials(tmp_path):
-    from dwy_app_auth import GoogleIdentity
-    from dwy_app_auth.providers import GoogleIdentityProvider
+    from dwy_auth import GoogleIdentity
+    from dwy_auth.providers import GoogleIdentityProvider
 
     class VerifiedGoogle:
         async def verify(self, token):
@@ -383,8 +383,8 @@ async def test_username_password_change_and_external_binding_require_current_cre
 
 
 async def test_application_can_replace_jwt_with_complete_opaque_session_backend(tmp_path):
-    from dwy_app_auth.contracts import AuthPrincipal, SessionTokens
-    from dwy_app_auth.models import AuthError
+    from dwy_auth.contracts import AuthPrincipal, SessionTokens
+    from dwy_auth.models import AuthError
 
     class ApplicationSessions:
         """Small host-owned session store proves the HTTP integration never parses JWT itself."""

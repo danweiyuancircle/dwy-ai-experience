@@ -13,7 +13,7 @@
 | `dwy-cli/templates/project/` | 项目脚手架模板 |
 | `backend/src/dwyeapi/` | `dwyeapi`：FastAPI 基础设施 |
 | `backend/packages/device-fingerprint/` | `dwy-device-fingerprint`：独立设备指纹包 |
-| `backend/packages/app-auth/` | `dwy-app-auth`：应用认证与独立管理员会话 |
+| `backend/packages/auth/` | `dwy-auth`：应用认证与独立管理员会话 |
 | `frontend/eui/` | `@dwydev/eui`：Vue 组件库 |
 | `frontend/ekit/` | `@dwydev/ekit`：前端工具库 |
 | `frontend/admin-shell/` | `@dwydev/admin-kit`：管理端基础框架 |
@@ -45,7 +45,7 @@ Python 锁定开发环境统一位于 `ci/`，其中引用本仓库的 EAPI、�
 ## 验证
 
 ```bash
-uv run --project ci --frozen pytest backend/tests backend/packages/app-auth/tests scripts/tests -q -o asyncio_mode=auto
+uv run --project ci --frozen pytest backend/tests backend/packages/auth/tests scripts/tests -q -o asyncio_mode=auto
 pnpm --dir frontend/eui test
 pnpm --dir frontend/ekit test
 pnpm --dir frontend/admin-shell test

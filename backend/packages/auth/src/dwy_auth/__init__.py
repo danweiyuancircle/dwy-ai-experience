@@ -27,7 +27,7 @@ from .session_backend import JWTSessionBackend
 from .session_storage import SessionTables, register_session_tables
 from .storage import AuthTables, build_auth_tables
 
-# 兼容旧消费者的显式导入；import dwy_app_auth 不隐式加载 EAPI/FastAPI。
+# 兼容旧消费者的显式导入；import dwy_auth 不隐式加载 EAPI/FastAPI。
 _LAZY_EXPORTS = {
     "AuthService": (".service", "AuthService"),
     "install_auth_routes": (".http", "install_auth_routes"),

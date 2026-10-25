@@ -13,7 +13,7 @@ A private source monorepo for shared libraries and development tools, with publi
 | `dwy-cli/templates/project/` | Project scaffolding templates |
 | `backend/src/dwyeapi/` | `dwyeapi`: FastAPI infrastructure |
 | `backend/packages/device-fingerprint/` | `dwy-device-fingerprint`: standalone device identity |
-| `backend/packages/app-auth/` | `dwy-app-auth`: application authentication and separate admin sessions |
+| `backend/packages/auth/` | `dwy-auth`: application authentication and separate admin sessions |
 | `frontend/eui/` | `@dwydev/eui`: Vue components |
 | `frontend/ekit/` | `@dwydev/ekit`: frontend utilities |
 | `frontend/admin-shell/` | `@dwydev/admin-kit`: administrator application framework |
@@ -45,7 +45,7 @@ The locked Python development environment under `ci/` references the local EAPI,
 ## Validation
 
 ```bash
-uv run --project ci --frozen pytest backend/tests backend/packages/app-auth/tests scripts/tests -q -o asyncio_mode=auto
+uv run --project ci --frozen pytest backend/tests backend/packages/auth/tests scripts/tests -q -o asyncio_mode=auto
 pnpm --dir frontend/eui test
 pnpm --dir frontend/ekit test
 pnpm --dir frontend/admin-shell test

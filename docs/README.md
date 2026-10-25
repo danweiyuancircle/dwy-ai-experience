@@ -6,7 +6,7 @@
 | --- | --- |
 | 私有源码与公开包分发 | [docs/private-distribution.md](private-distribution.md) |
 | 跨端认证入口 | [docs/auth.md](auth.md) |
-| 后端认证装配与迁移 | [backend/packages/app-auth/README.md](../backend/packages/app-auth/README.md) |
+| 后端认证装配与迁移 | [backend/packages/auth/README.md](../backend/packages/auth/README.md) |
 | 网页认证组件 | [frontend/auth-web/README.md](../frontend/auth-web/README.md) |
 | EUI 接入 | [docs/eui-integration-guide.md](eui-integration-guide.md) |
 | 中后台设计规范 | [docs/eui-design-guide.md](eui-design-guide.md) |

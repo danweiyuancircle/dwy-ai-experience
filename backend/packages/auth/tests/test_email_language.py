@@ -27,6 +27,6 @@ import pytest
 )
 def test_resolve_email_language(header, expected):
     """含中文字符的任意字符串不能冒充有效语言标签。"""
-    from dwy_app_auth.email_auth import resolve_email_language
+    from dwy_auth.email_auth import resolve_email_language
 
     assert resolve_email_language(header) == expected

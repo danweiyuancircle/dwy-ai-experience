@@ -1,6 +1,6 @@
 # 账户与会话测试
 
-在 `backend/packages/app-auth` 目录执行 `python -m pytest tests -q`，覆盖独立用户认证与管理员认证测试。
+在 `backend/packages/auth` 目录执行 `python -m pytest tests -q`，覆盖独立用户认证与管理员认证测试。
 
 | 文件 | 覆盖行为 |
 | --- | --- |
@@ -41,4 +41,4 @@ The four Google/user/session test files were migrated from app-cloud with their 
 - Both old authentication HTTP routes and the generic runtime pass Chinese/English language per request; Chinese variants and nonzero weighted Chinese select Chinese, all other or missing headers select English.
 - `test_email_language.py`: missing, unknown, mixed-case, traditional/simplified Chinese, weighted, excluded, and malformed language ranges normalize to exactly `zh` or `en`.
 
-- `packaging_smoke.py`: new wheel-only environment, fixed six-table database inspection, EAPI transport availability, English default/Chinese header propagation and template language, explicit rolling policy/secret/mail fixture assembly, email registration/login/reset revocation, Google/admin isolation and deletion; no real email is sent.
+- `packaging_smoke.py`: new wheel-only environment verifies distribution `dwy-auth==0.1.0`, import namespace `dwy_auth` and absence of the legacy namespace; fixed six-table database inspection, EAPI transport availability, English default/Chinese header propagation and template language, explicit rolling policy/secret/mail fixture assembly, email registration/login/reset revocation, Google/admin isolation and deletion; no real email is sent.

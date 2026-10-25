@@ -6,8 +6,8 @@ import pytest
 from sqlalchemy import Boolean, Column, MetaData, String, Table, insert, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from dwy_app_auth.email_auth import EmailAuthConfig
-from dwy_app_auth.models import AuthError
+from dwy_auth.email_auth import EmailAuthConfig
+from dwy_auth.models import AuthError
 
 PASSWORD = "a safe registration password"
 REPLACEMENT = "a different safe password"
@@ -50,7 +50,7 @@ class ApplicationSessions:
         self.table = table
 
     async def issue(self, identity, *, device_id, db):
-        from dwy_app_auth.contracts import AuthPrincipal, SessionTokens
+        from dwy_auth.contracts import AuthPrincipal, SessionTokens
 
         principal = AuthPrincipal(identity.app_id, identity.subject, uuid4(), identity.method, device_id)
         return SessionTokens("application-access", "application-refresh", 900, principal)
@@ -61,8 +61,8 @@ class ApplicationSessions:
 
 @pytest.fixture
 async def runtime_env(tmp_path):
-    from dwy_app_auth.runtime import AuthRuntime
-    from dwy_app_auth.runtime_storage import build_runtime_tables
+    from dwy_auth.runtime import AuthRuntime
+    from dwy_auth.runtime_storage import build_runtime_tables
 
     metadata = MetaData()
     tables = build_runtime_tables(metadata)
@@ -172,7 +172,7 @@ async def test_reset_consumes_code_and_revokes_custom_sessions_atomically(runtim
 
 
 async def test_app_scope_and_delivery_failure(runtime_env):
-    from dwy_app_auth.runtime import AuthRuntime
+    from dwy_auth.runtime import AuthRuntime
 
     runtime, tables, sessions, subjects, mailbox, backend = runtime_env
     challenge = await runtime.send_email_code("person@example.com", "register")
@@ -204,7 +204,7 @@ async def test_app_scope_and_delivery_failure(runtime_env):
 
 
 async def test_external_provider_uses_issuer_subject_never_email_and_explicit_binding(runtime_env):
-    from dwy_app_auth.providers import ExternalIdentity
+    from dwy_auth.providers import ExternalIdentity
 
     runtime, _, _, _, mailbox, _ = runtime_env
 
@@ -278,7 +278,7 @@ async def test_login_proof_is_short_lived_one_use_and_password_change_invalidate
 
 
 async def test_external_binding_requires_scoped_single_use_reauthentication(runtime_env):
-    from dwy_app_auth.providers import ExternalIdentity
+    from dwy_auth.providers import ExternalIdentity
 
     runtime, _, _, _, _, _ = runtime_env
 
@@ -339,7 +339,7 @@ async def test_reset_backend_failure_rolls_back_password_and_challenge(runtime_e
 
 
 async def test_provider_configuration_and_issuer_both_scope_external_identity(runtime_env):
-    from dwy_app_auth.providers import ExternalIdentity
+    from dwy_auth.providers import ExternalIdentity
 
     runtime, _, _, _, _, _ = runtime_env
 
@@ -378,7 +378,7 @@ async def test_runtime_input_boundaries(runtime_env, method, fields):
 async def test_google_adapter_reuses_existing_verified_identity(runtime_env):
     from test_auth import VerifiedGoogle
 
-    from dwy_app_auth.providers import GoogleIdentityProvider
+    from dwy_auth.providers import GoogleIdentityProvider
 
     runtime, _, _, _, _, _ = runtime_env
     runtime.providers["google"] = GoogleIdentityProvider(VerifiedGoogle())
@@ -393,7 +393,7 @@ async def test_google_adapter_reuses_existing_verified_identity(runtime_env):
 async def test_authentication_proofs_expire_and_outstanding_budget_is_bounded(runtime_env):
     import time
 
-    from dwy_app_auth.providers import ExternalIdentity
+    from dwy_auth.providers import ExternalIdentity
 
     runtime, tables, sessions, _, _, _ = runtime_env
 
@@ -435,7 +435,7 @@ async def test_issue_failure_rolls_back_one_time_proof(runtime_env):
 
 @pytest.mark.parametrize("name", ["email", "username", "external"])
 async def test_provider_configuration_rejects_reserved_method_names(runtime_env, name):
-    from dwy_app_auth.runtime import AuthRuntime
+    from dwy_auth.runtime import AuthRuntime
 
     runtime, tables, sessions, subjects, mailbox, backend = runtime_env
     with pytest.raises(ValueError):
@@ -488,7 +488,7 @@ async def test_delete_account_cleanup_failure_rolls_back_every_authentication_re
 def test_table_prefix_cannot_exceed_postgres_identifier_budget():
     from sqlalchemy.dialects.postgresql import dialect
 
-    from dwy_app_auth.runtime_storage import build_runtime_tables
+    from dwy_auth.runtime_storage import build_runtime_tables
 
     metadata = MetaData()
     build_runtime_tables(metadata, prefix="a" * 40)

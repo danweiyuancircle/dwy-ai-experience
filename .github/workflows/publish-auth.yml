@@ -1,9 +1,9 @@
-name: Publish dwy-app-auth to PyPI
+name: Publish dwy-auth to PyPI
 
 on:
   push:
     tags:
-      - 'dwy-app-auth@*'
+      - 'dwy-auth@*'
 
 jobs:
   publish:
@@ -28,7 +28,7 @@ jobs:
 
       - name: Verify tag matches package version
         id: verify
-        working-directory: backend/packages/app-auth
+        working-directory: backend/packages/auth
         run: |
           PKG_NAME=$(python - <<'PY'
           import tomllib
@@ -60,13 +60,13 @@ jobs:
       - name: Test
         run: |
           uv sync --project ci --frozen
-          uv run --project ci --frozen pytest backend/packages/app-auth/tests -q -o asyncio_mode=auto
+          uv run --project ci --frozen pytest backend/packages/auth/tests -q -o asyncio_mode=auto
 
       - name: Build
-        working-directory: backend/packages/app-auth
+        working-directory: backend/packages/auth
         run: uv build --out-dir dist --default-index https://pypi.org/simple
 
       - name: Publish
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
         with:
-          packages-dir: backend/packages/app-auth/dist/
+          packages-dir: backend/packages/auth/dist/

@@ -6,7 +6,7 @@ from fastapi import FastAPI
 
 
 async def test_admin_cookie_contract_and_user_token_isolation():
-    from dwy_app_auth.admin import AdminAuthConfig, install_admin_auth
+    from dwy_auth.admin import AdminAuthConfig, install_admin_auth
 
     app = FastAPI()
     binding = install_admin_auth(
@@ -56,7 +56,7 @@ async def test_admin_cookie_contract_and_user_token_isolation():
 
 
 async def test_admin_rejects_oversized_or_secret_inputs_and_limits_attempts():
-    from dwy_app_auth.admin import AdminAuthConfig, install_admin_auth
+    from dwy_auth.admin import AdminAuthConfig, install_admin_auth
 
     app = FastAPI()
     install_admin_auth(app, AdminAuthConfig(username="operator", password="test-only-password"))
@@ -96,7 +96,7 @@ async def test_admin_rejects_oversized_or_secret_inputs_and_limits_attempts():
     "origin", ["https://admin.test/", "https://a.test?x=1", "https://u:p@a.test", "https://[", "ftp://a.test"]
 )
 def test_admin_config_requires_a_valid_explicit_origin(origin):
-    from dwy_app_auth.admin import AdminAuthConfig
+    from dwy_auth.admin import AdminAuthConfig
 
     with pytest.raises(ValueError):
         AdminAuthConfig(username="operator", password="test-only-password", origin=origin)

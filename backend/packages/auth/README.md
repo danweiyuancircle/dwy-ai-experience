@@ -1,15 +1,17 @@
-# dwy-app-auth
+# dwy-auth
 
 New integrations use `AuthRuntime` with application-owned users and a replaceable `SessionBackend`. See [runtime integration](../../../docs/auth-runtime-integration.md). This implementation is not released yet; install the preview wheels rather than an old package with the same version. The legacy interfaces below remain compatibility-only and require EAPI when used.
 
-Python distribution `dwy-app-auth==0.1.0`, import `dwy_app_auth`. Requires `dwyeapi==0.11.1`. Source remains in a private repository; installable packages are published to public PyPI through `.github/workflows/publish-app-auth.yml`. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
+Python distribution `dwy-auth==0.1.0`, import `dwy_auth`. Requires `dwyeapi==0.11.1`. Source remains in a private repository; installable packages are published to public PyPI through `.github/workflows/publish-auth.yml`. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
+
+When upgrading a preview integration, update both the dependency name and Python imports. The new wheel exports only `dwy_auth`; no legacy namespace alias is shipped. The source package is `backend/packages/auth` and release tags use `dwy-auth@VERSION`.
 
 User authentication uses the existing Google subject identity, app-scoped SQL tables, 15-minute opaque access tokens, rotating refresh families, device revocation and transactional account deletion. The application owns its engine/session factory, metadata and Alembic history. No migrations are created or run automatically. Google configuration accepts one explicit Web OAuth audience; a missing configuration closes login.
 
 ```python
 from fastapi import FastAPI
 from dwyeapi.exceptions import register_exception_handlers
-from dwy_app_auth import AuthService, GoogleConfig, OfficialGoogleVerifier, build_auth_tables, install_auth_routes
+from dwy_auth import AuthService, GoogleConfig, OfficialGoogleVerifier, build_auth_tables, install_auth_routes
 
 # metadata and sessions are owned by this application.
 service = AuthService("myapp", sessions, build_auth_tables(metadata), OfficialGoogleVerifier(
@@ -23,7 +25,7 @@ install_auth_routes(app, service, authorization_limit=8192)
 `dwyeapi.identity.Principal` and `IdentityVerifier` are the canonical identity contract. `create_identity_dependency(app_id, verifier, authorization_limit=...)` binds business routes to an explicitly chosen application/verifier. `install_auth_routes` uses its AuthService by default and accepts an explicitly injected trusted `identity_verifier` for existing host adapters. The host must apply request-body limits before parsing (the Google token schema separately limits token length to 16384 characters). Validation errors installed by this package omit submitted credentials.
 
 ```python
-from dwy_app_auth.admin import AdminAuthConfig, install_admin_auth
+from dwy_auth.admin import AdminAuthConfig, install_admin_auth
 
 admin = install_admin_auth(app, AdminAuthConfig(
     username=admin_username,
@@ -46,7 +48,7 @@ Run `pytest tests` from this directory with the dev extra installed. `tests/pack
 Email/password is opt-in. Email accounts have stable random UUIDs and an independent unique `(app_id,email)` credential; email normalization only trims and lowercases. A Google account with the same email is never merged. New/reset passwords require at least 15 Unicode code points and at most 72 UTF-8 bytes; login accepts nonempty existing passwords up to 72 bytes. Passwords are never trimmed or truncated. EAPI bcrypt executes in a bounded worker pool (4 concurrent, at most 32 queued/running per service); cancellation keeps running work charged to this budget.
 
 ```python
-from dwy_app_auth import EmailAuthConfig, EapiEmailCodeSender, SessionPolicy
+from dwy_auth import EmailAuthConfig, EapiEmailCodeSender, SessionPolicy
 from dwyeapi.providers.email import make_email_provider
 
 # email_settings and challenge_secret come from the host's validated settings.
@@ -86,7 +88,7 @@ Fresh applications include all six auth tables via `build_auth_tables(metadata)`
 
 ```python
 from alembic import op
-from dwy_app_auth.migrations import upgrade_email_auth
+from dwy_auth.migrations import upgrade_email_auth
 
 # revision/down_revision belong to the host migration history.
 def upgrade():

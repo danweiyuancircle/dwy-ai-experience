@@ -18,9 +18,9 @@ ADBox 继续可选登录、离线使用；认证服务负责联网认证，客�
 
 已核对的代码基线：dwy-shared `9226fd155166bf926951762a39c7b399547af5e5`；ai-quant develop `6e54f25f83daf779701ab4d17ec87f86c8544356`。
 
-- `backend/packages/app-auth/src/dwy_app_auth/email_auth.py:45`：发送适配已调用 EAPI 现成 `send_verification_code`；auth 管理用途隔离的 challenge。
-- `backend/packages/app-auth/src/dwy_app_auth/email_auth.py:371`：密码重置、验证码消费、旧会话撤销已有同事务基础。
-- `backend/packages/app-auth/src/dwy_app_auth/storage.py:28`：当前用户表仍以 `google_subject` 表示单一第三方，需要推广为独立外部身份。
+- `backend/packages/auth/src/dwy_auth/email_auth.py:45`：发送适配已调用 EAPI 现成 `send_verification_code`；auth 管理用途隔离的 challenge。
+- `backend/packages/auth/src/dwy_auth/email_auth.py:371`：密码重置、验证码消费、旧会话撤销已有同事务基础。
+- `backend/packages/auth/src/dwy_auth/storage.py:28`：当前用户表仍以 `google_subject` 表示单一第三方，需要推广为独立外部身份。
 - 参考项目 quant-cloud 的 `backend/packages/dwy-auth/src/dwy_auth/services/user.py:112`：现有密码登录按邮箱查询，不能直接称为已有用户名登录。
 - 参考项目 quant-cloud 的 `backend/packages/dwy-auth/src/dwy_auth/models.py:12`：现有 User 包含角色、资料等字段，需要拆开认证与业务模型。
 - 参考项目 quant-cloud 的 `backend/packages/dwy-auth/src/dwy_auth/protocols.py:21`：已有用户生命周期 Hook，可作为应用接入设计参考。
@@ -30,20 +30,20 @@ ADBox 继续可选登录、离线使用；认证服务负责联网认证，客�
 
 ## 3. 分层与依赖
 
-依赖方向：应用 → `dwyeapi.auth` 集成入口 → `dwy_app_auth` 认证核心；EAPI 的现有 email 组件通过协议注入认证核心。
+依赖方向：应用 → `dwyeapi.auth` 集成入口 → `dwy_auth` 认证核心；EAPI 的现有 email 组件通过协议注入认证核心。
 
 | 层 | 职责 |
 |---|---|
-| `dwy_app_auth` | 认证流程、凭据、challenge、会话、Provider 与认证结果类型 |
+| `dwy_auth` | 认证流程、凭据、challenge、会话、Provider 与认证结果类型 |
 | `dwyeapi.auth` | EAPI 响应/错误映射、邮件适配、FastAPI 装配与统一导出 |
 | `dwyeapi` email | 邮件 Provider、模板、投递及厂商 SDK |
 | 应用 | 业务用户适配、用户资料、接口权限、数据库迁移与产品策略 |
 
-`dwy_app_auth` 不再反向导入整个 `dwyeapi`；必要的认证 DTO、错误和协议放在认证包，集成层负责转换。独立认证包注入 EmailCodeSender；EAPI 使用现有 Provider 实现此协议，继续复用发送通道与模板。
+`dwy_auth` 不再反向导入整个 `dwyeapi`；必要的认证 DTO、错误和协议放在认证包，集成层负责转换。独立认证包注入 EmailCodeSender；EAPI 使用现有 Provider 实现此协议，继续复用发送通道与模板。
 
 安装目标为 `dwyeapi[auth]`，其 extra 同时聚合认证包和 `dwyeapi[email]`；基础 `dwyeapi` 安装不强制安装认证依赖。安装 extra 不自动挂载路由，也不代替邮件凭据与运行时配置。
 
-这样保持独立认证包与单向依赖，不引入 `dwyeapi ↔ dwy-app-auth` 的版本环。此前“认证包精确依赖整个 EAPI”的结构需要在本次设计中调整，不能只增加 extra 声明。
+这样保持独立认证包与单向依赖，不引入 `dwyeapi ↔ dwy-auth` 的版本环。此前“认证包精确依赖整个 EAPI”的结构需要在本次设计中调整，不能只增加 extra 声明。
 
 ## 4. 对外入口
 

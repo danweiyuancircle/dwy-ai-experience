@@ -4,7 +4,7 @@ import time
 
 import pytest
 
-from dwy_app_auth import AuthError, GoogleConfig, OfficialGoogleVerifier
+from dwy_auth import AuthError, GoogleConfig, OfficialGoogleVerifier
 
 CLIENT_ID = "12345-sample.apps.googleusercontent.com"
 

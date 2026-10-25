@@ -11,7 +11,7 @@ from sqlalchemy import MetaData, func, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from test_auth import VerifiedGoogle
 
-from dwy_app_auth import AuthError, AuthService, build_auth_tables, install_auth_routes
+from dwy_auth import AuthError, AuthService, build_auth_tables, install_auth_routes
 
 PASSWORD = "correct horse battery staple"
 
@@ -30,7 +30,7 @@ class Mailbox:
 
 @pytest.fixture
 async def email_environment(tmp_path):
-    from dwy_app_auth import EmailAuthConfig
+    from dwy_auth import EmailAuthConfig
 
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path}/email.db")
     tables = build_auth_tables(MetaData())
@@ -91,7 +91,7 @@ async def test_email_registration_normalization_login_and_google_are_independent
     service, tables, sessions, mailbox = email_environment
     result = await register(service, mailbox, "Person@Example.com")
     login = await service.login_email("person@example.com", PASSWORD, uuid4())
-    from dwy_app_auth import GoogleIdentity
+    from dwy_auth import GoogleIdentity
 
     service.google_verifier.identities["a"] = GoogleIdentity(
         subject="google-a", email="person@example.com", display_name="A"
@@ -142,7 +142,7 @@ async def test_atomic_code_scope_replay_and_reset_revokes_sessions(email_environ
 
 
 async def test_scoping_failure_attempts_and_delivery_failure(email_environment):
-    from dwy_app_auth import EmailAuthConfig
+    from dwy_auth import EmailAuthConfig
 
     service, tables, sessions, mailbox = email_environment
     challenge = await service.send_email_code("person@example.com", "register")
@@ -238,7 +238,7 @@ async def test_deleted_email_account_clears_credentials(email_environment):
 async def test_resend_cooldown_new_code_invalidation_and_expiry(email_environment, monkeypatch):
     service, _, _, mailbox = email_environment
     now = [2_000_000_000]
-    monkeypatch.setattr("dwy_app_auth.email_auth.time.time", lambda: now[0])
+    monkeypatch.setattr("dwy_auth.email_auth.time.time", lambda: now[0])
     first = await service.send_email_code("person@example.com", "register")
     old_code = mailbox.messages[-1][1]
     now[0] += 60
@@ -255,7 +255,7 @@ async def test_resend_cooldown_new_code_invalidation_and_expiry(email_environmen
 async def test_rolling_sessions_pass_months_cleanup_history_and_never_hit_lifetime_quota(
     email_environment, monkeypatch
 ):
-    from dwy_app_auth import SessionPolicy
+    from dwy_auth import SessionPolicy
 
     service, tables, sessions, _ = email_environment
     service.session_policy = SessionPolicy(
@@ -263,7 +263,7 @@ async def test_rolling_sessions_pass_months_cleanup_history_and_never_hit_lifeti
     )
     monkeypatch.setattr(service, "MAX_REFRESH_HISTORY", 2)
     now = [2_000_000_000]
-    monkeypatch.setattr("dwy_app_auth.service.time.time", lambda: now[0])
+    monkeypatch.setattr("dwy_auth.service.time.time", lambda: now[0])
     token = await service.login("a", uuid4())
     for _ in range(6):
         now[0] += 31 * 86400
@@ -275,7 +275,7 @@ async def test_rolling_sessions_pass_months_cleanup_history_and_never_hit_lifeti
 
 
 async def test_rolling_replay_still_revokes_successor(email_environment):
-    from dwy_app_auth import SessionPolicy
+    from dwy_auth import SessionPolicy
 
     service, _, _, _ = email_environment
     service.session_policy = SessionPolicy(refresh_ttl=180 * 86400, rolling_refresh=True)
@@ -306,7 +306,7 @@ async def test_atomic_send_budget_and_login_limits(email_environment):
 async def test_eapi_sender_uses_transport_without_redis_or_internal_code_store():
     from dwyeapi.providers.email.base import EmailProviderBase
 
-    from dwy_app_auth import EapiEmailCodeSender
+    from dwy_auth import EapiEmailCodeSender
 
     class Provider(EmailProviderBase):
         async def _send(self, target, code, *, language="en"):
@@ -325,8 +325,8 @@ async def test_migration_upgrades_populated_google_schema_without_changing_ids(t
     from alembic.migration import MigrationContext
     from alembic.operations import Operations
 
-    from dwy_app_auth import EmailAuthConfig
-    from dwy_app_auth.migrations import upgrade_email_auth
+    from dwy_auth import EmailAuthConfig
+    from dwy_auth.migrations import upgrade_email_auth
 
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path}/legacy.db")
     tables = build_auth_tables(MetaData())
@@ -420,7 +420,7 @@ async def test_http_login_reset_and_password_whitespace_are_preserved(email_envi
 
 
 async def test_rolling_refresh_retains_bounded_recent_replay_evidence(email_environment, monkeypatch):
-    from dwy_app_auth import SessionPolicy
+    from dwy_auth import SessionPolicy
 
     service, tables, sessions, _ = email_environment
     service.session_policy = SessionPolicy(
@@ -452,7 +452,7 @@ async def test_delivery_latency_returns_actual_remaining_time(
 ):
     service, _, _, mailbox = email_environment
     now = [2_000_000_000]
-    monkeypatch.setattr("dwy_app_auth.email_auth.time.time", lambda: now[0])
+    monkeypatch.setattr("dwy_auth.email_auth.time.time", lambda: now[0])
     original = mailbox.send
 
     async def delayed_send(email, code, purpose, *, language="en"):
@@ -471,7 +471,7 @@ async def test_delivery_expiring_before_response_never_returns_an_active_challen
 ):
     service, tables, sessions, mailbox = email_environment
     now = [2_000_000_000]
-    monkeypatch.setattr("dwy_app_auth.email_auth.time.time", lambda: now[0])
+    monkeypatch.setattr("dwy_auth.email_auth.time.time", lambda: now[0])
 
     async def expired_send(email, code, purpose, *, language="en"):
         now[0] += 300
@@ -488,7 +488,7 @@ async def test_delivery_expiring_before_response_never_returns_an_active_challen
 async def test_reset_committing_after_bcrypt_blocks_inflight_old_password_login(
     email_environment, monkeypatch
 ):
-    from dwy_app_auth.passwords import verify_password
+    from dwy_auth.passwords import verify_password
 
     service, tables, sessions, mailbox = email_environment
     old = await register(service, mailbox)

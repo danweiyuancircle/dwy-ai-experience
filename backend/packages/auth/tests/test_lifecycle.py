@@ -9,7 +9,7 @@ from dwyeapi.exceptions import AuthenticationError, register_exception_handlers
 from fastapi import FastAPI
 from sqlalchemy import select
 
-from dwy_app_auth import AuthError, AuthService, install_auth_routes
+from dwy_auth import AuthError, AuthService, install_auth_routes
 
 # 跨模块复用真实数据库fixture，避免复制会话环境。
 environment = test_auth.environment
@@ -210,7 +210,7 @@ async def test_google_only_schema_preserves_login_refresh_and_account_deletion(t
     from sqlalchemy import MetaData
     from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-    from dwy_app_auth import build_auth_tables
+    from dwy_auth import build_auth_tables
 
     metadata = MetaData()
     tables = build_auth_tables(metadata, include_email_auth=False)

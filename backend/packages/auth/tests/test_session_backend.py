@@ -13,16 +13,16 @@ from jose import jwt
 from sqlalchemy import MetaData, func, insert, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from dwy_app_auth.models import AuthError
+from dwy_auth.models import AuthError
 
 SECRET = "session-test-secret-at-least-32-bytes"
 
 
 @pytest.fixture
 async def environment(tmp_path):
-    contracts = importlib.import_module("dwy_app_auth.contracts")
-    backend_module = importlib.import_module("dwy_app_auth.session_backend")
-    storage = importlib.import_module("dwy_app_auth.session_storage")
+    contracts = importlib.import_module("dwy_auth.contracts")
+    backend_module = importlib.import_module("dwy_auth.session_backend")
+    storage = importlib.import_module("dwy_auth.session_storage")
     metadata = MetaData()
     tables = storage.register_session_tables(metadata)
     engine = create_async_engine(f"sqlite+aiosqlite:///{tmp_path}/sessions.db")
@@ -304,8 +304,8 @@ async def test_identity_lengths_and_control_characters_rejected_before_write(env
     "kwargs", [{"secret": "short"}, {"issuer": ""}, {"audience": "x" * 513}, {"app_id": "wrong_app"}]
 )
 def test_unsafe_signing_configuration_rejected(kwargs):
-    backend_module = importlib.import_module("dwy_app_auth.session_backend")
-    storage = importlib.import_module("dwy_app_auth.session_storage")
+    backend_module = importlib.import_module("dwy_auth.session_backend")
+    storage = importlib.import_module("dwy_auth.session_storage")
     config = dict(
         app_id="adbox",
         issuer="https://auth.example.test",
@@ -324,9 +324,9 @@ def test_unsafe_signing_configuration_rejected(kwargs):
 async def test_postgres_refresh_has_single_winner_and_replay_revokes_winner():
     from sqlalchemy.schema import CreateSchema, DropSchema
 
-    contracts = importlib.import_module("dwy_app_auth.contracts")
-    backend_module = importlib.import_module("dwy_app_auth.session_backend")
-    storage = importlib.import_module("dwy_app_auth.session_storage")
+    contracts = importlib.import_module("dwy_auth.contracts")
+    backend_module = importlib.import_module("dwy_auth.session_backend")
+    storage = importlib.import_module("dwy_auth.session_storage")
     schema = "session_test_" + uuid4().hex
     base = create_async_engine(os.environ["APP_CLOUD_TEST_POSTGRES_URL"])
     engine = base.execution_options(schema_translate_map={None: schema})

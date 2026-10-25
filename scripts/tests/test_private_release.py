@@ -43,7 +43,7 @@ class PrivateReleaseTests(unittest.TestCase):
             "publish-auth-web.yml": "npm publish --access public",
             "publish-cli.yml": "npm publish --access public",
             "publish-eapi.yml": "pypa/gh-action-pypi-publish@",
-            "publish-app-auth.yml": "pypa/gh-action-pypi-publish@",
+            "publish-auth.yml": "pypa/gh-action-pypi-publish@",
             "publish-device-fingerprint.yml": "pypa/gh-action-pypi-publish@",
         }
         for filename, publish in workflows.items():
@@ -59,7 +59,7 @@ class PrivateReleaseTests(unittest.TestCase):
 
     def test_python_packages_allow_public_uploads(self):
         """三个 Python 分发包都允许上传公开 PyPI。"""
-        for directory in ("backend", "backend/packages/app-auth", "backend/packages/device-fingerprint"):
+        for directory in ("backend", "backend/packages/auth", "backend/packages/device-fingerprint"):
             with self.subTest(directory=directory):
                 value = tomllib.loads((ROOT / directory / "pyproject.toml").read_text())
                 self.assertNotIn("Private :: Do Not Upload", value["project"].get("classifiers", []))
@@ -78,7 +78,7 @@ class PrivateReleaseTests(unittest.TestCase):
         module = self.module()
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)
-            package = output / "dwy-app-auth-0.1.0-py3-none-any.whl"
+            package = output / "dwy_auth-0.1.0-py3-none-any.whl"
             package.write_bytes(b"wheel snapshot")
             module.write_manifest(output, "0.4.0", "a" * 40)
             module.verify_manifest(output)

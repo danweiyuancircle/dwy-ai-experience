@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.schema import CreateSchema, DropSchema
 from test_auth import VerifiedGoogle
 
-from dwy_app_auth import AuthError, AuthService, build_auth_tables
+from dwy_auth import AuthError, AuthService, build_auth_tables
 
 
 @pytest.fixture
@@ -96,7 +96,7 @@ async def test_cleanup_at_exact_expiry_preserves_other_account_app_and_live_evid
 ):
     service, tables, sessions, verifier = environment
     now = [2_000_000_000]
-    monkeypatch.setattr("dwy_app_auth.service.time.time", lambda: now[0])
+    monkeypatch.setattr("dwy_auth.service.time.time", lambda: now[0])
     expired = await service.login("a", uuid4())
     await service.refresh(expired.refresh_token)
     other = await service.login("b", uuid4())
@@ -131,7 +131,7 @@ async def test_cleanup_at_exact_expiry_preserves_other_account_app_and_live_evid
 async def test_cleanup_commits_even_when_login_quota_rejects_request(environment, monkeypatch):
     service, tables, sessions, _ = environment
     now = [2_000_000_000]
-    monkeypatch.setattr("dwy_app_auth.service.time.time", lambda: now[0])
+    monkeypatch.setattr("dwy_auth.service.time.time", lambda: now[0])
     expired = await service.login("a", uuid4())
     await service.refresh(expired.refresh_token)
     now[0] += 1
@@ -149,7 +149,7 @@ async def test_cleanup_commits_even_when_login_quota_rejects_request(environment
 async def test_expired_refresh_cleans_evidence_and_session_before_reporting_invalid(environment, monkeypatch):
     service, tables, sessions, _ = environment
     now = [2_000_000_000]
-    monkeypatch.setattr("dwy_app_auth.service.time.time", lambda: now[0])
+    monkeypatch.setattr("dwy_auth.service.time.time", lambda: now[0])
     original = await service.login("a", uuid4())
     await service.refresh(original.refresh_token)
     now[0] += 30 * 86400
@@ -164,7 +164,7 @@ async def test_expired_refresh_cleans_evidence_and_session_before_reporting_inva
 async def test_cleanup_never_removes_unexpired_replay_evidence(environment, monkeypatch):
     service, tables, sessions, _ = environment
     now = [2_000_000_000]
-    monkeypatch.setattr("dwy_app_auth.service.time.time", lambda: now[0])
+    monkeypatch.setattr("dwy_auth.service.time.time", lambda: now[0])
     old = await service.login("a", uuid4())
     current = await service.refresh(old.refresh_token)
     async with sessions() as db, db.begin():

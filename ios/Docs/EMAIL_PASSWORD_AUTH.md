@@ -56,11 +56,11 @@ func makeAuthSession(baseURL: URL, namespace: String) throws -> AuthSessionStore
 
 ## 服务端与长期登录
 
-服务端实现位于 `backend/packages/app-auth/src/dwy_app_auth/`；具体装配、错误码和迁移步骤见 `backend/packages/app-auth/README.md`。
+服务端实现位于 `backend/packages/auth/src/dwy_auth/`；具体装配、错误码和迁移步骤见 `backend/packages/auth/README.md`。
 
 - 邮箱功能通过 EmailAuthConfig 和 EmailCodeSender 显式装配；EapiEmailCodeSender 复用本轮 eapi 邮件传输接口与 Resend 模板。
 - 验证码、尝试次数、限流使用应用数据库事务，不依赖 Redis；HMAC secret 由宿主密钥配置提供，所有 worker 一致，不写客户端。
-- 老库需运行 `dwy_app_auth.migrations.upgrade_email_auth(op)` 对应的宿主 Alembic revision；共享库不在启动时自动迁移。
+- 老库需运行 `dwy_auth.migrations.upgrade_email_auth(op)` 对应的宿主 Alembic revision；共享库不在启动时自动迁移。
 - 旧 Google 用户 UUID 和现有调用方式保留；不因邮箱相同静默合并账号。
 - 默认会话仍是原30天固定期限。需要长期登录的宿主显式注入 `SessionPolicy(refresh_ttl=180 * 86400, rolling_refresh=True)`。
 - access仍为15分钟；有效刷新顺延refresh空闲期。退出、重置、设备撤销、删号仍可使会话失效。
@@ -78,7 +78,7 @@ func makeAuthSession(baseURL: URL, namespace: String) throws -> AuthSessionStore
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --disable-automatic-resolution
-PYTHONPATH=backend/packages/app-auth/src:backend/src backend/.venv/bin/python -m pytest backend/packages/app-auth/tests -q
+PYTHONPATH=backend/packages/auth/src:backend/src backend/.venv/bin/python -m pytest backend/packages/auth/tests -q
 ```
 
 在示例目录生成工程：

@@ -1,5 +1,5 @@
 [project]
-name = "dwy-app-auth"
+name = "dwy-auth"
 version = "0.1.0"
 description = "Google and email/password user sessions and independent administrator Cookie authentication for EAPI"
 requires-python = ">=3.11,<3.13"
@@ -10,7 +10,7 @@ requires = ["hatchling==1.27.0"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/dwy_app_auth"]
+packages = ["src/dwy_auth"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

@@ -18,8 +18,8 @@ from fastapi import FastAPI
 from sqlalchemy import MetaData, inspect, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-import dwy_app_auth
-from dwy_app_auth import (
+import dwy_auth
+from dwy_auth import (
     AuthService,
     EapiEmailCodeSender,
     EmailAuthConfig,
@@ -28,17 +28,18 @@ from dwy_app_auth import (
     build_auth_tables,
     install_auth_routes,
 )
-from dwy_app_auth.admin import AdminAuthConfig, install_admin_auth
+from dwy_auth.admin import AdminAuthConfig, install_admin_auth
 
 
 async def main():
-    assert importlib.metadata.version("dwy-app-auth") == "0.1.0"
+    assert importlib.metadata.version("dwy-auth") == "0.1.0"
     assert importlib.metadata.version("dwyeapi") == "0.11.1"
     # 同版本源码不能冒充wheel：两个包必须实际来自新环境的site-packages。
-    for module in (dwy_app_auth, dwyeapi):
+    for module in (dwy_auth, dwyeapi):
         assert Path(module.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
     assert callable(getattr(EmailProviderBase, "send_verification_code", None))
     for name in (
+        "dwy_app_auth",
         "app_cloud",
         "cloud_kernel",
         "cloud_auth",
@@ -212,7 +213,7 @@ async def main():
             assert (await client.get("/api/v1/devices", headers=headers)).status_code == 401
         await engine.dispose()
     print(
-        "dwy-app-auth wheel: isolated imports, EAPI identity, Google sessions, "
+        "dwy-auth wheel: isolated imports, EAPI identity, Google sessions, "
         "fixed six-table contract, email transport/register/login/reset revocation, rolling policy, "
         "admin Cookie isolation, deletion verified"
     )

@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 共享基础包 monorepo。pnpm workspace 管理前端 + CLI，Python (uv) 单独管理后端。
 
-顶层按 `dwy-cli/`、`backend/`、`frontend/`、`ios/` 划分。认证后端位于 `backend/packages/app-auth/`，网页认证位于 `frontend/auth-web/`，跨端接入总览见 `docs/auth.md`。CLI 分发的 skills、rules、hooks 保留在 `dwy-cli/templates/ai-tools/`；根 `.claude/`、`.agents/` 是本仓库开发配置。
+顶层按 `dwy-cli/`、`backend/`、`frontend/`、`ios/` 划分。认证后端位于 `backend/packages/auth/`，网页认证位于 `frontend/auth-web/`，跨端接入总览见 `docs/auth.md`。CLI 分发的 skills、rules、hooks 保留在 `dwy-cli/templates/ai-tools/`；根 `.claude/`、`.agents/` 是本仓库开发配置。
 
 ## Commands
 

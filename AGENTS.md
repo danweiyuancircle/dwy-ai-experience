@@ -214,7 +214,7 @@ Compact instructions for OpenCode sessions working in `dwy-shared`.
 | `dwy-cli/` | pnpm | `create-dwy` | CLI scaffold + Claude config sync |
 | `backend/` | uv | `dwyeapi` | FastAPI infrastructure (Python 3.11+) |
 | `backend/packages/device-fingerprint/` | uv | `dwy-device-fingerprint` | Standalone native device fingerprint package |
-| `backend/packages/app-auth/` | uv | `dwy-app-auth` | Application authentication and independent administrator sessions |
+| `backend/packages/auth/` | uv | `dwy-auth` | Application authentication and independent administrator sessions |
 | `ios/` | SwiftPM (root `Package.swift`) | `AppleAppKit` | iOS/macOS frameworks, authentication, tests, and templates |
 
 `pnpm-workspace.yaml` only covers `frontend/*` and `dwy-cli`. Python backend is managed separately by uv and **not** in the pnpm workspace.

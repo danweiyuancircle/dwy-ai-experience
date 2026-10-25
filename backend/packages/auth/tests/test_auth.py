@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from sqlalchemy import MetaData, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from dwy_app_auth import (
+from dwy_auth import (
     AuthError,
     AuthService,
     GoogleConfig,

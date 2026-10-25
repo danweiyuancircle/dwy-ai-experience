@@ -300,9 +300,9 @@ wheels = [
 ]
 
 [[package]]
-name = "dwy-app-auth"
+name = "dwy-auth"
 version = "0.1.0"
-source = { editable = "../backend/packages/app-auth" }
+source = { editable = "../backend/packages/auth" }
 dependencies = [
     { name = "anyio" },
     { name = "bcrypt" },
@@ -356,13 +356,13 @@ name = "dwy-shared-ci"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "dwy-app-auth", extra = ["dev"] },
+    { name = "dwy-auth", extra = ["dev"] },
     { name = "dwyeapi", extra = ["dev", "device"] },
 ]
 
 [package.metadata]
 requires-dist = [
-    { name = "dwy-app-auth", extras = ["dev"], editable = "../backend/packages/app-auth" },
+    { name = "dwy-auth", extras = ["dev"], editable = "../backend/packages/auth" },
     { name = "dwyeapi", extras = ["dev", "device"], editable = "../backend" },
 ]
 
@@ -402,7 +402,7 @@ requires-dist = [
     { name = "arq", marker = "extra == 'dev'", specifier = ">=0.26.0" },
     { name = "arq", marker = "extra == 'tasks'", specifier = ">=0.26.0" },
     { name = "bcrypt", specifier = ">=4.0.0" },
-    { name = "dwy-app-auth", marker = "extra == 'auth'", editable = "../backend/packages/app-auth" },
+    { name = "dwy-auth", marker = "extra == 'auth'", editable = "../backend/packages/auth" },
     { name = "dwy-device-fingerprint", marker = "extra == 'device'", editable = "../backend/packages/device-fingerprint" },
     { name = "dwyeapi", extras = ["email"], marker = "extra == 'auth'" },
     { name = "fakeredis", marker = "extra == 'dev'", specifier = ">=2.0.0" },

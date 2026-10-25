@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from typing import Annotated, Literal
 from uuid import UUID
 
-from dwy_app_auth.contracts import AuthPrincipal, SessionTokens
-from dwy_app_auth.email_auth import EapiEmailCodeSender, EmailAuthConfig, EmailCodePurpose, resolve_email_language
-from dwy_app_auth.models import AuthError
-from dwy_app_auth.runtime import AuthRuntime
+from dwy_auth.contracts import AuthPrincipal, SessionTokens
+from dwy_auth.email_auth import EapiEmailCodeSender, EmailAuthConfig, EmailCodePurpose, resolve_email_language
+from dwy_auth.models import AuthError
+from dwy_auth.runtime import AuthRuntime
 from fastapi import APIRouter, Depends, FastAPI, Header, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
