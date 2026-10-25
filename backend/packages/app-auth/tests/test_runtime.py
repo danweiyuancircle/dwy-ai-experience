@@ -18,7 +18,7 @@ class Mailbox:
         self.messages = []
         self.delivered = True
 
-    async def send(self, email, code, purpose):
+    async def send(self, email, code, purpose, *, language="en"):
         self.messages.append((email, code, purpose))
         return self.delivered
 

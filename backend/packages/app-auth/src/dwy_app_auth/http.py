@@ -6,12 +6,12 @@ from uuid import UUID
 
 from dwyeapi import ApiResponse
 from dwyeapi.identity import IdentityVerifier, Principal, create_identity_dependency
-from fastapi import Depends, FastAPI, Query, Request, Response
+from fastapi import Depends, FastAPI, Header, Query, Request, Response
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
-from .email_auth import EmailCodeChallenge, EmailCodePurpose
+from .email_auth import EmailCodeChallenge, EmailCodePurpose, resolve_email_language
 from .models import AccountDeletion, AuthError, DevicePage, DeviceQuery, TokenResponse
 from .service import AuthService
 
@@ -109,10 +109,20 @@ def install_auth_routes(
         return request.client.host if request.client else "unknown"
 
     @app.post("/api/v1/auth/email/code", response_model=ApiResponse[EmailCodeChallenge])
-    async def email_code(body: EmailCodeRequest, request: Request, response: Response):
+    async def email_code(
+        body: EmailCodeRequest,
+        request: Request,
+        response: Response,
+        accept_language: Annotated[str | None, Header(max_length=512)] = None,
+    ):
         response.headers["Cache-Control"] = "no-store"
         return ApiResponse.ok(
-            await service.send_email_code(body.email, body.purpose, remote_key=remote_key(request))
+            await service.send_email_code(
+                body.email,
+                body.purpose,
+                remote_key=remote_key(request),
+                language=resolve_email_language(accept_language),
+            )
         )
 
     @app.post("/api/v1/auth/register", response_model=ApiResponse[TokenResponse])

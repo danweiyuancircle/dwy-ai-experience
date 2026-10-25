@@ -5,6 +5,7 @@ from typing import Annotated
 from uuid import uuid4
 
 import httpx
+import pytest
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy import Boolean, Column, MetaData, String, Table, insert, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -52,9 +53,11 @@ async def environment(
         def __init__(self):
             self.messages = []
             self.succeed = True
+            self.languages = []
 
-        async def send(self, email, code, purpose):
+        async def send(self, email, code, purpose, *, language="en"):
             self.messages.append((email, code, purpose))
+            self.languages.append(language)
             return self.succeed
 
     mailbox = Mailbox()
@@ -128,6 +131,88 @@ async def register(client, mailbox):
     )
     assert response.status_code == 200
     return response.json()["data"]
+
+
+@pytest.mark.parametrize(
+    "header,language",
+    [
+        (None, "en"),
+        ("zh", "zh"),
+        ("ZH-Hans-CN", "zh"),
+        ("en", "en"),
+        ("ja-JP", "en"),
+        ("en,zh-TW;q=0.5", "zh"),
+        ("zh;q=0", "en"),
+    ],
+)
+async def test_runtime_http_email_language_reaches_sender(tmp_path, header, language):
+    """通用运行时必须穿过覆盖方法把请求语言送到发件通道。"""
+    async with environment(tmp_path) as (client, mailbox, _):
+        response = await client.post(
+            "/api/v1/auth/email/code",
+            headers={} if header is None else {"Accept-Language": header},
+            json={"email": "person@example.com", "purpose": "register"},
+        )
+        assert response.status_code == 200
+        assert mailbox.languages == [language]
+
+
+async def test_runtime_http_email_language_header_is_bounded(tmp_path):
+    """过长语言头在发码之前拒绝, 不消耗邮件发送预算。"""
+    async with environment(tmp_path) as (client, mailbox, _):
+        response = await client.post(
+            "/api/v1/auth/email/code",
+            headers={"Accept-Language": "z" * 513},
+            json={"email": "person@example.com", "purpose": "register"},
+        )
+        assert response.status_code == 422
+        assert mailbox.messages == []
+
+
+@pytest.mark.parametrize("purpose", ["register", "password_reset"])
+@pytest.mark.parametrize("header,language", [(None, "en"), ("zh-CN", "zh"), ("vi-VN", "en")])
+async def test_request_language_selects_resend_mail_contents(tmp_path, monkeypatch, purpose, header, language):
+    """真实 HTTP、运行时和通道适配器一起决定主题、HTML 与纯文本语言。"""
+    from unittest.mock import AsyncMock
+
+    from dwy_app_auth.email_auth import EapiEmailCodeSender
+
+    from dwyeapi.providers.email.resend import ResendEmailProvider
+
+    provider = ResendEmailProvider(
+        api_key="test-not-used", from_email="sender@example.com", require_common_domain=False
+    )
+    delivery = AsyncMock(return_value={"id": "language-test"})
+    monkeypatch.setattr(provider._resend.Emails, "send_async", delivery)
+    async with environment(tmp_path) as (client, _, runtime):
+        runtime.email_sender = EapiEmailCodeSender(provider)
+        response = await client.post(
+            "/api/v1/auth/email/code",
+            headers={} if header is None else {"Accept-Language": header},
+            json={"email": "person@example.com", "purpose": purpose},
+        )
+        assert response.status_code == 200
+    delivery.assert_awaited_once()
+    payload = delivery.await_args.args[0]
+    if language == "zh":
+        assert payload["subject"] == "验证码"
+        assert 'lang="zh-CN"' in payload["html"]
+        assert "您的验证码" in payload["text"]
+    else:
+        assert payload["subject"] == "Verification code"
+        assert 'lang="en"' in payload["html"]
+        assert "verification code" in payload["text"].lower()
+        assert not any("\u4e00" <= char <= "\u9fff" for char in payload["html"] + payload["text"])
+
+
+async def test_changing_email_language_cannot_bypass_resend_cooldown(tmp_path):
+    """同邮箱切换语言仍共享发送冷却, 不能增加验证码发送预算。"""
+    async with environment(tmp_path) as (client, mailbox, _):
+        body = {"email": "person@example.com", "purpose": "register"}
+        assert (await client.post("/api/v1/auth/email/code", json=body)).status_code == 200
+        repeated = await client.post("/api/v1/auth/email/code", headers={"Accept-Language": "zh"}, json=body)
+        assert repeated.status_code == 429
+        assert len(mailbox.messages) == 1
 
 
 async def test_runtime_http_register_login_profile_refresh_and_logout(tmp_path):

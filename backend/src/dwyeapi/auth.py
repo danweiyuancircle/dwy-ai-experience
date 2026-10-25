@@ -7,10 +7,10 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from dwy_app_auth.contracts import AuthPrincipal, SessionTokens
-from dwy_app_auth.email_auth import EapiEmailCodeSender, EmailAuthConfig, EmailCodePurpose
+from dwy_app_auth.email_auth import EapiEmailCodeSender, EmailAuthConfig, EmailCodePurpose, resolve_email_language
 from dwy_app_auth.models import AuthError
 from dwy_app_auth.runtime import AuthRuntime
-from fastapi import APIRouter, Depends, FastAPI, Request
+from fastapi import APIRouter, Depends, FastAPI, Header, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
@@ -311,9 +311,18 @@ def install_runtime_auth(
         )
 
     @router.post("/email/code")
-    async def email_code(body: _EmailCode, request: Request):
+    async def email_code(
+        body: _EmailCode,
+        request: Request,
+        accept_language: Annotated[str | None, Header(max_length=512)] = None,
+    ):
         """投递成功才返回 challenge, 来源预算交核心执行。"""
-        result = await runtime.send_email_code(body.email, body.purpose, remote_key=remote_key(request))
+        result = await runtime.send_email_code(
+            body.email,
+            body.purpose,
+            remote_key=remote_key(request),
+            language=resolve_email_language(accept_language),
+        )
         return ApiResponse.ok(result)
 
     @router.post("/register")

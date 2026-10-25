@@ -20,9 +20,11 @@ class Mailbox:
     def __init__(self):
         self.messages = []
         self.succeed = True
+        self.languages = []
 
-    async def send(self, email, code, purpose):
+    async def send(self, email, code, purpose, *, language="en"):
         self.messages.append((email, code, purpose))
+        self.languages.append(language)
         return self.succeed
 
 
@@ -54,6 +56,35 @@ async def register(service, mailbox, email="person@example.com"):
     return await service.register_email(
         email, PASSWORD, mailbox.messages[-1][1], challenge.challenge_id, uuid4()
     )
+
+
+@pytest.mark.parametrize(
+    "header,language",
+    [
+        (None, "en"),
+        ("zh-CN", "zh"),
+        ("zh-Hant-TW", "zh"),
+        ("en-US", "en"),
+        ("vi-VN", "en"),
+        ("en, zh;q=0.5", "zh"),
+        ("zh;q=0, en", "en"),
+    ],
+)
+async def test_http_email_language_reaches_sender(email_environment, header, language):
+    """旧 HTTP 入口把语言送入真实验证码服务，未指定时默认英文。"""
+    service, _, _, mailbox = email_environment
+    app = FastAPI()
+    install_auth_routes(app, service)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=app), base_url="https://auth.test"
+    ) as client:
+        response = await client.post(
+            "/api/v1/auth/email/code",
+            headers={} if header is None else {"Accept-Language": header},
+            json={"email": "person@example.com", "purpose": "register"},
+        )
+    assert response.status_code == 200
+    assert mailbox.languages == [language]
 
 
 async def test_email_registration_normalization_login_and_google_are_independent(email_environment):
@@ -278,16 +309,16 @@ async def test_eapi_sender_uses_transport_without_redis_or_internal_code_store()
     from dwy_app_auth import EapiEmailCodeSender
 
     class Provider(EmailProviderBase):
-        async def _send(self, target, code):
-            self.delivered = (target, code)
+        async def _send(self, target, code, *, language="en"):
+            self.delivered = (target, code, language)
             return True
 
         async def _get_redis(self):
             raise AssertionError("SQL-backed authentication must not use Redis")
 
     provider = Provider(require_common_domain=False)
-    assert await EapiEmailCodeSender(provider).send("person@example.com", "123456", "register")
-    assert provider.delivered == ("person@example.com", "123456")
+    assert await EapiEmailCodeSender(provider).send("person@example.com", "123456", "register", language="zh")
+    assert provider.delivered == ("person@example.com", "123456", "zh")
 
 
 async def test_migration_upgrades_populated_google_schema_without_changing_ids(tmp_path):
@@ -424,8 +455,8 @@ async def test_delivery_latency_returns_actual_remaining_time(
     monkeypatch.setattr("dwy_app_auth.email_auth.time.time", lambda: now[0])
     original = mailbox.send
 
-    async def delayed_send(email, code, purpose):
-        delivered = await original(email, code, purpose)
+    async def delayed_send(email, code, purpose, *, language="en"):
+        delivered = await original(email, code, purpose, language=language)
         now[0] += delay
         return delivered
 
@@ -442,7 +473,7 @@ async def test_delivery_expiring_before_response_never_returns_an_active_challen
     now = [2_000_000_000]
     monkeypatch.setattr("dwy_app_auth.email_auth.time.time", lambda: now[0])
 
-    async def expired_send(email, code, purpose):
+    async def expired_send(email, code, purpose, *, language="en"):
         now[0] += 300
         return True
 

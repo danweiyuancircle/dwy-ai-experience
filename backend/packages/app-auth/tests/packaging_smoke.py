@@ -56,9 +56,11 @@ async def main():
         def __init__(self):
             super().__init__(require_common_domain=False)
             self.messages = []
+            self.languages = []
 
-        async def _send(self, target, code):
+        async def _send(self, target, code, *, language="en"):
             self.messages.append((target, code))
+            self.languages.append(language)
             return True
 
         async def _get_redis(self):
@@ -104,6 +106,16 @@ async def main():
                 "/api/v1/auth/email/code", json={"email": "wheel@example.com", "purpose": "register"}
             )
             assert code_response.status_code == 200
+            assert mailbox.languages == ["en"]
+            chinese_code = await client.post(
+                "/api/v1/auth/email/code",
+                headers={"Accept-Language": "zh-Hant-TW"},
+                json={"email": "chinese@example.com", "purpose": "register"},
+            )
+            assert chinese_code.status_code == 200
+            assert mailbox.languages == ["en", "zh"]
+            assert 'lang="en"' in mailbox._render_code_html("123456")
+            assert 'lang="zh-CN"' in mailbox._render_code_html("123456", language="zh")
             challenge = code_response.json()["data"]
             assert set(challenge) == {"challenge_id", "expires_in", "resend_after", "code_length"}
             assert challenge["code_length"] == 6
@@ -113,7 +125,7 @@ async def main():
                     "email": "wheel@example.com",
                     "password": password,
                     "device_id": str(uuid4()),
-                    "code": mailbox.messages[-1][1],
+                    "code": mailbox.messages[0][1],
                     "challenge_id": challenge["challenge_id"],
                 },
             )

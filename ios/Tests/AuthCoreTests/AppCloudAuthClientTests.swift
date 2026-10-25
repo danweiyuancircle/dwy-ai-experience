@@ -4,6 +4,45 @@ import XCTest
 /// URLProtocol 捕获真实 URLSession 请求，验证应用前缀和 eapi 契约。
 @MainActor
 final class AppCloudAuthClientTests: XCTestCase {
+    /// 默认语言由本次系统首选决定，不依赖 URLSession 隐式添加请求头。
+    func testRequestsExplicitlySendSystemLanguage() async throws {
+        let (client, recorder) = try makeClient(response: "{\"code\":\"SUCCESS\",\"message\":\"ok\",\"data\":null}")
+        try await client.logout(accessToken: "opaque-token")
+        let language = Locale.preferredLanguages.first?.lowercased()
+        let expected = language == "zh" || language?.hasPrefix("zh-") == true ? "zh" : "en"
+        XCTAssertEqual(recorder.request?.value(forHTTPHeaderField: "Accept-Language"), expected)
+    }
+
+    /// 中文变体发送中文，其余语言与缺失值发送英文，不把地区代码当作语言。
+    func testEmailCodeLanguageUsesOnlyChineseOrEnglish() async throws {
+        let cases: [(String?, String)] = [
+            ("zh", "zh"), ("zh-CN", "zh"), ("zh-Hans-CN", "zh"), ("zh-Hant-TW", "zh"),
+            ("ZH-Hant-HK", "zh"), ("en-US", "en"), ("ja-JP", "en"), ("vi-VN", "en"),
+            ("CN", "en"), ("zhong", "en"), ("", "en"), (nil, "en"),
+        ]
+        for (language, expected) in cases {
+            let (client, recorder) = try makeClient(response: """
+            {"code":"SUCCESS","message":"ok","data":{"challenge_id":"id","expires_in":600,"resend_after":60,"code_length":6}}
+            """, languageProvider: { language })
+            _ = try await client.sendEmailCode(email: "user@example.com", purpose: .register)
+            XCTAssertEqual(recorder.request?.value(forHTTPHeaderField: "Accept-Language"), expected, "Language: \(language ?? "nil")")
+        }
+    }
+
+    /// 同一客户端在后续请求重新读取语言，宿主切换语言后无需重建客户端。
+    func testLanguageProviderIsReadForEveryRequest() async throws {
+        let language = PreferredLanguageSource("en-US")
+        let (client, recorder) = try makeClient(response: "{\"code\":\"SUCCESS\",\"message\":\"ok\",\"data\":null}", languageProvider: { language.value })
+        try await client.logout(accessToken: "opaque-token")
+        XCTAssertEqual(recorder.request?.value(forHTTPHeaderField: "Accept-Language"), "en")
+
+        let identifier = try XCTUnwrap(recorder.request?.value(forHTTPHeaderField: "X-Test-ID"))
+        StubURLProtocol.registry.insert(recorder, id: identifier)
+        language.value = "zh-Hans"
+        try await client.logout(accessToken: "opaque-token")
+        XCTAssertEqual(recorder.request?.value(forHTTPHeaderField: "Accept-Language"), "zh")
+    }
+
     func testEmailChallengeEncodingPreservesPrefixAndDecodesChallenge() async throws {
         let (client, recorder) = try makeClient(response: """
         {"code":"SUCCESS","message":"ok","data":{"challenge_id":"opaque-id","expires_in":600,"resend_after":60,"code_length":6}}
@@ -124,7 +163,7 @@ final class AppCloudAuthClientTests: XCTestCase {
     }
 
     /// 每个 session 单独绑定 recorder，测试并行不会共享可变 handler。
-    private func makeClient(response: String, status: Int = 200) throws -> (AppCloudAuthClient, RequestRecorder) {
+    private func makeClient(response: String, status: Int = 200, languageProvider: (@MainActor @Sendable () -> String?)? = nil) throws -> (AppCloudAuthClient, RequestRecorder) {
         let recorder = RequestRecorder(response: Data(response.utf8), status: status)
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [StubURLProtocol.self]
@@ -132,8 +171,18 @@ final class AppCloudAuthClientTests: XCTestCase {
         StubURLProtocol.registry.insert(recorder, id: identifier)
         config.httpAdditionalHeaders = ["X-Test-ID": identifier]
         let session = URLSession(configuration: config)
+        if let languageProvider {
+            return (try AppCloudAuthClient(baseURL: URL(string: "https://example.com/adbox")!, session: session, languageProvider: languageProvider), recorder)
+        }
         return (try AppCloudAuthClient(baseURL: URL(string: "https://example.com/adbox")!, session: session), recorder)
     }
+}
+
+/// 测试与客户端在主线程读写同一语言来源，模拟宿主设置切换。
+@MainActor
+private final class PreferredLanguageSource {
+    var value: String?
+    init(_ value: String?) { self.value = value }
 }
 
 /// 锁保护 URLSession 工作线程写入的请求证据。

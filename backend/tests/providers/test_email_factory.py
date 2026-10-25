@@ -17,7 +17,7 @@ from dwyeapi.providers.email.factory import _PROVIDER_REGISTRY
 class FakeProvider(EmailProviderBase):
     """测试专用 -- _send 不实际发送,直接返回 True。"""
 
-    async def _send(self, target: str, code: str) -> bool:
+    async def _send(self, target: str, code: str, *, language="en") -> bool:
         return True
 
 

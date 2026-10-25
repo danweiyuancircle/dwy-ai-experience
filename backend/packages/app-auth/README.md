@@ -63,6 +63,10 @@ install_auth_routes(app, service)
 
 Use the matching EAPI version containing `EmailProviderBase.send_verification_code`. This public transport-only method reuses existing Resend templates/domain policy and does not access Redis. Match the provider template TTL with `EmailAuthConfig.code_ttl`. The host owns the email sender/provider lifecycle. Without email configuration all email routes fail closed with `EMAIL_NOT_CONFIGURED`.
 
+Both authentication HTTP installers accept an optional `Accept-Language` header (maximum 512 characters) for email codes. Any valid `zh`/`zh-*` range with nonzero quality selects Chinese; missing, malformed, excluded (`zh;q=0`), or other languages select English. The subject, HTML, and plain-text body use the same language. The current Apple client explicitly sends `zh` for a Chinese first preferred language and `en` otherwise. Language is passed per call and never changes code identity or resend limits.
+
+Custom senders must accept `send(email, code, purpose, *, language="en")`; custom EAPI providers must accept `_send(target, code, *, language="en")`. Programmatic calls may pass `send_email_code(..., language="zh")`; only `zh` and `en` are supported. Configure `resend.subject` for Chinese and `resend.subject_en` for English. English brand taglines/slogans use `brand_tagline_en`/`brand_slogan_en` (empty by default), without falling back to Chinese promotional copy. Brand names remain as configured.
+
 | POST path | JSON input | SUCCESS data |
 |---|---|---|
 | `/api/v1/auth/email/code` | `email,purpose` (`register` or `password_reset`) | `challenge_id,expires_in,resend_after,code_length` |

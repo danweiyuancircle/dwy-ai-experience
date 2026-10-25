@@ -608,6 +608,8 @@ Gmail plus / 点号 / googlemail 折成同一收件箱；其它域名只做大�
 | 2 | test_send_code_calls_resend_async_api | mock `send_async`,断言 from/to/subject/html/text;信封用原地址 |
 | 3 | test_send_failure_returns_false_and_skips_redis | SDK 失败不写 Redis key |
 
+中英文模板新增 8 项，完整清单位于 `tests/providers/TEST_CASES.md`。省略语言默认英文；显式 `language="zh"` 保留中文。
+
 ---
 
 ## 回测检查清单

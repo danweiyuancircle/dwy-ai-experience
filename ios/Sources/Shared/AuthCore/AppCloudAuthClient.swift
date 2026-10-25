@@ -5,15 +5,19 @@ import Foundation
 public final class AppCloudAuthClient: EmailPasswordAuthBackend {
     public let baseURL: URL
     private let session: URLSession
+    /// 每次请求读取当前首选语言；宿主可注入应用内语言，默认跟随设备系统。
+    private let languageProvider: @MainActor @Sendable () -> String?
 
     /// 生产只接受 HTTPS；本机开发允许明确的 loopback HTTP。
-    public init(baseURL: URL, session: URLSession = .shared) throws {
+    /// languageProvider 返回语言标签（如 zh-Hans、en-US），中文以外统一请求英文。
+    public init(baseURL: URL, session: URLSession = .shared, languageProvider: @escaping @MainActor @Sendable () -> String? = { Locale.preferredLanguages.first }) throws {
         guard baseURL.host != nil, baseURL.user == nil, baseURL.password == nil,
               baseURL.query == nil, baseURL.fragment == nil,
               baseURL.scheme == "https" || (baseURL.scheme == "http" && ["localhost", "127.0.0.1", "::1"].contains(baseURL.host))
         else { throw AuthError.invalidConfiguration }
         self.baseURL = baseURL
         self.session = session
+        self.languageProvider = languageProvider
     }
 
     /// ID token 仅用于本次后端交换，设备 UUID 不参与认证证明。
@@ -113,6 +117,9 @@ public final class AppCloudAuthClient: EmailPasswordAuthBackend {
         request.timeoutInterval = 30
         request.httpBody = body
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let preferredLanguage = languageProvider()?.lowercased()
+        let language = preferredLanguage == "zh" || preferredLanguage?.hasPrefix("zh-") == true ? "zh" : "en"
+        request.setValue(language, forHTTPHeaderField: "Accept-Language")
         if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         if let accessToken { request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
         let (data, response) = try await session.data(for: request)

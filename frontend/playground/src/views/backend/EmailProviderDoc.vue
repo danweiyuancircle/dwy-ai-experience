@@ -44,13 +44,18 @@ from dwyeapi.providers.email import (
 | EMAIL__PROVIDER | 默认 \`resend\` |
 | EMAIL__RESEND__API_KEY | **必填** |
 | EMAIL__RESEND__FROM_EMAIL | **必填**（工厂校验） |
+| EMAIL__RESEND__SUBJECT | 中文主题，默认“验证码” |
+| EMAIL__RESEND__SUBJECT_EN | 英文主题，默认“Verification code” |
 | EMAIL__CODE_TTL | 验证码 TTL 秒，默认 300 |
 | EMAIL__CODE_LENGTH | 位数，默认 6 |
 | EMAIL__BRAND_* | 品牌化模板字段 |
+| EMAIL__BRAND_TAGLINE_EN / EMAIL__BRAND_SLOGAN_EN | 英文标语；未配置则省略，不复用中文标语 |
 
 \`\`\`python
 provider = make_email_provider(settings.email)
-ok = await provider.send_code("user@example.com")
+ok = await provider.send_code("user@example.com")  # 默认英文
+# 中文显式指定 language="zh"；语言逐次传入，不修改共享 provider。
+ok = await provider.send_code("user@example.com", language="zh")
 valid = await provider.verify_code("user@example.com", code)
 \`\`\`
 
@@ -59,6 +64,7 @@ valid = await provider.verify_code("user@example.com", code)
 - **先发送后写 Redis**：\`_send\` 失败不落库，避免未收到邮件却有可校验码
 - **校验成功删除 key**（一次性）；错误码保留 key（可重试）
 - 工厂缺少 \`api_key\` / \`from_email\` 直接 \`ValueError\`
+- 认证发码接口读取 \`Accept-Language\`（最长 512 字符）：存在有效且未被 \`q=0\` 排除的 \`zh\` / \`zh-*\` 时中文，其余及缺省英文；主题、HTML、纯文本一致。直接调用 Provider 时由调用方传 \`language="zh"\` / \`"en"\`。
 
 ### 注册表
 
@@ -68,8 +74,9 @@ valid = await provider.verify_code("user@example.com", code)
 
 \`\`\`python
 class MyProvider(EmailProviderBase):
-    async def _send(self, target: str, code: str) -> bool:
-        # 调用自家 SMTP / 厂商 SDK
+    async def _send(self, target: str, code: str, *, language="en") -> bool:
+        # 调用 SMTP / 厂商 SDK；模板用 self._render_code_html(code, language=language)
+        # 与 self._render_code_text(code, language=language)，保持同一语言。
         return True
 
 register_email_provider("my_smtp", lambda s: MyProvider(code_ttl=s.code_ttl))

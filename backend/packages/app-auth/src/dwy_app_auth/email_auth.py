@@ -19,6 +19,19 @@ from .models import AuthError, TokenResponse, UserProfile
 from .passwords import hash_password, verify_password
 
 EmailCodePurpose = Literal["register", "password_reset"]
+EmailLanguage = Literal["zh", "en"]
+
+
+def resolve_email_language(accept_language: str | None) -> EmailLanguage:
+    """有效且未被 q=0 排除的中文范围选中文，其余与缺省一律英文。"""
+    for language_range in (accept_language or "").split(","):
+        match = re.fullmatch(
+            r"zh(?:-[a-z0-9]{1,8})*(?:\s*;\s*q=(0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?))?",
+            language_range.strip().lower(),
+        )
+        if match and (match[1] is None or float(match[1]) > 0):
+            return "zh"
+    return "en"
 
 
 def normalize_email(email: str) -> str:
@@ -39,7 +52,9 @@ def validate_password(password: str, *, new: bool) -> str:
 class EmailCodeSender(Protocol):
     """邮件传输边界；返回False代表未交付，不应记录验证码到日志。"""
 
-    async def send(self, email: str, code: str, purpose: EmailCodePurpose) -> bool: ...
+    async def send(
+        self, email: str, code: str, purpose: EmailCodePurpose, *, language: EmailLanguage = "en"
+    ) -> bool: ...
 
 
 class EapiEmailCodeSender:
@@ -48,9 +63,11 @@ class EapiEmailCodeSender:
     def __init__(self, provider):
         self.provider = provider
 
-    async def send(self, email: str, code: str, purpose: EmailCodePurpose) -> bool:
+    async def send(
+        self, email: str, code: str, purpose: EmailCodePurpose, *, language: EmailLanguage = "en"
+    ) -> bool:
         """用途隔离交给认证事务；品牌模板与TTL由宿主装配一致。"""
-        return await self.provider.send_verification_code(email, code)
+        return await self.provider.send_verification_code(email, code, language=language)
 
 
 @dataclass(frozen=True)
@@ -143,7 +160,14 @@ class EmailAuthMixin:
         task.add_done_callback(completed)
         return await asyncio.shield(task)
 
-    async def send_email_code(self, email: str, purpose: EmailCodePurpose, *, remote_key: str = "local"):
+    async def send_email_code(
+        self,
+        email: str,
+        purpose: EmailCodePurpose,
+        *,
+        remote_key: str = "local",
+        language: EmailLanguage = "en",
+    ):
         """预占发送预算；成功交付才激活challenge，新码使同用途旧码失效。"""
         self._require_email()
         email = normalize_email(email)
@@ -170,7 +194,7 @@ class EmailAuthMixin:
                 )
             )
         try:
-            delivered = await self.email_sender.send(email, code, purpose)
+            delivered = await self.email_sender.send(email, code, purpose, language=language)
         except Exception:
             # 第三方异常可能含请求/密钥；只在HTTP边界返回固定消息。
             delivered = False

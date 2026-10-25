@@ -14,6 +14,8 @@
 - `JWTSessionBackend(app_id, issuer, audience, secret, sessions, session_tables)` 默认 access 15 分钟、refresh family 30 天绝对到期；注入至少 32 字节密钥。也可注入完整 `SessionBackend`，覆盖签发、验证、刷新、撤销及同事务主体撤销。
 - `GoogleIdentityProvider(OfficialGoogleVerifier(GoogleConfig(client_id=...)))` 注册为 `providers={"google": ...}`；核心调用 `authenticate("google", credential=id_token)`。当前仅 ID token 校验，不提供浏览器 OAuth 重定向。其他 Provider 实现 `ExternalIdentityProvider.verify` 后注册。
 - 邮件复用 `EapiEmailCodeSender(make_email_provider(settings))` 与现有 `send_verification_code` 模板；认证库管理用途隔离的 challenge。宿主管理邮件 Provider 生命周期。
+- 发码请求使用可选 `Accept-Language`（最长 512 字符）；出现有效且未被 `q=0` 排除的 `zh` / `zh-*` 时发中文，缺省、无效或其他语言发英文。主题、HTML、纯文本统一选择；语言逐次透传，不参与验证码身份与限流键。自定义 sender 的 `send` 和邮件 provider 的 `_send` 需接受 keyword-only `language="en"`；程序调用可指定 `send_email_code(..., language="zh")`。
+- 中文主题继续配置 `resend.subject`，英文主题配置 `resend.subject_en`；英文品牌标语分别配置 `brand_tagline_en` / `brand_slogan_en`，缺省留空，不复用中文宣传文案。设备端应按当前语言显式传头，不依赖服务器的系统语言。
 
 `install_runtime_auth(app, runtime, profile_loader=...)` 挂载以下接口并返回 `AuthBinding`。`profile_loader(AuthPrincipal)` 返回应用资料，JSON 的 `user` 不绑定固定业务表。装配会关闭 runtime 的 Provider 资源，外层生命周期避免重复关闭。
 

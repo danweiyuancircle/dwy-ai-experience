@@ -13,7 +13,14 @@
 
     settings = Settings()
     provider = make_email_provider(settings.email)
-    await provider.send_code("user@qq.com")
+    await provider.send_code("user@qq.com", language="zh")
+
+语言约定:
+    language 由宿主将 Accept-Language 归一化为 zh / en 后逐次传入。
+    未传语言时默认英文;英文主题通过 EMAIL__RESEND__SUBJECT_EN 配置。
+    中文副标语/页脚不会自动用于英文邮件,可分别配置 EMAIL__BRAND_TAGLINE_EN /
+    EMAIL__BRAND_SLOGAN_EN。品牌名、官网与客服邮箱保持原配置。
+    自定义 provider 的 _send 必须接受 keyword-only language 并透传到模板。
 
 典型用法 -- 注册自定义 provider:
     from dwyeapi.providers.email import (
@@ -24,9 +31,9 @@
     )
 
     class TencentSesProvider(EmailProviderBase):
-        async def _send(self, target: str, code: str) -> bool:
-            html = self._render_code_html(code)
-            text = self._render_code_text(code)
+        async def _send(self, target: str, code: str, *, language="en") -> bool:
+            html = self._render_code_html(code, language=language)
+            text = self._render_code_text(code, language=language)
             # 调腾讯云 SES API 发送 ...
             return True
 

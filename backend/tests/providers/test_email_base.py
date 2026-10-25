@@ -9,7 +9,7 @@ from dwyeapi.providers.email.base import CODE_KEY_PREFIX, EmailProviderBase
 class FakeEmailProvider(EmailProviderBase):
     """测试专用 -- 不实际发送邮件,只返回 True 让基类逻辑跑完。"""
 
-    async def _send(self, target: str, code: str) -> bool:
+    async def _send(self, target: str, code: str, *, language="en") -> bool:
         return True
 
 
@@ -73,7 +73,7 @@ class TestEmailProviderBase:
         """_send 失败时不应写入 Redis,避免用户未收到邮件却有可校验码."""
 
         class FailingProvider(EmailProviderBase):
-            async def _send(self, target: str, code: str) -> bool:
+            async def _send(self, target: str, code: str, *, language="en") -> bool:
                 return False
 
         provider = FailingProvider(redis=fake_redis)
@@ -99,7 +99,7 @@ class TestEmailProviderBase:
                 super().__init__(**kwargs)
                 self.sent_to: str | None = None
 
-            async def _send(self, target: str, code: str) -> bool:
+            async def _send(self, target: str, code: str, *, language="en") -> bool:
                 self.sent_to = target
                 return True
 
@@ -116,7 +116,7 @@ class TestEmailProviderBase:
                 super().__init__(**kwargs)
                 self.sent = False
 
-            async def _send(self, target: str, code: str) -> bool:
+            async def _send(self, target: str, code: str, *, language="en") -> bool:
                 self.sent = True
                 return True
 

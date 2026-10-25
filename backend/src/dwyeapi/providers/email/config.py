@@ -20,7 +20,12 @@ class ResendConfig(BaseModel):
     )
     subject: str = Field(
         default="验证码",
-        description="验证码邮件主题",
+        description="中文验证码邮件主题",
+    )
+    subject_en: str = Field(
+        default="Verification code",
+        max_length=200,
+        description="英文验证码邮件主题,未传语言时也使用此主题",
     )
 
 
@@ -66,6 +71,11 @@ class EmailSettings(BaseModel):
         default="",
         description="品牌副标语(英文/口号),展示在页眉右上,留空则不显示",
     )
+    brand_tagline_en: str = Field(
+        default="",
+        max_length=2000,
+        description="英文邮件页眉副标语,留空时省略,不回退到中文副标语",
+    )
     brand_url: str = Field(
         default="",
         description="品牌官网,展示在页脚链接,留空则不显示",
@@ -73,6 +83,11 @@ class EmailSettings(BaseModel):
     brand_slogan: str = Field(
         default="",
         description="页脚版权下方一行说明文案,留空则不显示",
+    )
+    brand_slogan_en: str = Field(
+        default="",
+        max_length=2000,
+        description="英文邮件页脚说明,留空时省略,不回退到中文页脚",
     )
     support_email: str = Field(
         default="",

@@ -20,6 +20,7 @@ from .email_auth import (
     EmailCodeChallenge,
     EmailCodePurpose,
     EmailCodeSender,
+    EmailLanguage,
     normalize_email,
     validate_password,
 )
@@ -133,10 +134,17 @@ class AuthRuntime(EmailAuthMixin):
         await self.require_active_subject(db, principal.subject)
 
     async def send_email_code(
-        self, email: str, purpose: EmailCodePurpose, *, remote_key: str = "local"
+        self,
+        email: str,
+        purpose: EmailCodePurpose,
+        *,
+        remote_key: str = "local",
+        language: EmailLanguage = "en",
     ) -> EmailCodeChallenge:
         """复用同一 challenge 状态机；外部发信不持有业务事务。"""
-        return await super().send_email_code(self._email(email), purpose, remote_key=self._remote(remote_key))
+        return await super().send_email_code(
+            self._email(email), purpose, remote_key=self._remote(remote_key), language=language
+        )
 
     async def register_email(
         self, email: str, password: str, code: str, challenge_id: UUID | str, *, remote_key: str = "local"

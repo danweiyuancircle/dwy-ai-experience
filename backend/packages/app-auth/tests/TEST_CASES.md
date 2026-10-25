@@ -38,5 +38,7 @@ The four Google/user/session test files were migrated from app-cloud with their 
 - Delivery latency returns remaining code/cooldown seconds (including zero cooldown); delivery at code expiry fails and removes the challenge.
 - An in-flight old-password login paused after bcrypt is rejected after password reset commits, without issuing another session.
 - HTTP rate keys use the ASGI peer address and ignore arbitrary X-Forwarded-For/Forwarded headers.
+- Both old authentication HTTP routes and the generic runtime pass Chinese/English language per request; Chinese variants and nonzero weighted Chinese select Chinese, all other or missing headers select English.
+- `test_email_language.py`: missing, unknown, mixed-case, traditional/simplified Chinese, weighted, excluded, and malformed language ranges normalize to exactly `zh` or `en`.
 
-- `packaging_smoke.py`: new wheel-only environment, fixed six-table database inspection, EAPI transport availability, explicit rolling policy/secret/mail fixture assembly, email registration/login/reset revocation, Google/admin isolation and deletion; no real email is sent.
+- `packaging_smoke.py`: new wheel-only environment, fixed six-table database inspection, EAPI transport availability, English default/Chinese header propagation and template language, explicit rolling policy/secret/mail fixture assembly, email registration/login/reset revocation, Google/admin isolation and deletion; no real email is sent.
