@@ -12,7 +12,7 @@
 - 新增 `dwyeapi.identity` 的 `Principal`、`IdentityVerifier` 与应用绑定依赖工厂，显式验证应用、用户、会话和设备边界；未配置验证器时拒绝身份请求。
 - 新增 `dwyeapi.auth` 集成入口：将独立 `dwy-auth` runtime 的认证结果适配为 EAPI 身份依赖，并安装认证路由与请求体限制。`dwyeapi[auth]` 聚合认证核心和邮件 SDK，基础安装不加载可选认证包。
 - 邮件 Provider 新增 `send_verification_code`，复用模板与域名策略发送验证码，不依赖 Redis。验证码邮件支持按调用选择中文或英文，支持分别配置主题和品牌文案。
-- Python 包通过独立 GitHub Actions OIDC 工作流发布到公开 PyPI；设备轻包增加 Windows/macOS/Linux 与 Python 版本矩阵验收，私有 GitHub Release 保留为可选构建快照。
+- Python 包通过独立 GitHub Actions OIDC 工作流发布到公开 PyPI；发布任务使用 Linux，设备轻包额外进行 macOS 与 Python 版本矩阵验收，不运行 Windows 任务；私有 GitHub Release 保留为可选构建快照。
 
 ### Integration Notes
 
