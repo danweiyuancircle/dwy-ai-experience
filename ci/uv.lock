@@ -60,6 +60,29 @@ wheels = [
 ]
 
 [[package]]
+name = "app-store-server-library"
+version = "3.1.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "asn1" },
+    { name = "attrs" },
+    { name = "cattrs" },
+    { name = "cryptography" },
+    { name = "pyjwt" },
+    { name = "pyopenssl" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8c/c2/1b2b39f910b6359dd1954dd6e6ae050b1e9e8e57d17f57efb32afdd713eb/app_store_server_library-3.1.2.tar.gz", hash = "sha256:0b9005c93298674c934dfa9bc164cd44bfc3f43a8d0dc3834eaf6f66c3572d45", size = 90451, upload-time = "2026-06-01T18:36:37.376Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/62/f9/1908c439040359869a42ba2f4aa3bb80134cc929e03de1b4d33a6c2d4194/app_store_server_library-3.1.2-py3-none-any.whl", hash = "sha256:8007b3dca89fd08a1123fae2ffdbe7bc72b99a7eabfb0a32e21b45a344159e62", size = 131461, upload-time = "2026-06-01T18:36:35.946Z" },
+]
+
+[package.optional-dependencies]
+async = [
+    { name = "httpx" },
+]
+
+[[package]]
 name = "arq"
 version = "0.28.0"
 source = { registry = "https://pypi.org/simple" }
@@ -73,12 +96,33 @@ wheels = [
 ]
 
 [[package]]
+name = "asn1"
+version = "3.2.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "enum-compat" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cc/9b/17b20f2ccdeca7f6e61d201a5bc3bd7cafc3d97889e7b3dd0ef673177cf1/asn1-3.2.0.tar.gz", hash = "sha256:0860ad40bbffd6475d2d54b82f50d9196e31b7cee985812ed9559b40e7d809c7", size = 51343, upload-time = "2026-02-07T16:34:18.223Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/26/50/fed4dc9ac21c77ddbb7893093d4208c7da8a35b83b13ebb880b1633c3349/asn1-3.2.0-py2.py3-none-any.whl", hash = "sha256:3c1788508d49f4f101c3c6b842b5a6d0fc9f68e2782e891d41af19bf321fedbb", size = 17781, upload-time = "2026-02-07T16:34:16.875Z" },
+]
+
+[[package]]
 name = "async-timeout"
 version = "5.0.1"
 source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/a5/ae/136395dfbfe00dfc94da3f3e136d0b13f394cba8f4841120e34226265780/async_timeout-5.0.1.tar.gz", hash = "sha256:d9321a7a3d5a6a5e187e824d2fa0793ce379a202935782d555d6e9d2735677d3", size = 9274, upload-time = "2024-11-06T16:41:39.6Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fe/ba/e2081de779ca30d473f21f5b30e0e737c438205440784c7dfc81efc2b029/async_timeout-5.0.1-py3-none-any.whl", hash = "sha256:39e3809566ff85354557ec2398b55e096c8364bacac9405a7a1fa429e77fe76c", size = 6233, upload-time = "2024-11-06T16:41:37.9Z" },
+]
+
+[[package]]
+name = "attrs"
+version = "26.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/9a/8e/82a0fe20a541c03148528be8cac2408564a6c9a0cc7e9171802bc1d26985/attrs-26.1.0.tar.gz", hash = "sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32", size = 952055, upload-time = "2026-03-19T14:22:25.026Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/64/b4/17d4b0b2a2dc85a6df63d1157e028ed19f90d4cd97c36717afef2bc2f395/attrs-26.1.0-py3-none-any.whl", hash = "sha256:c647aa4a12dfbad9333ca4e71fe62ddc36f4e63b2d260a37a8b83d2f043ac309", size = 67548, upload-time = "2026-03-19T14:22:23.645Z" },
 ]
 
 [[package]]
@@ -121,6 +165,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/54/79/875f9558179573d40a9cc743038ac2bf67dfb79cecb1e8b5d70e88c94c3d/bcrypt-5.0.0-pp311-pypy311_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:046ad6db88edb3c5ece4369af997938fb1c19d6a699b9c1b27b0db432faae4c4", size = 273791, upload-time = "2025-09-25T19:50:39.913Z" },
     { url = "https://files.pythonhosted.org/packages/bc/fe/975adb8c216174bf70fc17535f75e85ac06ed5252ea077be10d9cff5ce24/bcrypt-5.0.0-pp311-pypy311_pp73-manylinux_2_34_aarch64.whl", hash = "sha256:dcd58e2b3a908b5ecc9b9df2f0085592506ac2d5110786018ee5e160f28e0911", size = 270746, upload-time = "2025-09-25T19:50:43.306Z" },
     { url = "https://files.pythonhosted.org/packages/e4/f8/972c96f5a2b6c4b3deca57009d93e946bbdbe2241dca9806d502f29dd3ee/bcrypt-5.0.0-pp311-pypy311_pp73-manylinux_2_34_x86_64.whl", hash = "sha256:6b8f520b61e8781efee73cba14e3e8c9556ccfb375623f4f97429544734545b4", size = 273375, upload-time = "2025-09-25T19:50:45.43Z" },
+]
+
+[[package]]
+name = "cattrs"
+version = "26.2.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "attrs" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/23/75/e72b839c3dc869c990b4842f3dba730bdcdf5215f68fc7955edf849a1792/cattrs-26.2.1.tar.gz", hash = "sha256:679132bfdc225c5ee40c024fc42519954767c387f950dc6751946c586bccdc6d", size = 525617, upload-time = "2026-09-26T20:53:21.114Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e8/cf/22794a399d99480486120e26e879ef008e21f5e85274c2ed591d568bb326/cattrs-26.2.1-py3-none-any.whl", hash = "sha256:a12aaa3453dc8f633a815293179f08b7421ed18d2575c459c3c736f840beac24", size = 74843, upload-time = "2026-09-26T20:53:19.767Z" },
 ]
 
 [[package]]
@@ -300,6 +357,23 @@ wheels = [
 ]
 
 [[package]]
+name = "discord-webhook"
+version = "1.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/89/35/4837053ab7d781983c2dce787c5dda42918c3b2936ccadf4e097057ca29a/discord_webhook-1.4.1.tar.gz", hash = "sha256:2913c3ccb216e7d82911f96296f78b6b28b68a6f33a6fa5a61fc2da697b34a4d", size = 13724, upload-time = "2025-03-05T10:18:08.823Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/9b/90/a4db0122694a5657d9434f5c782adc894477a2d17776309290674ba3e7ac/discord_webhook-1.4.1-py3-none-any.whl", hash = "sha256:1ed6a07d16ca0e6e6b1a91536c2fc34d0ba8251e5be37fe8850189aaf1155ee8", size = 13573, upload-time = "2025-03-05T10:18:07.426Z" },
+]
+
+[package.optional-dependencies]
+async = [
+    { name = "httpx" },
+]
+
+[[package]]
 name = "dwy-auth"
 version = "0.1.0"
 source = { editable = "../backend/packages/auth" }
@@ -357,18 +431,62 @@ version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
     { name = "dwy-auth", extra = ["dev"] },
+    { name = "dwy-webhooks", extra = ["apple", "dev", "discord", "resend"] },
     { name = "dwyeapi", extra = ["dev", "device"] },
 ]
 
 [package.metadata]
 requires-dist = [
     { name = "dwy-auth", extras = ["dev"], editable = "../backend/packages/auth" },
+    { name = "dwy-webhooks", extras = ["discord", "resend", "apple", "dev"], editable = "../backend/packages/webhooks" },
     { name = "dwyeapi", extras = ["dev", "device"], editable = "../backend" },
 ]
 
 [[package]]
+name = "dwy-webhooks"
+version = "0.1.0"
+source = { editable = "../backend/packages/webhooks" }
+dependencies = [
+    { name = "dwyeapi" },
+]
+
+[package.optional-dependencies]
+apple = [
+    { name = "app-store-server-library", extra = ["async"] },
+]
+dev = [
+    { name = "aiosqlite" },
+    { name = "httpx" },
+    { name = "pytest" },
+    { name = "pytest-asyncio" },
+    { name = "ruff" },
+]
+discord = [
+    { name = "discord-webhook", extra = ["async"] },
+    { name = "httpx" },
+]
+resend = [
+    { name = "resend" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "aiosqlite", marker = "extra == 'dev'", specifier = "==0.22.1" },
+    { name = "app-store-server-library", extras = ["async"], marker = "extra == 'apple'", specifier = "==3.1.2" },
+    { name = "discord-webhook", extras = ["async"], marker = "extra == 'discord'", specifier = "==1.4.1" },
+    { name = "dwyeapi", specifier = "==0.12.0" },
+    { name = "httpx", marker = "extra == 'dev'", specifier = "==0.28.1" },
+    { name = "httpx", marker = "extra == 'discord'", specifier = "==0.28.1" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.0.3" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = "==1.3.0" },
+    { name = "resend", marker = "extra == 'resend'", specifier = "==2.49.1" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.15.12" },
+]
+provides-extras = ["discord", "resend", "apple", "dev"]
+
+[[package]]
 name = "dwyeapi"
-version = "0.11.1"
+version = "0.12.0"
 source = { editable = "../backend" }
 dependencies = [
     { name = "bcrypt" },
@@ -433,6 +551,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/25/ca/8de7744cb3bc966c85430ca2d0fcaeea872507c6a4cf6e007f7fe269ed9d/ecdsa-0.19.2.tar.gz", hash = "sha256:62635b0ac1ca2e027f82122b5b81cb706edc38cd91c63dda28e4f3455a2bf930", size = 202432, upload-time = "2026-03-26T09:58:17.675Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/51/79/119091c98e2bf49e24ed9f3ae69f816d715d2904aefa6a2baa039a2ba0b0/ecdsa-0.19.2-py2.py3-none-any.whl", hash = "sha256:840f5dc5e375c68f36c1a7a5b9caad28f95daa65185c9253c0c08dd952bb7399", size = 150818, upload-time = "2026-03-26T09:58:15.808Z" },
+]
+
+[[package]]
+name = "enum-compat"
+version = "0.0.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/46/8ed2368976d934652d8f33f1fdd86f5580fab45e890c90a848e83097a093/enum-compat-0.0.3.tar.gz", hash = "sha256:3677daabed56a6f724451d585662253d8fb4e5569845aafa8bb0da36b1a8751e", size = 1389, upload-time = "2019-10-14T18:48:35.264Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/55/ae/467bc4509246283bb59746e21a1a2f5a8aecbef56b1fa6eaca78cd438c8b/enum_compat-0.0.3-py3-none-any.whl", hash = "sha256:88091b617c7fc3bbbceae50db5958023c48dc40b50520005aa3bf27f8f7ea157", size = 1322, upload-time = "2019-10-14T18:48:37.663Z" },
 ]
 
 [[package]]
@@ -827,6 +954,19 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/43/ea/5194e52748b0da83d71e082d75496eaec6e58f419f5e184786ded517e6a9/pyjwt-2.15.1.tar.gz", hash = "sha256:4f259e80cdfb6b3fc18a7de51fd1ef9ec79652f25019bae68975ca2468a34df8", size = 121252, upload-time = "2026-09-28T18:40:42.598Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/50/ca/44de4e75f8aadc457f0634be3b542815078ded46dca30efb960edeecad6e/pyjwt-2.15.1-py3-none-any.whl", hash = "sha256:42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193", size = 33860, upload-time = "2026-09-28T18:40:41.429Z" },
+]
+
+[[package]]
+name = "pyopenssl"
+version = "26.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/3f/e8/7325d258199b159eb2c03fe32107533e2832e70e63f4fb88a6aa00023201/pyopenssl-26.4.0.tar.gz", hash = "sha256:28dfcce0162b9211413e26dfbfdf1d24317fbeba18fc93c12400a1856b2a0bc7", size = 182046, upload-time = "2026-08-01T19:50:50.512Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/51/ad/2cf6d3fa2fae5c79e1ed9960c0d42badd0f94d81dd12b50604cdc839e648/pyopenssl-26.4.0-py3-none-any.whl", hash = "sha256:f0eb0cb2d581d3ad2b9c489468485e7f2ab6727d08401bcf9d824c3caddf3c1c", size = 56026, upload-time = "2026-08-01T19:50:48.94Z" },
 ]
 
 [[package]]

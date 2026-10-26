@@ -1,8 +1,8 @@
 # dwy-auth
 
-New integrations use `AuthRuntime` with application-owned users and a replaceable `SessionBackend`. See [runtime integration](../../../docs/auth-runtime-integration.md). This implementation is not released yet; install the preview wheels rather than an old package with the same version. The legacy interfaces below remain compatibility-only and require EAPI when used.
+New integrations use `AuthRuntime` with application-owned users and a replaceable `SessionBackend`. See [runtime integration](../../../docs/auth-runtime-integration.md). The authentication core is independent of EAPI and FastAPI; the legacy service, HTTP and administrator interfaces below require EAPI when used.
 
-Python distribution `dwy-auth==0.1.0`, import `dwy_auth`. Requires `dwyeapi==0.11.1`. Source remains in a private repository; installable packages are published to public PyPI through `.github/workflows/publish-auth.yml`. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
+Python distribution `dwy-auth==0.1.0`, import `dwy_auth`. Install the independent core from public PyPI with `pip install "dwy-auth==0.1.0"`. For the EAPI integration and compatibility interfaces, install `pip install "dwyeapi[auth]==0.12.0"`; this includes `dwy-auth` and the EAPI email SDK. Source remains in a private repository; registry releases use `.github/workflows/publish-auth.yml` with GitHub Actions OIDC. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
 
 When upgrading a preview integration, update both the dependency name and Python imports. The new wheel exports only `dwy_auth`; no legacy namespace alias is shipped. The source package is `backend/packages/auth` and release tags use `dwy-auth@VERSION`.
 

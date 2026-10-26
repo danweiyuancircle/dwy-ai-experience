@@ -33,7 +33,7 @@ from dwy_auth.admin import AdminAuthConfig, install_admin_auth
 
 async def main():
     assert importlib.metadata.version("dwy-auth") == "0.1.0"
-    assert importlib.metadata.version("dwyeapi") == "0.11.1"
+    assert importlib.metadata.version("dwyeapi") == "0.12.0"
     # 同版本源码不能冒充wheel：两个包必须实际来自新环境的site-packages。
     for module in (dwy_auth, dwyeapi):
         assert Path(module.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())

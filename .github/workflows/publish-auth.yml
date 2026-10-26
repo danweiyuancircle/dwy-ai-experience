@@ -8,8 +8,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-24.04
+    environment: pypi
     permissions:
-      contents: write
+      contents: read
       id-token: write
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
@@ -65,6 +66,9 @@ jobs:
       - name: Build
         working-directory: backend/packages/auth
         run: uv build --out-dir dist --default-index https://pypi.org/simple
+
+      - name: Verify installable distributions
+        run: python scripts/check_python_distribution.py backend/packages/auth --module dwy_auth
 
       - name: Publish
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086

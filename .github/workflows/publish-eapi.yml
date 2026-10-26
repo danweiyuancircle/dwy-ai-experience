@@ -75,6 +75,9 @@ jobs:
         working-directory: backend
         run: uv build --out-dir dist --default-index https://pypi.org/simple
 
+      - name: Verify installable distributions
+        run: python scripts/check_python_distribution.py backend --module dwyeapi --extras auth,device,email,tasks
+
       - name: Publish
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
         with:

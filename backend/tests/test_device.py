@@ -22,7 +22,7 @@ def test_device_facade_reuses_core_contract():
 
 
 def test_base_import_does_not_require_device_extra():
-    """缺设备 extra 不影响已有 eapi 用户; 显式使用时才提示私有安装。"""
+    """缺设备 extra 不影响已有 eapi 用户; 显式使用时才提示 PyPI 安装。"""
     script = """
 import importlib.abc
 import sys
@@ -40,7 +40,8 @@ try:
 except ModuleNotFoundError as error:
     assert error.name == "dwy_device"
     assert "dwyeapi[device]" in str(error)
-    assert "私有" in str(error)
+    assert "PyPI" in str(error)
+    assert "私有" not in str(error)
 else:
     raise AssertionError("missing optional package must be reported")
 """

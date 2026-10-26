@@ -2,10 +2,22 @@
 
 ## Unreleased
 
+暂无未发布变更。
+
+## 0.12.0
+
 ### Added
 
 - 新增可选 `dwyeapi.device` 门面及独立 `dwy-device-fingerprint 0.1.0` 轻包。标准库采集 Windows/macOS/Linux 系统身份，按固定产品域派生指纹，失败返回明确状态；核心支持 Python 3.9+，不拉取 FastAPI 依赖。
-- 私有 Release 增加轻包构建，三系统与 Python 版本矩阵验证原生采集；本轮不改公开 SDK 分发，也不发布版本。
+- 新增 `dwyeapi.identity` 的 `Principal`、`IdentityVerifier` 与应用绑定依赖工厂，显式验证应用、用户、会话和设备边界；未配置验证器时拒绝身份请求。
+- 新增 `dwyeapi.auth` 集成入口：将独立 `dwy-auth` runtime 的认证结果适配为 EAPI 身份依赖，并安装认证路由与请求体限制。`dwyeapi[auth]` 聚合认证核心和邮件 SDK，基础安装不加载可选认证包。
+- 邮件 Provider 新增 `send_verification_code`，复用模板与域名策略发送验证码，不依赖 Redis。验证码邮件支持按调用选择中文或英文，支持分别配置主题和品牌文案。
+- Python 包通过独立 GitHub Actions OIDC 工作流发布到公开 PyPI；设备轻包增加 Windows/macOS/Linux 与 Python 版本矩阵验收，私有 GitHub Release 保留为可选构建快照。
+
+### Integration Notes
+
+- 自定义邮件发送器需支持 `send(email, code, purpose, *, language="en")`；自定义邮件 Provider 的 `_send` 需接受关键字参数 `language="en"`。
+- 可选能力从 PyPI 安装：`pip install "dwyeapi[device]==0.12.0"` 或 `pip install "dwyeapi[auth]==0.12.0"`。认证核心和设备轻包的版本均为 `0.1.0`。
 
 ## 0.11.0
 

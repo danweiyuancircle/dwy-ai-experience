@@ -1,0 +1,33 @@
+[project]
+name = "dwy-webhooks"
+version = "0.1.0"
+description = "独立于业务来源的 Webhook 发送、安全边界与失败语义"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+# EAPI 提供配置模型、Web 框架、数据库和日志基础，平台 SDK 按需安装。
+dependencies = ["dwyeapi==0.12.0"]
+
+[project.optional-dependencies]
+# 沿用当前集成已验收版本；基础包导入不强制加载平台 SDK。
+discord = ["discord-webhook[async]==1.4.1", "httpx==0.28.1"]
+resend = ["resend==2.49.1"]
+apple = ["app-store-server-library[async]==3.1.2"]
+dev = ["pytest==9.0.3", "pytest-asyncio==1.3.0", "httpx==0.28.1", "aiosqlite==0.22.1", "ruff==0.15.12"]
+
+[build-system]
+requires = ["hatchling==1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dwy_webhooks"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
+line-length = 110
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
