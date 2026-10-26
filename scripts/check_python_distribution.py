@@ -101,10 +101,16 @@ def inspect_distribution(package: Path, module: str) -> tuple[Path, str, str]:
     return wheels[0], name, version
 
 
-def verify_installation(wheel: Path, name: str, version: str, module: str, extras: str = "") -> None:
+def verify_installation(
+    wheel: Path, name: str, version: str, module: str, extras: str = "", *,
+    import_modules: tuple[str, ...] = (),
+) -> None:
     """临时新环境只从官方 PyPI 解析依赖，退出或失败时清理，不读取发布凭据。"""
     if extras and re.fullmatch(r"[A-Za-z0-9_-]+(?:,[A-Za-z0-9_-]+)*", extras) is None:
         raise DistributionError("extras must be comma-separated package extra names")
+    if any(re.fullmatch(re.escape(module) + r"(?:\.[A-Za-z_][A-Za-z0-9_]*)+", item) is None
+           for item in import_modules):
+        raise DistributionError("additional imports must belong to the distribution namespace")
     wheel = wheel.resolve()
     with tempfile.TemporaryDirectory(prefix="python-distribution-") as temporary:
         root = Path(temporary)
@@ -124,16 +130,17 @@ def verify_installation(wheel: Path, name: str, version: str, module: str, extra
                             "--no-cache", str(wheel) + (f"[{extras}]" if extras else "")], **options)
             code = (
                 "import importlib,importlib.metadata as m,pathlib,sys,sysconfig; "
-                "name,version,module=sys.argv[1:]; d=m.distribution(name); "
+                "name,version,*modules=sys.argv[1:]; d=m.distribution(name); "
                 "assert d.version==version, 'installed version mismatch'; "
-                "p=pathlib.Path(importlib.import_module(module).__file__).resolve(); "
                 "roots=[pathlib.Path(sysconfig.get_path(k)).resolve() for k in ('purelib','platlib')]; "
-                "assert any(p.is_relative_to(r) for r in roots), 'module is outside site-packages'; "
-                "assert p.is_relative_to(pathlib.Path(sys.prefix).resolve()), 'module is outside venv'; "
                 "assert pathlib.Path(d.locate_file('')).resolve() in roots, "
-                "'metadata is outside site-packages'"
+                "'metadata is outside site-packages'\n"
+                "for module in modules:\n"
+                " p=pathlib.Path(importlib.import_module(module).__file__).resolve()\n"
+                " assert any(p.is_relative_to(r) for r in roots), 'module is outside site-packages'\n"
+                " assert p.is_relative_to(pathlib.Path(sys.prefix).resolve()), 'module is outside venv'\n"
             )
-            subprocess.run([str(python), "-I", "-c", code, name, version, module], **options)
+            subprocess.run([str(python), "-I", "-c", code, name, version, module, *import_modules], **options)
         except (subprocess.SubprocessError, OSError) as error:
             raise DistributionError("isolated official-PyPI wheel installation or import failed") from error
 
@@ -144,10 +151,13 @@ def main() -> None:
     parser.add_argument("package", type=Path)
     parser.add_argument("--module", required=True)
     parser.add_argument("--extras", default="")
+    parser.add_argument("--import-module", action="append", default=[])
     args = parser.parse_args()
     try:
         wheel, name, version = inspect_distribution(args.package.resolve(), args.module)
-        verify_installation(wheel, name, version, args.module, args.extras)
+        verify_installation(
+            wheel, name, version, args.module, args.extras, import_modules=tuple(args.import_module),
+        )
     except (DistributionError, OSError, ValueError, KeyError, zipfile.BadZipFile, tarfile.TarError) as error:
         reason = str(error) if isinstance(error, DistributionError) else type(error).__name__
         parser.exit(1, f"Python distribution check failed: {reason}\n")

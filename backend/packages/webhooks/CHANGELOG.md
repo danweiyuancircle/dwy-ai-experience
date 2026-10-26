@@ -1,5 +1,15 @@
 # dwy-webhooks
 
+## 0.2.0
+
+- 新增 `dwy_webhooks.reviews`：通过 App Store Connect API 主动读取文字评论及星级，把新评论和内容修改投递到 Discord，不提供纯星级事件或 Discord 内回复。
+- 新增独立 `reviews` extra，直接声明 HTTPX、PyJWT 与 cryptography；评论通知使用 `dwy-webhooks[discord,reviews]`，无需 Apple Server SDK 或 Resend SDK。
+- 配置、签名密钥、应用清单、数据库会话、迁移表、客户端与发送器均支持宿主注入。每次完整分页成功后，在同一事务中提交评论、基线与通知 outbox。
+- 默认每小时轮询，调度计划和 CAS 租约持久化，重启保留计划；FastAPI 生命周期停止后台任务后才释放宿主资源。
+- 首次建立历史基线并发送单条摘要；后续内容变化支持幂等记录和失败重试。默认保留 30 天，允许 1–3650 天；扩大保留期静默补历史，过期评论与投递载荷会清理。
+- 单轮最多 100 页、每页 200 条，每页响应不超过 2 MiB；超限或任一页失败均不提交部分基线。当前仍遍历全历史，保留期控制数据库内容而非 Apple 拉取范围。
+- Discord User-Agent 同步为 `dwy-webhooks/0.2.0`。
+
 ## 0.1.1
 
 - 首个公开 PyPI 版本，通过 GitHub Actions OIDC 发布。

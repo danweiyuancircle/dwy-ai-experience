@@ -69,7 +69,18 @@ jobs:
         run: uv build --out-dir dist --default-index https://pypi.org/simple
 
       - name: Verify installable distributions
-        run: python scripts/check_python_distribution.py backend/packages/webhooks --module dwy_webhooks --extras discord,resend,apple
+        run: >-
+          python scripts/check_python_distribution.py backend/packages/webhooks
+          --module dwy_webhooks --extras discord,resend,apple,reviews
+          --import-module dwy_webhooks.reviews.client
+          --import-module dwy_webhooks.reviews.runtime
+
+      - name: Verify reviews without other platform SDKs
+        run: >-
+          python scripts/check_python_distribution.py backend/packages/webhooks
+          --module dwy_webhooks --extras discord,reviews
+          --import-module dwy_webhooks.reviews.client
+          --import-module dwy_webhooks.reviews.runtime
 
       - name: Publish
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086

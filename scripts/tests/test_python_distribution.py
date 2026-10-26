@@ -2,11 +2,14 @@
 
 import importlib.util
 import io
+import sys
+import sysconfig
 import tarfile
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 SCRIPT = Path(__file__).resolve().parents[1] / "check_python_distribution.py"
@@ -104,6 +107,41 @@ class PythonDistributionTests(unittest.TestCase):
         (self.dist / "old-0.0.1.whl").write_bytes(b"old")
         with self.assertRaises(module.DistributionError):
             module.inspect_distribution(self.package, "example")
+
+    def test_optional_capability_is_imported_by_the_isolated_probe(self):
+        module = self.module()
+        calls = []
+        with patch.object(
+            module.subprocess, "run", side_effect=lambda command, **kwargs: calls.append(command),
+        ):
+            module.verify_installation(
+                self.archives(), "example-pkg", "1.2.3", "example", "reviews",
+                import_modules=("example.reviews.client",),
+            )
+        probe = calls[-1]
+        root = Path(sysconfig.get_path("purelib"))
+        distribution = SimpleNamespace(version="1.2.3", locate_file=lambda _: root)
+
+        def imported(name):
+            return SimpleNamespace(__file__=root / name.replace(".", "/") / "__init__.py")
+
+        with patch.object(sys, "argv", ["-c", *probe[4:]]), \
+                patch("importlib.metadata.distribution", return_value=distribution), \
+                patch("importlib.import_module", side_effect=imported) as imports:
+            exec(probe[3], {})
+        self.assertEqual(
+            [call.args[0] for call in imports.call_args_list], ["example", "example.reviews.client"],
+        )
+
+    def test_optional_imports_must_belong_to_the_distribution_namespace(self):
+        module = self.module()
+        with patch.object(module.subprocess, "run") as run:
+            with self.assertRaises(module.DistributionError):
+                module.verify_installation(
+                    self.archives(), "example-pkg", "1.2.3", "example",
+                    import_modules=("other_product.client",),
+                )
+        run.assert_not_called()
 
     def test_installation_is_isolated_uses_official_index_and_cleans_after_failure(self):
         module = self.module()

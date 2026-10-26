@@ -1,10 +1,10 @@
 # dwy-webhooks
 
-基于 EAPI 的通用 Webhook 模块。接收 Resend、App Store Connect、Apple Server Notifications V2，并按项目配置转发到 Discord 或外部注入的业务接收函数。
+基于 EAPI 的通用 Webhook 模块。接收 Resend、App Store Connect、Apple Server Notifications V2，并按项目配置转发到 Discord 或外部注入的业务接收函数；也支持主动采集 App Store 文字评论及星级。
 
 ## 安装与依赖
 
-核心依赖固定兼容版本 `dwyeapi`；平台 SDK 按需选择 `dwy-webhooks[discord,resend,apple]`。ASC 使用标准库 HMAC；只有 Apple Server Notifications 需要 Apple SDK。源码由 dwy-shared 维护，项目安装独立 wheel，不引用共享仓库的绝对源码路径。发布配置不表示已经发布。
+核心依赖固定兼容版本 `dwyeapi`；平台 SDK 按需选择 `dwy-webhooks[discord,resend,apple]`，主动评论采集单独选择 `reviews`。ASC Webhook 使用标准库 HMAC；只有 Apple Server Notifications 需要 Apple SDK。源码由 dwy-shared 维护，项目安装独立 wheel，不引用共享仓库的绝对源码路径。发布配置不表示已经发布。
 
 ## 配置与接入
 
@@ -56,3 +56,43 @@ Apple 商品目录、账户绑定和权益发放保留在业务项目。通用�
 新增来源增加 provider，新增目标增加 transport；共用事件、sink 和 EAPI 资源，避免平台大分支。注册入口不覆盖项目已有的全局异常或缓存配置。
 
 `examples/new_project/app.py` 是不依赖 App Cloud 的接入示例。隔离 wheel 验收要求 `app_cloud`、`apple_iap`、`cloud_kernel`、旧 `cloud_webhooks` 和产品包缺席，公共配置、注册和三类来源仍能通过测试。
+
+## App Store 评论定时通知
+
+`dwy_webhooks.reviews` 提供主动采集能力，独立于审核/构建 Webhook 和内购通知。评论通知安装 `dwy-webhooks[discord,reviews]`：`reviews` 直接声明 HTTPX、PyJWT 和 cryptography，使用账号 API 密钥签发 ES256 JWT 并访问 ASC REST API；不需要 Apple Server SDK 或 Resend SDK，也不依赖其它包偶然传入 PyJWT。无需 Redis 服务、ARQ Worker 或新增调度框架。
+
+```bash
+uv add 'dwy-webhooks[discord,reviews]==0.2.0'
+```
+
+```python
+from sqlalchemy import MetaData
+from dwy_webhooks.reviews import AppleReviewsConfig, build_review_tables, install_review_monitor
+
+# project_settings、EAPI 创建的 sessions 及 app 都由消费项目提供。
+config = AppleReviewsConfig(
+    apps=project_settings.review_apps,
+    issuer_id=project_settings.apple_issuer_id,
+    key_id=project_settings.apple_key_id,
+    private_key=project_settings.apple_private_key,
+    discord_webhook_url=project_settings.review_discord_webhook_url,
+    poll_interval_seconds=3600,
+    retention_days=30,
+)
+metadata = MetaData()
+tables = build_review_tables(metadata)
+# 先通过消费项目的 Alembic 创建上述三张表，再启动任务；库不自动建表。
+runtime = install_review_monitor(app, config, sessions, tables)
+```
+
+- 默认每小时采集一次，可配置 `poll_interval_seconds`（60–604800 秒）；FastAPI lifespan 管理 asyncio 后台任务。每分钟只检查数据库计划和执行清理，不代表每分钟请求 Apple。
+- 每个应用持久化下次执行时间和租约；多消费者不会同时提交同一轮。重启保留计划，失败一分钟后尝试恢复；完整分页失败不会推进基线。
+- 每轮完整读取全部评论历史，最多 100 页、每页 200 条，每页响应不超过 2 MiB；整轮同步最长 120 秒。超过这些上限会失败并保留原有基线，不能把它视为只拉取最近 N 天；`retention_days` 控制数据库保留范围。
+- 首次只建立保留期内历史基线并发送一条摘要；随后新评论或改文/改星产生通知。通知截断到 Discord 限长，完整原文存于保留期内的数据库记录。
+- `retention_days` 默认 30，允许 1–3650（包括 60/90）。按 Apple 评论创建时间保留最近 N 天；评论原文、指纹及该评论的投递载荷都会清理。基线摘要按生成时间清理，最小的应用调度/基线状态长期保留，其中没有评论正文或昵称。
+- 扩大保留期时静默补入较老历史，避免当作新评论刷屏；既有保留窗口内的新评论、修改仍通知。已超出窗口的旧评论修改不追踪。
+- 清理独立于 Apple 拉取成功与否；投递前也检查过期状态。持久队列提供有界重试，不承诺网络超时场景下恰好一次送达。
+- 表、会话、时钟、HTTP 客户端和 sender 可显式注入；库不读取 `.env`、打开项目数据库或自动执行迁移。关闭任务后才允许宿主释放数据库。
+- 本功能读取文字评论及其附带星级，不提供纯星级逐条事件、总评分统计或 Discord 内回复。
+
+新增源码不表示该版本已发布；消费项目必须安装包含 `dwy_webhooks.reviews` 的本轮 wheel，不能用旧 registry wheel 或源码路径替代制品验收。
