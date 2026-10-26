@@ -40,7 +40,7 @@ GitHub 源码仓库 `https://github.com/danweiyuancircle/dwy-ai-experience` 保�
 pnpm add @dwydev/eui @dwydev/ekit @dwydev/admin-kit @dwydev/auth-web
 npm install --global create-dwy
 dwy upgrade
-python -m pip install 'dwyeapi[auth,device]==0.12.0' 'dwy-webhooks[discord,resend,apple]==0.1.0'
+python -m pip install 'dwyeapi[auth,device]==0.12.0' 'dwy-webhooks[discord,resend,apple]==0.1.1'
 ```
 
 `dwy` 默认使用安装包内的 `templates/ai-tools/`，不克隆私有源码仓库。开发者可显式使用 `DWY_TEMPLATE_SOURCE_DIR` 指向本地模板目录；不存在的显式目录会报错。
