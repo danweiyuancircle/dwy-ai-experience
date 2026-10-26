@@ -20,6 +20,8 @@ GitHub 源码仓库 `https://github.com/danweiyuancircle/dwy-ai-experience` 保�
 
 所有发布都走 GitHub Actions + OIDC，不使用长期 npm/PyPI token；发布前使用 `scripts/private_release.py check` 验证源码仓库仍为私有。
 
+本仓库所有 PyPI 包都不运行 Windows 发布或测试任务。Python 发布任务使用 Linux runner；设备指纹的原生验收额外覆盖 macOS Intel 与 Apple Silicon。纯 Python 包上传通用 wheel 和源码包，不单独构建 Windows 安装包。Apple 客户端的原生库继续通过 SwiftPM 分发。
+
 每个 npm 包需要先完成包初始化，再在 npm 后台配置 Trusted Publisher，绑定本仓库及对应工作流文件；新增 npm 包不能只添加工作流就假设首发授权已经可用。PyPI 项目同样需要配置可信发布者，新项目可配置 Pending Publisher。这些后台绑定需在实际发版前核对，源码配置不能代替后台授权；不以长期发布 token 绕过这些前提。
 
 首次交付按依赖顺序推进：先发布独立的 `dwy-device-fingerprint` 和 `dwy-auth`，再发布提供 `device` / `auth` extra 的 `dwyeapi`，最后发布依赖 EAPI 的 `dwy-webhooks`。前一层实际出现在公共 PyPI 后才能推送下一层的标签。认证核心不依赖 EAPI，`dwyeapi[auth]` 精确依赖认证包；EAPI 邮件适配与旧认证 HTTP 接口仍需配套安装新版 EAPI。前端包先满足 EUI/EKIT 的依赖版本，再发布依赖它们的管理端与网页认证包。

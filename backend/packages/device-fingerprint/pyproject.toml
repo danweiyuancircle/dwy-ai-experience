@@ -1,6 +1,6 @@
 [project]
 name = "dwy-device-fingerprint"
-version = "0.1.0"
+version = "0.1.1"
 description = "Application-scoped device fingerprints using native OS identity and the Python standard library"
 readme = "README.md"
 requires-python = ">=3.9"

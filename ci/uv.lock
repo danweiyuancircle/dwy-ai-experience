@@ -415,7 +415,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "dwy-device-fingerprint"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "../backend/packages/device-fingerprint" }
 
 [package.metadata]
