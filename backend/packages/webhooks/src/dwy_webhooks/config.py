@@ -18,6 +18,7 @@ from pydantic import (
 from .validation import (
     DEFAULT_DISCORD_USERNAME,
     paths_overlap,
+    validate_apple_app_name,
     validate_discord_username,
     validate_discord_webhook_url,
 )
@@ -93,7 +94,9 @@ class AppleNotificationApp(BaseModel):
     """Server Notifications V2 身份及证书；不需要 App Cloud 商品目录。"""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
-    name: str = Field(default="Apple", min_length=1, max_length=100)
+    name: Annotated[str, BeforeValidator(validate_apple_app_name)] = Field(
+        default="Apple", min_length=1, max_length=100,
+    )
     bundle_id: str = Field(min_length=1, max_length=255)
     environment: Literal["Production", "Sandbox"] = "Production"
     app_apple_id: int | None = Field(default=None, ge=1)

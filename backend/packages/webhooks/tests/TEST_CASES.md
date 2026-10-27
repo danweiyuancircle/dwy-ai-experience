@@ -1,5 +1,11 @@
 # 公共 Webhook 测试场景
 
+## Apple 购买详情与可复用文案
+
+- `test_apple_content.py`：金额/币种、零/缺失/未知值、家庭共享、退款申请与结果、续订设置、名称注入、旧八字段与安全元数据合同、实际 Discord JSON 和 UTF-16 长度。
+- `test_portable_apple.py`：通用 verifier 与 router 的详情链路、SDK raw 未知枚举、畸形字段拒绝及敏感数据白名单；保留嵌套签名、并发取消与生命周期测试。
+- `apple_wheel_smoke.py`：全新非 editable 环境中仅装 `[discord,apple]`，业务模块及 Resend 缺席，其他项目品牌/发送者覆写与真实离线 HTTP 链路成功。
+
 | 编号 | 场景 | 预期 |
 |---|---|---|
 | WH-001 | 来源向 Discord 发送事件 | 单次请求、wait 确认、无 mentions、按需禁止预览、10 秒超时 |
@@ -29,6 +35,6 @@
 |---|---|---|
 | REV-PKG-001 | 全新环境只安装源码 `[discord]`，使用 EAPI 允许且不强制依赖 PyJWT 的 Redis 版本 | 源码导入路径属于当前 checkout；`install_review_monitor` 在缺少 `jwt` 时失败。旧 Redis 可能传递安装 PyJWT，不能据此把 `[discord]` 当作完整评论依赖 |
 | REV-PKG-002 | 在同一合法依赖组合中安装源码 `[discord,reviews]` | 可从当前 checkout 导入评论客户端与运行时；直接声明 HTTPX、PyJWT、cryptography；`appstoreserverlibrary`、`resend` 和宿主产品包缺席 |
-| REV-PKG-003 | 全新环境显式安装本轮 `0.3.0` 实际 wheel 的 `[discord,reviews]` | 版本和模块路径属于新环境的 site-packages；评论客户端与注册入口正常，使用离线 HTTP 传输验收 JWT 与分页，平台 SDK 缺席 |
-| REV-PKG-004 | 从当前源码执行全部包测试 | 明确断言源码路径，198 项来源、传输、评论、名称注入和持久队列测试通过；不把旧 registry wheel 当成新源码 |
-| REV-PKG-005 | 更新 CI 内部版本和 reviews extra | 第三方锁记录保持不变；包元数据与 Discord User-Agent 均为 `0.3.0` |
+| REV-PKG-003 | 全新环境显式安装本轮 `0.4.0` 实际 wheel 的 `[discord,reviews]` | 版本和模块路径属于新环境的 site-packages；评论客户端与注册入口正常，平台 SDK 缺席 |
+| REV-PKG-004 | 从当前源码执行全部包测试 | 明确断言源码路径，230 项来源、传输、Apple 详情、评论、名称注入和持久队列测试通过；不把旧 registry wheel 当成新源码 |
+| REV-PKG-005 | 更新 CI 内部版本和 reviews extra | 第三方锁记录保持不变；包元数据与 Discord User-Agent 均为 `0.4.0` |

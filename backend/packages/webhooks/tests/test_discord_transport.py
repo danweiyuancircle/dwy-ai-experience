@@ -48,7 +48,7 @@ async def test_single_request_preserves_safe_payload_and_redacts_credentials(tra
     assert len(calls) == 1
     request = calls[0]
     assert request.url.params["wait"] == "true"
-    assert request.headers["user-agent"] == "dwy-webhooks/0.3.0"
+    assert request.headers["user-agent"] == "dwy-webhooks/0.4.0"
     assert request.extensions["timeout"]["read"] == 10
     payload = json.loads(request.content)
     assert payload["content"] == "event @everyone"

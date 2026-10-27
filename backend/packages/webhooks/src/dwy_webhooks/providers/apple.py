@@ -3,8 +3,6 @@
 import asyncio
 import json
 from concurrent.futures import ThreadPoolExecutor
-from dataclasses import dataclass
-from datetime import UTC, datetime
 
 from fastapi import APIRouter, HTTPException, Request
 
@@ -12,6 +10,14 @@ from ..config import AppleNotificationApp, AppleNotificationsConfig
 from ..errors import WebhookVerificationError
 from ..events import EventSink, WebhookEvent
 from . import accept_event, read_payload
+from .apple_content import apple_notification_content
+from .apple_models import (
+    VerifiedAppleNotification,
+    _date,
+    apple_refund_request_reason,
+    apple_renewal_details,
+    apple_transaction_details,
+)
 
 
 def _text(value, *, maximum: int = 255) -> str:
@@ -20,36 +26,6 @@ def _text(value, *, maximum: int = 255) -> str:
     if not isinstance(value, str) or not 1 <= len(value) <= maximum:
         raise ValueError("invalid notification field")
     return value
-
-
-def _date(milliseconds) -> datetime:
-    """Apple 时间戳为 UTC 毫秒，拒绝布尔值、缺失及溢出。"""
-    if isinstance(milliseconds, bool) or not isinstance(milliseconds, (int, float)):
-        raise ValueError("invalid notification date")
-    return datetime.fromtimestamp(milliseconds / 1000, UTC)
-
-
-@dataclass(frozen=True, slots=True)
-class VerifiedAppleNotification:
-    """仅包含已验签的安全元数据，不保存 JWS、账户 token 或任意外部正文。"""
-
-    notification_id: str
-    bundle_id: str
-    environment: str
-    notification_type: str
-    signed_at: datetime
-    subtype: str | None = None
-    product_id: str | None = None
-    transaction_id: str | None = None
-
-    def public_data(self) -> dict[str, str | None]:
-        """向项目回调提供稳定字段；这些数据不会授予任何购买权益。"""
-        return {
-            "notification_id": self.notification_id, "bundle_id": self.bundle_id,
-            "environment": self.environment, "notification_type": self.notification_type,
-            "subtype": self.subtype, "signed_at": self.signed_at.isoformat(),
-            "product_id": self.product_id, "transaction_id": self.transaction_id,
-        }
 
 
 class AppleNotificationVerifier:
@@ -140,6 +116,7 @@ class AppleNotificationVerifier:
             if self.config.environment == "Production" and target.appAppleId != self.config.app_apple_id:
                 raise ValueError("notification application mismatch")
             transaction = None
+            renewal = None
             if data and data.signedTransactionInfo:
                 transaction = await self._verify(
                     "verify_and_decode_signed_transaction", data.signedTransactionInfo
@@ -161,6 +138,11 @@ class AppleNotificationVerifier:
                 product_id=_text(transaction.productId) if transaction is not None else None,
                 transaction_id=(_text(transaction.transactionId, maximum=128)
                                 if transaction is not None else None),
+                transaction_details=(
+                    apple_transaction_details(transaction) if transaction is not None else None
+                ),
+                renewal_details=apple_renewal_details(renewal) if renewal is not None else None,
+                consumption_request_reason=apple_refund_request_reason(data) if data is not None else None,
             )
         except (AttributeError, TypeError, ValueError, OverflowError, OSError):
             raise WebhookVerificationError("apple_notification_invalid") from None
@@ -178,20 +160,8 @@ class AppleNotificationVerifier:
 
 
 def _content(name: str, notice: VerifiedAppleNotification) -> str:
-    """仅描述签名事实，不把取消续订、共享授权或测试通知误称为收入。"""
-    event_type = notice.notification_type
-    if notice.subtype is not None:
-        event_type += f" / {notice.subtype}"
-    lines = [
-        f"{name} · Apple 内购状态通知", f"环境：{notice.environment}", f"事件：{event_type}",
-        f"通知编号：{notice.notification_id}",
-        f"Apple 签名时间：{notice.signed_at.isoformat(timespec='seconds')}",
-    ]
-    if notice.product_id is not None:
-        lines.append(f"商品：{notice.product_id}")
-    if notice.transaction_id is not None:
-        lines.append(f"交易编号：{notice.transaction_id}")
-    return "\n".join(lines)
+    """保留既有内部入口，通用 router 和业务自有队列使用同一文案规则。"""
+    return apple_notification_content(notice, app_name=name)
 
 
 def create_apple_router(

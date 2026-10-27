@@ -128,6 +128,67 @@ async def test_mismatched_renewal_is_rejected_without_leaking_jws(official_facts
         await verifier.aclose()
 
 
+async def test_purchase_details_flow_from_verified_sdk_to_portable_router(official_facts):
+    """通用路由直接展示详情；保留未知退款代码，但不泄露账户 token 或签名。"""
+    config, calls, notice, transaction, renewal = official_facts
+    notice.rawNotificationType = "CONSUMPTION_REQUEST"
+    notice.data.rawConsumptionRequestReason = "NEW_REASON"
+    transaction.price, transaction.currency, transaction.storefront = 14990, "AUD", "AUS"
+    transaction.purchaseDate = transaction.signedDate
+    transaction.rawRevocationReason = 0
+    transaction.appAccountToken = "private-account-token"
+    renewal.rawAutoRenewStatus = 0
+    renewal.rawExpirationIntent = 2
+    renewal.renewalPrice, renewal.currency = 1990, "USD"
+    events = []
+
+    async def sink(event):
+        """使用项目自有 sink 接收格式化事件。"""
+        events.append(event)
+        return True
+
+    verifier = AppleNotificationVerifier(config)
+    app = FastAPI()
+    app.include_router(create_apple_router(AppleNotificationsConfig(apps={"other": config}), sink,
+                                          {"other": verifier}))
+    try:
+        result = await verifier.verify("notification-jws")
+        assert result.transaction_details.price_milliunits == 14990
+        assert result.transaction_details.revocation_reason == 0
+        assert result.renewal_details.auto_renew_status == 0
+        assert result.consumption_request_reason == "NEW_REASON"
+        assert "private-account-token" not in repr(result)
+        assert "app_account_token" not in result.transaction_details.model_dump()
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="https://other",
+        ) as client:
+            response = await client.post("/webhooks/apple/other", json={"signedPayload": "notification-jws"})
+        assert response.status_code == 200
+        assert "Other Project · 用户申请退款" in events[0].content
+        assert "原交易金额：14.99 AUD" in events[0].content and "购买地区：AUS" in events[0].content
+        assert "未知分类（NEW_REASON）" in events[0].content and "下期价格：1.99 USD" in events[0].content
+        assert "private-account-token" not in repr(events[0]) and "-jws" not in repr(events[0])
+    finally:
+        await verifier.aclose()
+
+
+@pytest.mark.parametrize("field,value", [
+    ("price", -1), ("price", True), ("price", 1.5), ("currency", "usd"),
+    ("storefront", "US"), ("purchaseDate", True),
+])
+async def test_invalid_new_sdk_details_are_rejected_without_payload(official_facts, field, value):
+    """新增可选字段仍校验外部边界，异常只暴露稳定错误代码。"""
+    config, _, _, transaction, _ = official_facts
+    setattr(transaction, field, value)
+    verifier = AppleNotificationVerifier(config)
+    try:
+        with pytest.raises(WebhookVerificationError) as error:
+            await verifier.verify("private-payload")
+        assert "private-payload" not in str(error.value)
+    finally:
+        await verifier.aclose()
+
+
 async def test_missing_original_ids_cannot_count_as_a_matching_renewal(official_facts):
     """两个缺失字段不能因为 None 相等就冒充已验证的交易关系。"""
     config, _, _, transaction, renewal = official_facts

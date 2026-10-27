@@ -6,6 +6,41 @@
 
 核心依赖固定兼容版本 `dwyeapi`；平台 SDK 按需选择 `dwy-webhooks[discord,resend,apple]`，主动评论采集单独选择 `reviews`。ASC Webhook 使用标准库 HMAC；只有 Apple Server Notifications 需要 Apple SDK。源码由 dwy-shared 维护，项目安装独立 wheel，不引用共享仓库的绝对源码路径。发布配置不表示已经发布。
 
+## Apple 内购详情与 Discord（0.4.0）
+
+安装 `dwy-webhooks[discord,apple]==0.4.0` 即可在其他 FastAPI 项目使用，不需要 App Cloud、ADBox、账户或商品权益表：
+
+```python
+from fastapi import FastAPI
+from dwy_webhooks import WebhookConfig, install_webhooks
+from dwy_webhooks.config import AppleNotificationApp, AppleNotificationsConfig
+
+
+def create_app(apple_id: int, certificates: tuple[bytes, ...], discord_url: str) -> FastAPI:
+    """宿主取得真实配置后注入；证书传字节，不让库寻找项目文件。"""
+    app = FastAPI()
+    install_webhooks(app, WebhookConfig(
+        discord_webhook_url=discord_url,
+        apple_notifications=AppleNotificationsConfig(apps={
+            "my-app": AppleNotificationApp(
+                name="My App", bundle_id="com.example.myapp", environment="Production",
+                app_apple_id=apple_id, root_certificates=certificates,
+            ),
+        }),
+    ))
+    return app
+```
+
+Apple V2 回调路径为 `/webhooks/apple/my-app`。默认发送者为「Apple 应用通知」；`AppleNotificationsConfig.discord_username` 可覆写，应用名称由 `AppleNotificationApp.name` 注入。默认注册器的去重及可注入持久 sink 语义沿用原接口。
+
+通知展示交易金额/币种、购买店面、时间、本人购买/家庭共享、退款申请的用户选择分类、退款结果的 Apple 分类及适用续订设置。金额按整数毫单位精确换算，退款仅展示原交易价格；缺失显示未提供，未知分类保留代码，不推断用户自由文本、开发者收入或购买设备平台。
+
+已有业务队列可使用公开 `dwy_webhooks.apple`：`AppleNotificationVerifier`、`VerifiedAppleNotification`、`AppleTransactionDetails`、`AppleRenewalDetails` 和 `apple_notification_content(notice, app_name="My App")`；格式化后的字符串直接交既有 `DiscordWebhookSender`，其 `username` 可覆写。`apple_transaction_details`、`apple_renewal_details` 和 `apple_refund_request_reason` 只消费已经完成官方验签的 SDK 对象，本身不代替验签。
+
+`VerifiedAppleNotification` 保留原八字段构造及 `public_data()` 白名单，新增可选 `transaction_details`、`renewal_details`、`consumption_request_reason`。详情模型不包含账户 token、原始 JWS、签名摘要或权益策略。商品白名单、账户绑定、持久化及申请退款不提前撤销权益等业务规则仍由宿主管理。
+
+PyPI 从此版本起只上传 `py3-none-any.whl`；通用 wheel 含可读 Python 模块，不提供源码隐藏。源码包只参与内部归档检查，不上传 PyPI。
+
 ## 配置与接入
 
 库不读取环境变量、`.env`、项目设置或证书文件。`WebhookConfig` 是纯 Pydantic 模型；项目可组合进自己的 EAPI Settings。密钥由项目取得后传入，Apple 根证书传入字节。
@@ -62,7 +97,7 @@ Apple 商品目录、账户绑定和权益发放保留在业务项目。通用�
 `dwy_webhooks.reviews` 提供主动采集能力，独立于审核/构建 Webhook 和内购通知。评论通知安装 `dwy-webhooks[discord,reviews]`：`reviews` 直接声明 HTTPX、PyJWT 和 cryptography，使用账号 API 密钥签发 ES256 JWT 并访问 ASC REST API；不需要 Apple Server SDK 或 Resend SDK，也不依赖其它包偶然传入 PyJWT。无需 Redis 服务、ARQ Worker 或新增调度框架。
 
 ```bash
-uv add 'dwy-webhooks[discord,reviews]==0.3.0'
+uv add 'dwy-webhooks[discord,reviews]==0.4.0'
 ```
 
 ```python

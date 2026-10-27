@@ -74,6 +74,7 @@ jobs:
           --module dwy_webhooks --extras discord,resend,apple,reviews
           --import-module dwy_webhooks.reviews.client
           --import-module dwy_webhooks.reviews.runtime
+          --import-module dwy_webhooks.apple
 
       - name: Verify reviews without other platform SDKs
         run: >-
@@ -82,7 +83,27 @@ jobs:
           --import-module dwy_webhooks.reviews.client
           --import-module dwy_webhooks.reviews.runtime
 
+      - name: Verify independent Apple wheel
+        run: |
+          uv venv --python 3.11.17 "$RUNNER_TEMP/apple-wheel"
+          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/webhooks/dist").glob("*.whl")).resolve())')
+          uv pip install --python "$RUNNER_TEMP/apple-wheel/bin/python" --no-config --no-sources --default-index https://pypi.org/simple "$WHEEL[discord,apple]"
+          "$RUNNER_TEMP/apple-wheel/bin/python" backend/packages/webhooks/tests/apple_wheel_smoke.py
+
+      - name: Stage universal wheel only
+        run: |
+          python - <<'PY'
+          import os
+          import shutil
+          from pathlib import Path
+          wheels = list(Path("backend/packages/webhooks/dist").glob("*.whl"))
+          assert len(wheels) == 1 and wheels[0].name.endswith("-py3-none-any.whl")
+          target = Path(os.environ["RUNNER_TEMP"]) / "dwy-webhooks-wheel"
+          target.mkdir()
+          shutil.copy2(wheels[0], target / wheels[0].name)
+          PY
+
       - name: Publish
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
         with:
-          packages-dir: backend/packages/webhooks/dist/
+          packages-dir: ${{ runner.temp }}/dwy-webhooks-wheel/
