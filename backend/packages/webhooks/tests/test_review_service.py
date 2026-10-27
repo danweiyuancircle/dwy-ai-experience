@@ -75,10 +75,30 @@ def test_notification_includes_rating_and_response_entry_without_exceeding_disco
     item = review()
     item.body = "😀" * 10000
     content = review_content("123", "Demo", item, updated=True)
-    assert "2/5" in content and "已修改" in content
+    assert "2/5" in content and "已更新" in content
     assert "https://appstoreconnect.apple.com/apps/123" in content
     assert len(content.encode("utf-16-le")) // 2 <= 2000
     assert "历史" in baseline_content("123", "Demo", 4)
+
+
+@pytest.mark.parametrize("updated,title", [
+    (False, "新增评分评论"),
+    (True, "评分评论已更新"),
+])
+def test_review_titles_distinguish_new_and_updated_ratings(updated, title):
+    """标题明确评分事件，应用与可视星级独立展示。"""
+    content = review_content("123", "Demo", review(), updated=updated)
+    assert content.startswith(f"**【{title} · 2/5 星】**\n应用：Demo\n")
+    assert "评分：★★☆☆☆ 2/5" in content
+    assert "购买" not in content
+
+
+def test_baseline_title_identifies_monitor_activation():
+    """启用摘要不冒充新增评分或购买。"""
+    content = baseline_content("123", "Demo", 4)
+    assert content.startswith("**【评分监控已启用】**\n应用：Demo\n")
+    assert "保留期内 4 条评论" in content
+    assert "新增评分评论" not in content and "购买" not in content
 
 
 async def test_expired_delivery_is_not_sent_even_before_periodic_cleanup():

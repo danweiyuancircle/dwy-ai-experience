@@ -9,7 +9,7 @@ import httpx
 from discord_webhook import AsyncDiscordWebhook
 
 from .errors import WebhookDeliveryError
-from .validation import validate_discord_webhook_url
+from .validation import DEFAULT_DISCORD_USERNAME, validate_discord_username, validate_discord_webhook_url
 
 
 class _WebhookCredentialsFilter(logging.Filter):
@@ -34,7 +34,7 @@ logging.getLogger("httpx").addFilter(_WebhookCredentialsFilter())
 def discord_client() -> httpx.AsyncClient:
     """每次请求使用有界客户端，取消和异常时由上下文负责关闭。"""
     return httpx.AsyncClient(
-        timeout=10, follow_redirects=False, headers={"User-Agent": "dwy-webhooks/0.2.0"}
+        timeout=10, follow_redirects=False, headers={"User-Agent": "dwy-webhooks/0.3.0"}
     )
 
 
@@ -70,14 +70,15 @@ def _retry_after(response: httpx.Response) -> float | None:
 class DiscordWebhookSender:
     """只发送一次并返回消息编号；不休眠、重发或保存领域状态。"""
 
-    def __init__(self, webhook_url: str):
+    def __init__(self, webhook_url: str, *, username: str = DEFAULT_DISCORD_USERNAME):
         """公共包独立使用时也必须校验目标；异常不回显传入 URL。"""
         self._webhook_url = validate_discord_webhook_url(webhook_url)
+        self._username = validate_discord_username(username)
 
     async def __call__(self, content: str, *, suppress_embeds: bool = False) -> str:
         """wait 确认实际消息；预览选项只映射 Discord 的原生消息标志。"""
         webhook = _DiscordWebhook(
-            url=self._webhook_url, content=content, allowed_mentions={"parse": []},
+            url=self._webhook_url, content=content, username=self._username, allowed_mentions={"parse": []},
             flags=4 if suppress_embeds else None, rate_limit_retry=False, timeout=10, wait=True,
         )
         try:

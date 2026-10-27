@@ -2,7 +2,7 @@
 name = "dwy-shared-ci"
 version = "0.0.0"
 requires-python = ">=3.11,<3.13"
-dependencies = ["dwyeapi[dev,device]==0.12.0", "dwy-auth[dev]==0.1.0", "dwy-webhooks[discord,resend,apple,reviews,dev]==0.2.0"]
+dependencies = ["dwyeapi[dev,device]==0.12.0", "dwy-auth[dev]==0.1.0", "dwy-webhooks[discord,resend,apple,reviews,dev]==0.3.0"]
 
 [tool.uv]
 package = false

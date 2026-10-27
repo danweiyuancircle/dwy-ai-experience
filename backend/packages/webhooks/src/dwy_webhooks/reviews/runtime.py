@@ -29,7 +29,10 @@ def install_review_monitor(app, config, sessions, tables, *, client=None, sender
         from ..discord import DiscordWebhookSender
 
         sender = partial(
-            DiscordWebhookSender(config.discord_webhook_url.get_secret_value()), suppress_embeds=True
+            DiscordWebhookSender(
+                config.discord_webhook_url.get_secret_value(), username=config.discord_username,
+            ),
+            suppress_embeds=True,
         )
     owned_client = client is None
     collector = AppleReviewClient(config) if owned_client else client

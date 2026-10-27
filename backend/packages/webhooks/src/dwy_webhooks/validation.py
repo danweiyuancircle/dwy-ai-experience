@@ -2,6 +2,16 @@
 
 import re
 
+DEFAULT_DISCORD_USERNAME = "Apple 应用通知"
+
+
+def validate_discord_username(value: str) -> str:
+    """在发送前拒绝空名称、超长名称和控制字符，错误不回显输入。"""
+    if (not isinstance(value, str) or not 1 <= len(value) <= 80 or not value.strip()
+            or any(ord(character) < 32 or ord(character) == 127 for character in value)):
+        raise ValueError("Invalid Discord username")
+    return value
+
 
 def paths_overlap(left: str, right: str) -> bool:
     """已校验路径仅有末尾 app_id 参数，静态与模板同形时必须拒绝。"""

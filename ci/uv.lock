@@ -444,7 +444,7 @@ requires-dist = [
 
 [[package]]
 name = "dwy-webhooks"
-version = "0.2.0"
+version = "0.3.0"
 source = { editable = "../backend/packages/webhooks" }
 dependencies = [
     { name = "dwyeapi" },

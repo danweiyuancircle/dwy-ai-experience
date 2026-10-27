@@ -5,6 +5,7 @@ from collections import OrderedDict
 from typing import Protocol
 
 from .events import WebhookEvent
+from .validation import DEFAULT_DISCORD_USERNAME
 
 EventKey = tuple[str, str, str]
 
@@ -49,11 +50,12 @@ class MemoryReceiptStore:
 class DiscordRelay:
     """发送成功才接受事件；网络故障由接收端返回失败供提供方重试。"""
 
-    def __init__(self, webhook_url: str, receipts: ReceiptStore | None = None):
+    def __init__(self, webhook_url: str, receipts: ReceiptStore | None = None, *,
+                 username: str = DEFAULT_DISCORD_USERNAME):
         """锁和去重状态属于当前集成，不存在跨项目的模块全局状态。"""
         from .discord import DiscordWebhookSender
 
-        self.sender = DiscordWebhookSender(webhook_url)
+        self.sender = DiscordWebhookSender(webhook_url, username=username)
         self.receipts = receipts if receipts is not None else MemoryReceiptStore()
         self._lock = asyncio.Lock()
 

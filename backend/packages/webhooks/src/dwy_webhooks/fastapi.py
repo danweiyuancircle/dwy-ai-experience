@@ -57,7 +57,8 @@ def _sink(source: WebhookSourceConfig, config: WebhookConfig,
     destination = source.discord_webhook_url or config.discord_webhook_url
     if destination is None:
         raise ValueError("Enabled webhook source requires a Discord target or a custom sink")
-    return DiscordRelay(destination.get_secret_value(), receipts)
+    username = source.discord_username if source.discord_username is not None else config.discord_username
+    return DiscordRelay(destination.get_secret_value(), receipts, username=username)
 
 
 def install_webhooks(app: FastAPI, config: WebhookConfig, *,

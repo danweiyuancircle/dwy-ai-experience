@@ -2,7 +2,8 @@
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, SecretStr
 
-from ..config import ASCAppID, Destination
+from ..config import ASCAppID, Destination, DiscordUsername
+from ..validation import DEFAULT_DISCORD_USERNAME
 
 
 class ReviewCollectionError(Exception):
@@ -45,3 +46,4 @@ class AppleReviewsConfig(BaseModel):
     poll_interval_seconds: int = Field(default=3600, ge=60, le=604800)
     retention_days: int = Field(default=30, ge=1, le=3650)
     discord_webhook_url: Destination = Field(default=None, max_length=2048, repr=False)
+    discord_username: DiscordUsername = DEFAULT_DISCORD_USERNAME

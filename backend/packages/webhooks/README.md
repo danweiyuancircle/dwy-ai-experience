@@ -62,7 +62,7 @@ Apple 商品目录、账户绑定和权益发放保留在业务项目。通用�
 `dwy_webhooks.reviews` 提供主动采集能力，独立于审核/构建 Webhook 和内购通知。评论通知安装 `dwy-webhooks[discord,reviews]`：`reviews` 直接声明 HTTPX、PyJWT 和 cryptography，使用账号 API 密钥签发 ES256 JWT 并访问 ASC REST API；不需要 Apple Server SDK 或 Resend SDK，也不依赖其它包偶然传入 PyJWT。无需 Redis 服务、ARQ Worker 或新增调度框架。
 
 ```bash
-uv add 'dwy-webhooks[discord,reviews]==0.2.0'
+uv add 'dwy-webhooks[discord,reviews]==0.3.0'
 ```
 
 ```python
@@ -96,3 +96,20 @@ runtime = install_review_monitor(app, config, sessions, tables)
 - 本功能读取文字评论及其附带星级，不提供纯星级逐条事件、总评分统计或 Discord 内回复。
 
 新增源码不表示该版本已发布；消费项目必须安装包含 `dwy_webhooks.reviews` 的本轮 wheel，不能用旧 registry wheel 或源码路径替代制品验收。
+
+## Discord 发送者名称
+
+发送者默认使用「Apple 应用通知」，通过 Discord 原生 `username` 字段逐条指定，不修改平台侧 Webhook 配置。调用项目可按自己的场景覆写：
+
+```python
+sender = DiscordWebhookSender(webhook_url, username="团队评分通知")
+# 评分安装器自动使用此名称；传入自定义 sender 时由该 sender 决定名称。
+config = AppleReviewsConfig(
+    apps=apps, issuer_id=issuer_id, key_id=key_id, private_key=private_key,
+    discord_webhook_url=webhook_url, discord_username="团队评分通知",
+)
+```
+
+`WebhookConfig.discord_username` 设置通用来源的名称；`ResendWebhookConfig`、`AppStoreConnectWebhookConfig` 和 `AppleNotificationsConfig` 的同名字段可逐来源覆写，省略时继承全局值。邮件等非 Apple 场景应显式设置合适名称。名称必须为 1–80 字符，不能全为空白或包含控制字符。
+
+评分正文以加粗标题区分监控启用、新增和更新，独立展示应用名称与五颗可视星级。调用项目继续管理凭据、数据库连接和 Alembic 迁移，复用时无需复制评分源码。

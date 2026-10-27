@@ -15,7 +15,12 @@ from pydantic import (
     model_validator,
 )
 
-from .validation import paths_overlap, validate_discord_webhook_url
+from .validation import (
+    DEFAULT_DISCORD_USERNAME,
+    paths_overlap,
+    validate_discord_username,
+    validate_discord_webhook_url,
+)
 
 
 def _destination(value):
@@ -28,6 +33,9 @@ def _destination(value):
 
 
 Destination = Annotated[SecretStr | None, BeforeValidator(_destination)]
+DiscordUsername = Annotated[
+    str, Field(min_length=1, max_length=80), BeforeValidator(validate_discord_username),
+]
 EventType = Annotated[str, Field(min_length=1, max_length=100, pattern=r"^[A-Za-z0-9_.-]+$")]
 AppKey = Annotated[str, Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_-]+$")]
 ASCAppID = Annotated[str, Field(min_length=1, max_length=20, pattern=r"^[0-9]+$")]
@@ -40,6 +48,7 @@ class WebhookSourceConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     discord_webhook_url: Destination = Field(default=None, max_length=2048, repr=False)
+    discord_username: DiscordUsername | None = None
     # None 使用提供方适配器自己的已知事件集，避免配置与事件格式维护两份列表。
     events: frozenset[EventType] | None = Field(default=None, max_length=100)
 
@@ -112,6 +121,7 @@ class WebhookConfig(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     discord_webhook_url: Destination = Field(default=None, max_length=2048, repr=False)
+    discord_username: DiscordUsername = DEFAULT_DISCORD_USERNAME
     resend: ResendWebhookConfig | None = None
     app_store_connect: AppStoreConnectWebhookConfig | None = None
     apple_notifications: AppleNotificationsConfig | None = None

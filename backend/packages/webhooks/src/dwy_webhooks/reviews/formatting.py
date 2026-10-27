@@ -14,9 +14,11 @@ def _bounded(content: str, units: int) -> str:
 def review_content(app_id: str, app_name: str, review, *, updated: bool) -> str:
     """保留回复入口和星级；长原文截断，禁止把凭据写入消息。"""
     entry = f"\n回复入口：https://appstoreconnect.apple.com/apps/{app_id}/activity/ratings"
-    label = "评论已修改" if updated else "新评论"
+    label = "评分评论已更新" if updated else "新增评分评论"
+    stars = "★" * review.rating + "☆" * (5 - review.rating)
     text = (
-        f"{app_name} · {label}\n评分：{review.rating}/5\n"
+        f"**【{label} · {review.rating}/5 星】**\n应用：{app_name}\n"
+        f"评分：{stars} {review.rating}/5\n"
         f"地区：{review.territory} · 用户：{review.reviewer_nickname}\n"
         f"时间：{review.created_at.astimezone(UTC).isoformat(timespec='seconds')}\n"
         f"{review.title}\n{review.body}"
@@ -27,7 +29,8 @@ def review_content(app_id: str, app_name: str, review, *, updated: bool) -> str:
 def baseline_content(app_id: str, app_name: str, count: int) -> str:
     """首次完整同步只发一条汇总，历史内容不逐条刷屏。"""
     return (
-        f"{app_name} · 评论监控已启用\n已建立历史基线：保留期内 {count} 条评论。\n"
+        f"**【评分监控已启用】**\n应用：{app_name}\n"
+        f"已建立历史基线：保留期内 {count} 条评论。\n"
         f"后续新增或修改将自动通知。\n"
         f"回复入口：https://appstoreconnect.apple.com/apps/{app_id}/activity/ratings"
     )
