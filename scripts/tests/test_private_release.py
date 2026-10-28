@@ -1,4 +1,4 @@
-"""私有源码、公开包发布回归，以及 GitHub 快照产物的完整性校验。"""
+"""公开包发布回归，以及 GitHub 快照产物的完整性校验。"""
 
 import importlib.util
 import json
@@ -26,7 +26,7 @@ class PrivateReleaseTests(unittest.TestCase):
         return module
 
     def test_npm_packages_are_publicly_publishable_but_workspace_is_not(self):
-        """源码仓库私有不应阻止包发布，根工作区仍不得作为包上传。"""
+        """根工作区不得作为包上传，独立分发包允许公开发布。"""
         self.assertIs(json.loads((ROOT / "package.json").read_text())["private"], True)
         for directory in ("frontend/eui", "frontend/ekit", "frontend/admin-shell", "frontend/auth-web", "dwy-cli"):
             with self.subTest(directory=directory):
@@ -34,8 +34,8 @@ class PrivateReleaseTests(unittest.TestCase):
                 self.assertIsNot(value.get("private"), True)
                 self.assertEqual(value["publishConfig"]["access"], "public")
 
-    def test_public_publishing_uses_oidc_from_private_source(self):
-        """每个公开发布入口使用短期身份，并在发布前核查源码仓库私有。"""
+    def test_public_publishing_uses_oidc_and_checks_repository_access(self):
+        """每个公开发布入口使用短期身份，并在发布前核查仓库访问。"""
         workflows = {
             "publish-eui.yml": "npm publish --access public",
             "publish-ekit.yml": "npm publish --access public",
@@ -64,14 +64,29 @@ class PrivateReleaseTests(unittest.TestCase):
                 value = tomllib.loads((ROOT / directory / "pyproject.toml").read_text())
                 self.assertNotIn("Private :: Do Not Upload", value["project"].get("classifiers", []))
 
-    def test_github_public_repository_is_rejected(self):
-        """服务端真实可见性与预期不符时 fail closed。"""
+    def test_github_public_and_private_repositories_are_accessible(self):
+        """切换可见性不影响发布，仍须拿到服务端有效响应。"""
         module = self.module()
-        with patch.object(subprocess, "check_output", return_value='{"private":false}'):
+        for private in (False, True):
+            with self.subTest(private=private):
+                with patch.object(subprocess, "check_output", return_value=json.dumps({"private": private})):
+                    module.require_repository_access("owner/repo")
+
+    def test_repository_access_rejects_invalid_responses_and_network_errors(self):
+        """API 响应不完整或访问失败时仍中止发布。"""
+        module = self.module()
+        for response in ('{}', '[]', '{"private":"false"}', 'invalid JSON'):
+            with self.subTest(response=response):
+                with patch.object(subprocess, "check_output", return_value=response):
+                    with self.assertRaises(module.ReleaseError):
+                        module.require_repository_access("owner/repo")
+        with patch.object(subprocess, "check_output", side_effect=subprocess.TimeoutExpired("gh", 30)):
             with self.assertRaises(module.ReleaseError):
-                module.require_private_repository("owner/repo")
-        with patch.object(subprocess, "check_output", return_value='{"private":true}'):
-            module.require_private_repository("owner/repo")
+                module.require_repository_access("owner/repo")
+        with patch.object(subprocess, "check_output") as command:
+            with self.assertRaises(module.ReleaseError):
+                module.require_repository_access("owner/repo/extra")
+            command.assert_not_called()
 
     def test_manifest_checks_every_artifact_and_detects_tampering(self):
         """校验实际字节，而非仅确认产物文件存在。"""

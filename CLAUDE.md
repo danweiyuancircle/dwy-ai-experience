@@ -30,7 +30,7 @@ cd backend && pytest tests/test_security.py -v        # 后端单个模块测试
 cd backend && ruff check src/ && ruff format --check src/
 
 # 发布：包名@版本标签触发对应 .github/workflows/publish-*.yml，使用 OIDC 发布公开 npm/PyPI 包。
-# GitHub 源码保持私有；标准语义化标签供 SwiftPM 和可选 GitHub 快照使用，详见 docs/private-distribution.md。
+# GitHub 源码公开；标准语义化标签供 SwiftPM 和可选 GitHub 快照使用，详见 docs/private-distribution.md。
 ```
 
 ## Architecture
@@ -251,13 +251,13 @@ ekit 虽然底层用开源库实现，但**对外契约必须是 ekit 自有类�
 
 ## Release
 
-GitHub 源码仓库保持私有，安装包通过 `.github/workflows/publish-*.yml` 公开发布到 npm/PyPI。
+GitHub 源码仓库公开，安装包通过 `.github/workflows/publish-*.yml` 公开发布到 npm/PyPI。
 
-- 发布前使用 `scripts/private_release.py check` 查询真实仓库可见性，公开仓库必须拒绝发布。
+- 发布前使用 `scripts/private_release.py check` 验证仓库访问；公开或私有状态均可通过，访问失败或响应无效时中止。
 - registry 发布使用 GitHub Actions OIDC；GitHub Release 快照使用短期 `GITHUB_TOKEN`，二者用途分开。
 - 根工作区保持 `private: true`；发布用 npm 包允许 public access，Python 包不加禁止上传的 Private classifier。
 - 按包维护版本文件与 CHANGELOG；`pnpm changelog` 仍可生成变更记录。
 - 以 `<package-name>@<version>` 标签发布对应包，必须与包元数据版本一致；公开安装和版本查询是发布验收的一部分。
 - 不移动或重打已经交付的版本标签；后续修正使用新版本。
 
-公开包发布、安装和私有 SwiftPM 消费步骤见 `docs/private-distribution.md`。`.github/workflows/private-release.yml` 继续提供跨包 CI 和可选私有快照；历史验收见 `docs/archive/README.md`。
+公开包发布、安装和 SwiftPM 消费步骤见 `docs/private-distribution.md`。`.github/workflows/private-release.yml` 继续提供跨包 CI 和可选快照；历史验收见 `docs/archive/README.md`。
