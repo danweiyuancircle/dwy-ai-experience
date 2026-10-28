@@ -4,8 +4,10 @@
 
 | 文件 | 覆盖行为 |
 | --- | --- |
+| `test_apple_auth.py` | raw nonce 的密文与摘要、过期/跨应用/并发单次挑战、重复与并发首次登录稳定主体、显式绑定、签发失败回滚与补偿撤销、真实 SecretStr 配置、删号事务与撤销 lease/退避、通知去重及在途授权屏障、只撤 Apple 会话 |
 | `test_auth.py` | Google subject 关联账户、邮箱不作为关联键、应用隔离、设备不作为账户身份、仅持久化凭据摘要、轮换与并发单胜者、退出范围、凭据绝对到期、账户禁用、HTTP 验证与保密、Google 配置闭锁；PostgreSQL 并发测试仅在配置测试数据库 URL 时执行 |
 | `test_google.py` | 官方 Google JWT 验签边界、issuer/audience/有效期/签名/用户字段校验及上游错误闭锁，具体以文件内测试为准 |
+| `test_apple.py` | 本地 RSA/EC 密钥真实验签与 client_secret 签名；单应用 audience、issuer、固定 RS256、iat/exp、nonce 与授权码兑换身份一致性；JWKS 缓存/轮换/single-flight/未知 kid 请求预算；未验证邮箱、缺 refresh token、撤销及跨应用拒绝；兑换后验证失败或取消时补偿撤销，补偿失败以 SecretStr 安全交付持久化重试；通知签名/时效/jti/events 格式校验；网络异常保密、配置密钥校验与默认传输超时/响应大小/重定向拒绝。挑战消费与通知去重由服务层测试覆盖 |
 | `test_lifecycle.py` | 旧 refresh 摘要重放撤销后继凭据且不影响独立 family；设备按本人聚合、有界游标分页、整设备撤销与应用隔离；账户删除去标识、全凭据撤销、再次登录新 user_id；同事务业务清理成功与失败回滚；其他应用账户保留；伪造/过期会话拒绝；HTTP 鉴权、未知查询字段拒绝、分页上限、设备不存在统一 404、删除返回 completed |
 | `test_growth.py` | 每账户未到期会话配额包含已撤销会话；每 family 的旧刷新摘要配额；429 不轮换凭据或删除有效重放证据；配额按账户/应用隔离；登录与刷新在绝对到期边界清理本人摘要和会话；到期清理在返回错误前提交；SQLite 开启真实外键验证先摘要后会话的删除顺序；配置 PostgreSQL URL 后验证并发登录不会超额 |
 

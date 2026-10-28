@@ -42,7 +42,7 @@ MyApp/
   --name MyApp \
   --bundle-id com.dwy.myapp \
   --output ~/WebstormProjects \
-  --team-id U969S59QT8
+  --team-id YOURTEAMID
 
 cd ~/WebstormProjects/MyApp
 ls   # 应看到 App Features BizFoundation Foundation
@@ -54,7 +54,7 @@ open MyApp.xcodeproj
 
 ```
 ios/Sources/Shared/       CoreKit LogKit L10nKit CacheKit DesignCore PurchaseCore AuthCore
-ios/Sources/iOS/          DesignKitIOS AuthGoogleIOS AuthUI
+ios/Sources/iOS/          DesignKitIOS AuthGoogleIOS AuthAppleIOS AuthUI
 ios/Sources/macOS/        DesignKitMac
 ios/Tests/               通用模块、认证与模板生成回归
 ios/Templates/ios-app|macos-app
@@ -64,6 +64,8 @@ ios/scripts/new-app.sh
 所有 iOS/macOS 实现与配套文件统一在 `ios/`；认证代码不再分散在 `modules/auth/`。仓库根 `Package.swift` / `Package.resolved` 保留为远程 SwiftPM 的包入口与依赖锁文件，所有 target 均指向 `ios/`，产品名和调用方式不变。
 
 邮箱密码登录注册组件选择 `AuthCore` 和 `AuthUI`。接入说明见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`，可运行示例见 `ios/Examples/EmailPasswordAuth/`。
+
+原生 Apple 登录选择 `AuthCore` 和 `AuthAppleIOS`。官方按钮、宿主窗口与会话取消说明见 `ios/Docs/APPLE_AUTH.md`。
 
 远程：https://github.com/danweiyuancircle/dwy-ai-experience.git
 

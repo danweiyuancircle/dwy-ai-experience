@@ -1,10 +1,10 @@
 # 通用认证接入说明
 
-本轮新增 `AuthRuntime`，ADBox 后端作为首个接入。源码尚未发布；旧 `AuthService` 兼容入口继续保留，新项目使用运行时 API。
+`AuthRuntime` 由应用注入业务主体和会话实现；旧 `AuthService` 兼容入口继续保留，新项目使用运行时 API。Apple 登录接入见 [独立装配说明](apple-auth-integration.md)。
 
 ## 安装与依赖
 
-发布后使用 `pip install "dwyeapi[auth]"`，同时安装认证和现有邮件组件。独立 `dwy-auth` 不依赖 EAPI/FastAPI，应用可注入自己的邮件发送和会话实现。当前版本号尚未调整，安装旧同版本包不能获得本轮功能；本地使用本轮构建的 wheel，正式发布另走版本与 GitHub Actions 流程。
+使用 `pip install "dwyeapi[auth]==0.12.1"`，同时安装 `dwy-auth==0.1.1` 和现有邮件组件。独立 `dwy-auth` 不依赖 EAPI/FastAPI，应用可注入自己的邮件发送和会话实现。正式消费锁定 registry 版本，不能依赖开发机路径或同版本的工作区源码。
 
 ## 装配合同
 

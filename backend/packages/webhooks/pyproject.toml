@@ -1,11 +1,11 @@
 [project]
 name = "dwy-webhooks"
-version = "0.4.0"
+version = "0.4.1"
 description = "独立于业务来源的 Webhook 发送、安全边界与失败语义"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 # EAPI 提供配置模型、Web 框架、数据库和日志基础，平台 SDK 按需安装。
-dependencies = ["dwyeapi==0.12.0"]
+dependencies = ["dwyeapi==0.12.1"]
 
 [project.optional-dependencies]
 # 沿用当前集成已验收版本；基础包导入不强制加载平台 SDK。

@@ -4,6 +4,72 @@ import XCTest
 /// URLProtocol 捕获真实 URLSession 请求，验证应用前缀和 eapi 契约。
 @MainActor
 final class AppCloudAuthClientTests: XCTestCase {
+    func testAppleChallengePreservesPrefixAndDecodesRawNonce() async throws {
+        let (client, recorder) = try makeClient(response: """
+        {"code":"SUCCESS","message":"ok","data":{"challenge_id":"apple-challenge","nonce":"raw_nonce-123","expires_in":300}}
+        """)
+        let challenge = try await client.createAppleChallenge()
+        XCTAssertEqual(recorder.request?.url?.absoluteString, "https://example.com/adbox/api/v1/auth/apple/challenges")
+        XCTAssertEqual(recorder.request?.httpMethod, "POST")
+        XCTAssertNil(recorder.request?.value(forHTTPHeaderField: "Authorization"))
+        XCTAssertTrue(recorder.body.isEmpty || recorder.body == Data("{}".utf8))
+        XCTAssertEqual(challenge.challengeID, "apple-challenge")
+        XCTAssertEqual(challenge.nonce, "raw_nonce-123")
+        XCTAssertEqual(challenge.expiresIn, 300)
+    }
+
+    func testAppleExchangeEncodesOnlyContractFieldsAndOptionalName() async throws {
+        let deviceID = UUID()
+        let userID = UUID()
+        for name: String? in [nil, "Apple Name"] {
+            let (client, recorder) = try makeClient(response: """
+            {"code":"SUCCESS","message":"ok","data":{"access_token":"access","refresh_token":"refresh","token_type":"Bearer","expires_in":900,"user":{"id":"\(userID)","email":null,"display_name":"Backend Name"}}}
+            """)
+            let authorization = AppleAuthorization(identityToken: "apple-token", authorizationCode: "apple-code", displayName: name)
+            let result = try await client.authenticate(appleAuthorization: authorization, challengeID: "challenge", deviceID: deviceID)
+            XCTAssertEqual(recorder.request?.url?.path, "/adbox/api/v1/auth/apple")
+            XCTAssertEqual(recorder.request?.httpMethod, "POST")
+            let body = try XCTUnwrap(JSONSerialization.jsonObject(with: recorder.body) as? [String: String])
+            var expected = ["challenge_id": "challenge", "identity_token": "apple-token", "authorization_code": "apple-code", "device_id": deviceID.uuidString]
+            expected["display_name"] = name
+            XCTAssertEqual(body, expected)
+            XCTAssertEqual(result.user.id, userID)
+            XCTAssertEqual(result.user.displayName, "Backend Name")
+            XCTAssertEqual(result.refreshToken, "refresh")
+        }
+    }
+
+    func testAppleChallengeRejectsMalformedPayloadsAndServerFailures() async throws {
+        for payload in ["null", "{}", "{\"challenge_id\":\"\",\"nonce\":\"raw\",\"expires_in\":300}", "{\"challenge_id\":\"id\",\"nonce\":\"\",\"expires_in\":300}", "{\"challenge_id\":\"id\",\"nonce\":\"raw\",\"expires_in\":0}"] {
+            let (client, _) = try makeClient(response: "{\"code\":\"SUCCESS\",\"message\":\"ok\",\"data\":\(payload)}")
+            do { _ = try await client.createAppleChallenge(); XCTFail("Expected invalid challenge") }
+            catch AuthError.invalidResponse {}
+        }
+        for status in [200, 401] {
+            let (client, _) = try makeClient(response: "{\"code\":\"APPLE_AUTH_FAILED\",\"message\":\"invalid\",\"data\":null}", status: status)
+            do { _ = try await client.createAppleChallenge(); XCTFail("Expected server failure") }
+            catch AuthError.server(let code, _) { XCTAssertEqual(code, "APPLE_AUTH_FAILED") }
+        }
+    }
+
+    func testAppleExchangeRejectsInvalidInputBeforeNetworkAndPropagatesFailure() async throws {
+        let (client, recorder) = try makeClient(response: "{\"code\":\"APPLE_AUTH_FAILED\",\"message\":\"invalid\",\"data\":null}", status: 401)
+        let invalid = [
+            AppleAuthorization(identityToken: "", authorizationCode: "code"),
+            AppleAuthorization(identityToken: "token", authorizationCode: ""),
+            AppleAuthorization(identityToken: String(repeating: "x", count: 16_385), authorizationCode: "code"),
+            AppleAuthorization(identityToken: "token", authorizationCode: String(repeating: "x", count: 4_097)),
+            AppleAuthorization(identityToken: "token", authorizationCode: "code", displayName: String(repeating: "名", count: 256)),
+        ]
+        for authorization in invalid {
+            do { _ = try await client.authenticate(appleAuthorization: authorization, challengeID: "id", deviceID: UUID()); XCTFail("Expected invalid input") }
+            catch AuthError.invalidResponse {}
+        }
+        XCTAssertNil(recorder.request)
+        do { _ = try await client.authenticate(appleAuthorization: AppleAuthorization(identityToken: "token", authorizationCode: "code"), challengeID: "id", deviceID: UUID()); XCTFail("Expected Apple rejection") }
+        catch AuthError.server(let code, _) { XCTAssertEqual(code, "APPLE_AUTH_FAILED") }
+    }
+
     /// 默认语言由本次系统首选决定，不依赖 URLSession 隐式添加请求头。
     func testRequestsExplicitlySendSystemLanguage() async throws {
         let (client, recorder) = try makeClient(response: "{\"code\":\"SUCCESS\",\"message\":\"ok\",\"data\":null}")

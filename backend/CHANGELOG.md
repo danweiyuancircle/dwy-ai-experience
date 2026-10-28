@@ -4,6 +4,12 @@
 
 暂无未发布变更。
 
+## 0.12.1
+
+- 新增可选 `dwyeapi.auth_apple.install_apple_auth`，复用宿主认证绑定与资料加载器，提供 Apple 挑战、登录、绑定及账号通知路由。
+- 保持既有 token/user 响应、Google/邮箱接口、应用前缀和请求体安全边界；未装配 Apple 时不启用相关路由。
+- `dwyeapi[auth]` 精确依赖 `dwy-auth==0.1.1`。Apple 配置、迁移、撤销工作器和用户模型均由应用提供，接入见 `docs/apple-auth-integration.md`。
+
 ## 0.12.0
 
 ### Added

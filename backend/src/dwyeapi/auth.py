@@ -189,6 +189,35 @@ class AuthBinding:
     optional_principal: Callable[..., Awaitable[AuthPrincipal | None]]
 
 
+async def _token_payload(tokens: SessionTokens, profile_loader) -> ApiResponse:
+    """各认证 transport 使用相同业务资料与令牌信封, 不返回内部证明。"""
+    user = await profile_loader(tokens.principal)
+    return ApiResponse.ok(
+        {
+            "access_token": tokens.access_token,
+            "refresh_token": tokens.refresh_token,
+            "token_type": "Bearer",
+            "expires_in": tokens.expires_in,
+            "user": user.model_dump(mode="json") if isinstance(user, BaseModel) else user,
+        }
+    )
+
+
+async def _reauthenticate(runtime: AuthRuntime, body: _Reauthentication, purpose: str, request: Request):
+    """重新认证仍由服务端产生限用途证明, 不接受请求自报的可信身份。"""
+    method = body.identifier if body.method == "external" else body.method
+    if method is None:
+        raise AuthError("INPUT_INVALID", "第三方配置名称缺失", 422)
+    return await runtime.authenticate(
+        method,
+        identifier=body.identifier,
+        password=body.password,
+        credential=body.credential,
+        purpose=purpose,
+        remote_key=request.client.host if request.client else "unknown",
+    )
+
+
 def create_principal_dependency(
     runtime: AuthRuntime, *, optional: bool = False, authorization_limit: int = 8192
 ) -> Callable[..., Awaitable[AuthPrincipal | None]]:
@@ -274,31 +303,11 @@ def install_runtime_auth(
 
     async def token_payload(tokens: SessionTokens) -> ApiResponse:
         """业务资料完全由宿主加载, 不泄露内部认证证明。"""
-        # 兼容现有 Swift 信封, user 完全由应用提供; 不把内部 proof/Principal 放入响应。
-        user = await profile_loader(tokens.principal)
-        return ApiResponse.ok(
-            {
-                "access_token": tokens.access_token,
-                "refresh_token": tokens.refresh_token,
-                "token_type": "Bearer",
-                "expires_in": tokens.expires_in,
-                "user": user.model_dump(mode="json") if isinstance(user, BaseModel) else user,
-            }
-        )
+        return await _token_payload(tokens, profile_loader)
 
     async def reauthenticate(body: _Reauthentication, purpose: str, request: Request):
         """传入实际来源与用途, 防止证明跨操作复用。"""
-        method = body.identifier if body.method == "external" else body.method
-        if method is None:
-            raise AuthError("INPUT_INVALID", "第三方配置名称缺失", 422)
-        return await runtime.authenticate(
-            method,
-            identifier=body.identifier,
-            password=body.password,
-            credential=body.credential,
-            purpose=purpose,
-            remote_key=remote_key(request),
-        )
+        return await _reauthenticate(runtime, body, purpose, request)
 
     @router.get("/capabilities")
     async def capabilities():

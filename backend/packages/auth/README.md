@@ -2,7 +2,7 @@
 
 New integrations use `AuthRuntime` with application-owned users and a replaceable `SessionBackend`. See [runtime integration](../../../docs/auth-runtime-integration.md). The authentication core is independent of EAPI and FastAPI; the legacy service, HTTP and administrator interfaces below require EAPI when used.
 
-Python distribution `dwy-auth==0.1.0`, import `dwy_auth`. Install the independent core from public PyPI with `pip install "dwy-auth==0.1.0"`. For the EAPI integration and compatibility interfaces, install `pip install "dwyeapi[auth]==0.12.0"`; this includes `dwy-auth` and the EAPI email SDK. Source remains in a private repository; registry releases use `.github/workflows/publish-auth.yml` with GitHub Actions OIDC. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
+Python distribution `dwy-auth==0.1.1`, import `dwy_auth`. Install the independent core from public PyPI with `pip install "dwy-auth==0.1.1"`. For the EAPI integration and compatibility interfaces, install `pip install "dwyeapi[auth]==0.12.1"`; this includes `dwy-auth` and the EAPI email SDK. Source remains in a private repository; registry releases use `.github/workflows/publish-auth.yml` with GitHub Actions OIDC. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
 
 When upgrading a preview integration, update both the dependency name and Python imports. The new wheel exports only `dwy_auth`; no legacy namespace alias is shipped. The source package is `backend/packages/auth` and release tags use `dwy-auth@VERSION`.
 
@@ -96,3 +96,11 @@ def upgrade():
 ```
 
 The helper makes `auth_users.google_subject` nullable and creates `auth_password_credentials`, `auth_email_challenges`, `auth_rate_limits`; existing UUIDs, sessions and Google subjects remain untouched. PostgreSQL alters the column in place. SQLite uses Alembic batch mode; hosts with foreign keys enabled must follow Alembic's SQLite foreign-key PRAGMA procedure outside the transaction. Downgrade is intentionally host-owned: email-only users have null Google subjects, so restoring NOT NULL requires an explicit data-retention decision. Do not run this helper at application startup. `tests/test_email_auth.py` migrates a populated legacy Google schema and verifies both existing sessions and new email registration afterward.
+
+## Apple 原生登录（本轮源码能力，尚未发布）
+
+使用 `dwy_auth.apple.AppleSignInConfig`、`AppleGateway`、`dwy_auth.apple_auth.AppleAuthService` 和 `dwy_auth.apple_storage.build_apple_tables(metadata)`。多步骤 Apple 授权使用独立挑战/登录接口；不能把 Apple ID token 塞进通用 external credential 接口绕过 nonce 和授权码验证。
+
+宿主提供自己的 AuthRuntime、业务主体、会话撤销回调及 Alembic 迁移，并在现有 `install_runtime_auth` 后安装 `dwyeapi.auth_apple.install_apple_auth`。把 service 注册为 runtime 的 apple provider，驱动 `process_revocations()`，在业务删号事务内调用 `prepare_delete(db, subject)`；其返回值为撤销任务 ID，可用于区分本地删除完成与上游撤销 pending。签名 Key 与 Fernet token_encryption_key 只保留服务端，不能复用内购配置或按邮箱合并账号。
+
+原生 Swift 接入使用共享 AuthCore 与 AuthAppleIOS，说明见仓库根 `ios/Docs/APPLE_AUTH.md`。每个应用独立配置 client_id、密钥、数据库与业务 UUID，代码共享不代表跨产品 SSO。

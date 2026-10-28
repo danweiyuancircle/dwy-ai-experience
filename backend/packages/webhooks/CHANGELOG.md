@@ -1,5 +1,10 @@
 # dwy-webhooks
 
+## 0.4.1
+
+- 配套升级 `dwyeapi==0.12.1`，允许宿主同时安装新的 Apple 登录认证能力，避免旧精确依赖冲突。
+- Discord User-Agent 同步为 `0.4.1`；通知、验签、评论监控和存储合同保持兼容。
+
 ## 0.4.0
 
 - 新增公开 `dwy_webhooks.apple`：安全购买/续订详情、已验签 SDK 字段映射和可注入应用品牌的 Apple Discord 文案。

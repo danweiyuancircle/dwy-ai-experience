@@ -1,5 +1,12 @@
 # dwy-auth
 
+## 0.1.1
+
+- 新增独立 Apple 登录验证、一次性挑战、授权码兑换、加密授权存储、账号通知及可靠撤销队列。
+- App ID、Apple audience/Team/Key、业务主体、数据库会话、会话撤销与密钥由宿主注入；核心不依赖 App Cloud、FastAPI 或特定业务模型。
+- 保持 Google、邮箱、旧服务与既有会话合同兼容；应用自行声明并执行 Alembic 迁移、运行撤销工作器、配置 Apple Developer 和 HTTPS 通知入口。
+- EAPI 配套版本为 `dwyeapi[auth]==0.12.1`；完整接入见 `docs/apple-auth-integration.md`。
+
 ## 0.1.0
 
 - 首次通过 GitHub Actions OIDC 发布到公开 PyPI，导入命名空间为 `dwy_auth`。

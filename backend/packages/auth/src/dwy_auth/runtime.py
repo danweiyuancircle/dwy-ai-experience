@@ -26,7 +26,7 @@ from .email_auth import (
 )
 from .models import AuthError
 from .passwords import hash_password, verify_password
-from .providers import ExternalIdentityProvider
+from .providers import ExternalIdentity, ExternalIdentityProvider
 from .runtime_storage import RuntimeTables
 from .subjects import SubjectAdapter, SubjectRegistration
 
@@ -229,31 +229,7 @@ class AuthRuntime(EmailAuthMixin):
         )
         try:
             async with self.sessions() as db, db.begin():
-                linked = (await db.execute(query)).mappings().one_or_none()
-                if linked is None and purpose != "login":
-                    raise AuthError("REAUTHENTICATION_INVALID", "重新认证身份无效")
-                if linked is None:
-                    subject = await self.subjects.create_subject(
-                        db, SubjectRegistration(method, identity.email, identity)
-                    )
-                    await self.require_active_subject(db, subject)
-                    generation = str(uuid4())
-                    await db.execute(
-                        insert(t).values(
-                            app_id=self.app_id,
-                            provider=method,
-                            issuer=identity.issuer,
-                            external_subject=identity.subject,
-                            subject=subject,
-                            generation=generation,
-                        )
-                    )
-                else:
-                    subject, generation = linked["subject"], linked["generation"]
-                await self.require_active_subject(db, subject)
-                proof = await self._new_identity(
-                    db, subject, method, purpose, identity.subject, generation, identity.issuer
-                )
+                proof = await self._resolve_external(db, method, identity, purpose)
         except IntegrityError:
             # 并发首次登录只保留一个主体，失败事务中的业务初始化自动回滚。
             async with self.sessions() as db, db.begin():
@@ -266,6 +242,53 @@ class AuthRuntime(EmailAuthMixin):
                     db, subject, method, purpose, identity.subject, linked["generation"], identity.issuer
                 )
         return proof
+
+    async def _resolve_external(
+        self, db: AsyncSession, method: str, identity: ExternalIdentity, purpose: str
+    ) -> VerifiedIdentity:
+        """仅供已验签适配器使用；加入其挑战和令牌事务，绝不接受 HTTP 自报身份。"""
+        self._require_method(method)
+        if purpose not in {"login", "bind", "unlink"}:
+            raise AuthError("AUTH_PURPOSE_INVALID", "认证用途无效", 422)
+        t = self.tables.external_identities
+        linked = (
+            (
+                await db.execute(
+                    select(t.c.subject, t.c.generation).where(
+                        t.c.app_id == self.app_id,
+                        t.c.provider == method,
+                        t.c.issuer == identity.issuer,
+                        t.c.external_subject == identity.subject,
+                    )
+                )
+            )
+            .mappings()
+            .one_or_none()
+        )
+        if linked is None and purpose != "login":
+            raise AuthError("REAUTHENTICATION_INVALID", "重新认证身份无效")
+        if linked is None:
+            subject = await self.subjects.create_subject(
+                db, SubjectRegistration(method, identity.email, identity)
+            )
+            await self.require_active_subject(db, subject)
+            generation = str(uuid4())
+            await db.execute(
+                insert(t).values(
+                    app_id=self.app_id,
+                    provider=method,
+                    issuer=identity.issuer,
+                    external_subject=identity.subject,
+                    subject=subject,
+                    generation=generation,
+                )
+            )
+        else:
+            subject, generation = linked["subject"], linked["generation"]
+        await self.require_active_subject(db, subject)
+        return await self._new_identity(
+            db, subject, method, purpose, identity.subject, generation, identity.issuer
+        )
 
     async def _external(self, method, credential):
         """限定凭据大小后交给注册适配器验签，不从邮箱或请求字段推断身份。"""

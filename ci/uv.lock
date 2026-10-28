@@ -375,7 +375,7 @@ async = [
 
 [[package]]
 name = "dwy-auth"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "../backend/packages/auth" }
 dependencies = [
     { name = "anyio" },
@@ -444,7 +444,7 @@ requires-dist = [
 
 [[package]]
 name = "dwy-webhooks"
-version = "0.4.0"
+version = "0.4.1"
 source = { editable = "../backend/packages/webhooks" }
 dependencies = [
     { name = "dwyeapi" },
@@ -480,7 +480,7 @@ requires-dist = [
     { name = "app-store-server-library", extras = ["async"], marker = "extra == 'apple'", specifier = "==3.1.2" },
     { name = "cryptography", marker = "extra == 'reviews'", specifier = "==50.0.2" },
     { name = "discord-webhook", extras = ["async"], marker = "extra == 'discord'", specifier = "==1.4.1" },
-    { name = "dwyeapi", specifier = "==0.12.0" },
+    { name = "dwyeapi", specifier = "==0.12.1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = "==0.28.1" },
     { name = "httpx", marker = "extra == 'discord'", specifier = "==0.28.1" },
     { name = "httpx", marker = "extra == 'reviews'", specifier = "==0.28.1" },
@@ -494,7 +494,7 @@ provides-extras = ["discord", "resend", "apple", "reviews", "dev"]
 
 [[package]]
 name = "dwyeapi"
-version = "0.12.0"
+version = "0.12.1"
 source = { editable = "../backend" }
 dependencies = [
     { name = "bcrypt" },

@@ -29,6 +29,7 @@ let package = Package(
         .library(name: "AuthCore", targets: ["AuthCore"]),
         .library(name: "AuthUI", targets: ["AuthUI"]),
         .library(name: "AuthGoogleIOS", targets: ["AuthGoogleIOS"]),
+        .library(name: "AuthAppleIOS", targets: ["AuthAppleIOS"]),
         .library(name: "AuthGoogleMac", targets: ["AuthGoogleMac"]),
     ],
     dependencies: [
@@ -109,6 +110,18 @@ let package = Package(
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS", condition: .when(platforms: [.iOS])),
             ],
             path: "ios/Sources/iOS/AuthGoogleIOS"
+        ),
+        // Apple 系统授权不依赖 Google SDK；AuthCore 保持跨平台。
+        .target(
+            name: "AuthAppleIOS",
+            dependencies: ["AuthCore"],
+            path: "ios/Sources/iOS/AuthAppleIOS"
+        ),
+        .testTarget(
+            name: "AuthAppleIOSTests",
+            dependencies: ["AuthAppleIOS", "AuthCore"],
+            path: "ios/Tests/AuthAppleIOSTests",
+            exclude: ["TEST_CASES.md"]
         ),
         // macOS 窗口呈现单独适配，避免 AuthCore 引入 AppKit 或 Google SDK。
         .target(

@@ -98,6 +98,43 @@ async def register(runtime, mailbox, email="person@example.com"):
     return await runtime.register_email(email, PASSWORD, mailbox.messages[-1][1], challenge.challenge_id)
 
 
+async def test_verified_external_identity_joins_application_transaction_and_rolls_back(runtime_env):
+    """Apple 等多步骤授权必须与挑战、上游令牌和业务主体在同一事务落库。"""
+    from dwy_auth.providers import ExternalIdentity
+
+    runtime, tables, sessions, subjects, _, _ = runtime_env
+    runtime.providers["apple"] = object()
+    external = ExternalIdentity("https://appleid.apple.com", "apple-person")
+    with pytest.raises(RuntimeError, match="rollback"):
+        async with sessions() as db, db.begin():
+            await runtime._resolve_external(db, "apple", external, "login")
+            raise RuntimeError("rollback")
+    async with sessions() as db:
+        assert (await db.execute(select(subjects.table))).all() == []
+        assert (await db.execute(select(tables.external_identities))).all() == []
+        assert (await db.execute(select(tables.authentication_proofs))).all() == []
+    async with sessions() as db, db.begin():
+        first = await runtime._resolve_external(db, "apple", external, "login")
+    async with sessions() as db, db.begin():
+        again = await runtime._resolve_external(db, "apple", external, "login")
+        assert again.subject == first.subject
+        assert len((await db.execute(select(subjects.table))).all()) == 1
+
+
+async def test_verified_external_identity_rejects_disabled_provider_and_unknown_reauthentication(runtime_env):
+    from dwy_auth.providers import ExternalIdentity
+
+    runtime, _, sessions, _, _, _ = runtime_env
+    external = ExternalIdentity("https://appleid.apple.com", "unknown-person")
+    async with sessions() as db, db.begin():
+        with pytest.raises(AuthError, match="认证方式"):
+            await runtime._resolve_external(db, "apple", external, "login")
+        runtime.providers["apple"] = object()
+        with pytest.raises(AuthError) as exc:
+            await runtime._resolve_external(db, "apple", external, "bind")
+        assert exc.value.code == "REAUTHENTICATION_INVALID"
+
+
 async def test_registration_uses_application_subject_and_shared_password_for_username(runtime_env):
     runtime, tables, sessions, _, mailbox, _ = runtime_env
     identity = await register(runtime, mailbox, "Person@Example.com")

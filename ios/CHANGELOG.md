@@ -21,6 +21,21 @@ Apple App Kit（统一私有仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.6.0
+
+发布日期：2026-10-28。新增可选 `AuthAppleIOS` 产品与 `AppleAuthBackend`，通过 `AuthSessionStore.signInWithApple(provider:)` 完成挑战、系统授权与宿主后端会话交换。不引入第三方 SDK，不包含任何产品域名、Bundle ID 或服务端私钥。
+
+宿主注入后端 URL、Keychain namespace 和当前呈现窗口；保留 Google/邮箱构造、取消与迟到响应清理行为。接入见 `ios/Docs/APPLE_AUTH.md`，后端配套 `dwyeapi[auth]==0.12.1`。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.5.0 能否不改 App 继续编 | 既有调用保持兼容；Apple 产品与协议为可选依赖。 |
+| 不升会怎样 | 继续使用原认证能力，没有共享 Apple 原生授权适配。 |
+| 升上来可选/必改项 | 仅启用 Apple 的宿主链接 AuthAppleIOS，配置自己的 Bundle ID/capability、签名、后端、独立 namespace 和窗口；后端迁移与账号通知另行装配。 |
+| 最低系统 | 仍 iOS 17.0 / macOS 14.0 / Swift 6.0；原生 Apple 授权适配仅 iOS。 |
+
 ## 0.5.0
 
 发布日期：2026-10-23。新增同步与 macOS 认证产品，按本库 0.x 新能力版本发布；既有应用不强制升级。
