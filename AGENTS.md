@@ -194,9 +194,9 @@
 
 <!-- DWY-BASELINE:END -->
 
-## 私有源码与公开包分发
+## 源码与公开包分发
 
-GitHub 源码仓库保持私有；npm 与 PyPI 安装包公开发布，允许任何人安装使用。所有 registry 发布必须由 `.github/workflows/publish-*.yml` 使用 OIDC 完成，不使用长期发布 token。发布前查询实际仓库 private 状态；根工作区保留 `private: true`，可发布 npm 包使用公开 access，Python 包不得包含禁止上传的 Private classifier。`.github/workflows/private-release.yml` 保留跨包 CI 与可选 GitHub 快照，不作为唯一分发渠道。SwiftPM 继续通过私有 Git 仓库的语义化标签消费。不得在 URL、包配置或提交文件中写入私有凭据。
+GitHub 源码仓库公开；npm 与 PyPI 安装包公开发布，允许任何人安装使用。所有 registry 发布必须由 `.github/workflows/publish-*.yml` 使用 OIDC 完成，不使用长期发布 token。发布前验证实际仓库可访问；根工作区保留 `private: true`，可发布 npm 包使用公开 access，Python 包不得包含禁止上传的 Private classifier。`.github/workflows/private-release.yml` 保留跨包 CI 与可选 GitHub 快照，不作为唯一分发渠道。SwiftPM 继续通过同一 Git 仓库的语义化标签消费。不得在 URL、包配置或提交文件中写入私有凭据。
 
 # AGENTS.md
 
@@ -275,7 +275,7 @@ cd backend && ruff check src/ && ruff format --check src/  # ruff only; no front
 
 ### Public package release
 
-Keep the Git source private and publish installable packages to public npm/PyPI through `.github/workflows/publish-*.yml` using OIDC. Each package tag is `<package-name>@<version>` and must match its manifest. The root workspace remains private; distributable npm packages use public access. Standard semantic Git tags remain the SwiftPM entry point and may create a private GitHub snapshot. See `docs/private-distribution.md`.
+Keep the Git source public and publish installable packages to public npm/PyPI through `.github/workflows/publish-*.yml` using OIDC. Each package tag is `<package-name>@<version>` and must match its manifest. The root workspace remains private; distributable npm packages use public access. Standard semantic Git tags remain the SwiftPM entry point and may create a GitHub snapshot. See `docs/private-distribution.md`.
 
 ## Architecture Quirks
 
@@ -368,6 +368,7 @@ See `CLAUDE.md` for full build/test/release details, design system references, a
 
 ## [自成长] 项目规则
 
+- 批量审查远端日志时，每批按单项超时和并发数计算最坏耗时，并逐项保留检查结果。把所有结果留到最后输出会在整批超时后丢失已完成的证据；先验证小批量，再扩大批次，不重复重跑整批。
 - 同文件多个补丁 hunk 必须按源文件位置排序，JSON 清单改动按原数组顺序生成。否则后一个 hunk 可能无法回到前面的文本，出现“原文存在却匹配失败”；先检查顺序和上下文再重试，避免反复扩大匹配范围。
 - 复用 SwiftPM Git 缓存前，不能只确认锁定 commit 存在；部分克隆可能缺少 blob，导致检出或打包失败。用 `git rev-list --objects --all --missing=print` 检查可达对象是否完整，复制后确认不通过 alternates 或本地 remote 依赖待移除的来源目录。
 - uv 离线安装失败时，不能根据已有虚拟环境推断缓存齐全；缓存受索引来源、版本和平台产物影响。先固定索引并确认缺失项，再选择联网安装，避免反复重试 `--offline`。

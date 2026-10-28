@@ -108,7 +108,7 @@ select t.name from t where t.id > 200 limit 50
 
 ```dolphindb
 loadPlugin("aws")
-aws_cfg = dict(["filePath", "region", "bucket", "accessId", "secretKey"], ["demo.csv.gz", 'cn-north-1', 'tests3func', 'YOUR_AWS_ACCESS_KEY_ID', 
+aws_cfg = dict(["filePath", "region", "bucket", "accessId", "secretKey"], ["demo.csv.gz", 'cn-north-1', 'tests3func', 'YOUR_AWS_ACCESS_KEY_ID',
 'YOUR_AWS_SECRET_ACCESS_KEY'])
 t = createExternalTable("test","s3", aws_cfg,`Open`High`OpenInt, [DOUBLE, DOUBLE, INT]);
 select count(*) from t where Open > 0.5 and High < 0.6 limit 1;

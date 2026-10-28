@@ -20,7 +20,7 @@
 | `frontend/auth-web/` | `@dwydev/auth-web`：网页认证组件与 Cookie 会话 |
 | `frontend/playground/` | 文档与组件演示站 |
 | `ios/` | AppleAppKit：iOS/macOS 框架、客户端认证、测试与模板 |
-| `ci/`、`scripts/`、`.github/` | 跨包验证与私有构建发布工具 |
+| `ci/`、`scripts/`、`.github/` | 跨包验证与构建发布工具 |
 
 根 `Package.swift` 是远程 SwiftPM 入口，源码和测试位于 `ios/`。根 `package.json`、`pnpm-workspace.yaml`、`pnpm-lock.yaml` 统一管理 CLI 与前端；Python 使用 uv 独立管理。
 
@@ -76,8 +76,8 @@ Claude Code 直接读取项目 `AGENTS.md` 需要 v2.1.277 或更新版本，并
 - 认证总览：[docs/auth.md](docs/auth.md)。
 - EUI 接入与设计规范、Tasks 接入等：[docs/README.md](docs/README.md)。
 - Apple 框架与示例：[ios/README.md](ios/README.md)。
-- 私有源码与公开包安装：[docs/private-distribution.md](docs/private-distribution.md)。
+- 公开源码与包安装：[docs/private-distribution.md](docs/private-distribution.md)。
 
-GitHub 源码保持私有，npm/PyPI 包公开发布，允许任何人安装使用。按包标签触发 `.github/workflows/publish-*.yml`，发布使用 OIDC；`dwy upgrade` 从 npm 更新正式版。CLI 默认读取包内模板，无需源码仓库权限。SwiftPM 继续使用私有 Git 仓库的语义化标签，跨包 CI 和可选 GitHub 快照保留在 `.github/workflows/private-release.yml`。
+GitHub 源码公开，npm/PyPI 包公开发布，允许任何人安装使用。按包标签触发 `.github/workflows/publish-*.yml`，发布使用 OIDC；`dwy upgrade` 从 npm 更新正式版。CLI 默认读取包内模板，无需源码仓库权限。SwiftPM 继续使用同一 Git 仓库的语义化标签，跨包 CI 和可选 GitHub 快照保留在 `.github/workflows/private-release.yml`。
 
 历史迁移来源、发布与消费者验收证据保留在 [docs/archive/README.md](docs/archive/README.md)，不作为当前接入说明。
