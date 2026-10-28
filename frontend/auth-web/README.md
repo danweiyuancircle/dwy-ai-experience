@@ -2,7 +2,7 @@
 
 管理员的 Vue 3 登录表单、同源 Cookie API 和内存会话。Google-only 应用用户认证由独立后端/Apple 模块处理；本包没有 Google Web、邮箱验证码、业务用户登录、业务导航或管理数据页面。
 
-源码仓库保持私有，安装包通过 `.github/workflows/publish-auth-web.yml` 发布到公开 npm；发布后可使用 `pnpm add @dwydev/auth-web` 安装，无需源码仓库权限。
+源码仓库公开，安装包通过 `.github/workflows/publish-auth-web.yml` 发布到公开 npm；发布后可使用 `pnpm add @dwydev/auth-web` 安装，无需源码仓库权限。
 
 ```ts
 import { createAdminAuthApi, createAdminSession } from '@dwydev/auth-web'

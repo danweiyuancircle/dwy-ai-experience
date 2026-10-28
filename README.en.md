@@ -1,6 +1,6 @@
 # dwy-ai-experience
 
-A private source monorepo for shared libraries and development tools, with public npm/PyPI packages, organized into CLI, backend, frontend, and Apple client code.
+A public source monorepo for shared libraries and development tools, with public npm/PyPI packages, organized into CLI, backend, frontend, and Apple client code.
 
 [中文](README.md) · [Documentation](docs/README.md) · [Source and package distribution](docs/private-distribution.md)
 
@@ -20,7 +20,7 @@ A private source monorepo for shared libraries and development tools, with publi
 | `frontend/auth-web/` | `@dwydev/auth-web`: Web authentication and Cookie sessions |
 | `frontend/playground/` | Documentation and component demos |
 | `ios/` | AppleAppKit: iOS/macOS frameworks, authentication, tests, and templates |
-| `ci/`, `scripts/`, `.github/` | Shared validation and private build/release tooling |
+| `ci/`, `scripts/`, `.github/` | Shared validation and build/release tooling |
 
 The root `Package.swift` provides the remote SwiftPM entry point; implementation and tests live under `ios/`. The root `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml` manage the CLI and frontend packages. Python packages use uv separately.
 
@@ -61,8 +61,8 @@ Apple validation requires a full Xcode installation. For local Node 26 Vitest/js
 - Authentication overview: [docs/auth.md](docs/auth.md).
 - EUI integration/design and Tasks guides: [docs/README.md](docs/README.md).
 - Apple frameworks and examples: [ios/README.md](ios/README.md).
-- Private source and public package installation: [docs/private-distribution.md](docs/private-distribution.md).
+- Public source and package installation: [docs/private-distribution.md](docs/private-distribution.md).
 
-GitHub source remains private; npm/PyPI packages are public and available for anyone to install. Package tags trigger `.github/workflows/publish-*.yml` using OIDC. `dwy upgrade` updates from public npm, and bundled CLI templates do not require repository access. SwiftPM continues to use semantic tags in the private Git repository. Cross-package CI and optional private GitHub snapshots remain in `.github/workflows/private-release.yml`.
+GitHub source is public; npm/PyPI packages are public and available for anyone to install. Package tags trigger `.github/workflows/publish-*.yml` using OIDC. `dwy upgrade` updates from public npm, and bundled CLI templates do not require repository access. SwiftPM continues to use semantic tags in the same Git repository. Cross-package CI and optional GitHub snapshots remain in `.github/workflows/private-release.yml`.
 
 Historical migration, release, and consumer verification evidence lives in [docs/archive/README.md](docs/archive/README.md); it is not the current integration guide.

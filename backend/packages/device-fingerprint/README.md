@@ -71,7 +71,7 @@ EAPI 的公开版本提供 `device` extra：
 python -m pip install 'dwyeapi[device]'
 ```
 
-源码仓库保持私有，安装包通过 `.github/workflows/publish-device-fingerprint.yml` 公开发布。SDK 可以依赖固定版本的公开包，不需要源码仓库权限，也无需维护第二份实现。
+源码仓库公开，安装包通过 `.github/workflows/publish-device-fingerprint.yml` 公开发布。SDK 可以依赖固定版本的公开包，不需要源码仓库权限，也无需维护第二份实现。
 
 ## 测试与构建
 

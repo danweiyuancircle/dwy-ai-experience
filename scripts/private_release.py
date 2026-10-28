@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""核查源码仓库私有状态并校验可选 GitHub 快照；公开 registry 发布由 OIDC 工作流负责。"""
+"""核查源码仓库访问并校验可选 GitHub 快照；公开 registry 发布由 OIDC 工作流负责。"""
 
 import argparse
 import hashlib
@@ -19,8 +19,8 @@ class ReleaseError(Exception):
     """安全边界或校验失败；调用方不得继续发布/安装。"""
 
 
-def require_private_repository(repository: str) -> None:
-    """使用调用方已有 gh 身份查询实际可见性，绝不把 token 放入命令参数。"""
+def require_repository_access(repository: str) -> None:
+    """允许公开或私有仓库；使用已有 gh 身份验证访问，不传递或打印 token。"""
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise ReleaseError("invalid repository name")
     try:
@@ -30,9 +30,9 @@ def require_private_repository(repository: str) -> None:
         data = json.loads(response)
         private = data.get("private") if isinstance(data, dict) else None
     except (subprocess.SubprocessError, json.JSONDecodeError, OSError) as exc:
-        raise ReleaseError("cannot verify private repository access") from exc
-    if private is not True:
-        raise ReleaseError("refusing to publish or fetch from a public repository")
+        raise ReleaseError("cannot verify repository access") from exc
+    if not isinstance(private, bool):
+        raise ReleaseError("invalid repository visibility")
 
 
 def artifact_paths(directory: Path) -> list[Path]:
@@ -122,7 +122,7 @@ def verify_manifest(directory: Path) -> dict:
 
 def download(repository: str, tag: str, destination: Path) -> None:
     """认证下载固定版本，校验后才允许调用者安装；不读取或打印认证配置。"""
-    require_private_repository(repository)
+    require_repository_access(repository)
     if repository != REPOSITORY or not re.fullmatch(VERSION_PATTERN, tag):
         raise ReleaseError("unsupported repository or tag")
     destination.mkdir(parents=True, exist_ok=True)
@@ -156,7 +156,7 @@ def main() -> None:
     args = parser.parse_args()
     try:
         if args.command == "check":
-            require_private_repository(args.repository)
+            require_repository_access(args.repository)
         elif args.command == "manifest":
             write_manifest(args.directory, args.tag, args.revision)
             verify_manifest(args.directory)
@@ -167,8 +167,8 @@ def main() -> None:
     except (ReleaseError, subprocess.SubprocessError, OSError) as exc:
         # ReleaseError 均为本模块固定文案；外部异常仍只输出类型，避免泄露凭据/原始响应。
         reason = str(exc) if isinstance(exc, ReleaseError) else type(exc).__name__
-        parser.exit(1, f"Private release failed: {reason}\n")
-    print(f"Private release {args.command}: verified")
+        parser.exit(1, f"Release failed: {reason}\n")
+    print(f"Release {args.command}: verified")
 
 
 if __name__ == "__main__":

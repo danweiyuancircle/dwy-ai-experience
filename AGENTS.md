@@ -194,9 +194,9 @@
 
 <!-- DWY-BASELINE:END -->
 
-## 私有源码与公开包分发
+## 源码与公开包分发
 
-GitHub 源码仓库保持私有；npm 与 PyPI 安装包公开发布，允许任何人安装使用。所有 registry 发布必须由 `.github/workflows/publish-*.yml` 使用 OIDC 完成，不使用长期发布 token。发布前查询实际仓库 private 状态；根工作区保留 `private: true`，可发布 npm 包使用公开 access，Python 包不得包含禁止上传的 Private classifier。`.github/workflows/private-release.yml` 保留跨包 CI 与可选 GitHub 快照，不作为唯一分发渠道。SwiftPM 继续通过私有 Git 仓库的语义化标签消费。不得在 URL、包配置或提交文件中写入私有凭据。
+GitHub 源码仓库公开；npm 与 PyPI 安装包公开发布，允许任何人安装使用。所有 registry 发布必须由 `.github/workflows/publish-*.yml` 使用 OIDC 完成，不使用长期发布 token。发布前验证实际仓库可访问；根工作区保留 `private: true`，可发布 npm 包使用公开 access，Python 包不得包含禁止上传的 Private classifier。`.github/workflows/private-release.yml` 保留跨包 CI 与可选 GitHub 快照，不作为唯一分发渠道。SwiftPM 继续通过同一 Git 仓库的语义化标签消费。不得在 URL、包配置或提交文件中写入私有凭据。
 
 # AGENTS.md
 
@@ -275,7 +275,7 @@ cd backend && ruff check src/ && ruff format --check src/  # ruff only; no front
 
 ### Public package release
 
-Keep the Git source private and publish installable packages to public npm/PyPI through `.github/workflows/publish-*.yml` using OIDC. Each package tag is `<package-name>@<version>` and must match its manifest. The root workspace remains private; distributable npm packages use public access. Standard semantic Git tags remain the SwiftPM entry point and may create a private GitHub snapshot. See `docs/private-distribution.md`.
+Keep the Git source public and publish installable packages to public npm/PyPI through `.github/workflows/publish-*.yml` using OIDC. Each package tag is `<package-name>@<version>` and must match its manifest. The root workspace remains private; distributable npm packages use public access. Standard semantic Git tags remain the SwiftPM entry point and may create a GitHub snapshot. See `docs/private-distribution.md`.
 
 ## Architecture Quirks
 
