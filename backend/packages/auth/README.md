@@ -97,7 +97,9 @@ def upgrade():
 
 The helper makes `auth_users.google_subject` nullable and creates `auth_password_credentials`, `auth_email_challenges`, `auth_rate_limits`; existing UUIDs, sessions and Google subjects remain untouched. PostgreSQL alters the column in place. SQLite uses Alembic batch mode; hosts with foreign keys enabled must follow Alembic's SQLite foreign-key PRAGMA procedure outside the transaction. Downgrade is intentionally host-owned: email-only users have null Google subjects, so restoring NOT NULL requires an explicit data-retention decision. Do not run this helper at application startup. `tests/test_email_auth.py` migrates a populated legacy Google schema and verifies both existing sessions and new email registration afterward.
 
-## Apple 原生登录（本轮源码能力，尚未发布）
+## Apple 原生登录（dwy-auth 0.1.1 / dwyeapi 0.12.1）
+
+已通过 GitHub Actions OIDC 发布到公开 PyPI；独立配置与迁移步骤见 [Apple 后端接入](../../../docs/apple-auth-integration.md)。
 
 使用 `dwy_auth.apple.AppleSignInConfig`、`AppleGateway`、`dwy_auth.apple_auth.AppleAuthService` 和 `dwy_auth.apple_storage.build_apple_tables(metadata)`。多步骤 Apple 授权使用独立挑战/登录接口；不能把 Apple ID token 塞进通用 external credential 接口绕过 nonce 和授权码验证。
 

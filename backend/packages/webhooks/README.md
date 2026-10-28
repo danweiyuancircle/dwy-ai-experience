@@ -97,7 +97,7 @@ Apple 商品目录、账户绑定和权益发放保留在业务项目。通用�
 `dwy_webhooks.reviews` 提供主动采集能力，独立于审核/构建 Webhook 和内购通知。评论通知安装 `dwy-webhooks[discord,reviews]`：`reviews` 直接声明 HTTPX、PyJWT 和 cryptography，使用账号 API 密钥签发 ES256 JWT 并访问 ASC REST API；不需要 Apple Server SDK 或 Resend SDK，也不依赖其它包偶然传入 PyJWT。无需 Redis 服务、ARQ Worker 或新增调度框架。
 
 ```bash
-uv add 'dwy-webhooks[discord,reviews]==0.4.0'
+uv add 'dwy-webhooks[discord,reviews]==0.4.2'
 ```
 
 ```python
@@ -130,7 +130,7 @@ runtime = install_review_monitor(app, config, sessions, tables)
 - 表、会话、时钟、HTTP 客户端和 sender 可显式注入；库不读取 `.env`、打开项目数据库或自动执行迁移。关闭任务后才允许宿主释放数据库。
 - 本功能读取文字评论及其附带星级，不提供纯星级逐条事件、总评分统计或 Discord 内回复。
 
-新增源码不表示该版本已发布；消费项目必须安装包含 `dwy_webhooks.reviews` 的本轮 wheel，不能用旧 registry wheel 或源码路径替代制品验收。
+`0.4.2` 已发布到公开 PyPI，配套 `dwyeapi==0.12.1`。消费项目固定版本并验收实际安装产物，不以开发机源码路径替代制品验收。
 
 ## Discord 发送者名称
 
