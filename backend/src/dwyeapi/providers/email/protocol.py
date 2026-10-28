@@ -1,6 +1,6 @@
 """Email Provider Protocol。"""
 
-from typing import Protocol
+from typing import Literal, Protocol
 
 
 class EmailProvider(Protocol):
@@ -10,11 +10,12 @@ class EmailProvider(Protocol):
     业务可通过 `register_email_provider` 注入自定义实现,无需改 eapi。
     """
 
-    async def send_code(self, target: str) -> bool:
+    async def send_code(self, target: str, *, language: Literal["zh", "en"] = "en") -> bool:
         """生成并发送邮箱验证码。
 
         Args:
             target: 收件邮箱.发信用原地址;Redis key 走 ``canonicalize_email``.
+            language: 本次邮件语言,中文为 zh,其他请求由边界归一化为 en;默认英文。
 
         Returns:
             发送成功 True,失败 False(异常已记录日志)。

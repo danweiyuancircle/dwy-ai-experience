@@ -1,19 +1,23 @@
 import Foundation
 
-/// 应用后端认证 HTTP 客户端；baseURL 的 /adbox 等应用前缀必须保留。
+/// 应用后端认证 HTTP 客户端；保留宿主 baseURL 中的完整应用前缀。
 @MainActor
-public final class AppCloudAuthClient: EmailPasswordAuthBackend {
+public final class AppCloudAuthClient: EmailPasswordAuthBackend, AppleAuthBackend {
     public let baseURL: URL
     private let session: URLSession
+    /// 每次请求读取当前首选语言；宿主可注入应用内语言，默认跟随设备系统。
+    private let languageProvider: @MainActor @Sendable () -> String?
 
     /// 生产只接受 HTTPS；本机开发允许明确的 loopback HTTP。
-    public init(baseURL: URL, session: URLSession = .shared) throws {
+    /// languageProvider 返回语言标签（如 zh-Hans、en-US），中文以外统一请求英文。
+    public init(baseURL: URL, session: URLSession = .shared, languageProvider: @escaping @MainActor @Sendable () -> String? = { Locale.preferredLanguages.first }) throws {
         guard baseURL.host != nil, baseURL.user == nil, baseURL.password == nil,
               baseURL.query == nil, baseURL.fragment == nil,
               baseURL.scheme == "https" || (baseURL.scheme == "http" && ["localhost", "127.0.0.1", "::1"].contains(baseURL.host))
         else { throw AuthError.invalidConfiguration }
         self.baseURL = baseURL
         self.session = session
+        self.languageProvider = languageProvider
     }
 
     /// ID token 仅用于本次后端交换，设备 UUID 不参与认证证明。
@@ -21,6 +25,29 @@ public final class AppCloudAuthClient: EmailPasswordAuthBackend {
         guard !googleIDToken.isEmpty, googleIDToken.utf8.count <= 16_384 else { throw AuthError.invalidResponse }
         let body = GoogleBody(idToken: googleIDToken, deviceID: deviceID)
         return try await exchange(path: "google", body: JSONEncoder().encode(body))
+    }
+
+    /// 挑战属于 baseURL 对应应用；nonce 只用于本次系统授权。
+    public func createAppleChallenge() async throws -> AppleSignInChallenge {
+        let data = try await request(path: "apple/challenges", body: nil, accessToken: nil)
+        let envelope: AppleChallengeEnvelope = try decode(data)
+        guard let challenge = envelope.data,
+              !challenge.challengeId.isEmpty, challenge.challengeId.utf8.count <= 4_096,
+              !challenge.nonce.isEmpty, challenge.nonce.utf8.count <= 4_096,
+              challenge.expiresIn.isFinite, challenge.expiresIn > 0
+        else { throw AuthError.invalidResponse }
+        return AppleSignInChallenge(challengeID: challenge.challengeId, nonce: challenge.nonce, expiresIn: challenge.expiresIn)
+    }
+
+    /// Apple 短时凭据只交换自家会话；服务端验证身份、挑战与应用受众。
+    public func authenticate(appleAuthorization: AppleAuthorization, challengeID: String, deviceID: UUID) async throws -> AuthTokenResponse {
+        guard !challengeID.isEmpty, challengeID.utf8.count <= 4_096,
+              !appleAuthorization.identityToken.isEmpty, appleAuthorization.identityToken.utf8.count <= 16_384,
+              !appleAuthorization.authorizationCode.isEmpty, appleAuthorization.authorizationCode.utf8.count <= 4_096,
+              (appleAuthorization.displayName?.unicodeScalars.count ?? 0) <= 255
+        else { throw AuthError.invalidResponse }
+        let body = AppleBody(challengeID: challengeID, identityToken: appleAuthorization.identityToken, authorizationCode: appleAuthorization.authorizationCode, deviceID: deviceID, displayName: appleAuthorization.displayName)
+        return try await exchange(path: "apple", body: JSONEncoder().encode(body))
     }
 
     /// 发码只传邮箱与用途，密码不会进入邮件请求。
@@ -113,6 +140,9 @@ public final class AppCloudAuthClient: EmailPasswordAuthBackend {
         request.timeoutInterval = 30
         request.httpBody = body
         request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let preferredLanguage = languageProvider()?.lowercased()
+        let language = preferredLanguage == "zh" || preferredLanguage?.hasPrefix("zh-") == true ? "zh" : "en"
+        request.setValue(language, forHTTPHeaderField: "Accept-Language")
         if body != nil { request.setValue("application/json", forHTTPHeaderField: "Content-Type") }
         if let accessToken { request.setValue("Bearer \(accessToken)", forHTTPHeaderField: "Authorization") }
         let (data, response) = try await session.data(for: request)
@@ -125,6 +155,26 @@ public final class AppCloudAuthClient: EmailPasswordAuthBackend {
         }
         return data
     }
+}
+
+private struct AppleBody: Encodable {
+    let challengeID: String
+    let identityToken: String
+    let authorizationCode: String
+    let deviceID: UUID
+    let displayName: String?
+    enum CodingKeys: String, CodingKey {
+        case challengeID = "challenge_id", identityToken = "identity_token", authorizationCode = "authorization_code"
+        case deviceID = "device_id", displayName = "display_name"
+    }
+}
+private struct AppleChallengeEnvelope: Decodable {
+    let data: AppleChallengeData?
+}
+private struct AppleChallengeData: Decodable {
+    let challengeId: String
+    let nonce: String
+    let expiresIn: TimeInterval
 }
 
 private struct EmailCodeBody: Encodable {

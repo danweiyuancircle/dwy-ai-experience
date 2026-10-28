@@ -34,7 +34,7 @@ class TestResendSend:
         )
         provider._resend.Emails.send_async = AsyncMock(return_value={"id": "msg_1"})
 
-        ok = await provider.send_code("User+tag@Gmail.com")
+        ok = await provider.send_code("User+tag@Gmail.com", language="zh")
         assert ok is True
         provider._resend.Emails.send_async.assert_awaited_once()
         params = provider._resend.Emails.send_async.await_args.args[0]

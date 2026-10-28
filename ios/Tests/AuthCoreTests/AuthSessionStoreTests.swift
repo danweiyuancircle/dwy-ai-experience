@@ -4,6 +4,117 @@ import XCTest
 /// 用后端替身验证异步顺序，避免登录/刷新晚到时复活已退出会话。
 @MainActor
 final class AuthSessionStoreTests: XCTestCase {
+    func testAppleSignInPassesRawNonceAndInstallsOnlyBackendRefreshToken() async throws {
+        let backend = BackendStub()
+        let tokens = TokenStoreStub()
+        let provider = AppleProviderStub()
+        let deviceID = UUID()
+        let store = AuthSessionStore(backend: backend, tokenStore: tokens, deviceID: deviceID)
+        try await store.signInWithApple(provider: provider)
+        XCTAssertEqual(provider.nonces, ["raw-nonce"])
+        XCTAssertEqual(backend.appleAuthorization?.identityToken, "apple-id-token")
+        XCTAssertEqual(backend.appleAuthorization?.authorizationCode, "apple-code")
+        XCTAssertEqual(backend.appleAuthorization?.displayName, "Untrusted Name")
+        XCTAssertEqual(backend.appleChallengeID, "apple-challenge")
+        XCTAssertEqual(backend.appleDeviceID, deviceID)
+        XCTAssertEqual(store.session?.user, backend.response.user)
+        XCTAssertEqual(tokens.token, "refresh")
+        XCTAssertFalse(store.isSigningIn)
+    }
+
+    func testAppleCancellationAndDuplicateTapNeverExchangeAuthorization() async throws {
+        let backend = BackendStub()
+        let provider = AppleProviderStub()
+        provider.pause = true
+        let store = AuthSessionStore(backend: backend, tokenStore: TokenStoreStub(), deviceID: UUID())
+        let login = Task { try await store.signInWithApple(provider: provider) }
+        while provider.continuation == nil { await Task.yield() }
+        try await store.signInWithApple(provider: provider)
+        XCTAssertEqual(provider.nonces.count, 1)
+        provider.continuation?.resume(throwing: CancellationError())
+        do { try await login.value; XCTFail("Expected cancellation") } catch is CancellationError {}
+        XCTAssertNil(store.session)
+        XCTAssertNil(backend.appleAuthorization)
+        XCTAssertFalse(store.isSigningIn)
+    }
+
+    func testCancelWhileAppleChallengeIsPendingDoesNotPresentNativeAuthorization() async throws {
+        let backend = BackendStub()
+        backend.pauseAppleChallenge = true
+        let provider = AppleProviderStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: TokenStoreStub(), deviceID: UUID())
+        let login = Task { try await store.signInWithApple(provider: provider) }
+        while backend.appleChallengeContinuation == nil { await Task.yield() }
+        store.cancelPendingAuthentication()
+        backend.appleChallengeContinuation?.resume(returning: backend.appleChallenge)
+        do { try await login.value; XCTFail("Expected superseded operation") } catch AuthError.superseded {}
+        XCTAssertTrue(provider.nonces.isEmpty)
+        XCTAssertNil(backend.appleAuthorization)
+    }
+
+    func testCancelPendingAppleAuthorizationRejectsLateNativeCallback() async throws {
+        let backend = BackendStub()
+        let provider = AppleProviderStub()
+        provider.pause = true
+        let store = AuthSessionStore(backend: backend, tokenStore: TokenStoreStub(), deviceID: UUID())
+        let login = Task { try await store.signInWithApple(provider: provider) }
+        while provider.continuation == nil { await Task.yield() }
+        store.cancelPendingAuthentication()
+        provider.continuation?.resume(returning: provider.authorization)
+        do { try await login.value; XCTFail("Expected superseded operation") } catch AuthError.superseded {}
+        XCTAssertNil(backend.appleAuthorization)
+        XCTAssertNil(store.session)
+    }
+
+    func testAppleLateBackendSessionAfterLogoutIsRevoked() async throws {
+        let backend = BackendStub()
+        backend.pauseLogin = true
+        let tokens = TokenStoreStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: tokens, deviceID: UUID())
+        let login = Task { try await store.signInWithApple(provider: AppleProviderStub()) }
+        while backend.loginContinuation == nil { await Task.yield() }
+        try await store.signOut()
+        backend.loginContinuation?.resume(returning: backend.response)
+        do { try await login.value; XCTFail("Expected superseded operation") } catch AuthError.superseded {}
+        XCTAssertNil(store.session)
+        XCTAssertNil(tokens.token)
+        XCTAssertEqual(backend.logoutTokens, ["access"])
+    }
+
+    func testAppleTaskCancellationRejectsLateBackendSession() async throws {
+        let backend = BackendStub()
+        backend.pauseLogin = true
+        backend.logoutRejectsCancelledTask = true
+        let tokens = TokenStoreStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: tokens, deviceID: UUID())
+        let login = Task { try await store.signInWithApple(provider: AppleProviderStub()) }
+        while backend.loginContinuation == nil { await Task.yield() }
+        login.cancel()
+        backend.loginContinuation?.resume(returning: backend.response)
+        do { try await login.value; XCTFail("Expected task cancellation") } catch is CancellationError {}
+        XCTAssertNil(store.session)
+        XCTAssertNil(tokens.token)
+        XCTAssertEqual(backend.logoutTokens, ["access"])
+        XCTAssertFalse(store.isSigningIn)
+    }
+
+    func testAppleKeychainFailureRevokesSessionAndExistingBackendRemainsCompatible() async throws {
+        let backend = BackendStub()
+        let tokens = TokenStoreStub()
+        tokens.saveFails = true
+        let store = AuthSessionStore(backend: backend, tokenStore: tokens, deviceID: UUID())
+        do { try await store.signInWithApple(provider: AppleProviderStub()); XCTFail("Expected keychain failure") }
+        catch AuthError.keychain {}
+        XCTAssertNil(store.session)
+        XCTAssertNil(tokens.token)
+        XCTAssertEqual(backend.logoutTokens, ["access"])
+        let oldStore = AuthSessionStore(backend: GoogleOnlyBackend(), provider: ProviderStub(), tokenStore: TokenStoreStub(), deviceID: UUID())
+        do { try await oldStore.signInWithApple(provider: AppleProviderStub()); XCTFail("Expected absent Apple capability") }
+        catch AuthError.invalidConfiguration {}
+        try await oldStore.signIn()
+        XCTAssertNotNil(oldStore.session)
+    }
+
     func testSuccessfulPasswordResetClearsLocalSessionWithoutLoggingOutRevokedToken() async throws {
         let backend = BackendStub()
         let tokens = TokenStoreStub()
@@ -405,10 +516,11 @@ private final class ProviderStub: GoogleIDTokenProviding {
 
 /// 可暂停网络边界以重现请求迟到。
 @MainActor
-private final class BackendStub: EmailPasswordAuthBackend {
+private final class BackendStub: EmailPasswordAuthBackend, AppleAuthBackend {
     var response = AuthTokenResponse(accessToken: "access", refreshToken: "refresh", expiresIn: 900, user: AuthUser(id: UUID(), email: "user@example.com", displayName: "User"))
     var receivedRefreshTokens: [String] = []
     var logoutFails = false
+    var logoutRejectsCancelledTask = false
     var pauseLogin = false
     var pauseRefresh = false
     var refreshError: Error?
@@ -420,6 +532,22 @@ private final class BackendStub: EmailPasswordAuthBackend {
     var loginContinuation: CheckedContinuation<AuthTokenResponse, Error>?
     var refreshContinuation: CheckedContinuation<AuthTokenResponse, Error>?
     var resetContinuation: CheckedContinuation<Void, Error>?
+    let appleChallenge = AppleSignInChallenge(challengeID: "apple-challenge", nonce: "raw-nonce", expiresIn: 300)
+    var pauseAppleChallenge = false
+    var appleChallengeContinuation: CheckedContinuation<AppleSignInChallenge, Error>?
+    var appleAuthorization: AppleAuthorization?
+    var appleChallengeID: String?
+    var appleDeviceID: UUID?
+    func createAppleChallenge() async throws -> AppleSignInChallenge {
+        if pauseAppleChallenge { return try await withCheckedThrowingContinuation { appleChallengeContinuation = $0 } }
+        return appleChallenge
+    }
+    func authenticate(appleAuthorization: AppleAuthorization, challengeID: String, deviceID: UUID) async throws -> AuthTokenResponse {
+        self.appleAuthorization = appleAuthorization
+        appleChallengeID = challengeID
+        appleDeviceID = deviceID
+        return try await authenticate(googleIDToken: "", deviceID: deviceID)
+    }
     func sendEmailCode(email: String, purpose: EmailCodePurpose) async throws -> EmailCodeChallenge {
         EmailCodeChallenge(challengeID: "challenge", expiresIn: 600, resendAfter: 60, codeLength: 6)
     }
@@ -445,8 +573,23 @@ private final class BackendStub: EmailPasswordAuthBackend {
         return response
     }
     func logout(accessToken: String) async throws {
+        if logoutRejectsCancelledTask { try Task.checkCancellation() }
         logoutTokens.append(accessToken)
         if accessToken == logoutRejectedToken { throw AuthError.server(code: "ACCESS_TOKEN_INVALID", message: "rotated") }
         if logoutFails { throw URLError(.notConnectedToInternet) }
+    }
+}
+
+/// 系统授权边界替身，支持取消后迟到的原生回调。
+@MainActor
+private final class AppleProviderStub: AppleAuthorizationProviding {
+    let authorization = AppleAuthorization(identityToken: "apple-id-token", authorizationCode: "apple-code", displayName: "Untrusted Name")
+    var nonces: [String] = []
+    var pause = false
+    var continuation: CheckedContinuation<AppleAuthorization, Error>?
+    func signIn(nonce: String) async throws -> AppleAuthorization {
+        nonces.append(nonce)
+        if pause { return try await withCheckedThrowingContinuation { continuation = $0 } }
+        return authorization
     }
 }

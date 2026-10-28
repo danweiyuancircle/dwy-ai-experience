@@ -21,21 +21,44 @@ Apple App Kit（统一私有仓库中的 Apple 产品）版本记录。
 
 ---
 
-## [Unreleased]
+## 0.6.0
 
-将 `apple/` 重命名为 `ios/`；AuthCore、AuthGoogleIOS 及认证测试一并归入 `ios/Sources`、`ios/Tests`。根 `Package.swift` 保留为远程 SwiftPM 入口，生成器和 CI 使用新目录。
+发布日期：2026-10-28。新增可选 `AuthAppleIOS` 产品与 `AppleAuthBackend`，通过 `AuthSessionStore.signInWithApple(provider:)` 完成挑战、系统授权与宿主后端会话交换。不引入第三方 SDK，不包含任何产品域名、Bundle ID 或服务端私钥。
 
-补齐 macOS 主题监听的编译平台判断，避免全产品 iOS 编译引用 `DistributedNotificationCenter`；CI 模拟器编译扩展到全部产品。
-
-新增可选 `AuthUI` 产品：邮箱密码登录、验证码注册后自动登录、密码重置与中英文资源。AuthCore 新增无 Google 构造、邮箱 API、前台按需刷新、取消在途认证；密码重置清理旧会话，注册安装失败可区分账号已创建。示例工程位于 `ios/Examples/EmailPasswordAuth/`，接入见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`。后端邮件认证与可选180天滚动会话需同时升级匹配的 eapi/认证私有包并执行宿主迁移。
+宿主注入后端 URL、Keychain namespace 和当前呈现窗口；保留 Google/邮箱构造、取消与迟到响应清理行为。接入见 `ios/Docs/APPLE_AUTH.md`，后端配套 `dwyeapi[auth]==0.12.1`。
 
 ### 兼容性
 
 | 项 | 结论 |
 |----|------|
-| 相对 0.4.1 能否不改 App 继续编 | 既有产品和调用保持兼容；新增 AuthUI 为可选产品，已有 Google 构造继续可用。 |
-| 不升会怎样 | 继续使用原目录布局与原认证能力，没有共享邮箱密码页面。 |
-| 升上来可选/必改项 | 本仓脚本与测试命令改用 `ios/`；启用邮箱时选择 AuthUI、注入宿主邮件/会话配置并迁移后端。 |
+| 相对 0.5.0 能否不改 App 继续编 | 既有调用保持兼容；Apple 产品与协议为可选依赖。 |
+| 不升会怎样 | 继续使用原认证能力，没有共享 Apple 原生授权适配。 |
+| 升上来可选/必改项 | 仅启用 Apple 的宿主链接 AuthAppleIOS，配置自己的 Bundle ID/capability、签名、后端、独立 namespace 和窗口；后端迁移与账号通知另行装配。 |
+| 最低系统 | 仍 iOS 17.0 / macOS 14.0 / Swift 6.0；原生 Apple 授权适配仅 iOS。 |
+
+## 0.5.0
+
+发布日期：2026-10-23。新增同步与 macOS 认证产品，按本库 0.x 新能力版本发布；既有应用不强制升级。
+
+将 `apple/` 重命名为 `ios/`；AuthCore、AuthGoogleIOS 及认证测试一并归入 `ios/Sources`、`ios/Tests`。根 `Package.swift` 保留为远程 SwiftPM 入口，生成器和 CI 使用新目录。
+
+补齐 macOS 主题监听的编译平台判断，避免全产品 iOS 编译引用 `DistributedNotificationCenter`；CI 模拟器编译扩展到全部产品。
+
+修复原生 SwiftPM 构建将中文资源目录规范化为小写后，英文宿主下显式请求中文仍回退英文的问题；认证文案按 Bundle 实际支持的本地化标识查找。
+
+新增可选 `AuthUI` 产品：邮箱密码登录、验证码注册后自动登录、密码重置与中英文资源。AuthCore 新增无 Google 构造、邮箱 API、前台按需刷新、取消在途认证；密码重置清理旧会话，注册安装失败可区分账号已创建。示例工程位于 `ios/Examples/EmailPasswordAuth/`，接入见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`。后端邮件认证与可选180天滚动会话需同时升级匹配的 eapi/认证私有包并执行宿主迁移。
+
+新增可选 `SyncCore` 产品：GRDB 本地事务、离线 outbox、游标拉取、幂等重试、冲突保留与账号隔离。`SyncStore.saveLocally(_:using:)` 和 `documentLocally(id:using:)` 支持同步属性 setter 先完成落盘再发布本机投影；观察者仍异步收到单调递增的提交快照。游客可独立使用本地库，网络同步由宿主显式提供已认证身份。
+
+新增可选 `AuthGoogleMac` 产品，复用官方 Google SDK 的 macOS 窗口登录与 URL 回调。宿主提供公开的 macOS/Web Client ID、呈现窗口和回调 scheme；后端交换结果决定应用账号身份。接入示例见 `ios/Examples/MacGoogleAuth/README.md`。真实 Google 登录和业务应用双 Mac 同步仍需宿主配置后验收。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.4.1 能否不改 App 继续编 | 既有产品和调用保持兼容；AuthUI、SyncCore、AuthGoogleMac 均为可选产品，已有 Google 构造继续可用。 |
+| 不升会怎样 | 继续使用原目录布局与原认证能力，没有共享邮箱密码页面、离线同步引擎与 macOS Google 适配器。 |
+| 升上来可选/必改项 | 本仓脚本与测试命令改用 `ios/`；按需链接新增产品。同步载荷、首次导入和冲突 UI 由宿主定义；Google 登录需宿主与后端 OAuth 配置；启用邮箱时注入宿主邮件/会话配置并迁移后端。 |
 | 最低系统 | 仍 iOS 17.0 / macOS 14.0 / Swift 6.0。 |
 
 ## [0.4.1] - 2026-10-21

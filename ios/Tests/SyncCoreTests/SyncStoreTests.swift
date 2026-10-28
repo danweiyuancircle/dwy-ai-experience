@@ -33,6 +33,20 @@ final class SyncStoreTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(first?.payload?["kind"], .string("note"))
     }
 
+    func testSynchronousLocalSaveIsDurableBeforeReturning() async throws {
+        let dir = try directory(), account = scope(nil), id = UUID()
+        let store = try SyncStore(directory: dir, scope: account, schemas: [schema.erased])
+        try store.saveLocally(SyncDocument(id: id, payload: Note(title: "offline")), using: schema)
+        let reopened = try SyncStore(directory: dir, scope: account, schemas: [schema.erased])
+        let saved = try await reopened.document(id: id, using: schema)
+        let snapshot = try await reopened.snapshot()
+        XCTAssertEqual(saved?.payload.title, "offline")
+        XCTAssertEqual(snapshot.pendingCount, 1)
+        XCTAssertThrowsError(try store.saveLocally(SyncDocument(id: id, payload: Note(title: "")), using: schema))
+        let unchanged = try await reopened.document(id: id, using: schema)
+        XCTAssertEqual(unchanged?.payload.title, "offline")
+    }
+
     func record(_ id: UUID, _ title: String, version: Int64 = 1, cursor: Int64 = 1) -> SyncRecord {
         SyncRecord(recordID: id, version: version, cursor: cursor, deleted: false,
                    payload: ["kind": .string("note"), "title": .string(title)])

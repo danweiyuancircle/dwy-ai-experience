@@ -43,7 +43,8 @@ class PrivateReleaseTests(unittest.TestCase):
             "publish-auth-web.yml": "npm publish --access public",
             "publish-cli.yml": "npm publish --access public",
             "publish-eapi.yml": "pypa/gh-action-pypi-publish@",
-            "publish-app-auth.yml": "pypa/gh-action-pypi-publish@",
+            "publish-auth.yml": "pypa/gh-action-pypi-publish@",
+            "publish-webhooks.yml": "pypa/gh-action-pypi-publish@",
             "publish-device-fingerprint.yml": "pypa/gh-action-pypi-publish@",
         }
         for filename, publish in workflows.items():
@@ -59,10 +60,19 @@ class PrivateReleaseTests(unittest.TestCase):
 
     def test_python_packages_allow_public_uploads(self):
         """三个 Python 分发包都允许上传公开 PyPI。"""
-        for directory in ("backend", "backend/packages/app-auth", "backend/packages/device-fingerprint"):
+        for directory in ("backend", "backend/packages/auth", "backend/packages/device-fingerprint",
+                          "backend/packages/webhooks"):
             with self.subTest(directory=directory):
                 value = tomllib.loads((ROOT / directory / "pyproject.toml").read_text())
                 self.assertNotIn("Private :: Do Not Upload", value["project"].get("classifiers", []))
+
+    def test_webhooks_are_tested_and_built_in_the_shared_release(self):
+        """共享轮包必须经过同一验收与构建，不能只在业务项目本地存在。"""
+        workflow = (ROOT / ".github/workflows/private-release.yml").read_text()
+        self.assertIn("backend/packages/webhooks/tests", workflow)
+        self.assertIn("uv build --project backend/packages/webhooks", workflow)
+        manifest = tomllib.loads((ROOT / "ci/pyproject.toml").read_text())
+        self.assertTrue(any(value.startswith("dwy-webhooks[") for value in manifest["project"]["dependencies"]))
 
     def test_github_public_and_private_repositories_are_accessible(self):
         """切换可见性不影响发布，仍须拿到服务端有效响应。"""
@@ -93,7 +103,7 @@ class PrivateReleaseTests(unittest.TestCase):
         module = self.module()
         with tempfile.TemporaryDirectory() as directory:
             output = Path(directory)
-            package = output / "dwy-app-auth-0.1.0-py3-none-any.whl"
+            package = output / "dwy_auth-0.1.0-py3-none-any.whl"
             package.write_bytes(b"wheel snapshot")
             module.write_manifest(output, "0.4.0", "a" * 40)
             module.verify_manifest(output)

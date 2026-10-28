@@ -35,16 +35,25 @@ public final class AuthSessionStore {
     /// 重复点击不重复弹 Google；退出或后续登录使旧请求失效。
     public func signIn() async throws {
         guard let provider else { throw AuthError.invalidConfiguration }
-        guard !isSigningIn else { return }
-        generation += 1
-        let operation = generation
-        refreshTask = nil
-        isSigningIn = true
-        defer { if operation == generation { isSigningIn = false } }
-        let idToken = try await provider.signIn()
-        guard operation == generation else { throw AuthError.superseded }
-        let response = try await backend.authenticate(googleIDToken: idToken, deviceID: deviceID)
-        try await install(response, operation: operation)
+        try await performAuthentication { operation in
+            let idToken = try await provider.signIn()
+            try checkAuthentication(operation)
+            let response = try await backend.authenticate(googleIDToken: idToken, deviceID: deviceID)
+            try await install(response, operation: operation)
+        }
+    }
+
+    /// 先申请目标应用挑战，再呈现系统授权；与邮箱/Google 共用会话和迟到撤销路径。
+    public func signInWithApple(provider: any AppleAuthorizationProviding) async throws {
+        guard let appleBackend = backend as? any AppleAuthBackend else { throw AuthError.invalidConfiguration }
+        try await performAuthentication { operation in
+            let challenge = try await appleBackend.createAppleChallenge()
+            try checkAuthentication(operation)
+            let authorization = try await provider.signIn(nonce: challenge.nonce)
+            try checkAuthentication(operation)
+            let response = try await appleBackend.authenticate(appleAuthorization: authorization, challengeID: challenge.challengeID, deviceID: deviceID)
+            try await install(response, operation: operation)
+        }
     }
 
     /// 发码不创建会话；用途与挑战由服务端校验。
@@ -55,28 +64,36 @@ public final class AuthSessionStore {
     /// 邮箱与 Google 共用会话安装及迟到回调撤销路径。
     public func signIn(email: String, password: String) async throws {
         let emailBackend = try emailBackend()
-        guard !isSigningIn else { return }
-        generation += 1
-        let operation = generation
-        refreshTask = nil
-        isSigningIn = true
-        defer { if operation == generation { isSigningIn = false } }
-        let response = try await emailBackend.authenticate(email: email, password: password, deviceID: deviceID)
-        try await install(response, operation: operation)
+        try await performAuthentication { operation in
+            let response = try await emailBackend.authenticate(email: email, password: password, deviceID: deviceID)
+            try await install(response, operation: operation)
+        }
     }
 
     /// 注册成功立即安装后端返回的会话，不再要求重复登录。
     public func register(email: String, password: String, code: String, challengeID: String) async throws {
         let emailBackend = try emailBackend()
+        try await performAuthentication { operation in
+            let response = try await emailBackend.register(email: email, password: password, code: code, challengeID: challengeID, deviceID: deviceID)
+            do { try await install(response, operation: operation) }
+            catch { throw AuthRegistrationError(installationError: error) }
+        }
+    }
+
+    private func performAuthentication(_ authenticate: (Int) async throws -> Void) async throws {
         guard !isSigningIn else { return }
+        try Task.checkCancellation()
         generation += 1
         let operation = generation
         refreshTask = nil
         isSigningIn = true
         defer { if operation == generation { isSigningIn = false } }
-        let response = try await emailBackend.register(email: email, password: password, code: code, challengeID: challengeID, deviceID: deviceID)
-        do { try await install(response, operation: operation) }
-        catch { throw AuthRegistrationError(installationError: error) }
+        try await authenticate(operation)
+    }
+
+    private func checkAuthentication(_ operation: Int) throws {
+        guard operation == generation else { throw AuthError.superseded }
+        try Task.checkCancellation()
     }
 
     /// 后端重置成功后清理已撤销的本地凭据；迟到响应不能清掉后续新登录。
@@ -166,6 +183,7 @@ public final class AuthSessionStore {
     /// 保存 refresh 成功后才公开新会话，存储失败不形成不可恢复的半登录状态。
     private func install(_ response: AuthTokenResponse, operation: Int) async throws {
         guard operation == generation else { try await reject(response, error: AuthError.superseded) }
+        if Task.isCancelled { try await reject(response, error: CancellationError()) }
         do { try tokenStore.save(response.refreshToken) }
         catch {
             session = nil
@@ -176,7 +194,9 @@ public final class AuthSessionStore {
 
     /// 已收到新凭据但不能安装时撤销新 access；不取消在途刷新而丢失撤销凭据。
     private func reject(_ response: AuthTokenResponse, error operationError: any Error) async throws -> Never {
-        do { try await backend.logout(accessToken: response.accessToken) }
+        // 清理任务不继承调用方取消，否则 URLSession 会立即取消撤销请求。
+        let revocation = Task { @MainActor in try await backend.logout(accessToken: response.accessToken) }
+        do { try await revocation.value }
         catch { throw AuthCleanupError(operationError: operationError, revocationError: error) }
         throw operationError
     }

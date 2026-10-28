@@ -20,7 +20,8 @@ def machine_paths(monkeypatch, tmp_path):
 
 def test_primary_has_priority(machine_paths):
     primary, dbus = machine_paths
-    primary.write_text("a" * 32 + "\n")
+    # 模拟 Linux 文件的原始字节, 避免 Windows 文本写入将 LF 转成 CRLF。
+    primary.write_bytes(b"a" * 32 + b"\n")
     dbus.write_text("b" * 32)
     assert linux.read_machine_id() == ("a" * 32 + "\n", DeviceSource.LINUX_MACHINE_ID)
 

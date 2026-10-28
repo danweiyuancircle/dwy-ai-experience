@@ -13,7 +13,7 @@ except ModuleNotFoundError as error:
     if error.name != "dwy_device":
         raise
     raise ModuleNotFoundError(
-        "设备能力需要 dwyeapi[device]; 请从私有 Release 安装匹配的 dwy-device-fingerprint wheel。",
+        '设备能力需要 dwyeapi[device]; 请从 PyPI 安装: pip install "dwyeapi[device]"。',
         name="dwy_device",
     ) from None
 

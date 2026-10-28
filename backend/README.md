@@ -22,6 +22,7 @@ pip install dwyeapi
 - `email` — 邮箱规范化（Gmail plus / 点号 / googlemail 折成同一收件箱）+ 常见个人域名白名单（`is_common_email_domain` / `require_common_email_domain`，注册查重必须走 `canonicalize_email`）
 - `device` — 可选 `[device]` 门面，复用 Python 3.9+ 的零运行时依赖设备指纹核心；[安装、契约与原生测试](packages/device-fingerprint/README.md)。仅私有 Release 分发，根导入不强制安装。
 - `providers.email` — 邮件验证码 Provider 工厂(内置 resend;支持业务通过 `register_email_provider` 注入自定义实现；验证码 Redis key 已自动规范化)
+- `dwy-webhooks` — 基于 EAPI 的独立可选包，通用 Resend/ASC/Apple 接收与 Discord 转发；配置、密钥及资源全部由项目注入。[接入与隔离验收](packages/webhooks/README.md)。EAPI 核心不反向导入平台 SDK。
 
 ## Environment (dev / prod)
 

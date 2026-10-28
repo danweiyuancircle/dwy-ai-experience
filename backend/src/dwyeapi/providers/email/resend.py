@@ -3,6 +3,8 @@
 需要 `pip install dwyeapi[email-resend]` 才能使用。
 """
 
+from typing import Literal
+
 import redis.asyncio as aioredis
 
 from dwyeapi.logger import get_logger
@@ -36,13 +38,17 @@ class ResendEmailProvider(EmailProviderBase):
         extra_allow_domains: tuple[str, ...] = (),
         allow_edu: bool = True,
         allow_edu_cn: bool = True,
+        *,
+        subject_en: str = "Verification code",
+        brand_tagline_en: str = "",
+        brand_slogan_en: str = "",
     ) -> None:
         """初始化 Resend Provider。
 
         Args:
             api_key: Resend 控制台颁发的 API Key。
             from_email: 发件邮箱(必须使用 Resend 已验证的域名)。
-            subject: 邮件主题。
+            subject: 中文邮件主题。
             code_ttl: 验证码有效期(秒)。
             code_length: 验证码位数。
             brand_name: 品牌名,影响发件人显示名("brand_name <from_email>")与 HTML/text 模板。
@@ -55,6 +61,9 @@ class ResendEmailProvider(EmailProviderBase):
             extra_allow_domains: 额外放行域名.默认空.
             allow_edu: 是否放行美国 ``.edu``.默认 True.
             allow_edu_cn: 是否放行 ``*.edu.cn``.默认 True.
+            subject_en: 英文邮件主题;未传语言时使用英文。
+            brand_tagline_en: 英文品牌副标语;空串时省略。
+            brand_slogan_en: 英文页脚说明;空串时省略。
 
         Raises:
             ImportError: 未安装 resend 包时抛出,提示用户安装对应 extra。
@@ -72,6 +81,8 @@ class ResendEmailProvider(EmailProviderBase):
             extra_allow_domains=extra_allow_domains,
             allow_edu=allow_edu,
             allow_edu_cn=allow_edu_cn,
+            brand_tagline_en=brand_tagline_en,
+            brand_slogan_en=brand_slogan_en,
         )
         try:
             import resend
@@ -81,15 +92,16 @@ class ResendEmailProvider(EmailProviderBase):
         self._resend = resend
         self._from = f"{brand_name} <{from_email}>" if brand_name else from_email
         self._subject = subject
+        self._subject_en = subject_en
 
-    async def _send(self, target: str, code: str) -> bool:
+    async def _send(self, target: str, code: str, *, language: Literal["zh", "en"] = "en") -> bool:
         """调用 Resend API 发送邮件 -- 同时附 HTML 与 text,优化反垃圾评分。"""
         params = {
             "from": self._from,
             "to": [target],
-            "subject": self._subject,
-            "html": self._render_code_html(code),
-            "text": self._render_code_text(code),
+            "subject": self._subject if language == "zh" else self._subject_en,
+            "html": self._render_code_html(code, language=language),
+            "text": self._render_code_text(code, language=language),
         }
         try:
             resp = await self._resend.Emails.send_async(params)
@@ -113,12 +125,15 @@ def build_resend_provider(settings: EmailSettings) -> ResendEmailProvider:
         api_key=settings.resend.api_key,
         from_email=settings.resend.from_email,
         subject=settings.resend.subject,
+        subject_en=settings.resend.subject_en,
         code_ttl=settings.code_ttl,
         code_length=settings.code_length,
         brand_name=settings.brand_name,
         brand_tagline=settings.brand_tagline,
+        brand_tagline_en=settings.brand_tagline_en,
         brand_url=settings.brand_url,
         brand_slogan=settings.brand_slogan,
+        brand_slogan_en=settings.brand_slogan_en,
         support_email=settings.support_email,
         require_common_domain=settings.require_common_domain,
         extra_allow_domains=settings.extra_allow_domain_list(),

@@ -1,17 +1,18 @@
 # SyncCore 测试用例
 
-当前 51 项 XCTest，使用临时 SQLite 文件、受控远端 transport 与 URLProtocol 响应；不依赖真实账号或生产服务。
+当前 52 项 XCTest，使用临时 SQLite 文件、受控远端 transport 与 URLProtocol 响应；不依赖真实账号或生产服务。
 
 | 测试文件 | 数量 | 重点 |
 |---|---:|---|
-| `ios/Tests/SyncCoreTests/SyncStoreTests.swift` | 23 | 事务保存、磁盘重开、冻结请求、页回滚、冲突、导入、设备恢复、非法数据 |
+| `ios/Tests/SyncCoreTests/SyncStoreTests.swift` | 24 | 事务保存、同步落盘、磁盘重开、冻结请求、页回滚、冲突、导入、设备恢复、非法数据 |
 | `ios/Tests/SyncCoreTests/SyncCoordinatorTests.swift` | 13 | 两端增删改、超时重试、连续编辑、暂停、身份刷新、作用域校验与自动退避 |
 | `ios/Tests/SyncCoreTests/SyncTransportTests.swift` | 14 | HTTP 信封、路径、分页、Int64、限长、脱敏与 scope 绑定 |
 | `ios/Tests/SyncCoreTests/SyncUsageTests.swift` | 1 | 无关 payload 模型共用引擎，不串 kind |
 
-## 存储：23 项
+## 存储：24 项
 
 - 保存与冻结操作在重开库后保持。
+- 同步保存返回前正文与 outbox 已落盘；重开库可读，无效保存不能覆盖已提交正文。
 - 无效保存共同回滚；账号、应用、环境数据库隔离。
 - 上传中编辑不改变冻结请求；旧确认保留新 revision。
 - 未知 kind 导致整页及游标回滚。

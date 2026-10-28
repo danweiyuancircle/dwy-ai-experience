@@ -17,14 +17,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # 固定各系统实际提供的正式构建, 安全维护分支并非都提供Windows/macOS二进制.
+          # 发布验收仅覆盖 Linux 与 macOS，各系统使用实际可用的正式构建。
           - {os: ubuntu-24.04, python: '3.9.25', architecture: x64}
           - {os: ubuntu-24.04, python: '3.11.17', architecture: x64}
           - {os: ubuntu-24.04, python: '3.15.0', architecture: x64}
-          - {os: windows-2025, python: '3.9.13', architecture: x64}
-          - {os: windows-2025, python: '3.11.9', architecture: x64}
-          - {os: windows-2025, python: '3.11.9', architecture: x86}
-          - {os: windows-2025, python: '3.15.0', architecture: x64}
           - {os: macos-15-intel, python: '3.9.25', architecture: x64}
           - {os: macos-15-intel, python: '3.11.9', architecture: x64}
           - {os: macos-15-intel, python: '3.15.0', architecture: x64}
@@ -58,10 +54,6 @@ jobs:
       - name: Verify isolated zero-dependency wheel import
         run: |
           python -m venv wheel-check
-          if [ -x wheel-check/bin/python ]; then
-            wheel_python=wheel-check/bin/python
-          else
-            wheel_python=wheel-check/Scripts/python.exe
-          fi
+          wheel_python=wheel-check/bin/python
           uv pip install --python "$wheel_python" --no-deps dist/*.whl
           "$wheel_python" -I -c "from dwy_device import collect_device; from importlib.metadata import requires; assert all('extra ==' in entry for entry in (requires('dwy-device-fingerprint') or [])); info = collect_device('dwy.wheel.test'); assert info.status.value == 'available'; print(info.status.value, info.source.value)"
