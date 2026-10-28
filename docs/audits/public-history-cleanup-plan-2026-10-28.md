@@ -47,7 +47,7 @@
 
 - SwiftPM/Xcode 的 `Package.resolved` 可能锁定旧提交，标签移动后需重新解析。其他克隆需要迁移到新历史，不能合并旧历史重新带入原值。
 - 依赖提交或标签对象的签名、历史发布记录中的 revision 会与新对象不一致。既有公开 npm/PyPI 包不能被这次 Git 历史清理追溯修改。
-- 已确认 69 个 GitHub Release 中有两份 CLI 附件：`0.6.0` 下的 `create-dwy-0.21.0.tgz`，以及 `0.4.1` 下的 `create-dwy-0.20.0.tgz`。附件内容审查结果需在执行前补充。
+- 已确认 69 个 GitHub Release 中有两份 CLI 附件：`0.6.0` 下的 `create-dwy-0.21.0.tgz`，以及 `0.4.1` 下的 `create-dwy-0.20.0.tgz`。两份附件尚在下载，已收到的压缩数据解码后均命中已知 AWS 密钥值；`0.20.0` 的已收数据还命中 InfluxDB token。因此已确认两份附件也需要处理，但尚未完成原始附件的完整备份与校验。
 - 最新 3 次 Actions run 的日志已抽查，常见密钥格式未命中。两次扩大批量的审查超时，没有留下完整结果，不能宣称已审完 105 次运行。
 - 仅重写 refs 不保证旧对象从 GitHub 缓存消失。完全清除缓存引用可能需要 GitHub Support；这与替换可达历史是不同的验收项。见 [GitHub 敏感数据清理说明](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository)。
 - 本计划不包含删除整个仓库、发布新 npm/PyPI 版本、改变包版本号或向第三方发送消息。
