@@ -1,6 +1,6 @@
 # Apple 登录：各应用独立配置，共享实现
 
-Python 固定版本：`dwy-auth==0.1.1`、`dwyeapi[auth]==0.12.1`。SwiftPM 标签：`0.6.0`，链接 `AuthCore` 与 `AuthAppleIOS`。同时使用 Webhook 时安装 `dwy-webhooks==0.4.1`，避免旧包对 EAPI 的精确版本冲突。
+Python 固定版本：`dwy-auth==0.1.1`、`dwyeapi[auth]==0.12.1`。SwiftPM 标签：`0.6.0`，链接 `AuthCore` 与 `AuthAppleIOS`。同时使用 Webhook 时安装 `dwy-webhooks==0.4.2`，避免旧包对 EAPI 的精确版本冲突。
 
 ```sh
 python3.11 -m venv .venv

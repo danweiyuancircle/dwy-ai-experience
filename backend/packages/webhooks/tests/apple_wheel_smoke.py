@@ -19,9 +19,9 @@ from dwy_webhooks.apple import AppleTransactionDetails, apple_notification_conte
 from dwy_webhooks.config import AppleNotificationApp, AppleNotificationsConfig
 
 
-async def main():
+async def main(expected_version: str):
     """仅在官方 SDK 验签方法边界注入离线对象，其余装配、映射和 HTTP JSON 均真实执行。"""
-    assert importlib.metadata.version("dwy-webhooks") == "0.4.0"
+    assert importlib.metadata.version("dwy-webhooks") == expected_version
     assert Path(sys.modules[AppleTransactionDetails.__module__].__file__).resolve().is_relative_to(
         Path(sys.prefix).resolve()
     )
@@ -90,4 +90,6 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    if len(sys.argv) != 2:
+        raise SystemExit("Usage: apple_wheel_smoke.py EXPECTED_VERSION")
+    asyncio.run(main(sys.argv[1]))
