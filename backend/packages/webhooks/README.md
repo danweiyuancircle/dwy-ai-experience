@@ -1,5 +1,19 @@
 # dwy-webhooks
 
+## Apple 经营日报与周报（0.4.3）
+
+`dwy-webhooks[discord,analytics]==0.4.3` 提供公开的 `dwy_webhooks.analytics`。默认北京时间 `Asia/Shanghai` 每天 08:30，统计三天前的成熟数据，周一附加连续七天周报。
+
+调用项目注入 `AppleAnalyticsConfig`、会话及 `build_analytics_tables(metadata)` 的表定义，再使用 `install_analytics_monitor(app, config, sessions, tables)` 安装。数据库迁移和 engine 生命周期仍由项目拥有；示例见 `backend/packages/webhooks/examples/new_project/analytics.py`。
+
+指标包含官方可取得的首次/重新下载、曝光与页面访问事件次数、USD 估算销售/收益/退款、订阅状态/新增/续费/流失、地区与来源。缺报及未取得的维度不会补零。跨行 Unique Counts 不能用来拼接官方下载转化率；MRR、留存、去重付费用户及付费 cohort 未经验证不计算。
+
+`AppleAnalyticsClient.initialize(app_id)` 显式申请 ONGOING 报表，不在常驻采集时自动升级权限。初次生成需要等待；报告原始统计日独立于通知发送时区。API Bearer 不传给报表下载地址，网络读取与 gzip/TSV 解析均有预算。
+
+运行时使用账号/App 隔离的持久租约，日期快照和 outbox 同事务提交，复用公共 Discord 发送与重试。近七天修正替换旧快照；重启不补发所有历史日报；网络确认丢失仍存在重复送达窗口。可选 `feedback(app_id, date)` 回调提供文字评论计数，不依赖评论模块或 App Cloud。
+
+`ReviewStore.summary(app_id, day)` 返回已采集完整 UTC 创建日的 `review_count`、`low_star_reviews`；无完整基线、未来或已清理日期返回空映射。该摘要不是商店全部星级，不包含正文或昵称。
+
 基于 EAPI 的通用 Webhook 模块。接收 Resend、App Store Connect、Apple Server Notifications V2，并按项目配置转发到 Discord 或外部注入的业务接收函数；也支持主动采集 App Store 文字评论及星级。
 
 ## 安装与依赖

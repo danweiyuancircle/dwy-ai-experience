@@ -6,12 +6,10 @@ from collections.abc import Callable
 from urllib.parse import urljoin, urlsplit
 
 import httpx
-import jwt
-from cryptography.exceptions import UnsupportedAlgorithm
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec
 from pydantic import ValidationError
 
+from .._asc import asc_private_key, asc_token
+from .._asc import serialization as serialization
 from .models import AppleReview, AppleReviewsConfig, ReviewCollectionError
 
 _ORIGIN = "https://api.appstoreconnect.apple.com"
@@ -29,13 +27,8 @@ class AppleReviewClient:
         self._clock = clock
         self._owns_client = client is None
         try:
-            key = serialization.load_pem_private_key(
-                config.private_key.get_secret_value().encode(), password=None,
-            )
-            if not isinstance(key, ec.EllipticCurvePrivateKey) or not isinstance(key.curve, ec.SECP256R1):
-                raise ValueError
-            self._key = key
-        except (ValueError, TypeError, AttributeError, UnsupportedAlgorithm):
+            self._key = asc_private_key(config.private_key)
+        except ValueError:
             raise ReviewCollectionError("review_invalid_credentials") from None
         self._client = client if client is not None else httpx.AsyncClient(
             timeout=20, follow_redirects=False, trust_env=False,
@@ -43,11 +36,8 @@ class AppleReviewClient:
 
     def _token(self) -> str:
         try:
-            issued = int(self._clock())
-            return jwt.encode({"iss": self._config.issuer_id, "iat": issued, "exp": issued + 300,
-                               "aud": "appstoreconnect-v1"}, self._key, algorithm="ES256",
-                              headers={"kid": self._config.key_id, "typ": "JWT"})
-        except (ValueError, TypeError, jwt.PyJWTError):
+            return asc_token(self._config, self._key, self._clock)
+        except ValueError:
             raise ReviewCollectionError("review_invalid_credentials") from None
 
     @staticmethod

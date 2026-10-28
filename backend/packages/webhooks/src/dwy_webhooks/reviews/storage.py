@@ -6,6 +6,7 @@ import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, date, datetime, timedelta
 from uuid import uuid4
 
 from sqlalchemy import (
@@ -20,6 +21,7 @@ from sqlalchemy import (
     case,
     delete,
     false,
+    func,
     select,
     update,
 )
@@ -99,6 +101,31 @@ class ReviewStore:
     def __init__(self, sessions, tables: ReviewTables, *, clock: Callable[[], float] = time.time):
         """会话工厂和三张迁移表必须属于同一数据库，以保证状态与 outbox 原子提交。"""
         self.sessions, self.tables, self.clock = sessions, tables, clock
+
+    async def summary(self, app_id: str, day: date) -> dict[str, int]:
+        """返回已完整覆盖的 UTC 创建日计数；无基线或已清理日期返回空映射。
+
+        Args:
+            app_id: 来源应用 ID，1–128 字符，例如 "1234567890"。
+            day: UTC 评论创建日，例如 date(2026, 10, 25)；不统计商店全部星级。
+        """
+        _app_id(app_id)
+        if type(day) is not date:
+            raise ValueError("Review summary requires a calendar date")
+        start = int(datetime(day.year, day.month, day.day, tzinfo=UTC).timestamp())
+        end = start + int(timedelta(days=1).total_seconds())
+        state, reviews = self.tables.state, self.tables.reviews
+        async with self.sessions() as db:
+            row = (await db.execute(select(state).where(state.c.app_id == app_id))).mappings().first()
+            if (row is None or not row["initialized"] or (row["last_success_at"] or 0) < end
+                    or start < (row["retention_cutoff_at"] or 0)):
+                return {}
+            counts = (await db.execute(select(
+                func.count(), func.sum(case((reviews.c.payload["rating"].as_integer() <= 2, 1), else_=0)),
+            ).where(
+                reviews.c.app_id == app_id, reviews.c.created_at >= start, reviews.c.created_at < end,
+            ))).one()
+        return {"review_count": counts[0], "low_star_reviews": counts[1] or 0}
 
     async def claim(
         self,

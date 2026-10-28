@@ -1,6 +1,6 @@
 [project]
 name = "dwy-webhooks"
-version = "0.4.2"
+version = "0.4.3"
 description = "独立于业务来源的 Webhook 发送、安全边界与失败语义"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
@@ -14,6 +14,8 @@ resend = ["resend==2.49.1"]
 apple = ["app-store-server-library[async]==3.1.2"]
 # 评分轮询直接访问 ASC REST API，不依赖 Apple Server SDK 或其它来源的传递依赖。
 reviews = ["httpx==0.28.1", "PyJWT==2.15.1", "cryptography==50.0.2"]
+# 经营报表与评论使用相同的现有 ASC HTTP/ES256 依赖，安装时彼此独立。
+analytics = ["httpx==0.28.1", "PyJWT==2.15.1", "cryptography==50.0.2"]
 dev = ["pytest==9.0.3", "pytest-asyncio==1.3.0", "httpx==0.28.1", "aiosqlite==0.22.1", "ruff==0.15.12"]
 
 [build-system]
