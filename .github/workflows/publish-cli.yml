@@ -37,7 +37,7 @@ jobs:
       - name: Prepare fixed package managers
         run: npm install --global npm@11.6.1 pnpm@10.19.0
 
-      - name: Verify private source
+      - name: Verify repository access
         working-directory: ${{ github.workspace }}
         env:
           GH_TOKEN: ${{ github.token }}

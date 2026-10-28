@@ -2,7 +2,7 @@
 
 New integrations use `AuthRuntime` with application-owned users and a replaceable `SessionBackend`. See [runtime integration](../../../docs/auth-runtime-integration.md). This implementation is not released yet; install the preview wheels rather than an old package with the same version. The legacy interfaces below remain compatibility-only and require EAPI when used.
 
-Python distribution `dwy-app-auth==0.1.0`, import `dwy_app_auth`. Requires `dwyeapi==0.11.1`. Source remains in a private repository; installable packages are published to public PyPI through `.github/workflows/publish-app-auth.yml`. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
+Python distribution `dwy-app-auth==0.1.0`, import `dwy_app_auth`. Requires `dwyeapi==0.11.1`. Source is available in the public repository; installable packages are published to public PyPI through `.github/workflows/publish-app-auth.yml`. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
 
 User authentication uses the existing Google subject identity, app-scoped SQL tables, 15-minute opaque access tokens, rotating refresh families, device revocation and transactional account deletion. The application owns its engine/session factory, metadata and Alembic history. No migrations are created or run automatically. Google configuration accepts one explicit Web OAuth audience; a missing configuration closes login.
 
