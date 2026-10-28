@@ -6,6 +6,13 @@
 
 ---
 
+## 独立服务器监控工具
+
+`backend/tools/server_monitor.py` 的采集、告警和 Webhook 测试独立运行，不加载 eapi fixtures。
+用例及命令见 `backend/tools/TEST_CASES.md`，运行方式见 `docs/server-monitor.md`。
+
+---
+
 ## device 模块与独立核心
 
 `tests/test_device.py`：3 项门面测试，验证类型和函数复用同一核心、缺 extra 不影响 eapi 基础导入、无关导入错误不被掩盖。
