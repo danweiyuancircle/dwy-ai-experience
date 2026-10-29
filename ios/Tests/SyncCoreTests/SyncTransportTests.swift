@@ -35,6 +35,18 @@ final class SyncTransportTests: XCTestCase, @unchecked Sendable {
         XCTAssertTrue(String(decoding: body, as: UTF8.self).contains("9223372036854775805"))
     }
 
+    func testPushDecodesPermanentItemRejectionWithNoRecordOrCursorAdvance() async throws {
+        let result = SyncPushResult(items: [.init(operationID: operationID, rejectedReason: "write_retired", replayed: true)], cursor: 0)
+        let session = stub(try envelope(result))
+        defer { session.invalidateAndCancel() }
+        let transport = try AppCloudSyncTransport(scope: scope("https://example.com/adbox"), session: session)
+        let mutation = SyncMutation(operationID: operationID, recordID: recordID, baseVersion: 0,
+                                    deleted: false, payload: ["kind": .string("note")])
+        let actual = try await transport.push(mutation, identity: identity)
+        XCTAssertEqual(actual, result)
+        XCTAssertNil(actual.items.first?.record)
+    }
+
     /// 拉取合同使用 items / next_cursor / has_more，游标始终作为 Int64 解码。
     func testPullUsesEnvelopeAndFixedLimit() async throws {
         let page = SyncPullPage(items: [], nextCursor: Int64.max, hasMore: false)

@@ -203,11 +203,22 @@ public actor SyncCoordinator {
                 let result = try await transport.push(mutation, identity: identity)
                 try check(epoch)
                 guard result.items.count == 1, let item = result.items.first,
-                      item.operationID == mutation.operationID, item.record.recordID == mutation.recordID,
-                      item.record.version == mutation.baseVersion + 1 else {
+                      item.operationID == mutation.operationID else {
                     throw SyncError.protocolViolation("上传回执与冻结操作不匹配")
                 }
-                try await store.acknowledge(item, execution: execution)
+                switch item.status {
+                case .applied:
+                    guard let record = item.record, item.reasonCode == nil,
+                          record.recordID == mutation.recordID, record.version == mutation.baseVersion + 1 else {
+                        throw SyncError.protocolViolation("上传回执与冻结操作不匹配")
+                    }
+                    try await store.acknowledge(item, execution: execution)
+                case .rejected:
+                    guard item.record == nil, item.reasonCode == "write_retired" else {
+                        throw SyncError.protocolViolation("invalid permanent rejection")
+                    }
+                    try await store.reject(operationID: item.operationID, reason: "write_retired", execution: execution)
+                }
                 try check(epoch)
             } catch let error as SyncServerError where error.code == "version_conflict" {
                 try check(epoch)

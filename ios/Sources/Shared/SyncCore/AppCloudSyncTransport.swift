@@ -36,11 +36,18 @@ public struct AppCloudSyncTransport: SyncTransport {
         guard body.count <= SyncWireValidation.maxPayloadBytes + 1_024 else { throw SyncTransportError.invalidRequest }
         let result: SyncPushResult = try await request("push", identity: identity, body: body)
         guard result.cursor >= 0, result.items.count == 1, let item = result.items.first,
-              item.operationID == mutation.operationID, item.record.recordID == mutation.recordID,
-              SyncWireValidation.validRecord(item.record), item.record.cursor <= result.cursor,
-              item.record.version == mutation.baseVersion + 1,
-              item.record.deleted == mutation.deleted, item.record.payload == mutation.payload
-        else { throw SyncTransportError.invalidResponse }
+              item.operationID == mutation.operationID else { throw SyncTransportError.invalidResponse }
+        switch item.status {
+        case .applied:
+            guard let record = item.record, item.reasonCode == nil, record.recordID == mutation.recordID,
+                  SyncWireValidation.validRecord(record), record.cursor <= result.cursor,
+                  record.version == mutation.baseVersion + 1,
+                  record.deleted == mutation.deleted, record.payload == mutation.payload else {
+                throw SyncTransportError.invalidResponse
+            }
+        case .rejected:
+            guard item.record == nil, item.reasonCode == "write_retired" else { throw SyncTransportError.invalidResponse }
+        }
         return result
     }
 

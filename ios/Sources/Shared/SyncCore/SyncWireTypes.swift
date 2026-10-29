@@ -62,7 +62,7 @@ public struct SyncRecord: Codable, Equatable, Sendable {
     public let version: Int64
     public let cursor: Int64
     public let deleted: Bool
-    /// 墓碑必须为 nil；非墓碑必须包含已注册的 kind。
+    /// 墓碑必须为 nil；非墓碑必须包含有界 kind，未知业务类型由存储隔离。
     public let payload: [String: SyncJSON]?
 
     public init(recordID: UUID, version: Int64, cursor: Int64, deleted: Bool, payload: [String: SyncJSON]?) {
@@ -117,13 +117,33 @@ public struct SyncMutation: Codable, Equatable, Sendable {
 /// 单操作回执；replayed 表示服务端返回相同 operationID 的历史结果。
 public struct SyncMutationResult: Codable, Equatable, Sendable {
     public let operationID: UUID
-    public let record: SyncRecord
+    public let record: SyncRecord?
     public let replayed: Bool
+    public let status: SyncMutationStatus
+    public let reasonCode: String?
     public init(operationID: UUID, record: SyncRecord, replayed: Bool) {
         self.operationID = operationID; self.record = record; self.replayed = replayed
+        self.status = .applied; self.reasonCode = nil
     }
-    enum CodingKeys: String, CodingKey { case operationID = "operation_id", record, replayed }
+    /// 永久拒绝不携带记录快照，也不应清理未知结果的冻结请求。
+    public init(operationID: UUID, rejectedReason: String, replayed: Bool) {
+        self.operationID = operationID; self.record = nil; self.replayed = replayed
+        self.status = .rejected; self.reasonCode = rejectedReason
+    }
+    enum CodingKeys: String, CodingKey { case operationID = "operation_id", record, replayed, status, reasonCode = "reason_code" }
+
+    public init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        operationID = try container.decode(UUID.self, forKey: .operationID)
+        record = try container.decodeIfPresent(SyncRecord.self, forKey: .record)
+        replayed = try container.decode(Bool.self, forKey: .replayed)
+        status = try container.decode(SyncMutationStatus.self, forKey: .status)
+        reasonCode = try container.decodeIfPresent(String.self, forKey: .reasonCode)
+    }
 }
+
+/// 单项结果只允许成功或永久拒绝；版本冲突沿用409的当前快照合同。
+public enum SyncMutationStatus: String, Codable, Sendable { case applied, rejected }
 
 /// 上传结果中的 cursor 仅供参考，禁止直接替换本地 pullCursor。
 public struct SyncPushResult: Codable, Equatable, Sendable {

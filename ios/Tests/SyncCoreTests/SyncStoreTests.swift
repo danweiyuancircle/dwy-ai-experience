@@ -83,18 +83,15 @@ final class SyncStoreTests: XCTestCase, @unchecked Sendable {
         let cursor = try await store.pullCursor()
         XCTAssertEqual(cursor, 0)
     }
-    func testUnknownKindRollsBackEntirePullPageAndCursor() async throws {
+    func testUnknownKindIsRetainedWithoutBlockingPullPageAndCursor() async throws {
         let store = try SyncStore(directory: directory(), scope: scope(), schemas: [schema.erased])
         let id = UUID()
         let bad = SyncRecord(recordID: UUID(), version: 1, cursor: 2, deleted: false, payload: ["kind": .string("unknown")])
-        do {
-            try await store.apply(SyncPullPage(items: [record(id, "one"), bad], nextCursor: 2, hasMore: false))
-            XCTFail("未知模型整页拒绝")
-        } catch {}
-        let missing = try await store.document(id: id, using: schema)
+        try await store.apply(SyncPullPage(items: [record(id, "one"), bad], nextCursor: 2, hasMore: false))
+        let saved = try await store.document(id: id, using: schema)
         let cursor = try await store.pullCursor()
-        XCTAssertNil(missing)
-        XCTAssertEqual(cursor, 0)
+        XCTAssertEqual(saved?.payload.title, "one")
+        XCTAssertEqual(cursor, 2)
     }
     func testPullMatchingFrozenPayloadRetainsReceiptTracking() async throws {
         let store = try SyncStore(directory: directory(), scope: scope(), schemas: [schema.erased])
@@ -370,7 +367,7 @@ final class SyncStoreTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(retry, first)
     }
 
-    func testConflictCannotChangeRegisteredDocumentKindOrReleaseFrozenOperation() async throws {
+    func testConflictKindChangeSuspendsFrozenOperationWithoutBlockingAnotherRecord() async throws {
         let otherSchema = SyncSchema<Note>(kind: "task", maxPayloadBytes: 1024) { _ in }
         let store = try SyncStore(directory: directory(), scope: scope(), schemas: [schema.erased, otherSchema.erased])
         let id = UUID(), device = UUID()
@@ -379,13 +376,13 @@ final class SyncStoreTests: XCTestCase, @unchecked Sendable {
         let first = try XCTUnwrap(prepared)
         let foreign = SyncRecord(recordID: id, version: 1, cursor: 1, deleted: false,
                                  payload: ["kind": .string("task"), "title": .string("other kind")])
-        do {
-            try await store.recordConflict(operationID: first.operationID, current: foreign)
-            XCTFail("同UUID冲突不能改变kind")
-        } catch {}
+        try await store.recordConflict(operationID: first.operationID, current: foreign)
         let retry = try await store.prepareNextMutation(deviceID: device)
-        XCTAssertEqual(retry, first)
-        let saved = try await store.document(id: id, using: schema)
-        XCTAssertEqual(saved?.payload.title, "note")
+        XCTAssertNil(retry)
+        XCTAssertEqual(try store.recordStateLocally(id: id), .unsupported)
+        let other = UUID()
+        try store.saveLocally(.init(id: other, payload: Note(title: "independent")), using: schema)
+        let independent = try await store.prepareNextMutation(deviceID: device)
+        XCTAssertEqual(independent?.recordID, other)
     }
 }

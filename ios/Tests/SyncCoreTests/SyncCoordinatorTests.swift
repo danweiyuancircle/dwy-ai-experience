@@ -49,6 +49,23 @@ final class SyncCoordinatorTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(remote?.deleted, true)
     }
 
+    func testPermanentItemRejectionDoesNotFailCycleOrRetryPausedOperation() async throws {
+        let server = CoordinatorTestServer(), store = try store(userID: userID)
+        let sync = try coordinator(store, server)
+        let retired = UUID(uuidString: "00000000-0000-4000-8000-000000000001")!, other = UUID()
+        await server.retire(retired)
+        try store.saveLocally(.init(id: retired, payload: Note(text: "retired")), using: schema)
+        try store.saveLocally(.init(id: other, payload: Note(text: "accepted")), using: schema)
+        try await sync.synchronize()
+        try await sync.synchronize()
+        let accepted = await server.record(other), attempts = await server.pushAttemptCount()
+        XCTAssertEqual(accepted?.payload?["text"], .string("accepted"))
+        XCTAssertEqual(attempts, 2)
+        let diagnostics = try await store.diagnostics()
+        XCTAssertEqual(diagnostics.first?.recordID, retired)
+        XCTAssertEqual(diagnostics.first?.reason, "write_retired")
+    }
+
     func testLostResponseReusesFrozenOperationAfterReopeningStore() async throws {
         let server = CoordinatorTestServer()
         await server.dropNextResponse()
@@ -272,6 +289,7 @@ private actor CoordinatorTestServer: SyncTransport {
     private var rejection: SyncServerError?
     private var freshTokenRequired = false
     private var pushAttempts = 0
+    private var retired: UUID?
 
     init(scope: SyncScope = SyncScope(backendURL: URL(string: "https://example.com/adbox")!, appID: "adbox", userID: UUID(uuidString: "11111111-1111-4111-8111-111111111111")!)) {
         self.scope = scope
@@ -283,6 +301,7 @@ private actor CoordinatorTestServer: SyncTransport {
         rejection = SyncServerError(statusCode: status, code: code, message: "controlled rejection", operationID: nil, current: nil, retryAfter: retryAfter)
     }
     func requireFreshToken() { freshTokenRequired = true }
+    func retire(_ recordID: UUID) { retired = recordID }
     func record(_ id: UUID) -> SyncRecord? { records[id] }
     func receiptCount() -> Int { receipts.count }
     func pushAttemptCount() -> Int { pushAttempts }
@@ -290,8 +309,11 @@ private actor CoordinatorTestServer: SyncTransport {
     func push(_ mutation: SyncMutation, identity: SyncIdentity) async throws -> SyncPushResult {
         pushAttempts += 1
         if let rejection { throw rejection }
+        if retired == mutation.recordID {
+            return SyncPushResult(items: [.init(operationID: mutation.operationID, rejectedReason: "write_retired", replayed: false)], cursor: cursor)
+        }
         if let receipt = receipts[mutation.operationID] {
-            return SyncPushResult(items: [SyncMutationResult(operationID: receipt.operationID, record: receipt.record, replayed: true)], cursor: cursor)
+            return SyncPushResult(items: [SyncMutationResult(operationID: receipt.operationID, record: receipt.record!, replayed: true)], cursor: cursor)
         }
         guard (records[mutation.recordID]?.version ?? 0) == mutation.baseVersion else {
             throw SyncServerError(statusCode: 409, code: "version_conflict", message: "controlled conflict", operationID: mutation.operationID, current: records[mutation.recordID])

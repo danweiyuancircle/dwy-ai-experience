@@ -20,6 +20,9 @@ public actor SyncStore {
         for schema in schemas {
             guard SyncWireValidation.validKind(schema.kind),
                   schema.maxPayloadBytes > 0, schema.maxPayloadBytes <= SyncWireValidation.maxPayloadBytes,
+                  schema.managedFields?.contains("kind") != true,
+                  schema.identityFields.contains("kind") == false,
+                  schema.managedFields?.isDisjoint(with: schema.identityFields) != false,
                   registry[schema.kind] == nil else {
                 throw SyncError.invalidConfiguration("invalid or duplicate schema")
             }
@@ -30,7 +33,10 @@ public actor SyncStore {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         let encodedScope = try Self.encode(scope)
         let hash = SHA256.hash(data: encodedScope).map { String(format: "%02x", $0) }.joined()
-        database = try DatabaseQueue(path: directory.appendingPathComponent("sync-\(hash).sqlite").path)
+        var configuration = Configuration()
+        // 账号恢复期间新旧连接会短暂重叠，等待有界本地事务，不能把正常锁竞争当作丢盘失败。
+        configuration.busyMode = .timeout(1)
+        database = try DatabaseQueue(path: directory.appendingPathComponent("sync-\(hash).sqlite").path, configuration: configuration)
         var migrator = DatabaseMigrator()
         migrator.registerMigration("sync_v1") { db in
             // 文档、草稿、冻结请求和冲突共同编码在同一行，避免部分更新导致队列丢失。
@@ -61,15 +67,76 @@ public actor SyncStore {
     /// 只执行有界本地数据库操作；网络与观察者通知仍异步进行，不能在 schema 校验内访问 UI。
     public nonisolated func saveLocally<P>(_ document: SyncDocument<P>, using schema: SyncSchema<P>) throws {
         let payload = try validatedPayload(document.payload, schema: schema)
+        try schema.validateRecord(document.id, document.payload)
         try transaction { db in
             var stored = try read(document.id, db: db) ?? StoredDocument(id: document.id, kind: schema.kind)
             guard stored.kind == schema.kind || stored.kind.isEmpty else { throw SyncError.invalidPayload("record kind cannot change") }
+            guard !isUnsupported(stored) else { throw SyncError.unsupportedRecord }
+            let merged = try merge(payload, into: stored.payload ?? stored.lastPayload, schema: schema.erased)
+            try validatePayload(merged, id: document.id)
             stored.kind = schema.kind
-            stored.payload = payload
+            stored.payload = merged
             stored.deleted = false
             stored.localRevision += 1
             stored.dirty = true
+            stored.initialization = false
+            stored.rebaseAttempts = 0
+            if stored.frozen == nil, stored.conflictReason == "version_conflict",
+               schema.conflictPolicy == .localIntent, let remote = stored.remote {
+                reconcile(remote, with: &stored)
+            }
             try write(stored, db: db)
+        }
+    }
+
+    /// 首拉完成后才可将本地初值条件创建；已有记录、墓碑和未识别记录都不会覆盖。
+    @discardableResult
+    public nonisolated func initializeLocally<P>(_ document: SyncDocument<P>, using schema: SyncSchema<P>) throws -> Bool {
+        let payload = try validatedPayload(document.payload, schema: schema)
+        try schema.validateRecord(document.id, document.payload)
+        try validatePayload(payload, id: document.id)
+        var created = false
+        try transaction { db in
+            guard try Self.readMetadata(db).initialPullCompleted else { throw SyncError.importRequiresInitialPull }
+            guard try read(document.id, db: db) == nil else { return }
+            var stored = StoredDocument(id: document.id, kind: schema.kind)
+            stored.payload = payload
+            stored.localRevision = 1
+            stored.dirty = true
+            stored.initialization = true
+            try write(stored, db: db)
+            created = true
+        }
+        return created
+    }
+
+    /// 宿主用此状态决定默认值与UI降级，不能以 typed document 的 nil 推断真正缺失。
+    public nonisolated func recordStateLocally(id: UUID) throws -> SyncRecordState {
+        try database.read { db in
+            guard let stored = try read(id, db: db) else { return .missing }
+            if isUnsupported(stored) { return .unsupported }
+            return stored.deleted ? .deleted : .available
+        }
+    }
+
+    /// 本地首拉标记与游标同事务持久化，不依赖当前网络状态。
+    public nonisolated func initialPullCompletedLocally() throws -> Bool {
+        try database.read { try Self.readMetadata($0).initialPullCompleted }
+    }
+
+    /// 每次最多返回100项安全诊断；原始正文仍只保留在账号库中。
+    public func diagnostics(limit: Int = 100) throws -> [SyncDiagnostic] {
+        guard (1...100).contains(limit) else { throw SyncError.invalidPayload("invalid diagnostics limit") }
+        return try database.read { db in
+            var result: [SyncDiagnostic] = []
+            let rows = try Row.fetchCursor(db, sql: "SELECT body FROM documents ORDER BY id")
+            while let row = try rows.next(), result.count < limit {
+                let stored = try decodeStored(row["body"])
+                if let reason = stored.pauseReason ?? unsupportedReason(stored) ?? stored.conflictReason {
+                    result.append(SyncDiagnostic(recordID: stored.id, kind: stored.kind, reason: reason))
+                }
+            }
+            return result
         }
     }
 
@@ -82,7 +149,9 @@ public actor SyncStore {
     public nonisolated func documentLocally<P>(id: UUID, using schema: SyncSchema<P>) throws -> SyncDocument<P>? {
         try registered(schema)
         return try database.read { db in
-            guard let stored = try read(id, db: db), !stored.deleted else { return nil }
+            guard let stored = try read(id, db: db) else { return nil }
+            guard !isUnsupported(stored) else { throw SyncError.unsupportedRecord }
+            guard !stored.deleted else { return nil }
             return try typed(stored, schema: schema)
         }
     }
@@ -94,9 +163,16 @@ public actor SyncStore {
             throw SyncError.invalidPayload("invalid pagination")
         }
         return try database.read { db in
-            try Data.fetchAll(db, sql: "SELECT body FROM documents WHERE kind = ? AND deleted = 0 ORDER BY id LIMIT ? OFFSET ?", arguments: [schema.kind, limit, offset]).map {
-                try typed(decodeStored($0), schema: schema)
+            var result: [SyncDocument<P>] = []
+            var skipped = 0
+            let rows = try Row.fetchCursor(db, sql: "SELECT body FROM documents WHERE kind = ? AND deleted = 0 ORDER BY id", arguments: [schema.kind])
+            while let row = try rows.next(), result.count < limit {
+                let stored = try decodeStored(row["body"])
+                guard !isUnsupported(stored) else { continue }
+                if skipped < offset { skipped += 1; continue }
+                result.append(try typed(stored, schema: schema))
             }
+            return result
         }
     }
 
@@ -104,10 +180,13 @@ public actor SyncStore {
     public func delete(id: UUID) throws {
         try transaction { db in
             guard var stored = try read(id, db: db), !stored.deleted else { return }
+            guard !isUnsupported(stored) else { throw SyncError.unsupportedRecord }
             stored.payload = nil
             stored.deleted = true
             stored.localRevision += 1
             stored.dirty = true
+            stored.initialization = false
+            stored.rebaseAttempts = 0
             try write(stored, db: db)
         }
     }
@@ -140,12 +219,18 @@ public actor SyncStore {
         try transaction { db in
             var stored = try conflicted(recordID, db: db)
             let remote = stored.remote
+            let unsupported = isUnsupported(stored)
             stored.baseline = remote
             stored.remote = nil
             stored.conflictReason = nil
             stored.localRevision += 1
             switch resolution {
             case .keepLocal:
+                guard !unsupported else { throw SyncError.unsupportedRecord }
+                if let payload = stored.payload, let schema = schemas[stored.kind] {
+                    stored.payload = try merge(payload, into: remote?.payload ?? stored.lastPayload, schema: schema)
+                    try validatePayload(stored.payload!, id: stored.id)
+                }
                 stored.dirty = true
             case .useRemote:
                 stored.payload = remote?.payload
@@ -162,10 +247,13 @@ public actor SyncStore {
         try transaction { db in
             var stored = try conflicted(recordID, db: db)
             guard stored.kind == schema.kind else { throw SyncError.invalidPayload("record kind mismatch") }
+            guard !isUnsupported(stored) else { throw SyncError.unsupportedRecord }
             stored.baseline = stored.remote
+            let merged = try merge(validated, into: stored.remote?.payload ?? stored.lastPayload, schema: schema.erased)
+            try validatePayload(merged, id: recordID)
             stored.remote = nil
             stored.conflictReason = nil
-            stored.payload = validated
+            stored.payload = merged
             stored.deleted = false
             stored.localRevision += 1
             stored.dirty = true
@@ -176,7 +264,11 @@ public actor SyncStore {
     /// 宿主明确选择后导入；收据与目标写入同事务，重复调用不覆盖后续编辑。
     public func importDocuments<P>(_ documents: [SyncDocument<P>], using schema: SyncSchema<P>, importID: UUID) throws {
         guard documents.count <= 100 else { throw SyncError.invalidPayload("import batch exceeds 100") }
-        let validated = try documents.map { ($0.id, try validatedPayload($0.payload, schema: schema)) }
+        let validated = try documents.map { document in
+            let payload = try validatedPayload(document.payload, schema: schema)
+            try validatePayload(payload, id: document.id)
+            return (document.id, payload)
+        }
         guard Set(documents.map(\.id)).count == documents.count else { throw SyncError.invalidPayload("duplicate import UUID") }
         try transaction { db in
             if try Bool.fetchOne(db, sql: "SELECT EXISTS(SELECT 1 FROM imports WHERE id = ?)", arguments: [importID.uuidString]) == true { return }
@@ -185,13 +277,15 @@ public actor SyncStore {
             for (id, payload) in validated {
                 if var stored = try read(id, db: db) {
                     guard stored.kind == schema.kind || stored.kind.isEmpty else { throw SyncError.invalidPayload("import kind mismatch") }
-                    if stored.payload == payload && !stored.deleted { continue }
+                    let merged = try merge(payload, into: stored.payload ?? stored.lastPayload, schema: schema.erased)
+                    try validatePayload(merged, id: id)
+                    if stored.payload == merged && !stored.deleted { continue }
                     // 导入必须在初次拉取后显式执行，不能替换正在上传的本地请求。
                     guard stored.frozen == nil, !stored.dirty, stored.conflictReason == nil else {
                         throw SyncError.invalidPayload("import target has local changes")
                     }
                     stored.remote = stored.baseline
-                    stored.payload = payload
+                    stored.payload = merged
                     stored.kind = schema.kind
                     stored.deleted = false
                     stored.localRevision += 1
@@ -212,7 +306,7 @@ public actor SyncStore {
 
     func pullCursor() throws -> Int64 { try database.read { try Self.readMetadata($0).pullCursor } }
 
-    /// 整页校验、合并与游标推进共享事务；任何坏记录均回滚全页。
+    /// 外层损坏回滚整页；业务不可解释的原文保留，不能阻断其他记录与游标。
     func apply(_ page: SyncPullPage, execution: SyncExecutionLease? = nil) throws {
         try withExecution(execution) {
             guard page.items.count <= 100, page.nextCursor >= 0 else { throw SyncError.protocolViolation("invalid pull page") }
@@ -228,11 +322,12 @@ public actor SyncStore {
                     }
                     previous = record.cursor
                     var stored = try read(record.recordID, db: db) ?? StoredDocument(id: record.recordID, kind: kind(record.payload) ?? "")
-                    try validateKind(record, for: stored)
-                    if !record.deleted { stored.kind = kind(record.payload)! }
                     let knownVersion = max(stored.baseline?.version ?? 0, stored.remote?.version ?? 0)
                     if record.version > knownVersion {
-                        if stored.frozen != nil || stored.conflictReason == "device_identity_changed" {
+                        if identityChanged(record, for: stored) {
+                            stored.remote = record
+                            stored.projectionIssue = "record_identity_changed"
+                        } else if stored.frozen != nil || stored.conflictReason == "device_identity_changed" {
                             // 未知结果等幂等回执；设备恢复隔离只能由用户显式解除。
                             stored.remote = record
                         } else if stored.dirty {
@@ -243,7 +338,9 @@ public actor SyncStore {
                         try write(stored, db: db)
                     }
                 }
-                guard !page.hasMore || page.nextCursor > metadata.pullCursor else { throw SyncError.protocolViolation("non-progressing page") }
+                guard !page.hasMore || (!page.items.isEmpty && page.nextCursor == previous && page.nextCursor > metadata.pullCursor) else {
+                    throw SyncError.protocolViolation("invalid intermediate page cursor")
+                }
                 metadata.pullCursor = page.nextCursor
                 if !page.hasMore { metadata.initialPullCompleted = true }
                 try Self.writeMetadata(metadata, db: db)
@@ -268,20 +365,24 @@ public actor SyncStore {
         return try withExecution(execution) {
             try bindDevice(deviceID)
             return try database.write { db in
-                let data = try Data.fetchOne(db, sql: "SELECT body FROM documents WHERE pending = 1 AND conflicted = 0 ORDER BY id LIMIT 1")
-                guard let data else { return nil }
-                var stored = try decodeStored(data)
-                if let frozen = stored.frozen {
-                    guard frozen.deviceID == deviceID else { throw SyncError.identityChanged }
-                    return frozen.mutation
+                let rows = try Row.fetchCursor(db, sql: "SELECT body FROM documents WHERE pending = 1 AND conflicted = 0 ORDER BY id")
+                while let row = try rows.next() {
+                    var stored = try decodeStored(row["body"])
+                    guard eligible(stored) else { continue }
+                    if let frozen = stored.frozen {
+                        guard frozen.deviceID == deviceID else { throw SyncError.identityChanged }
+                        return frozen.mutation
+                    }
+                    let baseVersion = stored.baseline?.version ?? 0
+                    guard baseVersion < Int64.max else { throw SyncError.protocolViolation("record version exhausted") }
+                    let mutation = SyncMutation(operationID: UUID(), recordID: stored.id, baseVersion: baseVersion,
+                                                deleted: stored.deleted, payload: stored.payload)
+                    stored.frozen = Frozen(mutation: mutation, deviceID: deviceID, localRevision: stored.localRevision,
+                                           initialization: stored.initialization)
+                    try write(stored, db: db)
+                    return mutation
                 }
-                let baseVersion = stored.baseline?.version ?? 0
-                guard baseVersion < Int64.max else { throw SyncError.protocolViolation("record version exhausted") }
-                let mutation = SyncMutation(operationID: UUID(), recordID: stored.id, baseVersion: baseVersion,
-                                            deleted: stored.deleted, payload: stored.payload)
-                stored.frozen = Frozen(mutation: mutation, deviceID: deviceID, localRevision: stored.localRevision)
-                try write(stored, db: db)
-                return mutation
+                return nil
             }
         }
     }
@@ -289,26 +390,29 @@ public actor SyncStore {
     /// 回执只清理对应冻结 revision；历史幂等快照不能覆盖更高版本的远端候选。
     func acknowledge(_ result: SyncMutationResult, execution: SyncExecutionLease? = nil) throws {
         try withExecution(execution) {
-            try validateRecord(result.record)
+            guard let record = result.record, result.status == .applied else {
+                throw SyncError.protocolViolation("acknowledgment has no applied record")
+            }
+            try validateRecord(record)
             try transaction { db in
-                guard var stored = try read(result.record.recordID, db: db), let frozen = stored.frozen,
+                guard var stored = try read(record.recordID, db: db), let frozen = stored.frozen,
                       frozen.mutation.operationID == result.operationID else { throw SyncError.protocolViolation("unmatched acknowledgment") }
-                try validateKind(result.record, for: stored)
-                guard result.record.version > frozen.mutation.baseVersion,
-                      result.record.deleted == frozen.mutation.deleted, result.record.payload == frozen.mutation.payload else {
+                try validateKind(record, for: stored)
+                guard record.version > frozen.mutation.baseVersion,
+                      record.deleted == frozen.mutation.deleted, record.payload == frozen.mutation.payload else {
                     throw SyncError.protocolViolation("acknowledgment differs from frozen mutation")
                 }
                 let remote = stored.remote
                 stored.frozen = nil
                 stored.remote = nil
                 stored.conflictReason = nil
-                stored.baseline = result.record
+                stored.baseline = record
                 if stored.localRevision == frozen.localRevision {
-                    adopt(remote.flatMap { $0.version > result.record.version ? $0 : nil } ?? result.record, into: &stored)
+                    adopt(remote.flatMap { $0.version > record.version ? $0 : nil } ?? record, into: &stored)
                 } else {
                     stored.dirty = true
-                    if let remote, remote.version > result.record.version { reconcile(remote, with: &stored) }
-                    else if sameContent(stored, result.record) { stored.dirty = false }
+                    if let remote, remote.version > record.version { reconcile(remote, with: &stored) }
+                    else if sameContent(stored, record) { stored.dirty = false }
                 }
                 try write(stored, db: db)
             }
@@ -325,16 +429,40 @@ public actor SyncStore {
                     throw SyncError.protocolViolation("unmatched conflict")
                 }
                 if let current, current.recordID != stored.id { throw SyncError.protocolViolation("conflict record mismatch") }
-                if let current { try validateKind(current, for: stored) }
+                if let current, identityChanged(current, for: stored) {
+                    stored.remote = current
+                    stored.projectionIssue = "record_identity_changed"
+                    try write(stored, db: db)
+                    return
+                }
                 let remote = [current, stored.remote].compactMap { $0 }.max { $0.version < $1.version }
+                let initialization = stored.frozen?.initialization == true && stored.frozen?.localRevision == stored.localRevision
                 stored.frozen = nil
-                if let remote, sameContent(stored, remote) {
+                if initialization, let remote {
                     adopt(remote, into: &stored)
+                } else if let remote, sameContent(stored, remote) {
+                    adopt(remote, into: &stored)
+                } else if let remote, rebase(remote, with: &stored) {
+                    // 新操作使用最新基线，原冻结请求永远不变。
                 } else {
                     stored.remote = remote
                     stored.conflictReason = "version_conflict"
                     stored.dirty = true
                 }
+                try write(stored, db: db)
+            }
+        }
+    }
+
+    /// 永久逐项拒绝只暂停匹配的冻结操作，保留原operation与正文用于诊断。
+    func reject(operationID: UUID, reason: String, execution: SyncExecutionLease? = nil) throws {
+        try withExecution(execution) {
+            try transaction { db in
+                let rows = try Data.fetchAll(db, sql: "SELECT body FROM documents WHERE pending = 1")
+                guard var stored = try rows.map(decodeStored).first(where: { $0.frozen?.mutation.operationID == operationID }) else {
+                    throw SyncError.protocolViolation("unmatched rejection")
+                }
+                stored.pauseReason = reason
                 try write(stored, db: db)
             }
         }
@@ -363,12 +491,7 @@ public actor SyncStore {
     }
 
     func snapshot() throws -> SyncStoreSnapshot {
-        try database.read { db in
-            SyncStoreSnapshot(
-                pendingCount: try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE pending = 1 AND conflicted = 0")!,
-                conflictCount: try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE conflicted = 1")!,
-                changeSequence: try Self.readMetadata(db).changeSequence)
-        }
+        try database.read { try snapshot(db: $0) }
     }
 
     /// 许可锁覆盖整个同步提交与通知；pause 失效许可后，排队中的旧回调不能落盘。
@@ -385,10 +508,7 @@ public actor SyncStore {
             var metadata = try Self.readMetadata(db)
             metadata.changeSequence += 1
             try Self.writeMetadata(metadata, db: db)
-            return SyncStoreSnapshot(
-                pendingCount: try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE pending = 1 AND conflicted = 0")!,
-                conflictCount: try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE conflicted = 1")!,
-                changeSequence: metadata.changeSequence)
+            return try snapshot(db: db)
         }
         Task { await publish(value) }
     }
@@ -399,9 +519,20 @@ public actor SyncStore {
         for observer in observers.values { observer.yield(value) }
     }
 
+    private nonisolated func snapshot(db: Database) throws -> SyncStoreSnapshot {
+        let rows = try Data.fetchAll(db, sql: "SELECT body FROM documents WHERE pending = 1 AND conflicted = 0")
+        let pending = try rows.reduce(0) { count, data in count + (eligible(try decodeStored(data)) ? 1 : 0) }
+        return SyncStoreSnapshot(pendingCount: pending,
+                                 conflictCount: try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE conflicted = 1")!,
+                                 changeSequence: try Self.readMetadata(db).changeSequence)
+    }
+
     private nonisolated func registered<P>(_ schema: SyncSchema<P>) throws {
         guard let registered = schemas[schema.kind] else { throw SyncError.unknownKind(schema.kind) }
-        guard registered.maxPayloadBytes == schema.maxPayloadBytes else { throw SyncError.invalidConfiguration("schema configuration differs from registration") }
+        guard registered.maxPayloadBytes == schema.maxPayloadBytes,
+              registered.managedFields == schema.managedFields,
+              registered.identityFields == schema.identityFields,
+              registered.conflictPolicy == schema.conflictPolicy else { throw SyncError.invalidConfiguration("schema configuration differs from registration") }
     }
 
     private nonisolated func validatedPayload<P>(_ payload: P, schema: SyncSchema<P>) throws -> [String: SyncJSON] {
@@ -412,11 +543,14 @@ public actor SyncStore {
             throw SyncError.invalidPayload("payload must be an object without reserved kind")
         }
         object["kind"] = .string(schema.kind)
-        try validatePayload(object)
+        guard try Self.encode(object).count <= schema.maxPayloadBytes,
+              SyncWireValidation.validPayload(object, deleted: false) else {
+            throw SyncError.invalidPayload("invalid JSON or payload byte limit")
+        }
         return object
     }
 
-    private nonisolated func validatePayload(_ payload: [String: SyncJSON]) throws {
+    private nonisolated func validatePayload(_ payload: [String: SyncJSON], id: UUID) throws {
         guard SyncWireValidation.validPayload(payload, deleted: false) else {
             throw SyncError.invalidPayload("invalid JSON or kind boundary")
         }
@@ -427,14 +561,13 @@ public actor SyncStore {
         guard data.count <= schema.maxPayloadBytes else { throw SyncError.invalidPayload("payload byte limit exceeded") }
         var business = payload
         business.removeValue(forKey: "kind")
-        try schema.validateData(Self.encode(business))
+        try schema.validateData(id, Self.encode(business))
     }
 
     private nonisolated func validateRecord(_ record: SyncRecord) throws {
         guard SyncWireValidation.validRecord(record) else {
             throw SyncError.protocolViolation("invalid record metadata")
         }
-        if let payload = record.payload { try validatePayload(payload) }
     }
 
     /// 墓碑不带 kind；其他候选不得利用另一个已注册模型改变同一 UUID 的类型。
@@ -446,7 +579,8 @@ public actor SyncStore {
 
     private nonisolated func typed<P>(_ stored: StoredDocument, schema: SyncSchema<P>) throws -> SyncDocument<P> {
         guard stored.kind == schema.kind, let payload = stored.payload else { throw SyncError.invalidPayload("stored kind or payload mismatch") }
-        try validatePayload(payload)
+        guard !isUnsupported(stored) else { throw SyncError.unsupportedRecord }
+        try validatePayload(payload, id: stored.id)
         var business = payload
         business.removeValue(forKey: "kind")
         return SyncDocument(id: stored.id, payload: try JSONDecoder().decode(P.self, from: Self.encode(business)))
@@ -466,19 +600,25 @@ public actor SyncStore {
         guard stored.deleted == (stored.payload == nil) else {
             throw SyncError.invalidPayload("stored tombstone and payload disagree")
         }
-        if let payload = stored.payload { try validatePayload(payload) }
+        if let payload = stored.payload, !SyncWireValidation.validPayload(payload, deleted: false) {
+            throw SyncError.invalidPayload("stored raw payload corrupted")
+        }
+        if let payload = stored.lastPayload, !SyncWireValidation.validPayload(payload, deleted: false) {
+            throw SyncError.invalidPayload("stored identity payload corrupted")
+        }
         if let baseline = stored.baseline {
             try validateRecord(baseline)
-            try validateKind(baseline, for: stored)
         }
         if let remote = stored.remote {
             try validateRecord(remote)
-            try validateKind(remote, for: stored)
         }
         return stored
     }
 
     private nonisolated func write(_ stored: StoredDocument, db: Database) throws {
+        var stored = stored
+        // 墓碑的 wire payload 必须为空；本地另留最后原文，供复活身份约束与已停用实例检查。
+        if let payload = stored.payload { stored.lastPayload = payload }
         try db.execute(sql: "INSERT INTO documents(id, kind, deleted, pending, conflicted, body) VALUES (?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET kind=excluded.kind, deleted=excluded.deleted, pending=excluded.pending, conflicted=excluded.conflicted, body=excluded.body",
                        arguments: [stored.id.uuidString, stored.kind, stored.deleted, stored.dirty || stored.frozen != nil, stored.conflictReason != nil, try Self.encode(stored)])
     }
@@ -488,30 +628,98 @@ public actor SyncStore {
         return stored
     }
 
-    private func sameContent(_ stored: StoredDocument, _ record: SyncRecord) -> Bool {
+    private nonisolated func sameContent(_ stored: StoredDocument, _ record: SyncRecord) -> Bool {
         stored.deleted == record.deleted && stored.payload == record.payload
     }
 
-    private func adopt(_ record: SyncRecord, into stored: inout StoredDocument) {
+    private nonisolated func adopt(_ record: SyncRecord, into stored: inout StoredDocument) {
         stored.payload = record.payload
         stored.deleted = record.deleted
         stored.baseline = record
         stored.remote = nil
         stored.dirty = false
         stored.conflictReason = nil
+        stored.initialization = nil
+        stored.rebaseAttempts = nil
+        stored.projectionIssue = nil
+        if let kind = kind(record.payload) { stored.kind = kind }
     }
 
-    private func reconcile(_ remote: SyncRecord, with stored: inout StoredDocument) {
-        if sameContent(stored, remote) {
+    private nonisolated func reconcile(_ remote: SyncRecord, with stored: inout StoredDocument) {
+        if stored.initialization == true {
+            adopt(remote, into: &stored)
+        } else if sameContent(stored, remote) {
             adopt(remote, into: &stored)
         } else if let baseline = stored.baseline, baseline.deleted == remote.deleted, baseline.payload == remote.payload {
             stored.baseline = remote
             stored.remote = nil
             stored.conflictReason = nil
+        } else if rebase(remote, with: &stored) {
+            // 仅设置类使用字段级本地意图；普通文档仍交由宿主解决冲突。
         } else {
             stored.remote = remote
             stored.conflictReason = "version_conflict"
         }
+    }
+
+    private nonisolated func merge(_ local: [String: SyncJSON], into remote: [String: SyncJSON]?, schema: AnySyncSchema) throws -> [String: SyncJSON] {
+        guard let remote else { return local }
+        guard remote["kind"] == local["kind"], schema.identityFields.allSatisfy({ remote[$0] == local[$0] }) else {
+            throw SyncError.invalidPayload("record identity cannot change")
+        }
+        var merged = remote
+        for field in schema.managedFields ?? Set(local.keys).subtracting(["kind"]).subtracting(schema.identityFields) {
+            merged[field] = local[field]
+        }
+        return merged
+    }
+
+    private nonisolated func rebase(_ remote: SyncRecord, with stored: inout StoredDocument) -> Bool {
+        guard schemas[stored.kind]?.conflictPolicy == .localIntent,
+              (stored.rebaseAttempts ?? 0) < 3, !stored.deleted,
+              let local = stored.payload,
+              let schema = schemas[stored.kind], supportReason(remote.payload, id: stored.id) == nil,
+              let merged = try? merge(local, into: remote.payload, schema: schema),
+              (try? validatePayload(merged, id: stored.id)) != nil else { return false }
+        stored.payload = merged
+        stored.baseline = remote
+        stored.remote = nil
+        stored.conflictReason = nil
+        stored.rebaseAttempts = (stored.rebaseAttempts ?? 0) + 1
+        stored.dirty = true
+        return true
+    }
+
+    private nonisolated func identityChanged(_ record: SyncRecord, for stored: StoredDocument) -> Bool {
+        guard !record.deleted else { return false }
+        if !stored.kind.isEmpty, stored.kind != kind(record.payload) { return true }
+        guard let baseline = stored.payload ?? stored.lastPayload, let schema = schemas[stored.kind] else { return false }
+        return !schema.identityFields.allSatisfy { baseline[$0] == record.payload?[$0] }
+    }
+
+    private nonisolated func supportReason(_ payload: [String: SyncJSON]?, id: UUID) -> String? {
+        guard let payload else { return nil }
+        guard let kind = kind(payload), schemas[kind] != nil else { return "unknown_kind" }
+        do { try validatePayload(payload, id: id); return nil }
+        catch { return "unsupported_payload" }
+    }
+
+    private nonisolated func unsupportedReason(_ stored: StoredDocument) -> String? {
+        // 已确认的删除优先于历史业务投影；原文只限制仍待发送的本机删除。
+        if stored.deleted, !stored.dirty, stored.frozen == nil { return nil }
+        if let issue = stored.projectionIssue { return issue }
+        if schemas[stored.kind] == nil, !stored.kind.isEmpty { return "unknown_kind" }
+        if let reason = supportReason(stored.payload, id: stored.id) { return reason }
+        if stored.deleted, let reason = supportReason(stored.lastPayload, id: stored.id) { return reason }
+        if let reason = supportReason(stored.remote?.payload, id: stored.id) { return reason }
+        if let frozen = stored.frozen, let reason = supportReason(frozen.mutation.payload, id: stored.id) { return reason }
+        return nil
+    }
+
+    private nonisolated func isUnsupported(_ stored: StoredDocument) -> Bool { unsupportedReason(stored) != nil }
+
+    private nonisolated func eligible(_ stored: StoredDocument) -> Bool {
+        stored.pauseReason == nil && !isUnsupported(stored)
     }
 
     private static func encode<T: Encodable>(_ value: T) throws -> Data {
@@ -546,6 +754,7 @@ private struct StoredDocument: Codable {
     let id: UUID
     var kind: String
     var payload: [String: SyncJSON]?
+    var lastPayload: [String: SyncJSON]?
     var deleted = false
     var localRevision: Int64 = 0
     var dirty = false
@@ -553,6 +762,10 @@ private struct StoredDocument: Codable {
     var remote: SyncRecord?
     var frozen: Frozen?
     var conflictReason: String?
+    var initialization: Bool?
+    var rebaseAttempts: Int?
+    var pauseReason: String?
+    var projectionIssue: String?
 }
 
 /// 冻结时记录设备与本地 revision，确认后才能为后续编辑创建操作。
@@ -560,6 +773,7 @@ private struct Frozen: Codable {
     let mutation: SyncMutation
     let deviceID: UUID
     let localRevision: Int64
+    let initialization: Bool?
 }
 
 /// 元数据与正文共用事务；认证 token 永不落盘。
