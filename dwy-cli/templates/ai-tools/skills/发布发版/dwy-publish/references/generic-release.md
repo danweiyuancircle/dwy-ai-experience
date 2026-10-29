@@ -4,8 +4,8 @@
 
 ## 版本（通用步，固化）
 
-- 走 `../dwy-semver` 决策 + bump.py；多文件同步见 `version-sync.md`（Python 同步 `pyproject.toml` + `__init__.py`，Node 同步 `package.json`）。
-- 纯重发、仅重跑 workflow、仅回滚已有构建时可不 bump。
+- 走 `../dwy-semver` 决策 + bump.py；按 `version-sync.md` 同步工程实际维护的版本来源。
+- 发布新代码必须先完成入口规定的版本、changelog 和 tag 闸门；仅重发或回滚相同已记录产物可复用原版本。
 
 ## build / publish（项目步，不写死命令）
 
@@ -16,13 +16,13 @@
 按缓存 method 分流：
 - `github-action-oidc` → **PyPI/npm 首选**，引 `../dwy-github-action-publish`（OIDC + Trusted Publisher）
 - `github-action` → Cython wheel / Electron / 镜像，引 `../dwy-github-action-publish`
-- `local` → 缓存的本地发包命令（`uv publish` / `pnpm publish` 等）
+- 其他渠道 → 遵循项目已有发布配置和授权；PyPI / npm 发布必须走 GitHub Actions OIDC。
 
 **PyPI/npm 未配置 GA 时按 `publish-config.md` 主动推荐 OIDC。**
 
 ## changelog / tag / 安全检查 / 监控
 
-- changelog → `changelog.md`（单包仓库根目录一份；应用工厂按每个项目的前端/后端分写）
-- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致；monorepo 例：`@dwydev/eui@2.2.3`、`create-dwy@0.16.1`）
+- changelog → `changelog.md`（使用该工程既有路径和格式）
+- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog 标题一致；monorepo 例：`@dwydev/eui@2.2.3`、`create-dwy@0.16.1`）
 - 安全检查 → `../dwy-sdk-spec`（对外包必查泄露/产物）
 - 监控 + verify → `monitor-notify.md`（包仓库版本查询 / GitHub Release）

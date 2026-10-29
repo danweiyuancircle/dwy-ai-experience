@@ -1,35 +1,28 @@
 ---
 name: dwy-publish
-description: "发版/部署编排器。触发条件：用户说\"发版\"\"部署\"\"发布上线\"\"release\"\"publish\"\"走发版流程\"时。按应用目录确认发布方式并缓存，串起定版本→changelog→安全检查→打 tag→build/发布→监控→通知。工厂里有多个项目时，先查出哪些项目的前端或后端有变更，再分别写 changelog。每次更新版本必须打 git tag，tag 版本串与该份 changelog 新版本标题完全一致。版本号决策单独走 dwy-semver，GA 打包走 dwy-github-action-publish，发布前安全检查走 dwy-sdk-spec——本 skill 负责编排，按路径主动调它们。"
+description: "Use when 用户要求整理工程版本、更新 changelog、打版本 tag、发版、发布或部署上线。"
 ---
 
-# 发版编排器
+# 工程版本管理与发布编排
 
-一条发版链的编排执行。进入前测试已完成。
+先识别工程及变更，再为需要更新的工程维护版本、changelog 和 tag；是否发布及发布方式按用户意图和项目上下文判断。
 
-**先**读仓库上下文，判目标平台（前端/后端/Android/iOS/鸿蒙/通用）+ 定位应用目录（相对项目根的相对路径）。**再**按下表执行 9 步。
+## 流程
 
-| # | 步骤 | 类型 | 调用 |
-|---|------|------|------|
-| 1 | 确认发布方式 + 探测 build/publish 命令 | 项目步 | `scripts/release_config.sh` + `references/publish-config.md` |
-| 2 | 写/校验发布配置（GA workflow / TestFlight 就绪） | 项目步 | `references/publish-config.md` |
-| 3 | 定版本号 + 多文件同步 | 通用步 | `../dwy-semver` + `references/version-sync.md` |
-| 4 | 写 changelog（先扫工厂内要发的项目，再按每个项目的前端/后端分别写） | 通用步 | `references/changelog.md` |
-| 5 | 安全检查（闸门，未过不发） | 通用步 | `../dwy-sdk-spec` |
-| 6 | commit 版本变更 + 打 tag 并推送 | 通用步 | `references/git-tag.md` |
-| 7 | build + 触发发布 | 项目步 | `references/<平台>.md`；走 GA 引 `../dwy-github-action-publish` |
-| 8 | 监控发布进程 | 项目步 | `references/monitor-notify.md` |
-| 9 | 通知结果（输出结果文本） | — | `references/monitor-notify.md` |
+1. 读取仓库指令、结构、构建配置、版本来源、changelog、Git 状态和历史 tag，识别独立工程及共享版本边界。依据实际依赖判断共享代码影响；不要把每个子目录当成独立工程。优先遵循用户指定范围，分不清边界时询问。
+2. 逐工程列出变更、版本来源、changelog 路径、tag 命名、版本类型、是否需要发布和 tag 触发器。检查上次对应 tag 后的提交及本次相关的未提交变更；不要把不属于本次的改动纳入提交。
+3. 对本次需要更新的工程，按 `../dwy-semver` 确定版本级别、beta/rc 或正式版，按 `references/version-sync.md` 同步版本；按 `references/changelog.md` 更新该工程 changelog，再按 `references/git-tag.md` 提交和打 tag。无变更工程不创建空版本。已覆盖本次代码的现有版本可复用，不重复升版或打 tag。
+4. 确定是否发布：仅版本管理时结束；需要发布或部署时，读取项目约定及现有 CI、构建和部署配置，判断渠道和命令。遵守仓库的发布和授权规则，不套用固定发布方式；证据不足时询问。不根据分支判断版本类型或发布流程。
+5. **部署上线闸门**：有新代码要上线，AI 自动检查并补齐对应工程的版本更新、changelog 和 tag，不逐项要求用户确认。自动校验 tag 指向包含全部拟部署代码、版本和 changelog 的提交，构建或部署使用该提交或其已验证产物。补齐并校验通过后继续部署；无法补齐或校验失败时停止部署并说明原因，不能以赶时间或已有构建替代。先完成项目要求的测试和适用的安全检查；SDK 对外发布前读取 `../dwy-sdk-spec`。
+6. 推送 tag 前检查远端工作流及其他自动触发器：若推送会发布，先完成所有发布闸门并确认本次已获发布授权。仅要求版本管理而推送会触发未经授权的发布时，保留本地 tag 并报告，不能推送或擅自更改 workflow。
+7. 已获授权且满足闸门时，按项目实际配置执行发布；需要 GitHub Actions 打包时读取 `../dwy-github-action-publish` 和相应平台参考文件。按 `references/monitor-notify.md` 监控并验证实际结果。
 
-平台流程文件：`frontend-deploy.md` / `backend-deploy.md` / `ios.md` / `android.md` / `harmony.md` / `generic-release.md`。
+仅重发、重跑或回滚**完全相同的已记录版本和产物**，可复用对应 changelog、版本及 tag；必须核实代码和产物身份。有新代码则不是重发，必须完成新版本的全部闸门。仅环境配置变更按项目约定记录和验证，不得借此夹带新代码。
 
-## 编排约束
+## 参考文件
 
-- **通用步固化**（定版本/changelog/安全检查/打 tag 跨项目一致，走子 skill/脚本）；**项目步读上下文+缓存**（build/deploy/监控命令因项目而异，**绝不写死**，探测不到问用户后缓存）。
-- 安全检查（第 5 步）是闸门，未过不进 tag / 发布。
-- **每次更新版本必须打 tag**（第 6 步）：tag 版本串与本次 changelog 新版本标题（`## x.y.z`）完全一致；细则见 `references/git-tag.md`。无 bump 的纯重发可不打新 tag。
-- 若 GA workflow 由 tag 触发，第 6 步 push tag 即触发第 7 步发布。
-- **正式环境分支**：只有 `develop` 和 `preview`。`develop` 发测试环境，版本只能是 `beta` 或 `rc`。正式版只从 `preview` 发。仓库没有这两条分支就先提醒，不自行建分支。用 `develop` 发正式版时，先按 `rules/开发流程/dwy-prod-branch.md` 问用户，未确认不发。
-- 全程 AI 自动判断、自动跑，仅搞不定时才问用户（版本级别拿不准、命令探测不到、配置缺失、构建/发布失败、需删远端 tag）。用 `develop` 部署正式环境时除外，须先问用户。
-- 编排时按文件路径主动加载子 skill（`../dwy-semver`、`../dwy-sdk-spec`、`../dwy-github-action-publish`）；这些 skill 也可被用户独立触发。
-- `.dwy/` 缓存提醒用户加进 `.gitignore`。
+- 版本和记录：`references/version-sync.md`、`references/changelog.md`、`references/git-tag.md`。
+- 发布配置：仅需要发布时读取 `references/publish-config.md`，必要时使用 `bash scripts/release_config.sh`。
+- 平台：`references/frontend-deploy.md`、`references/backend-deploy.md`、`references/ios.md`、`references/android.md`、`references/harmony.md`、`references/generic-release.md`。
+
+版本、tag 或发布目标存在歧义时先核实；不可识别时询问。删除或覆盖远端 tag / release 前必须获得用户明确授权。输出各工程的版本、changelog、tag、是否推送和实际发布验证结果。

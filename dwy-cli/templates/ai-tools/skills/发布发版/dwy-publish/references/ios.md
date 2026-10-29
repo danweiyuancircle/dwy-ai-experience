@@ -10,7 +10,7 @@
 ## 版本（通用步，固化）
 
 - 语义版本号 `CFBundleShortVersionString`，走 `../dwy-semver` 决策 + bump.py。
-- **build 号 `CFBundleVersion` = 时间戳 `yyyyMMddHHmm` 12 位**（如 `202606231430`，`date +%Y%m%d%H%M`），每次发布重新生成，单调递增。app 和 SDK 都适用。
+- 构建号 `CFBundleVersion` 遵循项目及发布渠道约定；重新上传构建时满足渠道的递增要求。
 - 多文件同步见 `version-sync.md`。
 
 ## build / publish（项目步，不写死命令）
@@ -27,7 +27,7 @@
 
 ## changelog / tag / 安全检查 / 监控
 
-- changelog → `changelog.md`（写该项目的 `ios/CHANGELOG.md`；工厂里多个项目时每个项目各一份）
-- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致）
+- changelog → `changelog.md`（使用该工程既有路径和格式）
+- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog 标题一致）
 - 安全检查 → `../dwy-sdk-spec`（SDK 发布尤其要查泄露）
 - 监控 + 结果 → `monitor-notify.md`

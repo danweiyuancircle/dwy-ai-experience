@@ -87,13 +87,9 @@ description: "语义化版本号（SemVer 2.0.0）决策助手。涉及以下任
 
 预发布优先级排序、版本比较 11 条规则等细节见 [references/semver-spec.md](references/semver-spec.md)。
 
-## 分支上用哪个号
+## 正式版与预发布版
 
-只认两条长期分支，和 `rules/开发流程/dwy-prod-branch.md` 同一条。不在发版时不要为了这条去改版本号。
-
-- 在 `develop` 发：必须带 `-beta` 或 `-rc`。还在改用 `beta`，准备进 `preview` 用 `rc`。
-- 在 `preview` 发正式版：不带预发布。`rc` 收成正式号时用 `bump.py` 转到正式版。
-- 仓库没有这两条分支：先告诉用户，不要改用 `main` 充当正式分支。
+按用户意图和目标仓库的版本及发布约定判断正式版或预发布版，不根据分支判断。测试版本按项目惯例使用 `beta`、`rc` 等标识，正式版本不带预发布标识。判断不明确时询问用户。
 
 ## 算出具体版本号
 
@@ -128,7 +124,7 @@ python3 scripts/bump.py 2.0.0-rc.1 major             # -> 2.0.0  (预发布转�
 ## 与 dwy-publish 的边界
 
 - **dwy-semver**（本 skill）：只回答"该升哪一位、新号是多少"
-- **dwy-publish**：拿到版本号后执行发版流程（测试 → bump 版本文件 → changelog → 安全检查 → **打 tag（版本串与 changelog 标题一致）** → build → publish）
+- **dwy-publish**：管理工程版本、changelog 和 tag；是否构建和发布按项目上下文及用户授权判断。
 
 发版时若不确定版本号，先用本 skill 决策，再交给 dwy-publish 落地。
 

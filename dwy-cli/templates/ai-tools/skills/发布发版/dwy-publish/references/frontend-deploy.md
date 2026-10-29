@@ -5,7 +5,7 @@
 ## 版本（通用步，固化）
 
 - 走 `../dwy-semver` 决策 + bump.py；多文件同步见 `version-sync.md`（前端改 `package.json` 的 `version`）。
-- 纯重发、仅重跑 workflow、仅回滚已有构建时可不 bump。
+- 部署新代码必须先完成入口规定的版本、changelog 和 tag 闸门；仅重发或回滚相同已记录产物可复用原版本。
 
 ## build / deploy（项目步，不写死命令）
 
@@ -19,6 +19,6 @@
 
 ## changelog / tag / 监控
 
-- changelog → `changelog.md`（写该项目的 `frontend/CHANGELOG.md`；工厂里多个项目时每个项目各一份）
-- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致）
+- changelog → `changelog.md`（使用该工程既有路径和格式）
+- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog 标题一致）
 - 监控 + verify → `monitor-notify.md`（前端信号：页面访问 / 版本接口 / 产物 hash / CDN 刷新）

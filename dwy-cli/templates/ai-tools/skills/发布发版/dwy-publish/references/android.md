@@ -10,7 +10,7 @@
 ## 版本（通用步，固化）
 
 - `versionName` = 语义版本号，走 `../dwy-semver` 决策 + bump.py。
-- `versionCode` = 单调递增整数，每次发布 +1。
+- 新上传构建的 `versionCode` 遵循渠道及项目的递增要求。
 - 多文件同步见 `version-sync.md`。
 
 ## build / publish（项目步，不写死命令）
@@ -26,7 +26,7 @@
 
 ## changelog / tag / 安全检查 / 监控
 
-- changelog → `changelog.md`（写该项目的 `android/CHANGELOG.md`；工厂里多个项目时每个项目各一份）
-- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog `##` 标题一致）
+- changelog → `changelog.md`（使用该工程既有路径和格式）
+- tag → `git-tag.md`（每次 bump 必打；版本串与 changelog 标题一致）
 - 安全检查 → `../dwy-sdk-spec`
 - 监控 + 结果 → `monitor-notify.md`

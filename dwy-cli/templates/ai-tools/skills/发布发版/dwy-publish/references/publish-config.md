@@ -1,6 +1,6 @@
 # 发布方式缓存 + 命令探测
 
-发布方式与 build/publish 命令**因项目而异，不写死**。按应用目录探测 → 问 → 缓存复用。
+仅在需要发布时探测项目已有发布方式和 build/publish 命令；根据项目上下文及授权判断，存在歧义时询问。缓存仅作为线索，执行前核实现有配置和权限。
 
 ## 缓存机制
 
@@ -17,7 +17,7 @@
    - 未命中（首次进入该目录）→ 走第 3 步
 3. 首次配置：
    - 探测真实命令（见下方探测线索）
-   - AskUserQuestion 问发布方式（见下方各平台候选）
+   - 按项目现有配置判断发布方式；无法确定时询问
    - 检查对应配置就绪（GA workflow 是否存在 / TestFlight 凭据线索 / maven·pod publish 配置）
    - `release_config.sh set <root> <rel_dir> <platform> <method> <channel> <configured> [build_cmd] [publish_cmd] [verify_cmd] [cmd_source]`
    - 提醒把 `.dwy/` 加进 `.gitignore`
@@ -51,7 +51,7 @@
 | harmony（har / har app） | `ohpm`(推荐) / `github-action` / `local` |
 | frontend | `github-action`(CI，推荐 OIDC) / `local` |
 | backend | `github-action`(CI，推荐 OIDC) / `local` |
-| generic — PyPI/npm | `github-action-oidc`(**推荐**，无静态凭据、符合团队准则) / `local` |
+| generic — PyPI/npm | `github-action-oidc`（必须，无长期静态发布凭据） |
 | generic — Cython wheel | `github-action`(cibuildwheel) / `local` |
 | generic — Electron | `github-action`(多平台 runner) / `local` |
 | generic — Docker/二进制 | `github-action` / `local` |
@@ -62,4 +62,4 @@ PyPI / npm 且未配置 GA 时，**主动推荐 `github-action-oidc`**（OIDC Tr
 
 - 给 workflow 模板：见 `../dwy-github-action-publish`（Python wheel / 纯包 OIDC）。
 - 给 Trusted Publisher 网页配置步骤：PyPI/npmjs 后台绑定 repo + workflow 文件名 + environment。
-- 用户仍可选 `local`（`uv publish` / `pnpm publish` 等），按其选择缓存。
+- 按仓库要求通过 GitHub Actions OIDC 发布，不使用本地命令或长期静态发布凭据。
