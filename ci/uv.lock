@@ -479,7 +479,7 @@ requires-dist = [
 
 [[package]]
 name = "dwy-webhooks"
-version = "0.6.0"
+version = "0.6.1"
 source = { editable = "../backend/packages/webhooks" }
 dependencies = [
     { name = "dwy-notify" },

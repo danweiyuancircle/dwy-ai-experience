@@ -1,10 +1,10 @@
 """外部会话、表与发送器驱动的持久投递；模块不连接或初始化项目数据库。"""
 
 import asyncio
-import math
 import re
 import time
 from collections.abc import Awaitable, Callable, Collection
+from functools import partial
 from typing import TYPE_CHECKING
 from uuid import uuid4
 
@@ -16,6 +16,7 @@ from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from .errors import WebhookDeliveryError
 from .events import WebhookEvent
+from .notification_delivery import deliver_notifications, delivery_failure
 
 if TYPE_CHECKING:
     from dwy_notify import Notifier
@@ -148,20 +149,7 @@ class SQLAlchemyDeliveryQueue:
         return dict(status="sent", message_id=message_id, error_code=None)
 
     def _failure(self, attempts, failure) -> dict:
-        # 不持久化第三方发送器可能抛出的地址或响应正文。
-        code = (failure.code if isinstance(failure.code, str)
-                and re.fullmatch(r"[a-z][a-z0-9_.-]{0,63}", failure.code) else "webhook_delivery_error")
-        delay = 0
-        if (not isinstance(failure.retry_after, bool) and isinstance(failure.retry_after, (int, float))
-                and math.isfinite(failure.retry_after) and failure.retry_after >= 0):
-            delay = min(math.ceil(failure.retry_after), self.policy.provider_retry_cap_seconds)
-        attempts += 1
-        return dict(
-            status="dead" if failure.permanent or attempts >= self.policy.max_attempts else "retry",
-            attempts=attempts,
-            next_attempt_at=int(self.clock()) + max(delay, min(self.policy.retry_cap_seconds, 2 ** attempts)),
-            error_code=code,
-        )
+        return delivery_failure(attempts, failure, policy=self.policy, clock=self.clock)
 
     async def _checkpoint(self, row, **values) -> bool:
         table = self.table
@@ -173,60 +161,9 @@ class SQLAlchemyDeliveryQueue:
             return bool(result.rowcount)
 
     async def _send_notifications(self, row) -> dict:
-        payload = row["payload"]
-        if "notifications" not in payload:
-            payload = dict(payload, notifications={
-                name: dict(fingerprint=self.notifier.target_fingerprint(name), status="pending", attempts=0,
-                           next_attempt_at=0, error_code=None, message_id=None)
-                for name in self.notifier.targets
-            })
-            # 评论和日报也能直接写入旧载荷；快照必须先提交，取消后不能改变收件方。
-            if not await self._checkpoint(row, payload=payload):
-                return dict(status="processing")
-        states = payload["notifications"]
-        for name, state in states.items():
-            if state["status"] in ("sent", "dead"):
-                continue
-            if name not in self.notifier.targets:
-                state.update(status="dead", error_code="notification_target_missing")
-            elif self.notifier.target_fingerprint(name) != state["fingerprint"]:
-                state.update(status="dead", error_code="notification_target_changed")
-            elif state["next_attempt_at"] <= int(self.clock()):
-                # 每次网络前按 token 续租；批量目标不能沿用最初的租约到期时间。
-                if not await self._checkpoint(row, lease_until=int(self.clock()) + self.policy.lease_seconds):
-                    return dict(status="processing")
-                try:
-                    result = await self.notifier.send(payload["content"], targets=(name,))
-                    if len(result.deliveries) != 1 or result.deliveries[0].target != name:
-                        raise WebhookDeliveryError("webhook_invalid_response")
-                    delivery = result.deliveries[0]
-                    if not delivery.success:
-                        raise WebhookDeliveryError(delivery.error_code, retry_after=delivery.retry_after,
-                                                   permanent=delivery.permanent)
-                    message_id = delivery.message_id
-                    if message_id is not None and (
-                        not isinstance(message_id, str) or not 1 <= len(message_id) <= 128
-                    ):
-                        raise WebhookDeliveryError("webhook_invalid_response")
-                except WebhookDeliveryError as failure:
-                    state.update(self._failure(state["attempts"], failure))
-                except Exception:
-                    state.update(self._failure(
-                        state["attempts"], WebhookDeliveryError("webhook_delivery_error")
-                    ))
-                else:
-                    state.update(status="sent", attempts=state["attempts"] + 1,
-                                 message_id=message_id, error_code=None)
-            if not await self._checkpoint(row, payload=payload):
-                return dict(status="processing")
-        retrying = [state for state in states.values() if state["status"] not in ("sent", "dead")]
-        status = "dead" if any(state["status"] == "dead" for state in states.values()) else "sent"
-        return dict(
-            payload=payload,
-            status="retry" if retrying else status,
-            attempts=max((state["attempts"] for state in states.values()), default=0),
-            next_attempt_at=min((state["next_attempt_at"] for state in retrying), default=0),
-            error_code=next((state["error_code"] for state in states.values() if state["error_code"]), None),
+        return await deliver_notifications(
+            self.notifier, row["payload"], policy=self.policy, clock=self.clock,
+            checkpoint=partial(self._checkpoint, row),
         )
 
     async def run(self) -> None:

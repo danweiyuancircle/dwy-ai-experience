@@ -2,7 +2,7 @@
 
 ## Apple 经营日报与周报
 
-`dwy-webhooks[analytics]==0.6.0` 提供公开的 `dwy_webhooks.analytics`。默认北京时间 `Asia/Shanghai` 每天 08:30，固定统计昨天的数据，周一附加截至昨天的连续七天周报。未发布或不可用的指标按状态展示，不等待或自动补发旧日报。
+`dwy-webhooks[analytics]==0.6.1` 提供公开的 `dwy_webhooks.analytics`。默认北京时间 `Asia/Shanghai` 每天 08:30，固定统计昨天的数据，周一附加截至昨天的连续七天周报。未发布或不可用的指标按状态展示，不等待或自动补发旧日报。
 
 调用项目注入 `AppleAnalyticsConfig`、会话及 `build_analytics_tables(metadata)` 的表定义，再使用 `install_analytics_monitor(app, config, sessions, tables)` 安装。数据库迁移和 engine 生命周期仍由项目拥有；示例见 `backend/packages/webhooks/examples/new_project/analytics.py`。
 
@@ -45,7 +45,7 @@ Webhook 全局 `notifications` 仅作默认值，Resend、ASC、Apple 来源各�
 
 ## Apple 内购详情与通知
 
-安装 `dwy-webhooks[apple]==0.6.0` 即可在其他 FastAPI 项目使用，不需要 App Cloud、ADBox、账户或商品权益表：
+安装 `dwy-webhooks[apple]==0.6.1` 即可在其他 FastAPI 项目使用，不需要 App Cloud、ADBox、账户或商品权益表：
 
 ```python
 from fastapi import FastAPI
@@ -148,6 +148,7 @@ Resend 使用 Webhook 签名密钥，不使用发送邮件的 API Key。未配�
 - 默认 relay 在全部目标发送成功后确认，实例内保留有界去重记录，部分失败仅重试未成功目标。失败返回非 2xx 供提供方重试；重启可能再次发送，不承诺持久或恰好一次投递。
 - 项目可注入 `ReceiptStore`，或通过 `WebhookSinks` 按来源注入接收函数。函数接收已验证的 `WebhookEvent`，返回 True 表示接受、False 表示重复；异常不能被确认成功。
 - `SQLAlchemyDeliveryQueue` 提供持久队列，sessions、table、sender、source 和可选策略由外部注入。使用 EAPI 创建的会话，不创建、迁移或关闭项目数据库。一个表固定一个来源，防止跨来源编号碰撞。
+- 已有其它队列表结构可直接使用 `dwy_webhooks.notification_delivery.deliver_notifications(notifier, payload, *, policy, clock, checkpoint)`，复用同一逐目标算法。`payload` 是当前记录独立解码的可变字典，含 `content` 和可选的 `notifications` 状态；其它宿主字段保留。`checkpoint(**values)` 必须按当前租约原子持久化 `payload` 或续租 `lease_until`，成功返回 True；False 会停止并返回 `{"status": "processing"}`，调用方不得把它标记成功或清除新租约。正常返回的聚合状态仍须由调用方按租约提交；取消及检查点异常直接传播。`delivery_failure(attempts, failure, *, policy, clock)` 复用相同的有界退避与安全错误码，不执行持久化。
 - `build_delivery_table` 注册到项目 metadata，由项目自己的 Alembic 管理 schema。库不在注册路由时自动建表。
 - `install_webhooks` 保留宿主生命周期，只关闭自己拥有的验证器；`create_app(config)` 可建立独立 ASGI 应用，配置仍然必填。普通错误复用 EAPI，第三方成功 ACK 保持提供方协议。
 
@@ -173,7 +174,7 @@ Apple 商品目录、账户绑定和权益发放保留在业务项目。通用�
 `dwy_webhooks.reviews` 提供主动采集能力，独立于审核/构建 Webhook 和内购通知。评论通知安装 `dwy-webhooks[reviews]`：`reviews` 直接声明 HTTPX、PyJWT 和 cryptography，使用账号 API 密钥签发 ES256 JWT 并访问 ASC REST API；不需要 Apple Server SDK 或 Resend SDK，也不依赖其它包偶然传入 PyJWT。无需 Redis 服务、ARQ Worker 或新增调度框架。
 
 ```bash
-uv add 'dwy-webhooks[reviews]==0.6.0'
+uv add 'dwy-webhooks[reviews]==0.6.1'
 ```
 
 ```python
@@ -207,7 +208,7 @@ runtime = install_review_monitor(app, config, sessions, tables)
 - 表、会话、时钟、HTTP 客户端和 sender 可显式注入；库不读取 `.env`、打开项目数据库或自动执行迁移。关闭任务后才允许宿主释放数据库。
 - 本功能读取文字评论及其附带星级，不提供纯星级逐条事件、总评分统计或 Discord 内回复。
 
-本轮清单版本为 `0.6.0`，不代表已发布到公开 PyPI。消费项目应在发布完成后固定版本并验收实际安装产物。
+本轮清单版本为 `0.6.1`，不代表已发布到公开 PyPI。消费项目应在发布完成后固定版本并验收实际安装产物。
 
 ## Discord 发送者名称
 
