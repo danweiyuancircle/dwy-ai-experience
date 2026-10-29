@@ -16,6 +16,7 @@ class RuntimeTables:
     email_challenges: Table
     auth_rate_limits: Table
     authentication_proofs: Table
+    credential_versions: Table
 
 
 def build_runtime_tables(metadata: MetaData, prefix: str = "auth_runtime_") -> RuntimeTables:
@@ -59,6 +60,9 @@ def build_runtime_tables(metadata: MetaData, prefix: str = "auth_runtime_") -> R
         Column("id", String(36), primary_key=True),
         Column("email", String(254), nullable=False, index=True),
         Column("purpose", String(32), nullable=False),
+        # 旧注册/重置挑战为 null；改邮箱挑战必须绑定主体和完整凭据状态。
+        Column("subject", String(255)),
+        Column("credential_version", String(64)),
         Column("code_hash", String(64), nullable=False),
         Column("expires_at", BigInteger, nullable=False, index=True),
         Column("attempts", BigInteger, nullable=False, default=0),
@@ -88,4 +92,11 @@ def build_runtime_tables(metadata: MetaData, prefix: str = "auth_runtime_") -> R
         Column("expires_at", BigInteger, nullable=False, index=True),
         Column("consumed_at", BigInteger),
     )
-    return RuntimeTables(identifiers, passwords, external, challenges, rate_limits, proofs)
+    versions = Table(
+        prefix + "credential_versions",
+        metadata,
+        Column("app_id", String(32), primary_key=True),
+        Column("subject", String(255), primary_key=True),
+        Column("generation", String(36), nullable=False),
+    )
+    return RuntimeTables(identifiers, passwords, external, challenges, rate_limits, proofs, versions)

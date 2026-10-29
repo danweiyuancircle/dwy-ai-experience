@@ -79,7 +79,7 @@ let package = Package(
         ),
         .target(
             name: "AuthUI",
-            dependencies: ["AuthCore", "L10nKit"],
+            dependencies: ["AuthCore", "L10nKit", .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS", condition: .when(platforms: [.iOS, .macOS]))],
             path: "ios/Sources/iOS/AuthUI",
             resources: [.process("Resources")]
         ),

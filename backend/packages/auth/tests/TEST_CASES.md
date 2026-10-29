@@ -44,3 +44,22 @@ The four Google/user/session test files were migrated from app-cloud with their 
 - `test_email_language.py`: missing, unknown, mixed-case, traditional/simplified Chinese, weighted, excluded, and malformed language ranges normalize to exactly `zh` or `en`.
 
 - `packaging_smoke.py`: new wheel-only environment verifies distribution `dwy-auth==0.1.0`, import namespace `dwy_auth` and absence of the legacy namespace; fixed six-table database inspection, EAPI transport availability, English default/Chinese header propagation and template language, explicit rolling policy/secret/mail fixture assembly, email registration/login/reset revocation, Google/admin isolation and deletion; no real email is sent.
+
+## Runtime 邮箱变更与登录入口 (`test_runtime.py`)
+
+- Google 首次添加邮箱密码保持 subject/issuer/sub，后续 Google 登录保留主邮箱。
+- 当前账号限用途重新认证；过期、跨主体与重放证明不发码。
+- 改邮箱后旧邮箱失效、新邮箱密码可用；保持 subject/device，同事务撤销旧会话并签发新会话。
+- 挑战的 app/subject/email/purpose/期限/凭据版本隔离；公开发码拒绝 email_update。
+- 邮箱被其他账号占用、会话后端失败整体回滚，不合并账号或核销可重试挑战。
+- 真实 SQLite 并发消费只有一个成功；任一凭据变更永久核销其他挑战，绑定再解绑恢复原内容也不复活发信中的旧快照。
+- 入口列表仅包含当前账号已启用且可用的入口，不输出凭据摘要；已有最后登录方式保护保持。
+- `backend/tests/test_auth_runtime.py` 通过真实 HTTP/JWT 验证两接口、当前 Bearer、受限字段、主邮箱资料与旧 access/refresh 撤销。
+
+Review 修补回归：password_reset 发码绑定 subject/凭据代次，改邮箱核销旧邮箱的 legacy NULL subject 重置挑战；重置在主体锁后重查邮箱归属及挑战版本。`test_reset_rechecks_email_owner_after_subject_lock` 使用 SQLite 适配器边界模拟；`test_postgres_reset_waiting_for_email_update_lock_cannot_revoke_rotated_session` 使用专用 PostgreSQL URL 验证真实锁交错，未配置时明确跳过。
+
+## 准入与 Apple 管理整合
+
+- `backend/packages/auth/tests/test_admission.py`：注册、首次外部登录、会话签发失败时原子回滚；低层入口不能绕过准入；外部证明独立预算；拒绝刷新不消费旧 token。
+- `backend/packages/auth/tests/test_apple_auth.py`：Apple 准入先于上游授权，拒绝后回滚主体与会话并保留撤销任务；Apple 管理挑战绑定当前主体与用途，proof 和挑战只消费一次，非法材料不访问上游。
+- `backend/tests/test_auth_apple.py`：管理挑战要求当前会话，邮箱管理将 Apple 重新认证路由到专用授权服务；请求总预算覆盖准入证明。

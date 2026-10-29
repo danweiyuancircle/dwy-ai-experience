@@ -10,17 +10,18 @@ enum AuthFlowMessage: String {
     case invalidEmail, invalidPassword, invalidNewPassword, requestCode, invalidCode, codeExpired
     case codeSent, passwordReset, invalidCredentials, emailRegistered, rateLimited, requestFailed
     case registrationCompleted, storageFailed
+    case purchaseRequired, purchaseLinked, purchaseVerificationFailed
 }
 
 @MainActor
-struct AuthFlowActions {
+public struct AuthFlowActions {
     let sendCode: (String, EmailCodePurpose) async throws -> EmailCodeChallenge
     let signIn: (String, String) async throws -> AuthUser
     let register: (String, String, String, String) async throws -> AuthUser
     let resetPassword: (String, String, String, String) async throws -> Void
     let cancel: () -> Void
 
-    init(session: AuthSessionStore) {
+    public init(session: AuthSessionStore) {
         sendCode = { try await session.sendEmailCode(email: $0, purpose: $1) }
         signIn = {
             try await session.signIn(email: $0, password: $1)
@@ -36,7 +37,8 @@ struct AuthFlowActions {
         cancel = { session.cancelPendingAuthentication() }
     }
 
-    init(
+    /// 宿主注入业务生命周期动作；共享 UI 不直接安装或缓存令牌。
+    public init(
         sendCode: @escaping (String, EmailCodePurpose) async throws -> EmailCodeChallenge,
         signIn: @escaping (String, String) async throws -> AuthUser,
         register: @escaping (String, String, String, String) async throws -> AuthUser,
@@ -175,6 +177,38 @@ final class AuthFlowModel {
         message = nil
     }
 
+    /// 在原生授权面板打开前取票据；重复点击和关闭页面不能启动第二次请求。
+    func beginExternalSignIn() -> Int? {
+        guard !isBusy else { return nil }
+        message = nil
+        isBusy = true
+        return generation
+    }
+
+    /// Google 获取凭据与后端交换共用一次可取消操作。
+    func signIn(using action: @MainActor () async throws -> AuthUser) async -> AuthUser? {
+        guard let operation = beginExternalSignIn() else { return nil }
+        return await completeExternalSignIn(operation: operation, using: action)
+    }
+
+    /// Apple 授权回调可能晚于页面退出，调用业务前先核对操作仍然有效。
+    func completeExternalSignIn(operation: Int, using action: @MainActor () async throws -> AuthUser) async -> AuthUser? {
+        guard operation == generation, isBusy else { return nil }
+        defer { if operation == generation { isBusy = false } }
+        do {
+            let user = try await action()
+            guard operation == generation else { return nil }
+            password = ""
+            code = ""
+            challenge = nil
+            return user
+        } catch {
+            guard operation == generation else { return nil }
+            if !(error is CancellationError) { message = errorMessage(error) }
+            return nil
+        }
+    }
+
     private func invalidate() {
         generation += 1
         actions.cancel()
@@ -188,7 +222,10 @@ final class AuthFlowModel {
     private func errorMessage(_ error: any Error) -> AuthFlowMessage {
         if error is AuthCleanupError { return .storageFailed }
         guard case let AuthError.server(code, _) = error else { return .requestFailed }
-        switch code {
+        switch code.uppercased() {
+        case "PURCHASE_REQUIRED", "IAP_PURCHASE_REQUIRED", "IAP_PURCHASE_INACTIVE", "CLOUD_PURCHASE_REQUIRED", "CLOUD_SUBSCRIPTION_REQUIRED": return .purchaseRequired
+        case "IAP_OWNERSHIP_CONFLICT": return .purchaseLinked
+        case "IAP_UNAVAILABLE", "APPLE_UNAVAILABLE", "IAP_SIGNATURE_INVALID", "IAP_OWNERSHIP_REQUIRED", "AUTH_ADMISSION_PROOF_INVALID", "CLOUD_PURCHASE_VERIFICATION_REQUIRED", "CLOUD_PURCHASE_VERIFICATION_FAILED": return .purchaseVerificationFailed
         case "CREDENTIALS_INVALID": return .invalidCredentials
         case "EMAIL_ALREADY_REGISTERED": return .emailRegistered
         case "EMAIL_CODE_INVALID": return .invalidCode

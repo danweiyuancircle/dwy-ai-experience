@@ -9,17 +9,17 @@ from dwy_auth.models import AuthError
 from fastapi import APIRouter, Body, Depends, FastAPI, Request
 from pydantic import BaseModel, Field
 
-from dwyeapi.auth import AuthBinding, _reauthenticate, _Reauthentication, _Request, _token_payload
+from dwyeapi.auth import AuthBinding, _AdmissionRequest, _reauthenticate, _Reauthentication, _Request, _token_payload
 from dwyeapi.response import ApiResponse
 
 
 class AppleChallengeRequest(_Request):
     """绑定挑战必须关联当前会话; 普通登录不信任客户端指定的主体。"""
 
-    purpose: Literal["login", "bind"] = "login"
+    purpose: Literal["login", "bind", "reauth_bind", "reauth_unlink", "reauth_email_update"] = "login"
 
 
-class AppleLoginRequest(_Request):
+class AppleLoginRequest(_AdmissionRequest):
     """授权材料只用于本次交换, 不回显或进入模型调试输出。"""
 
     challenge_id: UUID
@@ -65,12 +65,12 @@ def install_apple_auth(
         body: Annotated[AppleChallengeRequest | None, Body()] = None,
     ):
         body = body or AppleChallengeRequest()
-        if body.purpose == "bind" and principal is None:
+        if body.purpose != "login" and principal is None:
             raise AuthError("SESSION_INVALID", "请先登录原有账号", 401)
         return ApiResponse.ok(
             await service.challenge(
                 purpose=body.purpose,
-                principal=principal if body.purpose == "bind" else None,
+                principal=principal if body.purpose != "login" else None,
                 remote_key=request.client.host if request.client else "unknown",
             )
         )
@@ -84,12 +84,13 @@ def install_apple_auth(
             device_id=body.device_id,
             display_name=body.display_name,
             remote_key=request.client.host if request.client else "unknown",
+            admission_proof=body.admission_proof,
         )
         return await _token_payload(tokens, profile_loader)
 
     @router.post("/bind", status_code=200, response_model=ApiResponse)
     async def bind(body: AppleBindingRequest, request: Request, principal: required):
-        proof = await _reauthenticate(binding.runtime, body.reauthentication, "bind", request)
+        proof = await _reauthenticate(binding.runtime, body.reauthentication, "bind", request, principal)
         await service.bind(
             principal,
             str(body.challenge_id),

@@ -2,9 +2,11 @@
 
 import asyncio
 import hashlib
+import json
 import re
 import time
 from collections.abc import Awaitable, Callable, Mapping
+from contextlib import asynccontextmanager
 from typing import Literal
 from uuid import UUID, uuid4
 
@@ -13,7 +15,14 @@ from sqlalchemy import and_, delete, func, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from .contracts import AuthPrincipal, SessionBackend, SessionTokens, VerifiedIdentity
+from .contracts import (
+    AuthAdmission,
+    AuthPrincipal,
+    LoginIdentity,
+    SessionBackend,
+    SessionTokens,
+    VerifiedIdentity,
+)
 from .email_auth import (
     EmailAuthConfig,
     EmailAuthMixin,
@@ -56,6 +65,7 @@ class AuthRuntime(EmailAuthMixin):
         email_config: EmailAuthConfig | None = None,
         providers: Mapping[str, ExternalIdentityProvider] | None = None,
         methods: frozenset[str] = frozenset({"email", "username", "external"}),
+        admission: AuthAdmission | None = None,
     ):
         """注入应用独有配置与适配器；表迁移和业务主体生命周期仍由宿主负责。"""
         if not re.fullmatch(r"[a-z][a-z0-9-]{0,31}", app_id):
@@ -68,6 +78,7 @@ class AuthRuntime(EmailAuthMixin):
             email_sender,
             email_config,
         )
+        self.admission = admission
         self.providers, self.methods = dict(providers or {}), frozenset(methods)
         if any(
             name in {"email", "username", "external"} or not re.fullmatch(r"[a-z][a-z0-9_-]{0,63}", name)
@@ -77,6 +88,80 @@ class AuthRuntime(EmailAuthMixin):
         self._password_limiter = anyio.CapacityLimiter(4)
         self._password_inflight, self._password_tasks = 0, set()
         self._dummy_password_hash = "$2b$12$s6AXc3y1CJPYmZEr.1nVUOwFXwslhbh3Cv.oA9kHOFJWx3/v2Np22"
+
+    @asynccontextmanager
+    async def _transaction(self, db: AsyncSession | None):
+        """内部原子入口复用同一事务；旧的独立认证接口继续自行提交。"""
+        if db is not None:
+            yield db
+            return
+        async with self.sessions() as session, session.begin():
+            yield session
+
+    def _require_admission_entry(self, db: AsyncSession | None) -> None:
+        """配置准入后，公开低层入口不能单独创建主体或签发会话。"""
+        if self.admission is not None and db is None:
+            raise AuthError("AUTH_ADMISSION_REQUIRED", "认证必须通过应用准入入口", 403)
+
+    async def _prepare_admission(self, proof: str | None, *, remote_key: str = "local") -> object:
+        """不解释业务凭据；限制外部输入预算，外部验证发生在数据库事务前。"""
+        if proof is not None and (not isinstance(proof, str) or not 1 <= len(proof.encode()) <= 131072):
+            raise AuthError("AUTH_ADMISSION_PROOF_INVALID", "准入证明格式无效", 422)
+        if self.admission is None:
+            return None
+        # 证明验证有外网成本；独立预算不能被错误密码或无效 refresh 绕过。
+        await self._rate("admission-ip", self._remote(remote_key), 100, 900)
+        return await self.admission.prepare(proof)
+
+    async def _admit(self, db: AsyncSession, subject: str, prepared: object) -> None:
+        """业务归属检查和主体、凭据、会话共同提交或回滚。"""
+        if self.admission is not None:
+            await self.admission.admit(db, subject, prepared)
+
+    async def register_email_session(
+        self,
+        email: str,
+        password: str,
+        code: str,
+        challenge_id: UUID | str,
+        *,
+        remote_key: str = "local",
+        device_id: UUID | None = None,
+        admission_proof: str | None = None,
+    ) -> SessionTokens:
+        """注册主体、准入归属及首个会话必须作为一个原子操作。"""
+        prepared = await self._prepare_admission(admission_proof, remote_key=remote_key)
+        async with self.sessions() as db, db.begin():
+            identity = await self.register_email(
+                email, password, code, challenge_id, remote_key=remote_key, _db=db
+            )
+            await self._admit(db, identity.subject, prepared)
+            return await self.issue(identity, device_id=device_id, _db=db)
+
+    async def login(
+        self,
+        method: str,
+        *,
+        identifier: str | None = None,
+        password: str | None = None,
+        credential: str | None = None,
+        remote_key: str = "local",
+        device_id: UUID | None = None,
+        admission_proof: str | None = None,
+    ) -> SessionTokens:
+        """首次第三方登录同样受准入保护，禁止先创建账号再补查业务资格。"""
+        prepared = await self._prepare_admission(admission_proof, remote_key=remote_key)
+        async with self.sessions() as db, db.begin():
+            identity = await self.authenticate(
+                method,
+                identifier=identifier,
+                password=password,
+                credential=credential,
+                remote_key=remote_key,
+                _db=db,
+            )
+            await self._admit(db, identity.subject, prepared)
+            return await self.issue(identity, device_id=device_id, _db=db)
 
     def _require_method(self, method):
         """在服务端强制启用策略；第三方方式必须对应本实例的配置名称。"""
@@ -141,22 +226,232 @@ class AuthRuntime(EmailAuthMixin):
         remote_key: str = "local",
         language: EmailLanguage = "en",
     ) -> EmailCodeChallenge:
-        """复用同一 challenge 状态机；外部发信不持有业务事务。"""
-        return await super().send_email_code(
-            self._email(email), purpose, remote_key=self._remote(remote_key), language=language
+        """重置挑战绑定发码时主体与代次；未知邮箱仍发相同信封，但不能事后接管新账号。"""
+        email, remote_key = self._email(email), self._remote(remote_key)
+        if purpose != "password_reset":
+            return await super().send_email_code(email, purpose, remote_key=remote_key, language=language)
+        self._require_email()
+        i, binding = self.tables.identifiers, None
+        query = select(i.c.subject).where(
+            i.c.app_id == self.app_id, i.c.kind == "email", i.c.value == email, i.c.verified.is_(True)
+        )
+        async with self.sessions() as db, db.begin():
+            subject = await db.scalar(query)
+            if subject is not None:
+                await self.require_active_subject(db, subject)
+                # 等待主体锁期间邮箱可改动，不能把旧读取绑定到新的邮箱归属。
+                if await db.scalar(query.with_for_update()) == subject:
+                    binding = {
+                        "subject": subject,
+                        "credential_version": await self._credential_state(db, subject),
+                    }
+        return await self._send_email_code(
+            email, purpose, remote_key=remote_key, language=language, binding=binding
         )
 
+    async def _credential_state(self, db, subject):
+        """主体锁下记录全部入口版本；改密、改邮箱或关联变化都会使旧挑战失效。"""
+        values = []
+        for table in (
+            self.tables.identifiers,
+            self.tables.password_credentials,
+            self.tables.external_identities,
+            self.tables.credential_versions,
+        ):
+            rows = (
+                (
+                    await db.execute(
+                        select(table)
+                        .where(table.c.app_id == self.app_id, table.c.subject == subject)
+                        .with_for_update()
+                    )
+                )
+                .mappings()
+                .all()
+            )
+            values.append(sorted(json.dumps(dict(row), sort_keys=True) for row in rows))
+        return hashlib.sha256(json.dumps(values).encode()).hexdigest()
+
+    async def _invalidate_email_updates(self, db, subject, *, previous_email=None):
+        """凭据版本不能随内容恢复；持久化随机代次也阻止发信期间的旧快照重新激活。"""
+        if db.bind.dialect.name == "postgresql":
+            from sqlalchemy.dialects.postgresql import insert as upsert
+        else:
+            from sqlalchemy.dialects.sqlite import insert as upsert
+        v, c = self.tables.credential_versions, self.tables.email_challenges
+        generation = str(uuid4())
+        statement = upsert(v).values(app_id=self.app_id, subject=subject, generation=generation)
+        await db.execute(
+            statement.on_conflict_do_update(
+                index_elements=[v.c.app_id, v.c.subject], set_={"generation": generation}
+            )
+        )
+        i = self.tables.identifiers
+        emails = list(
+            (
+                await db.scalars(
+                    select(i.c.value).where(
+                        i.c.app_id == self.app_id, i.c.subject == subject, i.c.kind == "email"
+                    )
+                )
+            ).all()
+        )
+        if previous_email is not None:
+            emails.append(previous_email)
+        await db.execute(
+            update(c)
+            .where(
+                c.c.app_id == self.app_id,
+                c.c.consumed_at.is_(None),
+                (c.c.subject == subject)
+                | (c.c.subject.is_(None) & (c.c.purpose == "password_reset") & c.c.email.in_(emails)),
+            )
+            .values(consumed_at=int(time.time()))
+        )
+
+    async def send_email_update_code(
+        self,
+        principal: AuthPrincipal,
+        email: str,
+        *,
+        reauthentication: VerifiedIdentity,
+        remote_key: str = "local",
+        language: EmailLanguage = "en",
+    ) -> EmailCodeChallenge:
+        """当前主体重新认证后发码；邮件不持有业务事务，验证码不能跨主体或凭据版本使用。"""
+        self._require_email()
+        email = self._email(email)
+        remote_key = self._remote(remote_key)
+        if not callable(getattr(self.subjects, "update_email", None)):
+            raise AuthError("EMAIL_UPDATE_NOT_CONFIGURED", "邮箱变更尚未配置", 503)
+        async with self.sessions() as db, db.begin():
+            await self._principal(db, principal)
+            await self._consume_identity(db, reauthentication, "email_update", subject=principal.subject)
+            version = await self._credential_state(db, principal.subject)
+        return await self._send_email_code(
+            email,
+            "email_update",
+            remote_key=remote_key,
+            language=language,
+            binding={"subject": principal.subject, "credential_version": version},
+        )
+
+    async def update_email(
+        self,
+        principal: AuthPrincipal,
+        email: str,
+        code: str,
+        challenge_id: UUID | str,
+        *,
+        new_password: str | None = None,
+        remote_key: str = "local",
+        admission_proof: str | None = None,
+    ) -> SessionTokens:
+        """同事务更新邮箱、核销挑战并撤销所有旧会话；返回同一主体的新设备会话。"""
+        prepared = await self._prepare_admission(admission_proof, remote_key=remote_key)
+        self._require_email()
+        email, challenge_id = self._email(email), self._code(code, challenge_id)
+        if not callable(getattr(self.subjects, "update_email", None)):
+            raise AuthError("EMAIL_UPDATE_NOT_CONFIGURED", "邮箱变更尚未配置", 503)
+        hashed = None
+        if new_password is not None:
+            self._password(new_password, new=True)
+            hashed = await self._password_work(hash_password, new_password)
+        await self._code_attempt(email, "email_update", code, challenge_id, self._remote(remote_key))
+        i, p, c = self.tables.identifiers, self.tables.password_credentials, self.tables.email_challenges
+        try:
+            async with self.sessions() as db, db.begin():
+                await self._principal(db, principal)
+                await self._admit(db, principal.subject, prepared)
+                challenge = (
+                    (
+                        await db.execute(
+                            select(c)
+                            .where(
+                                c.c.app_id == self.app_id,
+                                c.c.id == str(challenge_id),
+                                c.c.subject == principal.subject,
+                            )
+                            .with_for_update()
+                        )
+                    )
+                    .mappings()
+                    .one_or_none()
+                )
+                if challenge is None or challenge["credential_version"] != await self._credential_state(
+                    db, principal.subject
+                ):
+                    raise AuthError("EMAIL_CODE_INVALID", "验证码无效或已过期", 400)
+                current = await db.scalar(
+                    select(p.c.password_hash).where(
+                        p.c.app_id == self.app_id, p.c.subject == principal.subject
+                    )
+                )
+                if current is None and hashed is None:
+                    raise AuthError("PASSWORD_REQUIRED", "首次添加邮箱登录必须设置密码", 422)
+                await self._consume_code(db, email, "email_update", code, challenge_id)
+                previous_email = await db.scalar(
+                    select(i.c.value).where(
+                        i.c.app_id == self.app_id, i.c.subject == principal.subject, i.c.kind == "email"
+                    )
+                )
+                await db.execute(
+                    delete(i).where(
+                        i.c.app_id == self.app_id, i.c.subject == principal.subject, i.c.kind == "email"
+                    )
+                )
+                await db.execute(
+                    insert(i).values(
+                        app_id=self.app_id,
+                        subject=principal.subject,
+                        kind="email",
+                        value=email,
+                        verified=True,
+                    )
+                )
+                if current is None:
+                    await db.execute(
+                        insert(p).values(
+                            app_id=self.app_id,
+                            subject=principal.subject,
+                            password_hash=hashed,
+                            updated_at=int(time.time()),
+                        )
+                    )
+                elif hashed is not None:
+                    await db.execute(
+                        update(p)
+                        .where(p.c.app_id == self.app_id, p.c.subject == principal.subject)
+                        .values(password_hash=hashed, updated_at=int(time.time()))
+                    )
+                await self.subjects.update_email(db, principal.subject, email)
+                await self._invalidate_email_updates(db, principal.subject, previous_email=previous_email)
+                await self.session_backend.revoke_subject(principal.subject, db=db)
+                # 该身份仅在本事务交给会话后端，不形成可重放的公开登录 proof。
+                identity = VerifiedIdentity(self.app_id, principal.subject, "email")
+                return await self.session_backend.issue(identity, device_id=principal.device_id, db=db)
+        except IntegrityError:
+            raise AuthError("IDENTITY_ALREADY_BOUND", "登录标识已绑定", 409) from None
+
     async def register_email(
-        self, email: str, password: str, code: str, challenge_id: UUID | str, *, remote_key: str = "local"
+        self,
+        email: str,
+        password: str,
+        code: str,
+        challenge_id: UUID | str,
+        *,
+        remote_key: str = "local",
+        _db: AsyncSession | None = None,
     ) -> VerifiedIdentity:
         """核销、应用初始化和凭据写入使用同一事务，失败整体回滚。"""
+        self._require_admission_entry(_db)
         self._require_email()
         email, password = self._email(email), self._password(password, new=True)
         challenge_id = self._code(code, challenge_id)
         await self._code_attempt(email, "register", code, challenge_id, self._remote(remote_key))
         hashed = await self._password_work(hash_password, password)
         try:
-            async with self.sessions() as db, db.begin():
+            async with self._transaction(_db) as db:
                 await self._consume_code(db, email, "register", code, challenge_id)
                 subject = await self.subjects.create_subject(db, SubjectRegistration("email", email=email))
                 await self.require_active_subject(db, subject)
@@ -175,7 +470,7 @@ class AuthRuntime(EmailAuthMixin):
             raise AuthError("IDENTITY_ALREADY_BOUND", "登录标识已绑定", 409) from None
         return identity
 
-    async def _password_identity(self, method, identifier, password, remote_key, purpose):
+    async def _password_identity(self, method, identifier, password, remote_key, purpose, _db=None):
         """异步验证密码后锁定并复核凭据版本，只为未变更身份生成短期证明。"""
         value = self._email(identifier) if method == "email" else normalize_username(identifier)
         password = self._password(password, new=False)
@@ -193,7 +488,7 @@ class AuthRuntime(EmailAuthMixin):
         valid = await self._password_work(verify_password, password, hashed)
         if row is None or not valid:
             raise AuthError("CREDENTIALS_INVALID", "登录标识或密码错误")
-        async with self.sessions() as db, db.begin():
+        async with self._transaction(_db) as db:
             await self.require_active_subject(db, row["subject"])
             # 比较期间密码或标识被改动，禁止旧请求继续完成认证。
             current = (await db.execute(query.with_for_update())).mappings().one_or_none()
@@ -210,14 +505,17 @@ class AuthRuntime(EmailAuthMixin):
         password: str | None = None,
         credential: str | None = None,
         remote_key: str = "local",
-        purpose: Literal["login", "bind", "unlink"] = "login",
+        purpose: Literal["login", "bind", "unlink", "email_update"] = "login",
+        _db: AsyncSession | None = None,
     ) -> VerifiedIdentity:
         """验证身份但不签发会话；provider 必须按配置注册，不能按邮箱自动合并。"""
+        if purpose == "login":
+            self._require_admission_entry(_db)
         self._require_method(method)
-        if purpose not in {"login", "bind", "unlink"}:
+        if purpose not in {"login", "bind", "unlink", "email_update"}:
             raise AuthError("AUTH_PURPOSE_INVALID", "认证用途无效", 422)
         if method in {"email", "username"}:
-            return await self._password_identity(method, identifier, password, remote_key, purpose)
+            return await self._password_identity(method, identifier, password, remote_key, purpose, _db)
         await self._rate("external-ip", self._remote(remote_key), 100, 900)
         identity = await self._external(method, credential)
         t = self.tables.external_identities
@@ -228,11 +526,14 @@ class AuthRuntime(EmailAuthMixin):
             t.c.external_subject == identity.subject,
         )
         try:
-            async with self.sessions() as db, db.begin():
+            async with self._transaction(_db) as db:
                 proof = await self._resolve_external(db, method, identity, purpose)
         except IntegrityError:
-            # 并发首次登录只保留一个主体，失败事务中的业务初始化自动回滚。
-            async with self.sessions() as db, db.begin():
+            if _db is not None:
+                # PostgreSQL 冲突后整个共享事务失效；交给外层回滚，再由客户端重试。
+                raise AuthError("IDENTITY_CONFLICT", "请求未完成，请重试", 409) from None
+            # 独立低层入口已退出失败事务，可以在新事务读取并发获胜的主体。
+            async with self._transaction(None) as db:
                 linked = (await db.execute(query)).mappings().one_or_none()
                 if linked is None:
                     raise AuthError("IDENTITY_CONFLICT", "外部身份关联冲突", 409) from None
@@ -248,7 +549,7 @@ class AuthRuntime(EmailAuthMixin):
     ) -> VerifiedIdentity:
         """仅供已验签适配器使用；加入其挑战和令牌事务，绝不接受 HTTP 自报身份。"""
         self._require_method(method)
-        if purpose not in {"login", "bind", "unlink"}:
+        if purpose not in {"login", "bind", "unlink", "email_update"}:
             raise AuthError("AUTH_PURPOSE_INVALID", "认证用途无效", 422)
         t = self.tables.external_identities
         linked = (
@@ -306,16 +607,28 @@ class AuthRuntime(EmailAuthMixin):
         challenge_id = self._code(code, challenge_id)
         await self._code_attempt(email, "password_reset", code, challenge_id, self._remote(remote_key))
         hashed = await self._password_work(hash_password, password)
-        i, p = self.tables.identifiers, self.tables.password_credentials
+        i, p, c = self.tables.identifiers, self.tables.password_credentials, self.tables.email_challenges
+        owner = select(i.c.subject).where(
+            i.c.app_id == self.app_id, i.c.kind == "email", i.c.value == email, i.c.verified.is_(True)
+        )
         async with self.sessions() as db, db.begin():
-            subject = await db.scalar(
-                select(i.c.subject).where(
-                    i.c.app_id == self.app_id, i.c.kind == "email", i.c.value == email, i.c.verified.is_(True)
-                )
-            )
+            subject = await db.scalar(owner)
             if subject is None:
                 raise AuthError("EMAIL_CODE_INVALID", "验证码无效或已过期", 400)
             await self.require_active_subject(db, subject)
+            # READ COMMITTED 下等待主体锁后必须重查，旧邮箱读取不能授权修改新邮箱账号。
+            current_owner = await db.scalar(owner.with_for_update())
+            version = await db.scalar(
+                select(c.c.credential_version)
+                .where(c.c.app_id == self.app_id, c.c.id == str(challenge_id), c.c.subject == subject)
+                .with_for_update()
+            )
+            if (
+                current_owner != subject
+                or version is None
+                or version != await self._credential_state(db, subject)
+            ):
+                raise AuthError("EMAIL_CODE_INVALID", "验证码无效或已过期", 400)
             await self._consume_code(db, email, "password_reset", code, challenge_id)
             result = await db.execute(
                 update(p)
@@ -324,6 +637,7 @@ class AuthRuntime(EmailAuthMixin):
             )
             if result.rowcount != 1:
                 raise AuthError("EMAIL_CODE_INVALID", "验证码无效或已过期", 400)
+            await self._invalidate_email_updates(db, subject)
             await self.session_backend.revoke_subject(subject, db=db)
         return {"status": "completed"}
 
@@ -366,6 +680,7 @@ class AuthRuntime(EmailAuthMixin):
                         verified=True,
                     )
                 )
+                await self._invalidate_email_updates(db, principal.subject)
         except IntegrityError:
             raise AuthError("IDENTITY_ALREADY_BOUND", "登录标识已绑定", 409) from None
 
@@ -386,8 +701,53 @@ class AuthRuntime(EmailAuthMixin):
             )
             if changed.rowcount != 1:
                 raise AuthError("CREDENTIALS_INVALID", "登录标识或密码错误")
+            await self._invalidate_email_updates(db, principal.subject)
             await self.session_backend.revoke_subject(principal.subject, db=db)
         return {"status": "completed"}
+
+    async def list_identities(self, principal: AuthPrincipal) -> list[LoginIdentity]:
+        """主体隔离的可用登录方式列表；禁用的方式和无密码的标识不伪装为可用入口。"""
+        i, p, e = (
+            self.tables.identifiers,
+            self.tables.password_credentials,
+            self.tables.external_identities,
+        )
+        async with self.sessions() as db, db.begin():
+            await self._principal(db, principal)
+            identifiers = (
+                (
+                    await db.execute(
+                        select(i.c.kind, i.c.value)
+                        .select_from(i.join(p, and_(i.c.app_id == p.c.app_id, i.c.subject == p.c.subject)))
+                        .where(
+                            i.c.app_id == self.app_id,
+                            i.c.subject == principal.subject,
+                            i.c.verified.is_(True),
+                        )
+                    )
+                )
+                .mappings()
+                .all()
+            )
+            result = [
+                LoginIdentity(row["kind"], row["value"]) for row in identifiers if row["kind"] in self.methods
+            ]
+            if "external" in self.methods:
+                externals = (
+                    (
+                        await db.execute(
+                            select(e).where(e.c.app_id == self.app_id, e.c.subject == principal.subject)
+                        )
+                    )
+                    .mappings()
+                    .all()
+                )
+                result.extend(
+                    LoginIdentity("external", row["external_subject"], row["provider"], row["issuer"])
+                    for row in externals
+                    if row["provider"] in self.providers
+                )
+            return sorted(result, key=lambda row: (row.kind, row.provider or "", row.issuer or "", row.value))
 
     async def bind_external(
         self, principal: AuthPrincipal, provider: str, credential: str, *, reauthentication: VerifiedIdentity
@@ -409,6 +769,7 @@ class AuthRuntime(EmailAuthMixin):
                         generation=str(uuid4()),
                     )
                 )
+                await self._invalidate_email_updates(db, principal.subject)
         except IntegrityError:
             raise AuthError("IDENTITY_ALREADY_BOUND", "外部身份已绑定", 409) from None
 
@@ -508,6 +869,7 @@ class AuthRuntime(EmailAuthMixin):
                 raise AuthError("LAST_CREDENTIAL", "不能移除最后一种可用登录方式", 409)
             await self._consume_identity(db, reauthentication, "unlink", subject=principal.subject)
             await db.execute(delete(table).where(*predicate))
+            await self._invalidate_email_updates(db, principal.subject)
 
     async def _new_identity(self, db, subject, method, purpose, value, version, issuer=None):
         """在当前事务记录限用途、限时和有数量上限的一次性认证证明。"""
@@ -596,24 +958,37 @@ class AuthRuntime(EmailAuthMixin):
         if consumed.rowcount != 1:
             raise AuthError("REAUTHENTICATION_INVALID", "认证证明无效或已过期")
 
-    async def issue(self, identity: VerifiedIdentity, *, device_id: UUID | None = None) -> SessionTokens:
+    async def issue(
+        self, identity: VerifiedIdentity, *, device_id: UUID | None = None, _db: AsyncSession | None = None
+    ) -> SessionTokens:
         """认证结果交给应用会话实现；只接受当前应用及启用方式。"""
+        self._require_admission_entry(_db)
         if identity.app_id != self.app_id:
             raise AuthError("AUTH_APP_MISMATCH", "认证应用不匹配")
         self._require_method(identity.method)
-        async with self.sessions() as db, db.begin():
+        async with self._transaction(_db) as db:
             await self.require_active_subject(db, identity.subject)
             await self._consume_identity(db, identity, "login")
             return await self.session_backend.issue(identity, device_id=device_id, db=db)
 
     async def login_email(
-        self, email: str, password: str, device_id: UUID | None = None, *, remote_key: str = "local"
+        self,
+        email: str,
+        password: str,
+        device_id: UUID | None = None,
+        *,
+        remote_key: str = "local",
+        admission_proof: str | None = None,
     ) -> SessionTokens:
-        """原生 transport 的便利入口，核心 authenticate 保持与会话签发解耦。"""
-        identity = await self.authenticate(
-            "email", identifier=email, password=password, remote_key=remote_key
+        """邮箱便利入口复用完整准入事务，不能绕过应用门禁。"""
+        return await self.login(
+            "email",
+            identifier=email,
+            password=password,
+            device_id=device_id,
+            remote_key=remote_key,
+            admission_proof=admission_proof,
         )
-        return await self.issue(identity, device_id=device_id)
 
     async def verify(self, token: str) -> AuthPrincipal:
         """每次访问检查当前应用、启用方式及业务主体状态。"""
@@ -623,8 +998,25 @@ class AuthRuntime(EmailAuthMixin):
             await self._principal(db, principal)
         return principal
 
-    async def refresh(self, refresh_token: str) -> SessionTokens:
-        """应用会话后端负责原子轮换，运行时复核新的最小身份。"""
+    async def refresh(
+        self, refresh_token: str, *, admission_proof: str | None = None, remote_key: str = "local"
+    ) -> SessionTokens:
+        """准入在轮换生效前完成；拒绝回滚尚未提交的 CAS，不消费旧 refresh。"""
+        prepared = await self._prepare_admission(admission_proof, remote_key=remote_key)
+        if self.admission is not None:
+
+            async def before_lock(db, principal):
+                """主体检查先取 account 锁, 保持所有凭据变更的统一锁序。"""
+                self._require_method(principal.method)
+                await self._principal(db, principal)
+
+            async def before_rotate(db, principal):
+                """只有 CAS 和配额成功才写准入归属, 失败不留下业务副作用。"""
+                await self._admit(db, principal.subject, prepared)
+
+            return await self.session_backend.refresh(
+                refresh_token, before_lock=before_lock, before_rotate=before_rotate
+            )
         tokens = await self.session_backend.refresh(refresh_token)
         self._require_method(tokens.principal.method)
         async with self.sessions() as db, db.begin():
@@ -657,13 +1049,17 @@ class AuthRuntime(EmailAuthMixin):
                 self.tables.password_credentials,
                 self.tables.external_identities,
                 self.tables.authentication_proofs,
+                self.tables.credential_versions,
             ):
                 await db.execute(
                     delete(table).where(table.c.app_id == self.app_id, table.c.subject == principal.subject)
                 )
             challenges = self.tables.email_challenges
             await db.execute(
-                delete(challenges).where(challenges.c.app_id == self.app_id, challenges.c.email.in_(emails))
+                delete(challenges).where(
+                    challenges.c.app_id == self.app_id,
+                    (challenges.c.email.in_(emails)) | (challenges.c.subject == principal.subject),
+                )
             )
             await cleanup(db, principal.subject)
         return {"status": "completed"}

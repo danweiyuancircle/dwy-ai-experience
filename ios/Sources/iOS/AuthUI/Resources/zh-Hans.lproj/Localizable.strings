@@ -37,3 +37,7 @@
 "requestFailed" = "请求未完成，请检查网络后重试。";
 "registrationCompleted" = "账号已注册，但未能保存登录状态，请登录后继续。";
 "storageFailed" = "无法安全保存登录状态，请重试。";
+"purchaseRequired" = "注册或登录需要有效购买，请先解锁或恢复购买。";
+"purchaseLinked" = "该购买已关联其他账号，请使用原登录方式。";
+"purchaseVerificationFailed" = "暂时无法验证购买，请稍后重试。";
+"appleSignIn" = "通过 Apple 登录";

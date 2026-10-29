@@ -1,6 +1,7 @@
-#if os(iOS)
+#if os(iOS) || os(macOS)
 import SwiftUI
 import AuthCore
+import GoogleSignInSwift
 
 /// 宿主提供品牌标题和法律链接；主题颜色沿用 SwiftUI 的 tint。
 public struct AuthUIConfiguration: Sendable {
@@ -26,6 +27,9 @@ public struct AuthFlowView: View {
     private let configuration: AuthUIConfiguration
     private let onAuthenticated: (AuthUser) -> Void
     private let onCancel: (() -> Void)?
+    private let googleSignIn: (@MainActor () async throws -> AuthUser)?
+    private let appleSignIn: (@MainActor () async throws -> AuthUser)?
+    @Environment(\.colorScheme) private var colorScheme
 
     private enum Field: Hashable { case email, password, code }
 
@@ -35,15 +39,55 @@ public struct AuthFlowView: View {
         onAuthenticated: @escaping (AuthUser) -> Void,
         onCancel: (() -> Void)? = nil
     ) {
-        _model = State(initialValue: AuthFlowModel(actions: AuthFlowActions(session: session)))
+        self.init(actions: AuthFlowActions(session: session), configuration: configuration, onAuthenticated: onAuthenticated, onCancel: onCancel)
+    }
+
+    /// 各应用复用同一表单，业务准入和生命周期动作由宿主提供。
+    public init(
+        actions: AuthFlowActions,
+        configuration: AuthUIConfiguration,
+        googleSignIn: (@MainActor () async throws -> AuthUser)? = nil,
+        appleSignIn: (@MainActor () async throws -> AuthUser)? = nil,
+        onAuthenticated: @escaping (AuthUser) -> Void,
+        onCancel: (() -> Void)? = nil
+    ) {
+        _model = State(initialValue: AuthFlowModel(actions: actions))
         self.configuration = configuration
+        self.googleSignIn = googleSignIn
+        self.appleSignIn = appleSignIn
         self.onAuthenticated = onAuthenticated
         self.onCancel = onCancel
     }
 
     public var body: some View {
+        Group {
+            #if os(iOS)
+            NavigationStack {
+                form
+                    .navigationTitle(configuration.appName)
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        if let onCancel {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button(copy("cancel")) { model.cancel(); onCancel() }
+                            }
+                        }
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button(copy("done")) { focusedField = nil }
+                        }
+                    }
+            }
+            #else
+            form.formStyle(.grouped)
+            #endif
+        }
+        .onDisappear { model.cancel() }
+    }
+
+    @ViewBuilder
+    private var form: some View {
         @Bindable var model = model
-        NavigationStack {
             Form {
                 Section {
                     Text(copy(subtitleKey))
@@ -52,9 +96,11 @@ public struct AuthFlowView: View {
                 }
                 Section {
                     TextField(copy("email"), text: $model.email)
+                        #if os(iOS)
                         .keyboardType(.emailAddress)
-                        .textContentType(.username)
                         .textInputAutocapitalization(.never)
+                        #endif
+                        .textContentType(.username)
                         .autocorrectionDisabled()
                         .focused($focusedField, equals: .email)
                         .submitLabel(.next)
@@ -66,7 +112,9 @@ public struct AuthFlowView: View {
                     passwordField
                     if model.mode != .login {
                         TextField(copy("code"), text: $model.code)
+                            #if os(iOS)
                             .keyboardType(.numberPad)
+                            #endif
                             .textContentType(.oneTimeCode)
                             .focused($focusedField, equals: .code)
                             .accessibilityIdentifier("auth.code")
@@ -123,6 +171,31 @@ public struct AuthFlowView: View {
                     }
                 }
                 .disabled(model.isBusy)
+                if model.mode == .login, googleSignIn != nil || appleSignIn != nil {
+                    Section {
+                        if let googleSignIn {
+                            GoogleSignInButton(scheme: colorScheme == .dark ? .dark : .light, style: .wide, state: model.isBusy ? .disabled : .normal) {
+                                focusedField = nil
+                                Task { if let user = await model.signIn(using: googleSignIn) { onAuthenticated(user) } }
+                            }
+                            .accessibilityIdentifier("auth.google")
+                        }
+                        if let appleSignIn {
+                            Button {
+                                focusedField = nil
+                                Task { if let user = await model.signIn(using: appleSignIn) { onAuthenticated(user) } }
+                            } label: {
+                                Label(copy("appleSignIn"), systemImage: "apple.logo")
+                                    .frame(maxWidth: .infinity, minHeight: 44)
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .tint(colorScheme == .dark ? .white : .black)
+                            .foregroundStyle(colorScheme == .dark ? .black : .white)
+                            .accessibilityIdentifier("auth.apple")
+                        }
+                    }
+                    .disabled(model.isBusy)
+                }
                 if configuration.termsURL != nil || configuration.privacyPolicyURL != nil {
                     Section {
                         Text(copy("legalNotice")).font(.footnote).foregroundStyle(.secondary)
@@ -131,23 +204,10 @@ public struct AuthFlowView: View {
                     }
                 }
             }
+            #if os(iOS)
             .scrollDismissesKeyboard(.interactively)
             .background(Color(uiColor: .systemGroupedBackground).onTapGesture { focusedField = nil })
-            .navigationTitle(configuration.appName)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if let onCancel {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button(copy("cancel")) { model.cancel(); onCancel() }
-                    }
-                }
-                ToolbarItemGroup(placement: .keyboard) {
-                    Spacer()
-                    Button(copy("done")) { focusedField = nil }
-                }
-            }
-        }
-        .onDisappear { model.cancel() }
+            #endif
     }
 
     private var passwordField: some View {
@@ -158,7 +218,9 @@ public struct AuthFlowView: View {
                 else { SecureField(copy(model.mode == .resetPassword ? "newPassword" : "password"), text: $model.password) }
             }
             .textContentType(model.mode == .login ? .password : .newPassword)
+            #if os(iOS)
             .textInputAutocapitalization(.never)
+            #endif
             .autocorrectionDisabled()
             .focused($focusedField, equals: .password)
             .submitLabel(model.mode == .login ? .go : .next)

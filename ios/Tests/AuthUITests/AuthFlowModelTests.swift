@@ -4,6 +4,30 @@ import AuthCore
 
 @MainActor
 final class AuthFlowModelTests: XCTestCase {
+    /// 授权面板退出后迟到的 Apple 凭据不能重新启动一次登录。
+    func testCancelledExternalAuthorizationNeverInvokesSignIn() async throws {
+        let model = makeModel()
+        let operation = try XCTUnwrap(model.beginExternalSignIn())
+        XCTAssertTrue(model.isBusy)
+        XCTAssertNil(model.beginExternalSignIn())
+        model.cancel()
+        var invoked = false
+        let result = await model.completeExternalSignIn(operation: operation) { invoked = true; return self.user }
+        XCTAssertNil(result)
+        XCTAssertFalse(invoked)
+    }
+
+    /// 第三方登录也通过同一状态机，成功清理密码，错误只显示安全固定文案。
+    func testExternalSignInClearsSecretsAndMapsPurchaseConflict() async {
+        let model = makeModel()
+        model.password = password
+        let result = await model.signIn { self.user }
+        XCTAssertEqual(result, user)
+        XCTAssertTrue(model.password.isEmpty)
+        let rejected = await model.signIn { throw AuthError.server(code: "iap_ownership_conflict", message: "do not show owner") }
+        XCTAssertNil(rejected)
+        XCTAssertEqual(model.message?.rawValue, "purchaseLinked")
+    }
     private let user = AuthUser(id: UUID(), email: "person@example.com", displayName: nil)
     private let password = "long secure password"
 

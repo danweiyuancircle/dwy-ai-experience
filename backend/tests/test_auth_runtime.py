@@ -7,15 +7,108 @@ from uuid import uuid4
 import httpx
 import pytest
 from fastapi import Depends, FastAPI, HTTPException
-from sqlalchemy import Boolean, Column, MetaData, String, Table, insert, select
+from sqlalchemy import Boolean, Column, MetaData, String, Table, insert, select, update
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 PASSWORD = "correct horse battery staple"
 
 
+async def test_admission_proof_transport_bounds_and_hidden_errors(tmp_path):
+    """完整大小证明能进入准入层;字符数和 UTF-8 字节数分别拒绝超额输入。"""
+    import json
+
+    from dwy_auth.models import AuthError
+
+    class Admission:
+        """只记录预算,不接受任何业务资格,避免测试触发外部认证。"""
+
+        def __init__(self):
+            self.lengths = []
+
+        async def prepare(self, proof):
+            self.lengths.append(len(proof.encode()) if proof else 0)
+            raise AuthError("ACCESS_DENIED", "准入拒绝", 403)
+
+    admission = Admission()
+    async with environment(tmp_path, admission=admission) as (client, _, _):
+        body = {"email": "person@example.com", "password": PASSWORD, "admission_proof": "x" * 131072}
+        assert (await client.post("/api/v1/auth/login", json=body)).status_code == 403
+        assert admission.lengths == [131072]
+        for proof in ["x" * 131073, "é" * 65537]:
+            body["admission_proof"] = proof
+            response = await client.post(
+                "/api/v1/auth/login",
+                content=json.dumps(body, ensure_ascii=False).encode(),
+                headers={"Content-Type": "application/json"},
+            )
+            assert response.status_code == 422
+            assert PASSWORD not in response.text and proof[:100] not in response.text
+        assert admission.lengths == [131072]
+
+
+async def test_atomic_http_registration_keeps_otp_failure_budget_after_rollback(tmp_path):
+    """错误验证码计数独立提交, 不能随准入注册事务回滚而恢复猜测次数。"""
+    from sqlalchemy import func
+
+    class Admission:
+        """为真实 HTTP 注册启用门禁, 验证前置失败不建立主体与会话。"""
+
+        async def prepare(self, proof):
+            assert proof == "valid-proof"
+            return proof
+
+        async def admit(self, db, subject, prepared):
+            raise AssertionError("OTP failure must never reach business admission")
+
+    async with environment(tmp_path, admission=Admission()) as (client, mailbox, runtime):
+        challenge = await client.post(
+            "/api/v1/auth/email/code", json={"email": "person@example.com", "purpose": "register"}
+        )
+        code = mailbox.messages[-1][1]
+        body = {
+            "email": "person@example.com",
+            "password": PASSWORD,
+            "code": "000000" if code != "000000" else "111111",
+            "challenge_id": challenge.json()["data"]["challenge_id"],
+            "admission_proof": "valid-proof",
+        }
+        for _ in range(6):
+            response = await client.post("/api/v1/auth/register", json=body)
+            assert response.status_code == 400
+            assert response.json()["code"] == "EMAIL_CODE_INVALID"
+        body["code"] = code
+        assert (await client.post("/api/v1/auth/register", json=body)).status_code == 400
+        async with runtime.sessions() as db:
+            assert await db.scalar(select(runtime.tables.email_challenges.c.attempts)) == 5
+            assert await db.scalar(select(runtime.tables.email_challenges.c.consumed_at)) is None
+            users = runtime.tables.identifiers.metadata.tables["business_people"]
+            for table in [users, runtime.tables.identifiers, runtime.session_backend.tables.sessions]:
+                assert await db.scalar(select(func.count()).select_from(table)) == 0
+
+
+async def test_atomic_http_login_keeps_password_failure_rate_budget(tmp_path):
+    """原子登录失败也必须保留密码试错速率预算, 第21次即使密码正确仍拒绝。"""
+    async with environment(tmp_path) as (client, mailbox, _):
+        await register(client, mailbox)
+        for _ in range(20):
+            response = await client.post(
+                "/api/v1/auth/login", json={"email": "person@example.com", "password": "wrong-password"}
+            )
+            assert response.status_code == 401
+        response = await client.post("/api/v1/auth/login", json={"email": "person@example.com", "password": PASSWORD})
+        assert response.status_code == 429
+        assert response.json()["code"] == "EMAIL_RATE_LIMITED"
+
+
 @asynccontextmanager
 async def environment(
-    tmp_path, *, app_id="adbox", session_backend_factory=None, providers=None, authorization_limit=8192
+    tmp_path,
+    *,
+    app_id="adbox",
+    session_backend_factory=None,
+    providers=None,
+    authorization_limit=8192,
+    admission=None,
 ):
     from dwy_auth.email_auth import EmailAuthConfig
     from dwy_auth.runtime import AuthRuntime
@@ -45,6 +138,9 @@ async def environment(
             subject = str(uuid4())
             await db.execute(insert(users).values(key=subject, mailbox=registration.email, active=True))
             return subject
+
+        async def update_email(self, db, subject, email):
+            await db.execute(update(users).where(users.c.key == subject).values(mailbox=email))
 
         async def is_active(self, db, subject):
             return bool(await db.scalar(select(users.c.active).where(users.c.key == subject)))
@@ -77,6 +173,7 @@ async def environment(
         email_sender=mailbox,
         email_config=EmailAuthConfig(challenge_secret="challenge-test-secret-" * 3),
         providers=providers,
+        admission=admission,
     )
     app = FastAPI()
 
@@ -272,7 +369,7 @@ async def test_reset_revokes_old_session_and_validation_never_echoes_credentials
         assert response.status_code == 422
         assert PASSWORD not in response.text and "sensitive-value" not in response.text
         oversized = await client.post(
-            "/api/v1/auth/login", content=b"x" * 32769, headers={"Content-Type": "application/json"}
+            "/api/v1/auth/login", content=b"x" * 163841, headers={"Content-Type": "application/json"}
         )
         assert oversized.status_code == 413
 
@@ -442,3 +539,77 @@ async def test_host_authorization_limit_applies_to_auth_and_business_dependencie
         assert (await client.get("/private", headers=headers)).status_code == 401
         assert (await client.get("/optional", headers=headers)).status_code == 401
         assert (await client.post("/api/v1/auth/logout", headers=headers)).status_code == 401
+
+
+async def test_email_update_http_rotates_session_and_lists_only_current_login_methods(tmp_path):
+    async with environment(tmp_path) as (client, mailbox, _runtime):
+        original = await register(client, mailbox)
+        old = original["access_token"]
+        headers = {"Authorization": "Bearer " + old}
+        identities = await client.get("/api/v1/auth/identities", headers=headers)
+        assert identities.status_code == 200
+        assert identities.json()["data"] == [
+            {"kind": "email", "value": "person@example.com", "provider": None, "issuer": None}
+        ]
+        response = await client.post(
+            "/api/v1/auth/email/update/code",
+            headers=headers,
+            json={
+                "email": "updated@example.com",
+                "reauthentication": {"method": "email", "identifier": "person@example.com", "password": PASSWORD},
+            },
+        )
+        assert response.status_code == 200
+        challenge = response.json()["data"]["challenge_id"]
+        response = await client.post(
+            "/api/v1/auth/email/update",
+            headers=headers,
+            json={
+                "email": "updated@example.com",
+                "code": mailbox.messages[-1][1],
+                "challenge_id": challenge,
+            },
+        )
+        assert response.status_code == 200
+        updated = response.json()["data"]
+        assert updated["user"]["id"] == original["user"]["id"]
+        assert updated["user"]["email"] == "updated@example.com"
+        assert (await client.get("/private", headers=headers)).status_code == 401
+        assert (
+            await client.post("/api/v1/auth/refresh", json={"refresh_token": original["refresh_token"]})
+        ).status_code == 401
+        assert (
+            await client.get("/private", headers={"Authorization": "Bearer " + updated["access_token"]})
+        ).status_code == 200
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"email": "updated@example.com"},
+        {"email": "updated@example.com", "reauthentication": {"method": "google", "credential": "x"}},
+        {"email": "x" * 255, "reauthentication": {"method": "email", "password": PASSWORD}},
+        {
+            "email": "updated@example.com",
+            "reauthentication": {"method": "email", "password": PASSWORD},
+            "subject": "other",
+        },
+    ],
+)
+async def test_email_update_http_rejects_unbounded_or_untrusted_fields(tmp_path, body):
+    async with environment(tmp_path) as (client, mailbox, _):
+        tokens = await register(client, mailbox)
+        response = await client.post(
+            "/api/v1/auth/email/update/code", json=body, headers={"Authorization": "Bearer " + tokens["access_token"]}
+        )
+        assert response.status_code == 422
+        assert mailbox.messages[-1][2] == "register"
+
+
+async def test_email_update_http_requires_current_bearer(tmp_path):
+    async with environment(tmp_path) as (client, _, _):
+        assert (await client.get("/api/v1/auth/identities")).status_code == 401
+        response = await client.post(
+            "/api/v1/auth/email/update", json={"email": "u@example.com", "code": "123456", "challenge_id": str(uuid4())}
+        )
+        assert response.status_code == 401

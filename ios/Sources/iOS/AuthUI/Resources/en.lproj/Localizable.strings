@@ -37,3 +37,7 @@
 "requestFailed" = "Could not complete the request. Check your connection and try again.";
 "registrationCompleted" = "Your account was created, but sign-in could not be saved. Sign in to continue.";
 "storageFailed" = "Could not save your sign-in securely. Try again.";
+"purchaseRequired" = "An active purchase is required. Unlock or restore purchases to continue.";
+"purchaseLinked" = "This purchase is linked to another account. Use your original sign-in method.";
+"purchaseVerificationFailed" = "Your purchase could not be verified. Try again later.";
+"appleSignIn" = "Sign in with Apple";

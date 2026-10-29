@@ -4,6 +4,47 @@ import XCTest
 /// 用后端替身验证异步顺序，避免登录/刷新晚到时复活已退出会话。
 @MainActor
 final class AuthSessionStoreTests: XCTestCase {
+    func testAppleManagementProofUsesCurrentSessionAndServerNonce() async throws {
+        let backend = BackendStub()
+        let provider = AppleProviderStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: TokenStoreStub(), deviceID: UUID())
+        try await store.signIn(email: "user@example.com", password: "password")
+        let proof = try await store.prepareAppleReauthentication(provider: provider, purpose: .emailUpdate)
+        XCTAssertEqual(backend.managementTokens, ["access"])
+        XCTAssertEqual(provider.nonces, ["raw-nonce"])
+        let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(proof)) as? [String: String])
+        XCTAssertEqual(fields["identifier"], "apple")
+        XCTAssertEqual(store.session?.accessToken, "access")
+    }
+
+    func testAppleManagementChallengeCannotPresentAfterAccountLogout() async throws {
+        let backend = BackendStub()
+        let provider = AppleProviderStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: TokenStoreStub(), deviceID: UUID())
+        try await store.signIn(email: "user@example.com", password: "password")
+        backend.pauseAppleChallenge = true
+        let task = Task { try await store.prepareAppleReauthentication(provider: provider, purpose: .emailUpdate) }
+        while backend.appleChallengeContinuation == nil { await Task.yield() }
+        try await store.signOut()
+        backend.appleChallengeContinuation?.resume(returning: backend.appleChallenge)
+        do { _ = try await task.value; XCTFail("Expected changed session rejection") }
+        catch AuthError.superseded {}
+        XCTAssertTrue(provider.nonces.isEmpty)
+    }
+
+    func testCancelledAppleManagementAuthorizationDoesNotReturnProof() async throws {
+        let backend = BackendStub()
+        let provider = AppleProviderStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: TokenStoreStub(), deviceID: UUID())
+        try await store.signIn(email: "user@example.com", password: "password")
+        provider.pause = true
+        let task = Task { try await store.prepareAppleReauthentication(provider: provider, purpose: .unlink) }
+        while provider.continuation == nil { await Task.yield() }
+        task.cancel()
+        provider.continuation?.resume(returning: provider.authorization)
+        do { _ = try await task.value; XCTFail("Expected task cancellation") }
+        catch is CancellationError {}
+    }
     func testAppleSignInPassesRawNonceAndInstallsOnlyBackendRefreshToken() async throws {
         let backend = BackendStub()
         let tokens = TokenStoreStub()
@@ -113,6 +154,82 @@ final class AuthSessionStoreTests: XCTestCase {
         catch AuthError.invalidConfiguration {}
         try await oldStore.signIn()
         XCTAssertNotNil(oldStore.session)
+    }
+
+    /// B 登录已开始时 A 会话尚在内存，管理入口不得携带 A token 发请求。
+    func testManagementCallsStartedDuringOtherAccountLoginAreRejected() async throws {
+        for action in ["list", "code", "bind", "unlink"] {
+            let backend = BackendStub()
+            let tokens = TokenStoreStub()
+            let store = AuthSessionStore(backend: backend, tokenStore: tokens, deviceID: UUID())
+            try await store.signIn(email: "a@example.com", password: "password")
+            backend.pauseLogin = true
+            let login = Task { try await store.signIn(email: "b@example.com", password: "password") }
+            while backend.loginContinuation == nil { await Task.yield() }
+            do {
+                switch action {
+                case "list": _ = try await store.listIdentities()
+                case "code": _ = try await store.sendEmailUpdateCode(email: "updated@example.com", reauthentication: .email(identifier: "a@example.com", password: "password"))
+                case "bind": try await store.bindExternal(provider: "google", credential: "id-token", reauthentication: .email(identifier: "a@example.com", password: "password"))
+                default: try await store.unlinkIdentity(AuthLoginIdentity(kind: .email, value: "a@example.com"), reauthentication: .email(identifier: "a@example.com", password: "password"))
+                }
+                XCTFail("Management must reject pending B login: \(action)")
+            } catch AuthError.superseded {}
+            XCTAssertTrue(backend.managementTokens.isEmpty, action)
+            backend.loginContinuation?.resume(returning: AuthTokenResponse(accessToken: "b-access", refreshToken: "b-refresh", expiresIn: 900, user: AuthUser(id: UUID(), email: "b@example.com", displayName: nil)))
+            try await login.value
+            XCTAssertEqual(store.session?.user.email, "b@example.com")
+        }
+    }
+
+    /// 同一账号刷新替换会话后，旧会话的管理响应也不能继续返回页面。
+    func testManagementResponseRejectsChangedSessionWithinSameGeneration() async throws {
+        let backend = BackendStub()
+        let tokens = TokenStoreStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: tokens, deviceID: UUID())
+        try await store.signIn(email: "a@example.com", password: "password")
+        backend.pauseManagement = true
+        let listing = Task { try await store.listIdentities() }
+        while backend.managementContinuation == nil { await Task.yield() }
+        backend.response = AuthTokenResponse(accessToken: "rotated-access", refreshToken: "rotated-refresh", expiresIn: 900, user: backend.response.user)
+        try await store.refresh()
+        backend.managementContinuation?.resume(returning: [])
+        do { _ = try await listing.value; XCTFail("Expected changed session rejection") }
+        catch AuthError.superseded {}
+        XCTAssertEqual(store.session?.accessToken, "rotated-access")
+    }
+
+    /// 轮换后的 refresh 仍只能由 SDK 安装，固定 userId。
+    func testEmailUpdateInstallsRotatedSessionForSameUser() async throws {
+        let backend = BackendStub()
+        let tokens = TokenStoreStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: tokens, deviceID: UUID())
+        try await store.signIn(email: "user@example.com", password: "password")
+        let userID = backend.response.user.id
+        backend.response = AuthTokenResponse(accessToken: "updated-access", refreshToken: "updated-refresh", expiresIn: 900, user: AuthUser(id: userID, email: "updated@example.com", displayName: nil))
+        try await store.updateEmail(email: "updated@example.com", code: "012345", challengeID: "challenge", newPassword: nil)
+        XCTAssertEqual(store.session?.user.id, userID)
+        XCTAssertEqual(store.session?.user.email, "updated@example.com")
+        XCTAssertEqual(tokens.token, "updated-refresh")
+    }
+
+    /// A 的邮箱响应迟到时必须撤销 A 的新会话，保留随后登录的 B。
+    func testLateEmailUpdateCannotReplaceAnotherAccount() async throws {
+        let backend = BackendStub()
+        let tokens = TokenStoreStub()
+        let store = AuthSessionStore(backend: backend, tokenStore: tokens, deviceID: UUID())
+        try await store.signIn(email: "user@example.com", password: "password")
+        let stale = backend.response
+        backend.pauseUpdate = true
+        let update = Task { try await store.updateEmail(email: "updated@example.com", code: "012345", challengeID: "challenge", newPassword: nil) }
+        while backend.updateContinuation == nil { await Task.yield() }
+        try await store.signOut()
+        backend.response = AuthTokenResponse(accessToken: "b-access", refreshToken: "b-refresh", expiresIn: 900, user: AuthUser(id: UUID(), email: "b@example.com", displayName: nil))
+        try await store.signIn(email: "b@example.com", password: "password")
+        backend.updateContinuation?.resume(returning: stale)
+        do { try await update.value; XCTFail("Expected stale response") } catch AuthError.superseded {}
+        XCTAssertEqual(store.session?.user.id, backend.response.user.id)
+        XCTAssertEqual(tokens.token, "b-refresh")
     }
 
     func testSuccessfulPasswordResetClearsLocalSessionWithoutLoggingOutRevokedToken() async throws {
@@ -516,7 +633,31 @@ private final class ProviderStub: GoogleIDTokenProviding {
 
 /// 可暂停网络边界以重现请求迟到。
 @MainActor
-private final class BackendStub: EmailPasswordAuthBackend, AppleAuthBackend {
+private final class BackendStub: EmailPasswordAuthBackend, AppleAuthBackend, AppleReauthenticationBackend, AccountManagementAuthBackend {
+    func createAppleChallenge(purpose: AppleReauthenticationPurpose, accessToken: String) async throws -> AppleSignInChallenge {
+        managementTokens.append(accessToken)
+        return try await createAppleChallenge()
+    }
+    var managementTokens: [String] = []
+    var pauseManagement = false
+    var managementContinuation: CheckedContinuation<[AuthLoginIdentity], Error>?
+    func listIdentities(accessToken: String) async throws -> [AuthLoginIdentity] {
+        managementTokens.append(accessToken)
+        if pauseManagement { return try await withCheckedThrowingContinuation { managementContinuation = $0 } }
+        return []
+    }
+    func bindExternal(provider: String, credential: String, reauthentication: AuthReauthentication, accessToken: String) async throws { managementTokens.append(accessToken) }
+    func unlinkIdentity(_ identity: AuthLoginIdentity, reauthentication: AuthReauthentication, accessToken: String) async throws { managementTokens.append(accessToken) }
+    var pauseUpdate = false
+    var updateContinuation: CheckedContinuation<AuthTokenResponse, Error>?
+    func sendEmailUpdateCode(email: String, reauthentication: AuthReauthentication, accessToken: String) async throws -> EmailCodeChallenge {
+        managementTokens.append(accessToken)
+        return EmailCodeChallenge(challengeID: "challenge", expiresIn: 300, resendAfter: 60, codeLength: 6)
+    }
+    func updateEmail(email: String, code: String, challengeID: String, newPassword: String?, accessToken: String) async throws -> AuthTokenResponse {
+        if pauseUpdate { return try await withCheckedThrowingContinuation { updateContinuation = $0 } }
+        return response
+    }
     var response = AuthTokenResponse(accessToken: "access", refreshToken: "refresh", expiresIn: 900, user: AuthUser(id: UUID(), email: "user@example.com", displayName: "User"))
     var receivedRefreshTokens: [String] = []
     var logoutFails = false

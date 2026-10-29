@@ -8,3 +8,14 @@
 运行：`swift test --filter AuthCoreTests`。
 
 Google SDK 真实 OAuth、宿主 URL scheme、用户取消与后端生产配置需要宿主集成后人工验收；本清单不宣称覆盖。
+
+- AppCloudAuthClientTests：改邮箱独立 Bearer 路由、external/google 重新认证字段、轮换 token 信封、缺省密码不发 null、UUID/密码前端校验、当前身份列表与绑定/解绑精确字段。
+- AuthSessionStoreTests：改邮箱复用私有 install 保持 userId 并保存轮换 refresh；A 的迟到响应不能覆盖 B 的会话。
+- 管理入口在 B 登录已开始、A 会话仍残留时拒绝发请求；管理响应返回前同时核对 generation、用户和实际 access 会话，同账号 refresh 也使旧响应失效。
+
+## 购买准入与原生第三方登录增量（2026-10-28）
+
+- `AppCloudAuthClientTests.testAdmissionProofIsIncludedForEverySessionExchange`：邮箱登录/注册、Google、Apple external、refresh每次读取并提交准入证明。
+- `AppCloudAuthClientTests.testRejectedAdmissionProofNeverSendsCredentials`：空/超长/读取失败证明不能发送身份凭据。
+- `AppCloudAuthClientTests`、`AuthSessionStoreTests`：Apple 管理挑战使用当前会话与服务端 nonce，重新认证材料保留授权码；切号或取消后不返回迟到材料。
+- `ExternalSessionTests`：第三方返回用户与refresh安装；取消后迟到会话撤销且不污染当前本地状态。

@@ -106,3 +106,48 @@ The helper makes `auth_users.google_subject` nullable and creates `auth_password
 宿主提供自己的 AuthRuntime、业务主体、会话撤销回调及 Alembic 迁移，并在现有 `install_runtime_auth` 后安装 `dwyeapi.auth_apple.install_apple_auth`。把 service 注册为 runtime 的 apple provider，驱动 `process_revocations()`，在业务删号事务内调用 `prepare_delete(db, subject)`；其返回值为撤销任务 ID，可用于区分本地删除完成与上游撤销 pending。签名 Key 与 Fernet token_encryption_key 只保留服务端，不能复用内购配置或按邮箱合并账号。
 
 原生 Swift 接入使用共享 AuthCore 与 AuthAppleIOS，说明见仓库根 `ios/Docs/APPLE_AUTH.md`。每个应用独立配置 client_id、密钥、数据库与业务 UUID，代码共享不代表跨产品 SSO。
+
+## 已登录账号的邮箱与登录方式管理
+
+`AuthRuntime.send_email_update_code(principal, email, *, reauthentication, remote_key="local", language="en")`
+消费 `purpose="email_update"` 的 `VerifiedIdentity`，将验证码绑定当前 app、subject、规范化目标邮箱和凭据代次。
+`AuthRuntime.update_email(principal, email, code, challenge_id, *, new_password=None, remote_key="local")`
+在宿主事务中消费挑战、更新邮箱凭据与已验证主邮箱、撤销所有旧会话并签发同一 subject 的新会话。
+首次添加密码必须提供符合共享密码政策的新密码；已有密码可保留。Google issuer/sub 不变，邮箱不用于自动合并。
+公开 `send_email_code` 不接受 `email_update`，因此注册/重置验证码不能绕过重新认证。
+
+启用变更的宿主适配器实现 `EmailSubjectAdapter.update_email(db, subject, email)`，与挑战/凭据/会话共同提交，不能自行提交或更换 subject。
+未实现此接口的宿主在发码前返回 `EMAIL_UPDATE_NOT_CONFIGURED`，既有注册/登录不受影响。
+主邮箱经用户验证后，宿主不得用 Google profile 邮箱覆盖它。
+
+EAPI `install_runtime_auth` 额外提供：
+
+- POST `/api/v1/auth/email/update/code`：`email` 与 `reauthentication`，需要当前 Bearer。
+- POST `/api/v1/auth/email/update`：`email/code/challenge_id/new_password?`，需要当前 Bearer，返回既有 token/user 信封。
+- GET `/api/v1/auth/identities`：当前主体可用入口的 `LoginIdentity` 数组，仅含 `kind/value/provider/issuer`；密码、版本摘要与 token 不进入响应。
+
+重新认证 `method` 仍为 `email/username/external`；Google 使用 `method=external, identifier=google, credential=<ID token>`。
+已有外部绑定/解绑接口继续执行主体证明、唯一归属与最后一种可用登录方式保护。
+
+宿主 Alembic revision 在启用前升级 `build_runtime_tables` 使用的实际前缀：
+
+- 已有 `email_challenges` 增加可空 `subject VARCHAR(255)`、`credential_version VARCHAR(64)`。
+- 新建 `credential_versions`，`app_id VARCHAR(32)` 与 `subject VARCHAR(255)` 为联合主键，`generation VARCHAR(36) NOT NULL`。
+
+旧挑战两列保持 NULL，不补认旧验证码。代次由首次凭据变更创建；改邮箱、改密、重置、绑定和解绑都会同事务轮换代次并核销未完成挑战。
+凭据内容恢复成旧值也不会恢复旧挑战，发信中的旧快照同样失效。共享包不在启动时执行迁移。
+
+
+## 可选应用准入
+
+- `AuthRuntime(..., admission=...)` 接受 `AuthAdmission`：`prepare(proof)` 在数据库事务外验证本次请求证明，`admit(db, subject, prepared)` 在主体、凭据、会话共用事务内验证或写入业务归属。准入不得自行提交事务。仅配置准入时，在 `prepare` 外网工作前复用独立 `admission-ip` 预算（每个可信来源 900 秒最多 100 次）；refresh 使用与登录相同的来源解析。默认不配置，不强制业务资格。
+- 对外登录调用 `runtime.login(method, ..., admission_proof=...)`；注册调用 `runtime.register_email_session(...)`。配置准入后，独立 `register_email`、登录用途 `authenticate`、`issue` 拒绝绕过；内部 `_db` 参数只供受信运行时事务组合，不能暴露给请求。
+- `refresh(..., admission_proof=...)` 必须提供本次证明。会话后端需实现可选 `before_lock(db, principal)` 纯主体锁检查（CAS 前，保持 account→session 锁序）和 `before_rotate(db, principal)` 准入写入回调，并在原有刷新事务内、CAS 与配额检查成功后且生成新 token 前调用，准入失败必须回滚尚未生效的轮换。未配置准入仍兼容原会话实现；自定义后端启用准入前必须实现这个合同。
+- EAPI 认证请求总预算为 163840 字节；`admission_proof` 最多 131072 个 UTF-8 字节，日志和模型表示不包含原文。邮箱发码、忘记密码不签发会话，不要求准入证明；变更邮箱会签发新会话，因此同样要求证明。
+
+Apple 专用 `AppleAuthService.login(..., admission_proof=...)` 使用同一准入配置：先验证证明，再消费 Apple 挑战与授权码；准入归属、账号、授权与会话共同提交，拒绝时回滚并持久化上游撤销任务。
+
+### Apple-only 账号的管理重新认证
+
+先用当前 Bearer 向 `/api/v1/auth/apple/challenges` 提交 `purpose=reauth_email_update`、`reauth_bind` 或 `reauth_unlink`；服务端将挑战绑定当前 subject 与具体操作。原生授权使用服务端原始 nonce。
+管理请求的 `reauthentication` 使用 `method=external, identifier=apple`，其 `credential` 为包含 `challenge_id`、`identity_token`、`authorization_code` 的 JSON 字符串（最多 32768 个 UTF-8 字节）。EAPI 通过 `AppleAuthService.reauthenticate` 兑换一次性 code 并生成当前主体、限用途、单次消费的 proof；跨主体、跨操作或重放均拒绝。通用 Apple 登录仍拒绝单凭据路径，不能恢复旧 `AppleIdentityProvider` 或客户端自建 nonce 方案。

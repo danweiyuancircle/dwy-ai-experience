@@ -2,6 +2,7 @@
 
 import asyncio
 import hashlib
+import json
 from types import SimpleNamespace
 from uuid import uuid4
 
@@ -114,6 +115,98 @@ async def env(tmp_path):
 async def login(env, identity="person", code="code"):
     challenge = await env.service.challenge()
     return await env.service.login(challenge["challenge_id"], identity, code)
+
+
+async def test_apple_login_requires_admission_before_consuming_authorization(env):
+    class Admission:
+        async def prepare(self, proof):
+            raise AuthError("ACCESS_PROOF_REQUIRED", "需要准入证明", 403)
+
+        async def admit(self, db, subject, prepared):
+            raise AssertionError("unverified proof must not enter transaction")
+
+    env.runtime.admission = Admission()
+    challenge = await env.service.challenge()
+    with pytest.raises(AuthError, match="需要准入证明"):
+        await env.service.login(challenge["challenge_id"], "person", "code")
+    assert not env.gateway.calls
+    async with env.sessions() as db:
+        assert await db.scalar(select(func.count()).select_from(env.customers)) == 0
+        claimed = await db.scalar(select(env.tables.challenges.c.claimed_at))
+        assert claimed is None
+
+
+async def test_apple_admission_denial_rolls_back_subject_session_and_queues_revocation(env):
+    class Admission:
+        async def prepare(self, proof):
+            assert proof == "fresh-proof"
+            return "verified"
+
+        async def admit(self, db, subject, prepared):
+            assert prepared == "verified"
+            raise AuthError("ACCESS_DENIED", "准入拒绝", 403)
+
+    env.runtime.admission = Admission()
+    challenge = await env.service.challenge()
+    with pytest.raises(AuthError, match="准入拒绝"):
+        await env.service.login(challenge["challenge_id"], "person", "code", admission_proof="fresh-proof")
+    async with env.sessions() as db:
+        for table in (env.customers, env.tables.grants, env.session_tables.sessions):
+            assert await db.scalar(select(func.count()).select_from(table)) == 0
+        assert await db.scalar(select(func.count()).select_from(env.tables.revocations)) == 1
+
+
+@pytest.mark.parametrize("purpose", ["bind", "unlink", "email_update"])
+async def test_apple_reauthentication_is_subject_bound_purpose_bound_and_single_use(env, purpose):
+    principal = (await login(env)).principal
+    challenge = await env.service.challenge(purpose="reauth_" + purpose, principal=principal)
+    credential = json.dumps(
+        {
+            "challenge_id": challenge["challenge_id"],
+            "identity_token": "person",
+            "authorization_code": "reauth-code",
+        }
+    )
+    proof = await env.service.reauthenticate(principal, credential, purpose=purpose)
+    assert proof.subject == principal.subject and proof.purpose == purpose and proof.method == "apple"
+    async with env.sessions() as db, db.begin():
+        await env.runtime._consume_identity(db, proof, purpose, subject=principal.subject)
+    with pytest.raises(AuthError):
+        async with env.sessions() as db, db.begin():
+            await env.runtime._consume_identity(db, proof, purpose, subject=principal.subject)
+    with pytest.raises(AuthError):
+        await env.service.reauthenticate(principal, credential, purpose=purpose)
+
+
+async def test_apple_reauthentication_cannot_switch_identity_or_operation(env):
+    principal = (await login(env)).principal
+    challenge = await env.service.challenge(purpose="reauth_bind", principal=principal)
+    credential = json.dumps(
+        {
+            "challenge_id": challenge["challenge_id"],
+            "identity_token": "other-person",
+            "authorization_code": "reauth-code",
+        }
+    )
+    before = len(env.gateway.calls)
+    with pytest.raises(AuthError):
+        await env.service.reauthenticate(principal, credential, purpose="unlink")
+    assert len(env.gateway.calls) == before
+    with pytest.raises(AuthError):
+        await env.service.reauthenticate(principal, credential, purpose="bind")
+    async with env.sessions() as db:
+        assert await db.scalar(select(func.count()).select_from(env.customers)) == 1
+        assert await db.scalar(select(func.count()).select_from(env.tables.revocations)) == 1
+
+
+@pytest.mark.parametrize("credential", ["SECRET", "[]", "{}", "x" * 32769])
+async def test_apple_reauthentication_rejects_invalid_envelope_before_network(env, credential):
+    principal = (await login(env)).principal
+    before = len(env.gateway.calls)
+    with pytest.raises(AuthError) as error:
+        await env.service.reauthenticate(principal, credential, purpose="email_update")
+    assert "SECRET" not in str(error.value)
+    assert len(env.gateway.calls) == before
 
 
 async def test_challenge_hash_replay_and_stable_subject(env):

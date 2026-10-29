@@ -179,7 +179,7 @@ class JWTSessionBackend:
             raise _invalid()
         return principal
 
-    async def refresh(self, refresh_token: str) -> SessionTokens:
+    async def refresh(self, refresh_token: str, *, before_lock=None, before_rotate=None) -> SessionTokens:
         """CAS 原子消费 refresh；旧摘要重用先提交 family 撤销，再返回认证失败。"""
         if not isinstance(refresh_token, str) or not re.fullmatch(r"rf_[A-Za-z0-9_-]{64}", refresh_token):
             raise _invalid()
@@ -203,6 +203,16 @@ class JWTSessionBackend:
                 .one_or_none()
             )
             if row is not None:
+                principal = AuthPrincipal(
+                    self.app_id,
+                    row["subject"],
+                    UUID(row["id"]),
+                    row["method"],
+                    UUID(row["device_id"]) if row["device_id"] is not None else None,
+                )
+                if before_lock is not None:
+                    # 纯主体检查先锁 account, 与改密/删账号保持 account→session 顺序。
+                    await before_lock(db, principal)
                 refresh, jti = "rf_" + secrets.token_urlsafe(48), str(uuid4())
                 consumed = await db.execute(
                     update(s)
@@ -230,6 +240,9 @@ class JWTSessionBackend:
                             .values(revoked_at=now)
                         )
                     else:
+                        if before_rotate is not None:
+                            # CAS 与配额允许后才认领；拒绝异常回滚尚未提交的轮换。
+                            await before_rotate(db, principal)
                         await db.execute(
                             insert(h).values(
                                 app_id=self.app_id,
@@ -237,13 +250,6 @@ class JWTSessionBackend:
                                 session_id=row["id"],
                                 expires_at=row["expires_at"],
                             )
-                        )
-                        principal = AuthPrincipal(
-                            self.app_id,
-                            row["subject"],
-                            UUID(row["id"]),
-                            row["method"],
-                            UUID(row["device_id"]) if row["device_id"] is not None else None,
                         )
                         result = self._tokens(principal, now, jti, refresh, row["expires_at"])
             if result is None:

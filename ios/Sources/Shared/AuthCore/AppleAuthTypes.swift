@@ -33,6 +33,19 @@ public protocol AppleAuthBackend: AuthBackend {
     func authenticate(appleAuthorization: AppleAuthorization, challengeID: String, deviceID: UUID) async throws -> AuthTokenResponse
 }
 
+/// 服务端挑战绑定当前主体与单次管理操作，不能与登录或其他管理用途互换。
+public enum AppleReauthenticationPurpose: String, Sendable {
+    case bind = "reauth_bind"
+    case unlink = "reauth_unlink"
+    case emailUpdate = "reauth_email_update"
+}
+
+/// Apple 账号管理的可选能力，现有登录适配器无需增加实现。
+@MainActor
+public protocol AppleReauthenticationBackend: AuthBackend {
+    func createAppleChallenge(purpose: AppleReauthenticationPurpose, accessToken: String) async throws -> AppleSignInChallenge
+}
+
 /// 宿主选择原生授权适配器；取消抛 CancellationError，不把 Apple token 持久化。
 @MainActor
 public protocol AppleAuthorizationProviding {

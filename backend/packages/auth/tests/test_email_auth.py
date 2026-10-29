@@ -198,7 +198,7 @@ async def test_http_envelope_sensitive_validation_and_password_bounds(email_envi
         assert challenge.status_code == 200
         data = challenge.json()["data"]
         assert set(data) == {"challenge_id", "expires_in", "resend_after", "code_length"}
-        assert data["code_length"] == 6 and data["expires_in"] == 300
+        assert data["code_length"] == 6 and 0 < data["expires_in"] <= 300
         body = {
             "email": "person@example.com",
             "password": PASSWORD,

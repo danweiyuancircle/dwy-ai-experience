@@ -85,6 +85,12 @@ public protocol AuthBackend {
     func logout(accessToken: String) async throws
 }
 
+/// 可选第三方认证能力；旧 Google-only 适配器无需增加无意义实现。
+@MainActor
+public protocol ExternalAuthBackend: AuthBackend {
+    func authenticate(provider: String, credential: String, deviceID: UUID) async throws -> AuthTokenResponse
+}
+
 /// 验证码用途由服务端隔离；注册验证码不能用于重置密码。
 public enum EmailCodePurpose: String, Codable, Sendable {
     case register
@@ -155,4 +161,77 @@ public protocol RefreshTokenStoring {
     func load() throws -> String?
     func save(_ token: String) throws
     func delete() throws
+}
+
+
+/// 重新认证仅携带当前登录方式的证明，不能声明账号 subject 或复用登录结果。
+public enum AuthReauthentication: Encodable, Sendable {
+    case email(identifier: String, password: String)
+    case username(identifier: String, password: String)
+    case external(provider: String, credential: String)
+    case apple(authorization: AppleAuthorization, challengeID: String)
+
+    private enum CodingKeys: String, CodingKey { case method, identifier, password, credential }
+
+    public func encode(to encoder: any Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        switch self {
+        case let .apple(authorization, challengeID):
+            guard !challengeID.isEmpty, challengeID.utf8.count <= 36,
+                  !authorization.identityToken.isEmpty, authorization.identityToken.utf8.count <= 16_384,
+                  !authorization.authorizationCode.isEmpty, authorization.authorizationCode.utf8.count <= 4_096
+            else { throw AuthError.invalidResponse }
+            let data = try JSONEncoder().encode([
+                "challenge_id": challengeID,
+                "identity_token": authorization.identityToken,
+                "authorization_code": authorization.authorizationCode,
+            ])
+            guard data.count <= 32_768 else { throw AuthError.invalidResponse }
+            try container.encode("external", forKey: .method)
+            try container.encode("apple", forKey: .identifier)
+            try container.encode(String(decoding: data, as: UTF8.self), forKey: .credential)
+        case let .email(identifier, password), let .username(identifier, password):
+            let method: String
+            if case .email = self { method = "email" } else { method = "username" }
+            guard !identifier.isEmpty, identifier.unicodeScalars.count <= (method == "email" ? 254 : 64),
+                  EmailPasswordRules.isValidLoginPassword(password)
+            else { throw AuthError.invalidResponse }
+            try container.encode(method, forKey: .method)
+            try container.encode(identifier, forKey: .identifier)
+            try container.encode(password, forKey: .password)
+        case let .external(provider, credential):
+            guard !provider.isEmpty, provider.utf8.count <= 64,
+                  !credential.isEmpty, credential.utf8.count <= 16_384
+            else { throw AuthError.invalidResponse }
+            try container.encode("external", forKey: .method)
+            try container.encode(provider, forKey: .identifier)
+            try container.encode(credential, forKey: .credential)
+        }
+    }
+}
+
+/// 当前主体可用的入口；外部身份使用 provider/issuer/value 精确定位解绑目标。
+public struct AuthLoginIdentity: Codable, Equatable, Sendable {
+    public enum Kind: String, Codable, Sendable { case email, username, external }
+    public let kind: Kind
+    public let value: String
+    public let provider: String?
+    public let issuer: String?
+
+    public init(kind: Kind, value: String, provider: String? = nil, issuer: String? = nil) {
+        self.kind = kind
+        self.value = value
+        self.provider = provider
+        self.issuer = issuer
+    }
+}
+
+/// 账号管理独立于基础登录协议，旧宿主无需实现；每次敏感调用由当前会话授权。
+@MainActor
+public protocol AccountManagementAuthBackend: AuthBackend {
+    func listIdentities(accessToken: String) async throws -> [AuthLoginIdentity]
+    func sendEmailUpdateCode(email: String, reauthentication: AuthReauthentication, accessToken: String) async throws -> EmailCodeChallenge
+    func updateEmail(email: String, code: String, challengeID: String, newPassword: String?, accessToken: String) async throws -> AuthTokenResponse
+    func bindExternal(provider: String, credential: String, reauthentication: AuthReauthentication, accessToken: String) async throws
+    func unlinkIdentity(_ identity: AuthLoginIdentity, reauthentication: AuthReauthentication, accessToken: String) async throws
 }

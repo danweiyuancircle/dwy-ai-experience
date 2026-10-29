@@ -38,7 +38,9 @@ class AppleAuthService:
         """返回原始 nonce；客户端直接传给 Apple，不做额外散列。"""
         rt, t, now = self.runtime, self.tables.challenges, int(time.time())
         rt._require_method("apple")
-        if purpose not in {"login", "bind"} or (purpose == "bind") != (principal is not None):
+        if purpose not in {"login", "bind", "reauth_bind", "reauth_unlink", "reauth_email_update"} or (
+            purpose != "login"
+        ) != (principal is not None):
             raise AuthError("AUTH_PURPOSE_INVALID", "认证用途无效", 422)
         await rt._rate("apple-global", "app", 1000, 900)
         await rt._rate("apple-challenge", rt._remote(remote_key), 30, 900)
@@ -203,18 +205,21 @@ class AppleAuthService:
         device_id=None,
         display_name=None,
         remote_key="local",
+        admission_proof=None,
     ):
         """兑换完成后将身份关联、proof 核销、授权和应用会话放进同一事务。"""
+        rt = self.runtime
+        prepared = await rt._prepare_admission(admission_proof, remote_key=remote_key)
         challenge, authorization = await self._authorize(
             challenge_id, identity_token, authorization_code, "login", None, display_name, remote_key
         )
-        rt = self.runtime
         try:
             for attempt in range(2):
                 try:
                     async with rt.sessions() as db, db.begin():
                         await self._check_authorization(db, challenge, authorization)
                         identity = await rt._resolve_external(db, "apple", authorization.identity, "login")
+                        await rt._admit(db, identity.subject, prepared)
                         # 等待宿主主体锁期间可能已完成删号，旧授权不能据此再建号。
                         await self._check_authorization(db, challenge, authorization)
                         await rt._consume_identity(db, identity, "login")
@@ -231,6 +236,51 @@ class AppleAuthService:
                 except IntegrityError:
                     if attempt:
                         raise AuthError("IDENTITY_CONFLICT", "外部身份关联冲突", 409) from None
+        except BaseException:
+            with anyio.CancelScope(shield=True):
+                await self._failed_authorization(authorization)
+            raise
+
+    async def reauthenticate(self, principal, credential, *, purpose, remote_key="local"):
+        """消费当前主体的限用途 Apple 挑战; 只返回一次性 proof, 不创建主体或会话。"""
+        if purpose not in {"bind", "unlink", "email_update"}:
+            raise AuthError("AUTH_PURPOSE_INVALID", "认证用途无效", 422)
+        try:
+            if not isinstance(credential, str) or not 1 <= len(credential.encode()) <= 32768:
+                raise ValueError
+            payload = json.loads(credential)
+            if not isinstance(payload, dict) or set(payload) != {
+                "challenge_id",
+                "identity_token",
+                "authorization_code",
+            }:
+                raise ValueError
+            for key, limit in (("challenge_id", 36), ("identity_token", 16384), ("authorization_code", 4096)):
+                value = payload[key]
+                if not isinstance(value, str) or not 1 <= len(value.encode()) <= limit:
+                    raise ValueError
+        except (ValueError, RecursionError):
+            raise AuthError("REAUTHENTICATION_INVALID", "Apple 重新认证材料无效", 400) from None
+        challenge, authorization = await self._authorize(
+            payload["challenge_id"],
+            payload["identity_token"],
+            payload["authorization_code"],
+            "reauth_" + purpose,
+            principal.subject,
+            None,
+            remote_key,
+        )
+        rt = self.runtime
+        try:
+            async with rt.sessions() as db, db.begin():
+                await self._check_authorization(db, challenge, authorization)
+                await rt._principal(db, principal)
+                proof = await rt._resolve_external(db, "apple", authorization.identity, purpose)
+                if proof.subject != principal.subject:
+                    raise AuthError("REAUTHENTICATION_INVALID", "重新认证必须属于当前账号", 403)
+                await self._check_authorization(db, challenge, authorization)
+                await self._store_grant(db, authorization, principal.subject)
+                return proof
         except BaseException:
             with anyio.CancelScope(shield=True):
                 await self._failed_authorization(authorization)

@@ -28,3 +28,11 @@ class SubjectAdapter(Protocol):
     async def is_active(self, db: AsyncSession, subject: str) -> bool:
         """检查主体存在且允许认证；敏感写入时应锁定对应业务行。"""
         ...
+
+
+class EmailSubjectAdapter(SubjectAdapter, Protocol):
+    """启用邮箱变更的宿主必须在同一事务更新主邮箱，不得改 subject 或 provider 身份。"""
+
+    async def update_email(self, db: AsyncSession, subject: str, email: str) -> None:
+        """写入已验证主邮箱；与认证凭据、挑战消费和会话轮换一起提交。"""
+        ...

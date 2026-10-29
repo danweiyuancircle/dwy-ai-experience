@@ -2,7 +2,14 @@
 
 from importlib import import_module
 
-from .contracts import AuthPrincipal, SessionBackend, SessionTokens, VerifiedIdentity
+from .contracts import (
+    AuthAdmission,
+    AuthPrincipal,
+    LoginIdentity,
+    SessionBackend,
+    SessionTokens,
+    VerifiedIdentity,
+)
 from .email_auth import (
     EapiEmailCodeSender,
     EmailAuthConfig,
@@ -35,6 +42,7 @@ _LAZY_EXPORTS = {
     "RuntimeTables": (".runtime_storage", "RuntimeTables"),
     "build_runtime_tables": (".runtime_storage", "build_runtime_tables"),
     "SubjectAdapter": (".subjects", "SubjectAdapter"),
+    "EmailSubjectAdapter": (".subjects", "EmailSubjectAdapter"),
     "SubjectRegistration": (".subjects", "SubjectRegistration"),
     "ExternalIdentity": (".providers", "ExternalIdentity"),
     "ExternalIdentityProvider": (".providers", "ExternalIdentityProvider"),
@@ -54,7 +62,10 @@ def __getattr__(name: str):
 
 
 __all__ = [
+    "AuthAdmission",
     "AuthPrincipal",
+    "LoginIdentity",
+    "EmailSubjectAdapter",
     "AuthRuntime",
     "ExternalIdentity",
     "ExternalIdentityProvider",

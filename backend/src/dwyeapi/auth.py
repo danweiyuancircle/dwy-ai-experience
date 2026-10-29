@@ -7,13 +7,13 @@ from typing import Annotated, Literal
 from uuid import UUID
 
 from dwy_auth.contracts import AuthPrincipal, SessionTokens
-from dwy_auth.email_auth import EapiEmailCodeSender, EmailAuthConfig, EmailCodePurpose, resolve_email_language
+from dwy_auth.email_auth import EapiEmailCodeSender, EmailAuthConfig, resolve_email_language
 from dwy_auth.models import AuthError
 from dwy_auth.runtime import AuthRuntime
 from fastapi import APIRouter, Depends, FastAPI, Header, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from dwyeapi.response import ApiResponse
@@ -33,14 +33,28 @@ class _Request(BaseModel):
     model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
 
 
+class _AdmissionRequest(_Request):
+    """宿主可选准入证明;通用认证不解释其业务内容,字节预算在外边界执行。"""
+
+    admission_proof: str | None = Field(default=None, min_length=1, max_length=131072, repr=False)
+
+    @field_validator("admission_proof")
+    @classmethod
+    def bounded_proof(cls, value):
+        """JSON 字符数与网络字节数不同,防止多字节输入绕过同一预算。"""
+        if value is not None and len(value.encode()) > 131072:
+            raise ValueError("admission proof too large")
+        return value
+
+
 class _EmailCode(_Request):
     """限定邮箱长度和验证码用途。"""
 
     email: str = Field(min_length=3, max_length=254)
-    purpose: EmailCodePurpose
+    purpose: Literal["register", "password_reset"]
 
 
-class _EmailLogin(_Request):
+class _EmailLogin(_AdmissionRequest):
     """密码不进入 repr; Web 登录允许省略设备。"""
 
     email: str = Field(min_length=3, max_length=254)
@@ -57,13 +71,13 @@ class _PasswordReset(_Request):
     challenge_id: UUID
 
 
-class _Registration(_PasswordReset):
+class _Registration(_PasswordReset, _AdmissionRequest):
     """注册复用重置的证明输入, 可关联原生设备。"""
 
     device_id: UUID | None = None
 
 
-class _UsernameLogin(_Request):
+class _UsernameLogin(_AdmissionRequest):
     """登录名与展示昵称分离, 规范化由核心负责。"""
 
     username: str = Field(min_length=1, max_length=64)
@@ -78,14 +92,14 @@ class _UsernameBinding(_Request):
     password: str = Field(min_length=1, max_length=72, repr=False)
 
 
-class _GoogleLogin(_Request):
+class _GoogleLogin(_AdmissionRequest):
     """限制外部 ID token 大小并隐藏敏感内容。"""
 
     id_token: str = Field(min_length=1, max_length=16384, repr=False)
     device_id: UUID | None = None
 
 
-class _ExternalLogin(_Request):
+class _ExternalLogin(_AdmissionRequest):
     """Provider 名仅选择宿主已注册适配器。"""
 
     provider: str = Field(pattern=r"^[a-z][a-z0-9_-]{0,63}$", min_length=1, max_length=64)
@@ -99,7 +113,23 @@ class _Reauthentication(_Request):
     method: Literal["email", "username", "external"]
     identifier: str | None = Field(default=None, min_length=1, max_length=254)
     password: str | None = Field(default=None, min_length=1, max_length=72, repr=False)
-    credential: str | None = Field(default=None, min_length=1, max_length=16384, repr=False)
+    credential: str | None = Field(default=None, min_length=1, max_length=32768, repr=False)
+
+
+class _EmailUpdateCode(_Request):
+    """改邮箱发码只能通过当前会话与限用途的重新认证。"""
+
+    email: str = Field(min_length=3, max_length=254)
+    reauthentication: _Reauthentication
+
+
+class _EmailUpdate(_AdmissionRequest):
+    """客户端不得指定主体或设备; 轮换复用当前会话的设备。"""
+
+    email: str = Field(min_length=3, max_length=254)
+    code: str = Field(pattern=r"^[0-9]{6}$", min_length=6, max_length=6, repr=False)
+    challenge_id: UUID
+    new_password: str | None = Field(default=None, min_length=15, max_length=72, repr=False)
 
 
 class _ExternalBinding(_ExternalLogin):
@@ -125,7 +155,7 @@ class _PasswordChange(_Request):
     new_password: str = Field(min_length=15, max_length=72, repr=False)
 
 
-class _Refresh(_Request):
+class _Refresh(_AdmissionRequest):
     """refresh 凭据限长且不进入调试表示。"""
 
     refresh_token: str = Field(min_length=1, max_length=8192, repr=False)
@@ -134,7 +164,7 @@ class _Refresh(_Request):
 class AuthRequestLimitMiddleware:
     """认证请求按实际接收字节限长, 避免模型校验前解析无界 JSON; 业务接口不受影响。"""
 
-    def __init__(self, app: ASGIApp, *, prefix: str, maximum: int = 32768):
+    def __init__(self, app: ASGIApp, *, prefix: str, maximum: int = 163840):
         """只限制认证路由, 不改变业务上传限制。"""
         self.app, self.prefix, self.maximum = app, prefix, maximum
 
@@ -203,11 +233,27 @@ async def _token_payload(tokens: SessionTokens, profile_loader) -> ApiResponse:
     )
 
 
-async def _reauthenticate(runtime: AuthRuntime, body: _Reauthentication, purpose: str, request: Request):
+async def _reauthenticate(
+    runtime: AuthRuntime,
+    body: _Reauthentication,
+    purpose: str,
+    request: Request,
+    principal: AuthPrincipal | None = None,
+):
     """重新认证仍由服务端产生限用途证明, 不接受请求自报的可信身份。"""
     method = body.identifier if body.method == "external" else body.method
     if method is None:
         raise AuthError("INPUT_INVALID", "第三方配置名称缺失", 422)
+    provider = runtime.providers.get(method)
+    if method == "apple" and callable(getattr(provider, "reauthenticate", None)):
+        if principal is None:
+            raise AuthError("SESSION_INVALID", "请先登录原有账号", 401)
+        return await provider.reauthenticate(
+            principal,
+            body.credential,
+            purpose=purpose,
+            remote_key=request.client.host if request.client else "unknown",
+        )
     return await runtime.authenticate(
         method,
         identifier=body.identifier,
@@ -305,9 +351,9 @@ def install_runtime_auth(
         """业务资料完全由宿主加载, 不泄露内部认证证明。"""
         return await _token_payload(tokens, profile_loader)
 
-    async def reauthenticate(body: _Reauthentication, purpose: str, request: Request):
+    async def reauthenticate(body: _Reauthentication, purpose: str, request: Request, principal: AuthPrincipal):
         """传入实际来源与用途, 防止证明跨操作复用。"""
-        return await _reauthenticate(runtime, body, purpose, request)
+        return await _reauthenticate(runtime, body, purpose, request, principal)
 
     @router.get("/capabilities")
     async def capabilities():
@@ -318,6 +364,11 @@ def install_runtime_auth(
                 "providers": sorted(runtime.providers) if "external" in runtime.methods else [],
             }
         )
+
+    @router.get("/identities")
+    async def identities(principal: principal_dependency):
+        """只展示当前主体的登录入口, 不允许通过请求选择其他账户。"""
+        return ApiResponse.ok(await runtime.list_identities(principal))
 
     @router.post("/email/code")
     async def email_code(
@@ -334,43 +385,108 @@ def install_runtime_auth(
         )
         return ApiResponse.ok(result)
 
+    @router.post("/email/update/code")
+    async def email_update_code(
+        body: _EmailUpdateCode,
+        request: Request,
+        principal: principal_dependency,
+        accept_language: Annotated[str | None, Header(max_length=512)] = None,
+    ):
+        """目标邮箱验证码与当前主体绑定, 沿用共享邮件语言和配额。"""
+        proof = await reauthenticate(body.reauthentication, "email_update", request, principal)
+        result = await runtime.send_email_update_code(
+            principal,
+            body.email,
+            reauthentication=proof,
+            remote_key=remote_key(request),
+            language=resolve_email_language(accept_language),
+        )
+        return ApiResponse.ok(result)
+
+    @router.post("/email/update")
+    async def email_update(body: _EmailUpdate, request: Request, principal: principal_dependency):
+        """轮换成功以既有 token 信封返回同一用户资料。"""
+        tokens = await runtime.update_email(
+            principal,
+            body.email,
+            body.code,
+            body.challenge_id,
+            new_password=body.new_password,
+            remote_key=remote_key(request),
+            admission_proof=body.admission_proof,
+        )
+        return await token_payload(tokens)
+
     @router.post("/register")
     async def register(body: _Registration, request: Request):
-        """验证注册证明, 通过应用主体适配后签发会话。"""
-        identity = await runtime.register_email(
-            body.email, body.password, body.code, body.challenge_id, remote_key=remote_key(request)
+        """主体、准入归属及首个会话在同一事务内完成。"""
+        return await token_payload(
+            await runtime.register_email_session(
+                body.email,
+                body.password,
+                body.code,
+                body.challenge_id,
+                remote_key=remote_key(request),
+                device_id=body.device_id,
+                admission_proof=body.admission_proof,
+            )
         )
-        return await token_payload(await runtime.issue(identity, device_id=body.device_id))
 
     @router.post("/login")
     async def login(body: _EmailLogin, request: Request):
-        """邮箱密码校验与会话签发分离, 不接受客户端主体。"""
-        identity = await runtime.authenticate(
-            "email", identifier=body.email, password=body.password, remote_key=remote_key(request)
+        """邮箱登录和准入通过后共同签发会话。"""
+        return await token_payload(
+            await runtime.login(
+                "email",
+                identifier=body.email,
+                password=body.password,
+                remote_key=remote_key(request),
+                device_id=body.device_id,
+                admission_proof=body.admission_proof,
+            )
         )
-        return await token_payload(await runtime.issue(identity, device_id=body.device_id))
 
     @router.post("/username/login")
     async def username_login(body: _UsernameLogin, request: Request):
-        """用户名复用主体密码, 共享会话后端。"""
-        identity = await runtime.authenticate(
-            "username", identifier=body.username, password=body.password, remote_key=remote_key(request)
+        """用户名入口复用相同准入规则,不形成第二条签发路径。"""
+        return await token_payload(
+            await runtime.login(
+                "username",
+                identifier=body.username,
+                password=body.password,
+                remote_key=remote_key(request),
+                device_id=body.device_id,
+                admission_proof=body.admission_proof,
+            )
         )
-        return await token_payload(await runtime.issue(identity, device_id=body.device_id))
 
     @router.post("/google")
     async def google(body: _GoogleLogin, request: Request):
-        """保留原生 Google 路由, 缺配置时明确关闭。"""
+        """保留原生 Google 路由及缺配置错误,首次账号也必须通过准入。"""
         if "google" not in runtime.providers:
             raise AuthError("GOOGLE_NOT_CONFIGURED", "Google 登录未配置", 503)
-        identity = await runtime.authenticate("google", credential=body.id_token, remote_key=remote_key(request))
-        return await token_payload(await runtime.issue(identity, device_id=body.device_id))
+        return await token_payload(
+            await runtime.login(
+                "google",
+                credential=body.id_token,
+                remote_key=remote_key(request),
+                device_id=body.device_id,
+                admission_proof=body.admission_proof,
+            )
+        )
 
     @router.post("/external/login")
     async def external_login(body: _ExternalLogin, request: Request):
-        """按受控配置名选择 Provider, 不允许动态网络地址。"""
-        identity = await runtime.authenticate(body.provider, credential=body.credential, remote_key=remote_key(request))
-        return await token_payload(await runtime.issue(identity, device_id=body.device_id))
+        """按受控配置名选择 Provider,准入失败不留下首次第三方账号。"""
+        return await token_payload(
+            await runtime.login(
+                body.provider,
+                credential=body.credential,
+                remote_key=remote_key(request),
+                device_id=body.device_id,
+                admission_proof=body.admission_proof,
+            )
+        )
 
     @router.post("/password/reset")
     async def reset(body: _PasswordReset, request: Request):
@@ -395,7 +511,7 @@ def install_runtime_auth(
     @router.post("/external/bind")
     async def bind_external(body: _ExternalBinding, request: Request, principal: principal_dependency):
         """以限用途二次认证证明关联外部身份。"""
-        proof = await reauthenticate(body.reauthentication, "bind", request)
+        proof = await reauthenticate(body.reauthentication, "bind", request, principal)
         await runtime.bind_external(principal, body.provider, body.credential, reauthentication=proof)
         return ApiResponse.ok({"status": "completed"})
 
@@ -405,14 +521,18 @@ def install_runtime_auth(
         kind = body.provider if body.kind == "external" else body.kind
         if kind is None:
             raise AuthError("INPUT_INVALID", "第三方配置名称缺失", 422)
-        proof = await reauthenticate(body.reauthentication, "unlink", request)
+        proof = await reauthenticate(body.reauthentication, "unlink", request, principal)
         await runtime.unlink_identity(principal, kind, body.value, issuer=body.issuer, reauthentication=proof)
         return ApiResponse.ok({"status": "completed"})
 
     @router.post("/refresh")
-    async def refresh(body: _Refresh):
+    async def refresh(body: _Refresh, request: Request):
         """完整刷新流程由所选会话后端负责。"""
-        return await token_payload(await runtime.refresh(body.refresh_token))
+        return await token_payload(
+            await runtime.refresh(
+                body.refresh_token, admission_proof=body.admission_proof, remote_key=remote_key(request)
+            )
+        )
 
     @router.post("/logout")
     async def logout(principal: principal_dependency):

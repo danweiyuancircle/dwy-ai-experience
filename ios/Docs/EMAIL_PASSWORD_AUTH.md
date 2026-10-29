@@ -1,6 +1,6 @@
 # 邮箱密码认证组件
 
-SwiftPM 产品：`AuthCore`、`AuthUI`。iOS 17+ 使用 SwiftUI，macOS 可复用 AuthCore，AuthUI 首版仅导出 iOS 页面。
+SwiftPM 产品：`AuthCore`、`AuthUI`。iOS 与 macOS 共用邮箱表单、Google 官方控件与 Apple 登录入口；宿主提供同一账号仓储的业务动作。
 
 ## 宿主接入
 
@@ -68,7 +68,11 @@ func makeAuthSession(baseURL: URL, namespace: String) throws -> AuthSessionStore
 
 短暂网络失败不删除本地 refresh token。服务器已轮换但客户端未收到/未保存返回值时，仍受一次性 refresh 和重放检测约束，不能保证任何弱网中断后都无需重新登录。
 
-本组件不提供业务同步、付费权益、账号绑定或Google按钮；已有 AuthGoogleIOS 产品继续可用。
+本组件不提供业务同步或付费权益判断。`AuthFlowView(actions:configuration:googleSignIn:appleSignIn:onAuthenticated:onCancel:)` 允许宿主注入业务动作。Google 凭据由 `AuthGoogleIOS` / `AuthGoogleMac` 获取；Apple 登录动作调用 `AuthSessionStore.signInWithApple(provider:)`，沿用服务端挑战、原始 nonce 与授权码兑换流程，见 `ios/Docs/APPLE_AUTH.md`。
+
+需要业务准入的宿主给 `AppCloudAuthClient` 注入 `admissionProofProvider`。邮箱注册/登录、Google/外部登录、Apple 专用登录、refresh 和轮换会话的邮箱更新每次重新读取证明并提交 `admission_proof`，上限 131072 字节；失败时不发送身份凭据。发码和密码重置不附带证明。服务端显式配置 `AuthAdmission` 后，在同一业务事务内完成主体、准入绑定和会话签发。未配置此扩展的宿主行为不变。
+
+业务动作成功后必须自行完成组合根恢复工作，不能只依赖页面完成回调；宿主因认证状态变化卸载表单时，组件会失效尚未完成的 UI 回调。
 
 ## 可运行示例与验证
 
@@ -87,4 +91,23 @@ PYTHONPATH=backend/packages/auth/src:backend/src backend/.venv/bin/python -m pyt
 xcodegen generate
 ```
 
-已有新源码不等于消费端已升级：需构建并分发本轮匹配的 eapi/认证私有包，宿主迁移数据库并注入邮件与会话配置，SwiftPM 使用包含本轮代码的版本。本轮未发布依赖、部署 app-cloud 或改 ADBox 客户端。
+已有新源码不等于消费端已升级：需构建并分发匹配的 eapi/认证包，宿主迁移数据库并注入邮件、第三方身份和会话配置，SwiftPM 使用包含相应接口的不可变版本。本地验证不表示依赖已发布或服务已部署。
+
+## 已登录账号管理
+
+`AppCloudAuthClient` 同时实现独立 `AccountManagementAuthBackend`；旧 `AuthBackend` 和 `EmailPasswordAuthBackend` 实现无需新增方法。
+宿主通过同一个 `AuthSessionStore` 调用：
+
+- `listIdentities()` 返回 `[AuthLoginIdentity]`，根据 `kind` 判断邮箱、用户名或外部方式；外部身份附带 `provider/issuer/value`，用于精确解绑。
+- `sendEmailUpdateCode(email:reauthentication:)` 发送当前账号专属的邮箱变更验证码。
+- `updateEmail(email:code:challengeID:newPassword:)` 安装返回的轮换会话，保持当前 userId；首次添加邮箱密码时提交新密码。
+- `bindExternal(provider:credential:reauthentication:)` 与 `unlinkIdentity(_:reauthentication:)` 复用服务端现有受重新认证保护的接口。
+
+`AuthReauthentication` 使用 `.email(identifier:password:)`、`.username(identifier:password:)` 或 `.external(provider:credential:)`。
+Google 的 provider 为 `google`，credential 为官方 SDK 本次获取的 ID token。
+Apple-only 账号调用 `prepareAppleReauthentication(provider:purpose:)`，用途选择 `.emailUpdate`、`.bind` 或 `.unlink`，再把返回的 `AuthReauthentication` 交给对应管理接口。SDK 用当前会话领取绑定主体和用途的服务端挑战，把原始 nonce 交给原生授权，并在切号、刷新或取消时拒绝迟到材料。底层编码为 `method=external, identifier=apple`，`credential` 保留 `challenge_id`、`identity_token`、`authorization_code`；不会恢复旧的客户端 nonce 单令牌流程。
+应用不得自己读写 Keychain、组装 subject、交换账号归属或按相同邮箱合并；旧入口保留到目标邮箱验证成功。
+SDK 显式刷新当前 Bearer，邮箱变更只通过私有安装路径保存新 refresh，切号后迟到凭据会被拒绝并撤销。
+主邮箱与 Google profile 邮箱具有不同语义；登录入口列表来自服务端，不能从当前登录按钮推测。
+
+这些入口需要共享服务端 schema 与宿主 `EmailSubjectAdapter.update_email` 已交付；源码验证不表示依赖已正式发布或生产数据库已迁移。

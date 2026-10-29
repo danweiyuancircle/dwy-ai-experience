@@ -18,7 +18,7 @@ from sqlalchemy.exc import IntegrityError
 from .models import AuthError, TokenResponse, UserProfile
 from .passwords import hash_password, verify_password
 
-EmailCodePurpose = Literal["register", "password_reset"]
+EmailCodePurpose = Literal["register", "password_reset", "email_update"]
 EmailLanguage = Literal["zh", "en"]
 
 
@@ -169,10 +169,14 @@ class EmailAuthMixin:
         language: EmailLanguage = "en",
     ):
         """预占发送预算；成功交付才激活challenge，新码使同用途旧码失效。"""
-        self._require_email()
-        email = normalize_email(email)
         if purpose not in ("register", "password_reset"):
             raise AuthError("EMAIL_PURPOSE_INVALID", "验证码用途无效", 422)
+        return await self._send_email_code(email, purpose, remote_key=remote_key, language=language)
+
+    async def _send_email_code(self, email, purpose, *, remote_key, language, binding=None):
+        """仅 runtime 的重新认证入口可附带邮箱变更绑定，公开发码入口不能创建该用途。"""
+        self._require_email()
+        email = normalize_email(email)
         await self._rate("send-ip", remote_key, 50, 3600)
         await self._rate("send-global", "app", 1000, 3600)
         resend_at = await self._rate("send-cooldown:" + purpose, email, 1, self.email_config.resend_after)
@@ -191,6 +195,7 @@ class EmailAuthMixin:
                     code_hash=self._code_digest(challenge_id, email, purpose, code),
                     expires_at=expires_at,
                     attempts=0,
+                    **(binding or {}),
                 )
             )
         try:
@@ -221,6 +226,7 @@ class EmailAuthMixin:
                         t.c.app_id == self.app_id,
                         t.c.email == email,
                         t.c.purpose == purpose,
+                        *((t.c.subject == binding["subject"],) if binding else ()),
                         t.c.id != str(challenge_id),
                         t.c.consumed_at.is_(None),
                     )

@@ -357,3 +357,88 @@ async def test_postgres_refresh_has_single_winner_and_replay_revokes_winner():
         async with base.begin() as connection:
             await connection.execute(DropSchema(schema, cascade=True, if_exists=True))
         await base.dispose()
+
+
+async def test_refresh_quota_failure_does_not_persist_admission_claim(environment):
+    """不能先认领资格再因刷新配额失败返回错误, 同时保留旧 family 撤销。"""
+    from sqlalchemy import Column, String, Table
+
+    backend, tokens = await issue(environment)
+    _, _, tables, sessions = environment
+    claims = Table("admission_claims", tables.sessions.metadata, Column("subject", String, primary_key=True))
+    async with sessions.kw["bind"].begin() as connection:
+        await connection.run_sync(claims.create)
+    backend.MAX_REFRESH_HISTORY = 0
+
+    async def admit(db, principal):
+        """模拟真实业务 claim 写入, 不以 mock 调用次数代替事务验收。"""
+        await db.execute(insert(claims).values(subject=principal.subject))
+
+    with pytest.raises(AuthError) as rejected:
+        await backend.refresh(tokens.refresh_token, before_rotate=admit)
+    assert rejected.value.code == "REFRESH_QUOTA_EXCEEDED"
+    async with sessions() as db:
+        assert await db.scalar(select(func.count()).select_from(claims)) == 0
+        assert await db.scalar(select(tables.sessions.c.revoked_at)) is not None
+
+
+async def test_refresh_locks_principal_before_session_cas_and_admits_after_success(environment):
+    """断言 account→session→业务写入顺序, 不把 SQLite 当作 PG 死锁验收。"""
+    from sqlalchemy import event
+    from sqlalchemy.sql.dml import Update
+
+    backend, tokens = await issue(environment)
+    _, _, tables, sessions = environment
+    phases = []
+
+    def before_execute(connection, statement, multiparams, params, execution_options):
+        """记录真实 CAS SQL 的执行位置, 验证回调不能把锁序反转。"""
+        if isinstance(statement, Update) and statement.table is tables.sessions:
+            phases.append("session-cas")
+
+    async def before_lock(db, principal):
+        """主体校验只取锁与检查, 不执行资格认领等业务副作用。"""
+        phases.append("account-lock")
+
+    async def before_rotate(db, principal):
+        """成功刷新才执行可持久化的准入写入。"""
+        phases.append("admit")
+
+    event.listen(sessions.kw["bind"].sync_engine, "before_execute", before_execute)
+    try:
+        await backend.refresh(tokens.refresh_token, before_lock=before_lock, before_rotate=before_rotate)
+    finally:
+        event.remove(sessions.kw["bind"].sync_engine, "before_execute", before_execute)
+    assert phases == ["account-lock", "session-cas", "admit"]
+
+
+async def test_refresh_failed_cas_never_executes_admission(environment):
+    """真实零行 CAS 不得触发 claim, 纯主体锁检查仍必须发生在 CAS 前。"""
+    from sqlalchemy import false
+    from sqlalchemy.sql.dml import Update
+
+    backend, tokens = await issue(environment)
+    _, _, tables, _ = environment
+    phases = []
+
+    async def before_lock(db, principal):
+        """仅让本次真实 CAS 的 WHERE 不匹配, 精确覆盖并发失败分支。"""
+        phases.append("account-lock")
+        original_execute = db.execute
+
+        async def execute(statement, *args, **kwargs):
+            if isinstance(statement, Update) and "refresh_hash" in statement._values:
+                phases.append("session-cas")
+                statement = statement.where(false())
+            return await original_execute(statement, *args, **kwargs)
+
+        db.execute = execute
+
+    async def before_rotate(db, principal):
+        raise AssertionError("failed CAS must never admit")
+
+    with pytest.raises(AuthError):
+        await backend.refresh(tokens.refresh_token, before_lock=before_lock, before_rotate=before_rotate)
+    assert phases == ["account-lock", "session-cas"]
+    # 零行 CAS 没有消费旧凭据, 正常重试仍能完成轮换。
+    assert (await backend.refresh(tokens.refresh_token)).refresh_token != tokens.refresh_token

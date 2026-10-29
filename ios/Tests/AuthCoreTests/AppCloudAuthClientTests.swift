@@ -4,6 +4,23 @@ import XCTest
 /// URLProtocol 捕获真实 URLSession 请求，验证应用前缀和 eapi 契约。
 @MainActor
 final class AppCloudAuthClientTests: XCTestCase {
+
+    func testAppleReauthenticationChallengeIsAuthorizedAndCredentialKeepsCode() async throws {
+        let (client, recorder) = try makeClient(response: """
+        {"code":"SUCCESS","message":"ok","data":{"challenge_id":"challenge","nonce":"server-nonce","expires_in":300}}
+        """)
+        _ = try await client.createAppleChallenge(purpose: .emailUpdate, accessToken: "current-access")
+        XCTAssertEqual(recorder.request?.value(forHTTPHeaderField: "Authorization"), "Bearer current-access")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: recorder.body) as? [String: String])
+        XCTAssertEqual(body, ["purpose": "reauth_email_update"])
+        let proof = AuthReauthentication.apple(authorization: AppleAuthorization(identityToken: "apple-token", authorizationCode: "apple-code"), challengeID: "challenge")
+        let encoded = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(proof)) as? [String: String])
+        XCTAssertEqual(encoded["method"], "external")
+        XCTAssertEqual(encoded["identifier"], "apple")
+        let credential = try XCTUnwrap(encoded["credential"]?.data(using: .utf8))
+        let fields = try XCTUnwrap(JSONSerialization.jsonObject(with: credential) as? [String: String])
+        XCTAssertEqual(fields, ["challenge_id": "challenge", "identity_token": "apple-token", "authorization_code": "apple-code"])
+    }
     func testAppleChallengePreservesPrefixAndDecodesRawNonce() async throws {
         let (client, recorder) = try makeClient(response: """
         {"code":"SUCCESS","message":"ok","data":{"challenge_id":"apple-challenge","nonce":"raw_nonce-123","expires_in":300}}
@@ -68,6 +85,123 @@ final class AppCloudAuthClientTests: XCTestCase {
         XCTAssertNil(recorder.request)
         do { _ = try await client.authenticate(appleAuthorization: AppleAuthorization(identityToken: "token", authorizationCode: "code"), challengeID: "id", deviceID: UUID()); XCTFail("Expected Apple rejection") }
         catch AuthError.server(let code, _) { XCTAssertEqual(code, "APPLE_AUTH_FAILED") }
+    }
+
+    /// 同一 HTTP 客户端不能复用上一次登录的购买证明，包括自动恢复会话。
+    func testSameClientReadsFreshProofAgainForRefresh() async throws {
+        var reads = 0
+        let (client, recorder) = try makeClient(response: """
+        {"code":"SUCCESS","message":"ok","data":{"access_token":"access","refresh_token":"refresh","token_type":"Bearer","expires_in":900,"user":{"id":"\(UUID())","email":null,"display_name":null}}}
+        """, admissionProofProvider: { reads += 1; return "proof-\(reads)" })
+        _ = try await client.authenticate(googleIDToken: "id-token", deviceID: UUID())
+        let identifier = try XCTUnwrap(recorder.request?.value(forHTTPHeaderField: "X-Test-ID"))
+        StubURLProtocol.registry.insert(recorder, id: identifier)
+        _ = try await client.refresh(refreshToken: "refresh")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: recorder.body) as? [String: String])
+        XCTAssertEqual(reads, 2)
+        XCTAssertEqual(body["admission_proof"], "proof-2")
+    }
+
+    /// 业务准入证明必须每次重新读取，覆盖所有会话入口；普通项目仍省略该字段。
+    func testAdmissionProofIsIncludedForEverySessionExchange() async throws {
+        for path in ["login", "register", "google", "external/login", "apple", "refresh", "email/update"] {
+            var reads = 0
+            let (client, recorder) = try makeClient(response: """
+            {"code":"SUCCESS","message":"ok","data":{"access_token":"access","refresh_token":"refresh","token_type":"Bearer","expires_in":900,"user":{"id":"\(UUID())","email":null,"display_name":null}}}
+            """, admissionProofProvider: { reads += 1; return "signed-proof-\(reads)" })
+            switch path {
+            case "login": _ = try await client.authenticate(email: "user@example.com", password: "password", deviceID: UUID())
+            case "register": _ = try await client.register(email: "user@example.com", password: "long secure password", code: "012345", challengeID: "challenge", deviceID: UUID())
+            case "google": _ = try await client.authenticate(googleIDToken: "id-token", deviceID: UUID())
+            case "external/login": _ = try await client.authenticate(provider: "apple", credential: "apple-credential", deviceID: UUID())
+            case "apple": _ = try await client.authenticate(appleAuthorization: AppleAuthorization(identityToken: "token", authorizationCode: "code"), challengeID: "challenge", deviceID: UUID())
+            case "email/update": _ = try await client.updateEmail(email: "user@example.com", code: "012345", challengeID: UUID().uuidString, newPassword: nil, accessToken: "access")
+            default: _ = try await client.refresh(refreshToken: "refresh")
+            }
+            XCTAssertEqual(reads, 1)
+            XCTAssertEqual(recorder.request?.url?.path, "/adbox/api/v1/auth/\(path)")
+            let body = try XCTUnwrap(JSONSerialization.jsonObject(with: recorder.body) as? [String: String])
+            XCTAssertEqual(body["admission_proof"], "signed-proof-1")
+        }
+    }
+
+    /// 缺购买、证明读取失败或超过边界时不能先发送凭据、取得临时会话。
+    func testRejectedAdmissionProofNeverSendsCredentials() async throws {
+        for proof in ["", String(repeating: "x", count: 131_073)] {
+            let (client, recorder) = try makeClient(response: "{}", admissionProofProvider: { proof })
+            do { _ = try await client.authenticate(email: "user@example.com", password: "password", deviceID: UUID()); XCTFail("Expected proof rejection") }
+            catch AuthError.invalidResponse {}
+            XCTAssertNil(recorder.request)
+        }
+        let (client, recorder) = try makeClient(response: "{}", admissionProofProvider: { throw AuthError.server(code: "PURCHASE_REQUIRED", message: "private") })
+        do { _ = try await client.refresh(refreshToken: "refresh"); XCTFail("Expected proof source failure") }
+        catch AuthError.server(let code, _) { XCTAssertEqual(code, "PURCHASE_REQUIRED") }
+        XCTAssertNil(recorder.request)
+    }
+    /// 当前会话与强类型重新认证共同发码，不把 Google 当作 method 字段。
+    func testEmailUpdateChallengeUsesBearerAndExternalReauthentication() async throws {
+        let (client, recorder) = try makeClient(response: """
+        {"code":"SUCCESS","message":"ok","data":{"challenge_id":"challenge","expires_in":300,"resend_after":60,"code_length":6}}
+        """)
+        let result = try await client.sendEmailUpdateCode(email: " UPDATED@Example.com ", reauthentication: .external(provider: "google", credential: "id-token"), accessToken: "current-access")
+        XCTAssertEqual(result.challengeID, "challenge")
+        XCTAssertEqual(recorder.request?.url?.path, "/adbox/api/v1/auth/email/update/code")
+        XCTAssertEqual(recorder.request?.value(forHTTPHeaderField: "Authorization"), "Bearer current-access")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: recorder.body) as? [String: Any])
+        XCTAssertEqual(body["email"] as? String, "updated@example.com")
+        XCTAssertEqual(body["reauthentication"] as? [String: String], ["method": "external", "identifier": "google", "credential": "id-token"])
+    }
+
+    /// 改邮箱只提交白名单字段，返回会话沿用原 token 信封。
+    func testEmailUpdateDecodesRotatedSessionAndOmitsAbsentPassword() async throws {
+        let (client, recorder) = try makeClient(response: """
+        {"code":"SUCCESS","message":"ok","data":{"access_token":"rotated-access","refresh_token":"rotated-refresh","token_type":"Bearer","expires_in":900,"user":{"id":"\(UUID())","email":"updated@example.com","display_name":null}}}
+        """)
+        let response = try await client.updateEmail(email: "updated@example.com", code: "012345", challengeID: "00000000-0000-0000-0000-000000000001", newPassword: nil, accessToken: "current-access")
+        XCTAssertEqual(response.refreshToken, "rotated-refresh")
+        XCTAssertEqual(recorder.request?.url?.path, "/adbox/api/v1/auth/email/update")
+        XCTAssertEqual(recorder.request?.value(forHTTPHeaderField: "Authorization"), "Bearer current-access")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: recorder.body) as? [String: String])
+        XCTAssertEqual(body, ["email": "updated@example.com", "code": "012345", "challenge_id": "00000000-0000-0000-0000-000000000001"])
+    }
+
+    /// 身份管理使用现有路由和重新认证，外部身份定位不泄露 token。
+    func testIdentityListBindingAndUnlinkContracts() async throws {
+        let (listing, listingRecorder) = try makeClient(response: """
+        {"code":"SUCCESS","message":"ok","data":[{"kind":"external","value":"provider-subject","provider":"google","issuer":"https://accounts.google.com"}]}
+        """)
+        let identities = try await listing.listIdentities(accessToken: "current-access")
+        XCTAssertEqual(listingRecorder.request?.httpMethod, "GET")
+        XCTAssertEqual(listingRecorder.request?.url?.path, "/adbox/api/v1/auth/identities")
+        let identity = try XCTUnwrap(identities.first)
+        let (binding, bindRecorder) = try makeClient(response: """
+        {"code":"SUCCESS","message":"ok","data":{"status":"completed"}}
+        """)
+        try await binding.bindExternal(provider: "google", credential: "new-id-token", reauthentication: .email(identifier: "user@example.com", password: "password"), accessToken: "current-access")
+        XCTAssertEqual(bindRecorder.request?.url?.path, "/adbox/api/v1/auth/external/bind")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: bindRecorder.body) as? [String: Any])
+        XCTAssertEqual(Set(body.keys), ["provider", "credential", "reauthentication"])
+        let (unlinking, unlinkRecorder) = try makeClient(response: """
+        {"code":"SUCCESS","message":"ok","data":{"status":"completed"}}
+        """)
+        try await unlinking.unlinkIdentity(identity, reauthentication: .email(identifier: "user@example.com", password: "password"), accessToken: "current-access")
+        XCTAssertEqual(unlinkRecorder.request?.url?.path, "/adbox/api/v1/auth/identity/unlink")
+        let unlinkBody = try XCTUnwrap(JSONSerialization.jsonObject(with: unlinkRecorder.body) as? [String: Any])
+        XCTAssertEqual(unlinkBody["provider"] as? String, "google")
+        XCTAssertEqual(unlinkBody["issuer"] as? String, "https://accounts.google.com")
+        XCTAssertEqual(unlinkBody["value"] as? String, "provider-subject")
+    }
+
+    /// 更新邮箱字段采用服务端 UUID 与密码政策，非法输入不能发网络请求。
+    func testEmailUpdateRejectsMalformedChallengeAndWeakPasswordBeforeSending() async throws {
+        let (client, recorder) = try makeClient(response: "{\"code\":\"SUCCESS\",\"message\":\"ok\",\"data\":null}")
+        for (challenge, password) in [("not-a-uuid", Optional<String>.none), (UUID().uuidString, "short")] {
+            do {
+                _ = try await client.updateEmail(email: "u@example.com", code: "012345", challengeID: challenge, newPassword: password, accessToken: "access")
+                XCTFail("Expected local rejection")
+            } catch AuthError.invalidResponse {}
+        }
+        XCTAssertNil(recorder.request)
     }
 
     /// 默认语言由本次系统首选决定，不依赖 URLSession 隐式添加请求头。
@@ -229,7 +363,7 @@ final class AppCloudAuthClientTests: XCTestCase {
     }
 
     /// 每个 session 单独绑定 recorder，测试并行不会共享可变 handler。
-    private func makeClient(response: String, status: Int = 200, languageProvider: (@MainActor @Sendable () -> String?)? = nil) throws -> (AppCloudAuthClient, RequestRecorder) {
+    private func makeClient(response: String, status: Int = 200, languageProvider: (@MainActor @Sendable () -> String?)? = nil, admissionProofProvider: (@MainActor @Sendable () async throws -> String)? = nil) throws -> (AppCloudAuthClient, RequestRecorder) {
         let recorder = RequestRecorder(response: Data(response.utf8), status: status)
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [StubURLProtocol.self]
@@ -238,9 +372,9 @@ final class AppCloudAuthClientTests: XCTestCase {
         config.httpAdditionalHeaders = ["X-Test-ID": identifier]
         let session = URLSession(configuration: config)
         if let languageProvider {
-            return (try AppCloudAuthClient(baseURL: URL(string: "https://example.com/adbox")!, session: session, languageProvider: languageProvider), recorder)
+            return (try AppCloudAuthClient(baseURL: URL(string: "https://example.com/adbox")!, session: session, languageProvider: languageProvider, admissionProofProvider: admissionProofProvider), recorder)
         }
-        return (try AppCloudAuthClient(baseURL: URL(string: "https://example.com/adbox")!, session: session), recorder)
+        return (try AppCloudAuthClient(baseURL: URL(string: "https://example.com/adbox")!, session: session, admissionProofProvider: admissionProofProvider), recorder)
     }
 }
 
