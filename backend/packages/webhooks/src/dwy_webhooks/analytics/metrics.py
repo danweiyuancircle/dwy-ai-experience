@@ -5,11 +5,11 @@ from decimal import Decimal, InvalidOperation
 
 from .models import AnalyticsCollectionError, AnalyticsValue, AppleBusinessSnapshot
 
-DOWNLOADS = "App Store Downloads Standard"
+DOWNLOADS = "App Downloads Standard"
 DISCOVERY = "App Store Discovery and Engagement Standard"
 PURCHASES = "App Store Purchases Standard"
-STATE = "App Store Subscription State Standard"
-EVENTS = "App Store Subscription Event Standard"
+STATE = "App Store Subscription State Report Standard"
+EVENTS = "App Store Subscription Event Report Standard"
 REPORT_NAMES = (DOWNLOADS, DISCOVERY, PURCHASES, STATE, EVENTS)
 METRIC_KEYS = (
     "first_downloads",

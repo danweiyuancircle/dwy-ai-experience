@@ -40,7 +40,7 @@ async def test_runtime_stops_tasks_before_host_database_is_disposed(monkeypatch)
     monkeypatch.setattr(
         module, "ReviewDeliveryQueue", lambda *a, **kw: SimpleNamespace(run=lambda: worker(1))
     )
-    config = SimpleNamespace(discord_webhook_url=None, retention_days=30)
+    config = SimpleNamespace(discord_webhook_url=None, retention_days=30, apps={"1234567890": object()})
     tables = SimpleNamespace(deliveries=object())
     runtime = install_review_monitor(app, config, object(), tables, client=client, sender=AsyncMock())
     assert app.state.dwy_review_monitor is runtime

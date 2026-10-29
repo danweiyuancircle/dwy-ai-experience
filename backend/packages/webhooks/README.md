@@ -2,7 +2,7 @@
 
 ## Apple 经营日报与周报（0.4.3）
 
-`dwy-webhooks[discord,analytics]==0.4.3` 提供公开的 `dwy_webhooks.analytics`。默认北京时间 `Asia/Shanghai` 每天 08:30，统计三天前的成熟数据，周一附加连续七天周报。
+`dwy-webhooks[discord,analytics]==0.4.3` 提供公开的 `dwy_webhooks.analytics`。默认北京时间 `Asia/Shanghai` 每天 08:30，固定统计昨天的数据，周一附加截至昨天的连续七天周报。未发布或不可用的指标按状态展示，不等待或自动补发旧日报。
 
 调用项目注入 `AppleAnalyticsConfig`、会话及 `build_analytics_tables(metadata)` 的表定义，再使用 `install_analytics_monitor(app, config, sessions, tables)` 安装。数据库迁移和 engine 生命周期仍由项目拥有；示例见 `backend/packages/webhooks/examples/new_project/analytics.py`。
 

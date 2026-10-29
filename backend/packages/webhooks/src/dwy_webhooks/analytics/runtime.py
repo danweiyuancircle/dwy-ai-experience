@@ -40,7 +40,10 @@ def install_analytics_monitor(
     collector = AppleAnalyticsClient(config) if owned_client else client
     store = AnalyticsStore(sessions, tables)
     monitor = AnalyticsMonitor(config, store, collector, feedback=feedback)
-    queue = SQLAlchemyDeliveryQueue(sessions, tables.deliveries, sender, source="app_store_analytics")
+    queue = SQLAlchemyDeliveryQueue(
+        sessions, tables.deliveries, sender, source="app_store_analytics",
+        allowed_scopes={f"{config.issuer_id}:{app_id}" for app_id in config.apps},
+    )
     runtime = AnalyticsRuntime(monitor, queue)
     previous_lifespan = app.router.lifespan_context
 

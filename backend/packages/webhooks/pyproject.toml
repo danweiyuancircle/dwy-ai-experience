@@ -1,6 +1,6 @@
 [project]
 name = "dwy-webhooks"
-version = "0.4.3"
+version = "0.5.0"
 description = "独立于业务来源的 Webhook 发送、安全边界与失败语义"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"

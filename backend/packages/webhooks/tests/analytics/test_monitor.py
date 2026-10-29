@@ -34,25 +34,24 @@ def monitor(day="2026-10-26T08:30:00"):
         timezone="Asia/Shanghai",
         send_hour=8,
         send_minute=30,
-        lag_days=3,
         retention_days=400,
     )
     return AnalyticsMonitor(config, store, client), store, client
 
 
-async def test_boundary_lag_seven_day_refresh_and_monday_weekly_without_history_flood():
+async def test_boundary_yesterday_seven_day_refresh_and_monday_weekly_without_history_flood():
     worker, store, client = monitor("2026-10-26T08:29:59")
     assert await worker.run_once() == 0
     client.collect.assert_not_awaited()
     worker, store, client = monitor()
     assert await worker.run_once() == 1
     assert [call.args[1] for call in client.collect.await_args_list] == [
-        date(2026, 10, 17) + timedelta(days=i) for i in range(7)
+        date(2026, 10, 19) + timedelta(days=i) for i in range(7)
     ]
     messages = store.complete.call_args.kwargs["messages"]
     assert [message[0] for message in messages] == ["daily", "weekly"]
-    assert messages[0][1:3] == (date(2026, 10, 23), date(2026, 10, 23))
-    assert messages[1][1:3] == (date(2026, 10, 17), date(2026, 10, 23))
+    assert messages[0][1:3] == (date(2026, 10, 25), date(2026, 10, 25))
+    assert messages[1][1:3] == (date(2026, 10, 19), date(2026, 10, 25))
     assert store.complete.call_args.kwargs["next_poll_at"] == int(
         datetime(2026, 10, 27, 8, 30, tzinfo=ZoneInfo("Asia/Shanghai")).timestamp()
     )
@@ -83,7 +82,7 @@ async def test_failed_or_cancelled_collection_releases_without_partial_writes(fa
         store.release.assert_awaited_once_with("issuer", "123", "lease")
         store.fail.assert_not_awaited()
     else:
-        store.fail.assert_awaited_once_with("issuer", "123", "lease", date(2026, 10, 23), app_name="工具")
+        store.fail.assert_awaited_once_with("issuer", "123", "lease", date(2026, 10, 25), app_name="工具")
     store.complete.assert_not_awaited()
 
 
@@ -109,7 +108,7 @@ async def test_daily_week_comparison_reads_persisted_history_without_extra_reque
     store.load.return_value = [
         AppleBusinessSnapshot(
             app_id="123",
-            report_date=date(2026, 10, 17),
+            report_date=date(2026, 10, 19),
             metrics={
                 "first_downloads": AnalyticsValue(value=2, status="available", source="Apple"),
             },

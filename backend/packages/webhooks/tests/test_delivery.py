@@ -69,6 +69,28 @@ async def test_retry_after_and_safe_failure_survive_a_new_consumer(storage):
     assert (await read(storage))[0]["status"] == "sent"
 
 
+async def test_app_selection_also_suppresses_previously_queued_messages(storage):
+    calls = []
+
+    async def sender(content):
+        calls.append(content)
+        return "123456"
+
+    old = SQLAlchemyDeliveryQueue(*storage, sender, source="app_store_connect")
+    await old(event(scope="selected"))
+    await old(event(scope="removed"))
+    queue = SQLAlchemyDeliveryQueue(
+        *storage, sender, source="app_store_connect", allowed_scopes={"selected"}
+    )
+    assert await queue.process_pending() == 1
+    rows = {row["app_id"]: row for row in await read(storage)}
+    assert rows["selected"]["status"] == "sent"
+    assert rows["removed"]["status"] == "suppressed"
+    assert rows["removed"]["payload"] == {}
+    assert len(calls) == 1
+    assert await queue.process_pending() == 0
+
+
 async def test_active_lease_is_not_stolen_and_expiry_recovers(storage):
     async def sender(content):
         return "123456"

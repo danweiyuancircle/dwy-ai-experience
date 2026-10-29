@@ -27,7 +27,7 @@ class AnalyticsApp(BaseModel):
 
 
 class AppleAnalyticsConfig(BaseModel):
-    """仅消费显式配置；定时使用指定时区，报表日期保持 Apple UTC 口径。"""
+    """仅消费显式配置；定时使用指定时区，固定取昨天的 Apple UTC 统计日报表。"""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     apps: dict[ASCAppID, AnalyticsApp] = Field(min_length=1, max_length=100)
@@ -39,7 +39,6 @@ class AppleAnalyticsConfig(BaseModel):
     timezone: str = Field(default="Asia/Shanghai", min_length=1, max_length=128)
     send_hour: int = Field(default=8, ge=0, le=23, strict=True)
     send_minute: int = Field(default=30, ge=0, le=59, strict=True)
-    lag_days: int = Field(default=3, ge=1, le=30, strict=True)
     retention_days: int = Field(default=400, ge=7, le=3650, strict=True)
     discord_webhook_url: Destination = Field(default=None, max_length=2048, repr=False)
     discord_username: DiscordUsername = DEFAULT_DISCORD_USERNAME

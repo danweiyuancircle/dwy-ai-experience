@@ -71,7 +71,7 @@ async def test_collect_discovers_ongoing_and_all_segments_latest_date_replaces()
                         {
                             "id": "rep",
                             "type": "analyticsReports",
-                            "attributes": {"name": "App Store Downloads Standard"},
+                            "attributes": {"name": "App Downloads Standard"},
                         }
                     ]
                 ),
@@ -307,7 +307,7 @@ async def test_pagination_cannot_hide_partial_results(kind, monkeypatch):
         ("timezone", "not/a/timezone"),
         ("send_hour", 24),
         ("send_minute", 60),
-        ("lag_days", 0),
+        ("lag_days", 3),
         ("retention_days", 6),
         ("key_id", "invalid"),
         ("issuer_id", "secret"),
@@ -336,3 +336,62 @@ async def test_huge_api_response_rejected_without_content_length(monkeypatch):
     async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
         with pytest.raises(AnalyticsCollectionError, match="^analytics_response_too_large$"):
             await AppleAnalyticsClient(config(), client=http).collect("123", DAY)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "report_name,columns,values,metric",
+    [
+        (
+            "App Downloads Standard",
+            "Date\tApp Apple Identifier\tDownload Type\tCounts\tTerritory\tSource Type",
+            f"{DAY}\t123\tFirst-time Download\t7\tUSA\tApp Store search",
+            "first_downloads",
+        ),
+        (
+            "App Store Subscription State Report Standard",
+            "Date\tApp Apple Identifier\tState Metric\tState Metric Grouping\tCounts",
+            f"{DAY}\t123\tFree trials\tSubscription offers\t7",
+            "free_trials",
+        ),
+        (
+            "App Store Subscription Event Report Standard",
+            "Event Date\tApp Apple Identifier\tEvent Grouping\tEvent Sub Type\tCounts",
+            f"{DAY}\t123\tRenewals\tFull Price Renewals\t7",
+            "renewals",
+        ),
+    ],
+)
+async def test_collect_matches_literal_report_names_returned_by_apple(report_name, columns, values, metric):
+    """API 返回名称须直接驱动整条采集链，fixture 不从实现常量反推名称。"""
+
+    async def transport(request):
+        path = request.url.path
+        if request.url.host.endswith("amazonaws.com"):
+            raw = (columns + "\n" + values + "\n").encode()
+            return httpx.Response(200, stream=httpx.ByteStream(gzip.compress(raw)))
+        if path.endswith("/analyticsReportRequests"):
+            item = {
+                "id": "req",
+                "type": "analyticsReportRequests",
+                "attributes": {"accessType": "ONGOING", "stoppedDueToInactivity": False},
+            }
+        elif path.endswith("/reports"):
+            item = {"id": "report", "type": "analyticsReports", "attributes": {"name": report_name}}
+        elif path.endswith("/instances"):
+            item = {
+                "id": "instance",
+                "type": "analyticsReportInstances",
+                "attributes": {"granularity": "DAILY", "processingDate": "2026-10-21"},
+            }
+        elif path.endswith("/segments"):
+            item = {"id": "segment", "type": "analyticsReportSegments", "attributes": {"url": DOWNLOAD}}
+        else:
+            raise AssertionError(path)
+        return httpx.Response(200, json=collection([item]))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        result = await AppleAnalyticsClient(config(), client=http).collect("123", DAY)
+    assert result.metrics[metric].status == "available"
+    assert result.metrics[metric].value == 7
+    assert result.metrics[metric].source == report_name

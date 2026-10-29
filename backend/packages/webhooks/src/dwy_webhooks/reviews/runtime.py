@@ -38,7 +38,10 @@ def install_review_monitor(app, config, sessions, tables, *, client=None, sender
     collector = AppleReviewClient(config) if owned_client else client
     store = ReviewStore(sessions, tables)
     monitor = ReviewMonitor(config, store, collector)
-    queue = ReviewDeliveryQueue(sessions, tables.deliveries, sender, retention_days=config.retention_days)
+    queue = ReviewDeliveryQueue(
+        sessions, tables.deliveries, sender, retention_days=config.retention_days,
+        allowed_scopes=config.apps,
+    )
     runtime = ReviewRuntime(monitor, queue)
     previous_lifespan = app.router.lifespan_context
 

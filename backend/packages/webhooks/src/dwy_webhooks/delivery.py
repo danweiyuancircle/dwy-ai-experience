@@ -4,7 +4,7 @@ import asyncio
 import math
 import re
 import time
-from collections.abc import Awaitable, Callable
+from collections.abc import Awaitable, Callable, Collection
 from uuid import uuid4
 
 from dwyeapi.logger import get_logger
@@ -59,6 +59,7 @@ class SQLAlchemyDeliveryQueue:
 
     def __init__(self, sessions, table: Table, sender: Callable[[str], Awaitable[str]], *,
                  source: str, policy: DeliveryPolicy | None = None,
+                 allowed_scopes: Collection[str] | None = None,
                  clock: Callable[[], float] = time.time):
         """资源全部由调用方注入；消费者不创建、迁移或关闭任何项目资源。"""
         if re.fullmatch(r"[a-z][a-z0-9_.-]{0,63}", source) is None:
@@ -66,6 +67,7 @@ class SQLAlchemyDeliveryQueue:
         self.sessions, self.table, self.sender = sessions, table, sender
         self.source, self.clock = source, clock
         self.policy = policy if policy is not None else DeliveryPolicy()
+        self.allowed_scopes = None if allowed_scopes is None else frozenset(allowed_scopes)
 
     async def __call__(self, event: WebhookEvent) -> bool:
         """接收器可直接作为 sink 注入；错误来源必须在持久化前拒绝。"""
@@ -115,6 +117,8 @@ class SQLAlchemyDeliveryQueue:
         return sent
 
     async def _send(self, row) -> dict:
+        if self.allowed_scopes is not None and row["app_id"] not in self.allowed_scopes:
+            return dict(status="suppressed", payload={}, error_code=None)
         failure = None
         try:
             message_id = await self.sender(row["payload"]["content"])

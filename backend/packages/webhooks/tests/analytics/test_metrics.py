@@ -23,7 +23,7 @@ def test_official_download_and_purchase_fields_partial_refunds_and_sources():
         "123",
         DAY,
         {
-            "App Store Downloads Standard": [
+            "App Downloads Standard": [
                 {
                     "Date": str(DAY),
                     "App Apple Identifier": "123",

@@ -26,7 +26,7 @@ class AnalyticsMonitor:
         boundary = now.replace(hour=config.send_hour, minute=config.send_minute, second=0, microsecond=0)
         if now < boundary:
             return 0
-        target = now.date() - timedelta(days=config.lag_days)
+        target = now.date() - timedelta(days=1)
         start = target - timedelta(days=6)
         next_poll = int((boundary + timedelta(days=1)).timestamp())
         completed = 0

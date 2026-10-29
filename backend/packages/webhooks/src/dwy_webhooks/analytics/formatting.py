@@ -32,7 +32,6 @@ _LABELS = {
 _STOCKS = {"paid_subscriptions", "paid_offer_subscriptions", "free_trials", "billing_issues"}
 _NONADDITIVE = {"impressions", "page_views", "store_conversion_rate"}
 _DISCOVERY_COUNTS = "App Store Discovery and Engagement Standard"
-_STATUS = {"pending": "待发布", "unavailable": "数据不可用", "not_applicable": "不适用"}
 _DIMENSIONS = {
     "download_territories": "下载地区",
     "proceeds_territories": "收益地区（USD）",
@@ -91,12 +90,7 @@ def _metric(snapshots, key, weekly):
 
 
 def _number(value, key):
-    if not _available(value):
-        return _STATUS.get(value.status, "数据不可用")
     if key.endswith("_usd"):
-        # 当前 Apple Purchases 只提供 USD；模型带币种也不能暗中换汇。
-        if value.currency != "USD":
-            return "数据不可用（缺少 USD 口径）"
         return f"USD {value.value:.2f}"
     return f"{value.value:f}" + ("%" if key == "store_conversion_rate" else "")
 
@@ -134,57 +128,43 @@ def apple_business_digest_content(
         not weekly and _complete(previous_week, 1) and previous_week[0].report_date == end - timedelta(days=7)
     )
     title = f"**【Apple 经营{'周报' if weekly else '日报'}】**"
-    lines = [
+    header_lines = [
         title,
         "应用：" + _bounded(app_name, 128),
         f"统计日：{start.isoformat()}" + (f" 至 {end.isoformat()}（连续七天）" if weekly else ""),
-        "金额：Apple 报表 USD 估算；缺失不补 0，发送时区不改变 Apple 统计日。",
     ]
-    if comparable:
-        lines.append(f"比较期间：{previous[0].report_date} 至 {previous[-1].report_date}")
-    else:
-        lines.append("比较期间：完整同口径历史不足，变化率不可用。")
-    if not weekly:
-        lines.append(
-            f"上周同日：{previous_week[0].report_date}"
-            if week_comparable
-            else "上周同日：历史不足，变化率不可用。"
-        )
+    lines = []
+    comparison_used = week_comparison_used = money_present = False
     for key, label in _LABELS.items():
-        if key in ("review_count", "low_star_reviews") and not any(key in s.metrics for s in snapshots):
-            continue
         value = _metric(snapshots, key, weekly)
-        if weekly and key in _NONADDITIVE and not _event_counts(snapshots, key):
-            rendered = "期间不可累加（独立设备/比率口径）"
-        elif weekly and key not in _STOCKS and not _available(value):
-            rendered = "数据不完整" + (
-                "（含待发布）" if value.status == "pending" else "（不可用或口径不同）"
-            )
-        else:
-            rendered = _number(value, key)
+        if not _available(value) or (key.endswith("_usd") and value.currency != "USD"):
+            continue
+        rendered = _number(value, key)
+        money_present |= key.endswith("_usd")
         if _event_counts(snapshots, key):
             rendered += "（事件次数，非独立设备）"
         if weekly and key in _STOCKS:
             rendered += "（期末快照）"
-        if (comparable or (weekly and key in _STOCKS and endpoint)) and (
-            not key.endswith("_usd") or value.currency == "USD"
-        ):
-            rendered += _change(value, _metric(previous, key, weekly), stock=weekly and key in _STOCKS)
-        if week_comparable and (not key.endswith("_usd") or value.currency == "USD"):
-            rendered += _change(value, _metric(previous_week, key, False), label="较上周同日")
-        if value.source:
-            rendered += "；来源：" + _bounded(value.source, 256)
+        if comparable or (weekly and key in _STOCKS and endpoint):
+            change = _change(value, _metric(previous, key, weekly), stock=weekly and key in _STOCKS)
+            rendered += change
+            comparison_used |= bool(change)
+        if week_comparable:
+            change = _change(value, _metric(previous_week, key, False), label="较上周同日")
+            rendered += change
+            week_comparison_used |= bool(change)
         lines.append(f"{label}：{rendered}")
     for key, label in _DIMENSIONS.items():
         dimensions = [snap.breakdowns.get(key) for snap in snapshots]
         if any(d is None for d in dimensions):
-            lines.append(label + " Top 3：数据不可用（可见部分不足）")
             continue
         totals = {}
         for dimension in dimensions:
             for name, count in dimension.items():
                 totals[name] = totals.get(name, Decimal(0)) + count
         top = sorted(totals, key=lambda name: (-totals[name], name))[:3]
+        if not top:
+            continue
         top += [
             name
             for name in sorted(totals)
@@ -193,15 +173,25 @@ def apple_business_digest_content(
         lines.append(
             label
             + " Top 3（可见部分，不代表全量覆盖）："
-            + ("；".join(f"{_bounded(name, 64)} {totals[name]:f}" for name in top) if top else "数据不可用")
+            + "；".join(f"{_bounded(name, 64)} {totals[name]:f}" for name in top)
         )
-    for note in sorted({note for snap in snapshots for note in snap.notes}):
-        lines.append("说明：" + _bounded(note, 1700))
+    # 内部来源和诊断备注留在快照，用户只接收可用数值与必要口径。
+    if money_present:
+        header_lines.append("金额：Apple 报表 USD 估算，非最终到账。")
+    if comparison_used:
+        lines.insert(0, f"比较期间：{previous[0].report_date} 至 {previous[-1].report_date}")
+    if week_comparison_used:
+        lines.insert(0, f"上周同日：{previous_week[0].report_date}")
+    pending = any(value.status == "pending" for snap in snapshots for value in snap.metrics.values())
+    if pending:
+        lines.append("部分经营数据待发布。" if lines else "经营数据待发布。")
+    elif not lines:
+        lines.append("暂无可展示的经营数据。")
     # 每段自带应用、统计日及币种，单段重试或晚到也可独立阅读。
-    header = "\n".join(lines[:4])
+    header = "\n".join(header_lines)
     budget = 2000 - len(header.encode("utf-16-le")) // 2 - 1
     parts, current = [], header
-    for line in lines[4:]:
+    for line in lines:
         line = _bounded(line, budget)
         candidate = current + "\n" + line
         if len(candidate.encode("utf-16-le")) // 2 > 2000:
