@@ -1,11 +1,11 @@
 # SyncCore 测试用例
 
-当前 69 项 XCTest，使用临时 SQLite 文件、受控远端 transport 与 URLProtocol 响应；不依赖真实账号或生产服务。
+当前 72 项 XCTest，使用临时 SQLite 文件、受控远端 transport 与 URLProtocol 响应；不依赖真实账号或生产服务。
 
 | 测试文件 | 数量 | 重点 |
 |---|---:|---|
 | `ios/Tests/SyncCoreTests/SyncStoreTests.swift` | 24 | 事务保存、同步落盘、磁盘重开、冻结请求、页回滚、冲突、导入、设备恢复、非法数据 |
-| `ios/Tests/SyncCoreTests/SyncCoordinatorTests.swift` | 14 | 两端增删改、超时重试、连续编辑、暂停、身份刷新、作用域校验、自动退避与逐项停写 |
+| `ios/Tests/SyncCoreTests/SyncCoordinatorTests.swift` | 17 | 两端增删改、超时重试、连续编辑、暂停、身份刷新、作用域校验、自动退避、逐项停写与持久队列统计 |
 | `ios/Tests/SyncCoreTests/SyncTransportTests.swift` | 15 | HTTP 信封、路径、分页、Int64、限长、脱敏、scope 绑定与拒绝回执 |
 | `ios/Tests/SyncCoreTests/SyncEvolutionTests.swift` | 15 | raw 隔离、实例约束、字段保留、条件初始化、有界重基、墓碑身份、冻结恢复与双连接竞争 |
 | `ios/Tests/SyncCoreTests/SyncUsageTests.swift` | 1 | 无关 payload 模型共用引擎，不串 kind |
@@ -37,7 +37,7 @@
 - 已失效执行许可不能确认冻结请求。
 - 409 候选改变文档 kind 时暂停原冻结请求，其他项仍可上传。
 
-## 协调器：14 项
+## 协调器：17 项
 
 - 两设备传播新增、修改、删除并保持版本递增。
 - 响应丢失后重开库，用原 operationID 重试，云端版本只增加一次。
@@ -53,6 +53,9 @@
 - 自动重试遵守次数上限与 Retry-After。
 - 传输 scope 与数据库环境或应用错配时不得上传或落盘。
 - 逐项永久拒绝不失败整轮，暂停项不会被后续轮次自动重试。
+- 手动同步开始发布真实待发统计；请求中再次编辑后失败，状态统计与磁盘队列一致。
+- 自动重试等待发布最新待发数量，暂停后迟到重试不能覆盖终态。
+- 身份请求失败仍发布已有冲突数和待发数，不以初始零覆盖持久统计。
 
 ## HTTP：15 项
 

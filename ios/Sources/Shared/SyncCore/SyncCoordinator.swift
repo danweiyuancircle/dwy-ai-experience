@@ -160,6 +160,7 @@ public actor SyncCoordinator {
                 return
             }
             guard transport.scope == store.scope else { throw SyncError.scopeMismatch }
+            try await updateCounts(epoch: epoch)
             publish(phase: .syncing)
             var identity = try await identityProvider(false)
             try check(epoch)
@@ -182,6 +183,8 @@ public actor SyncCoordinator {
             publish(phase: .idle, success: Date())
         } catch {
             guard epoch == generation, !isPaused, !Task.isCancelled else { throw CancellationError() }
+            // 请求期间仍可本地编辑；失败状态不能用旧统计覆盖已持久化的队列计数。
+            try await updateCounts(epoch: epoch)
             if let syncError = error as? SyncError, syncError == .identityChanged {
                 publish(phase: .identityChanged, errorCode: "identity_changed")
             } else if let server = error as? SyncServerError {
@@ -272,8 +275,11 @@ public actor SyncCoordinator {
                 let exponential = min(retryPolicy.maximumDelay, retryPolicy.initialDelay * pow(2, Double(attempt - 1)))
                 let jittered = min(retryPolicy.maximumDelay, exponential * Double.random(in: 0.8...1.2))
                 let serverDelay = (error as? SyncServerError)?.retryAfter ?? 0
-                publish(phase: .waitingForRetry, errorCode: "retry_pending")
-                do { try await sleep(max(jittered, serverDelay)) }
+                do {
+                    try await updateCounts(epoch: epoch)
+                    publish(phase: .waitingForRetry, errorCode: "retry_pending")
+                    try await sleep(max(jittered, serverDelay))
+                }
                 catch { return }
             }
         }

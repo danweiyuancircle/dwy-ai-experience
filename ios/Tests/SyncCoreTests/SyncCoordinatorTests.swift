@@ -276,6 +276,91 @@ final class SyncCoordinatorTests: XCTestCase, @unchecked Sendable {
         XCTAssertNil(remote)
         XCTAssertEqual(snapshot.pendingCount, 1)
     }
+
+    func testManualSyncPublishesDurablePendingCountsAtStartAndAfterInFlightFailure() async throws {
+        let server = CoordinatorTestServer(), gate = CoordinatorGate(), syncing = CoordinatorGate(), store = try store(userID: userID)
+        await server.dropNextResponse()
+        await server.blockNextResponse(on: gate)
+        try store.saveLocally(.init(id: UUID(), payload: Note(text: "first")), using: schema)
+        let sync = try coordinator(store, server), states = await sync.states()
+        let observed = Task { () -> [SyncState] in
+            var values: [SyncState] = []
+            for await state in states {
+                values.append(state)
+                if state.phase == .syncing { await syncing.arriveAndWait() }
+                if state.phase == .failed { return values }
+            }
+            return values
+        }
+        let operation = Task { try await sync.synchronize() }
+        await gate.waitForArrival()
+        await syncing.waitForArrival()
+        try store.saveLocally(.init(id: UUID(), payload: Note(text: "edited during request")), using: schema)
+        await syncing.release()
+        await gate.release()
+        do { try await operation.value; XCTFail("响应丢失必须反馈") }
+        catch let error as URLError { XCTAssertEqual(error.code, .networkConnectionLost) }
+        let values = await observed.value, durable = try await store.snapshot()
+        XCTAssertEqual(values.first(where: { $0.phase == .syncing })?.pendingCount, 1)
+        XCTAssertEqual(values.last?.pendingCount, 2)
+        XCTAssertEqual(values.last?.pendingCount, durable.pendingCount)
+        XCTAssertEqual(values.last?.conflictCount, durable.conflictCount)
+    }
+
+    func testAutomaticRetryWaitingPublishesDurableCountsAndPauseRejectsLateState() async throws {
+        let server = CoordinatorTestServer(), response = CoordinatorGate(), retry = CoordinatorGate()
+        let store = try store(userID: userID), user = userID, device = UUID()
+        await server.dropNextResponse()
+        await server.blockNextResponse(on: response)
+        try store.saveLocally(.init(id: UUID(), payload: Note(text: "first")), using: schema)
+        let sync = SyncCoordinator(store: store, transport: server, identityProvider: { _ in
+            SyncIdentity(userID: user, deviceID: device, accessToken: "test-access")
+        }, retryPolicy: try SyncRetryPolicy(maximumAttempts: 3, initialDelay: 0, maximumDelay: 0),
+        sleep: { _ in await retry.arriveAndWait() })
+        let states = await sync.states()
+        let waiting = Task { () -> SyncState? in
+            for await state in states where state.phase == .waitingForRetry { return state }
+            return nil
+        }
+        await sync.start()
+        await response.waitForArrival()
+        try store.saveLocally(.init(id: UUID(), payload: Note(text: "second")), using: schema)
+        await response.release()
+        await retry.waitForArrival()
+        let state = await waiting.value, durable = try await store.snapshot()
+        XCTAssertEqual(state?.pendingCount, 2)
+        XCTAssertEqual(state?.pendingCount, durable.pendingCount)
+        await sync.pause()
+        await retry.release()
+        let latest = await sync.states()
+        var iterator = latest.makeAsyncIterator()
+        let paused = await iterator.next()
+        XCTAssertEqual(paused?.phase, .paused)
+        XCTAssertEqual(paused?.pendingCount, 2)
+    }
+
+    func testIdentityFailurePublishesExistingConflictAndPendingCounts() async throws {
+        let store = try store(userID: userID), server = CoordinatorTestServer(), id = UUID()
+        let initial = SyncRecord(recordID: id, version: 1, cursor: 1, deleted: false,
+                                 payload: ["kind": .string("note"), "text": .string("base")])
+        try await store.apply(.init(items: [initial], nextCursor: 1, hasMore: false))
+        try store.saveLocally(.init(id: id, payload: Note(text: "local")), using: schema)
+        let remote = SyncRecord(recordID: id, version: 2, cursor: 2, deleted: false,
+                                payload: ["kind": .string("note"), "text": .string("remote")])
+        try await store.apply(.init(items: [remote], nextCursor: 2, hasMore: false))
+        try store.saveLocally(.init(id: UUID(), payload: Note(text: "pending")), using: schema)
+        let sync = SyncCoordinator(store: store, transport: server, identityProvider: { _ in throw URLError(.notConnectedToInternet) },
+                                   retryPolicy: try SyncRetryPolicy(maximumAttempts: 1, initialDelay: 0, maximumDelay: 0))
+        do { try await sync.synchronize(); XCTFail("离线身份错误必须反馈") }
+        catch let error as URLError { XCTAssertEqual(error.code, .notConnectedToInternet) }
+        var iterator = await sync.states().makeAsyncIterator()
+        let state = await iterator.next(), durable = try await store.snapshot()
+        XCTAssertEqual(state?.phase, .failed)
+        XCTAssertEqual(state?.pendingCount, 1)
+        XCTAssertEqual(state?.conflictCount, 1)
+        XCTAssertEqual(state?.pendingCount, durable.pendingCount)
+        XCTAssertEqual(state?.conflictCount, durable.conflictCount)
+    }
 }
 
 /// 模拟响应丢失、迟到与认证；真实版本检查与幂等结果由内存状态保存。
