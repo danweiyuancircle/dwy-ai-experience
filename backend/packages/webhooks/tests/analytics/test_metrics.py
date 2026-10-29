@@ -10,6 +10,18 @@ from dwy_webhooks.analytics.models import AnalyticsValue, AppleBusinessSnapshot
 DAY = date(2026, 10, 20)
 
 
+def test_download_types_use_real_apple_spelling_and_exclude_updates_and_restores():
+    types = ["First-time download", "Redownload", "Manual update", "Auto-update", "Restore"]
+    rows = [{"Date": str(DAY), "App Apple Identifier": "123", "Download Type": kind,
+             "Counts": "2", "Territory": "USA", "Source Type": "App Store search"}
+            for kind in types]
+    result = aggregate_reports("123", DAY, {"App Downloads Standard": rows})
+    assert result.metrics["first_downloads"].status == "available"
+    assert result.metrics["first_downloads"].value == 2
+    assert result.metrics["redownloads"].value == 2
+    assert result.breakdowns["download_territories"] == {"USA": Decimal(4)}
+
+
 def test_snapshot_values_are_typed_and_frozen():
     value = AnalyticsValue(value=Decimal("1.25"), status="available", currency="USD")
     snapshot = AppleBusinessSnapshot(app_id="123", report_date=DAY, metrics={"sales_usd": value})

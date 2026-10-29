@@ -140,16 +140,16 @@ def aggregate_reports(
                 else:
                     count = _number(row, "Counts", integer=True)
                     if source == DOWNLOADS:
-                        kind = row["Download Type"]
+                        kind = row["Download Type"].casefold()
                         if kind not in {
-                            "First-time Download",
-                            "Redownload",
-                            "Manual update",
-                            "Auto-update",
-                            "Restore",
+                            "first-time download",
+                            "redownload",
+                            "manual update",
+                            "auto-update",
+                            "restore",
                         }:
                             unrecognized = True
-                        key = {"First-time Download": "first_downloads", "Redownload": "redownloads"}.get(
+                        key = {"first-time download": "first_downloads", "redownload": "redownloads"}.get(
                             kind
                         )
                         if key:

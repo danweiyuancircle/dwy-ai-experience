@@ -345,7 +345,7 @@ async def test_huge_api_response_rejected_without_content_length(monkeypatch):
         (
             "App Downloads Standard",
             "Date\tApp Apple Identifier\tDownload Type\tCounts\tTerritory\tSource Type",
-            f"{DAY}\t123\tFirst-time Download\t7\tUSA\tApp Store search",
+            f"{DAY}\t123\tFirst-time download\t7\tUSA\tApp Store search",
             "first_downloads",
         ),
         (

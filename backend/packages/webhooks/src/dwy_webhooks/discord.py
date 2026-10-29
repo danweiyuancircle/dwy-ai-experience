@@ -34,7 +34,7 @@ logging.getLogger("httpx").addFilter(_WebhookCredentialsFilter())
 def discord_client() -> httpx.AsyncClient:
     """每次请求使用有界客户端，取消和异常时由上下文负责关闭。"""
     return httpx.AsyncClient(
-        timeout=10, follow_redirects=False, headers={"User-Agent": "dwy-webhooks/0.5.0"}
+        timeout=10, follow_redirects=False, headers={"User-Agent": "dwy-webhooks/0.5.1"}
     )
 
 
