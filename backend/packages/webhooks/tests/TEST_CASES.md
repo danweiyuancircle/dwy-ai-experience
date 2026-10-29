@@ -4,7 +4,7 @@
 
 - `analytics/test_client.py`、`analytics/test_metrics.py`：官方 Standard 报表、ONGOING 显式初始化、分页/分片、日期修正替换、压缩与解压限额、认证下载边界、USD/退款与非可加总指标。
 - `analytics/test_storage.py`：账号/App 隔离、租约过期与旧 worker 栅栏、快照/outbox 原子回滚、消息去重及历史清理。
-- `analytics/test_monitor.py`、`analytics/test_runtime.py`：北京时间 08:30 前后、周一周报、D-3、七日重查、重启、失败告警与取消、资源所有权。
+- `backend/packages/webhooks/tests/analytics/test_monitor.py`、`backend/packages/webhooks/tests/analytics/test_analytics_runtime.py`：北京时间 08:30 前后、周一周报、D-3、七日重查、重启、失败告警与取消、资源所有权。
 - `analytics/test_formatting.py`：缺失不补零、七日流量与期末订阅存量、同来源/币种比较、Top 3 与可见范围、有界确定性 UTF-16 分段。
 - `test_review_summary.py`：只返回已完整覆盖 UTC 日的文字评论/低星计数，不暴露原文或把未采集日期当成零。
 - `analytics_wheel_smoke.py`：全新非 editable 环境仅安装 `[discord,analytics]`，无 App Cloud/Apple Server SDK/Resend/产品包，默认时区与公开 API、离线采集/格式化和持久 outbox 独立运行。
