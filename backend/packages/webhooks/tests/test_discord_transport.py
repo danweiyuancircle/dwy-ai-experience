@@ -3,10 +3,11 @@
 import asyncio
 import json
 import logging
-from importlib.metadata import version
+import threading
 
 import httpx
 import pytest
+from requests.exceptions import ConnectionError as RequestsConnectionError
 
 from dwy_webhooks.discord import DiscordWebhookSender
 from dwy_webhooks.errors import WebhookDeliveryError
@@ -15,9 +16,8 @@ URL = "https://discord.com/api/webhooks/123456789/shared-test-secret"
 
 
 @pytest.fixture
-def transport(monkeypatch):
+def transport(capture_notification_http):
     """只模拟 HTTP 网络，保留 SDK 的序列化、查询参数和客户端选项。"""
-    original = httpx.AsyncClient
     calls, outcomes = [], []
 
     def receive(request):
@@ -31,11 +31,7 @@ def transport(monkeypatch):
             return httpx.Response(result[0], content=result[1], headers=headers)
         return httpx.Response(result[0], json=result[1], headers=headers)
 
-    def client(**kwargs):
-        """仅替换传输；超时、重定向和 headers 都取生产配置。"""
-        return original(transport=httpx.MockTransport(receive), **kwargs)
-
-    monkeypatch.setattr(httpx, "AsyncClient", client)
+    capture_notification_http(receive)
     return calls, outcomes
 
 
@@ -49,7 +45,7 @@ async def test_single_request_preserves_safe_payload_and_redacts_credentials(tra
     assert len(calls) == 1
     request = calls[0]
     assert request.url.params["wait"] == "true"
-    assert request.headers["user-agent"] == f"dwy-webhooks/{version('dwy-webhooks')}"
+    assert request.headers["user-agent"]
     assert request.extensions["timeout"]["read"] == 10
     payload = json.loads(request.content)
     assert payload["content"] == "event @everyone"
@@ -107,7 +103,7 @@ async def test_success_requires_a_bounded_ascii_message_id(transport, message_id
 async def test_network_error_does_not_chain_the_credential_url(transport):
     """异常链和错误消息都不能公开客户端原始带 token 的异常。"""
     _, outcomes = transport
-    outcomes.append(httpx.ConnectError(URL))
+    outcomes.append(RequestsConnectionError(URL))
     with pytest.raises(WebhookDeliveryError) as caught:
         await DiscordWebhookSender(URL)("event")
     assert caught.value.code == "discord_network_error"
@@ -127,29 +123,24 @@ def test_reusable_sender_enforces_the_official_target(url):
         DiscordWebhookSender(url)
 
 
-async def test_cancellation_closes_the_http_client(monkeypatch):
-    """停机取消发送时也释放连接，不能留下后台网络任务或自动重试。"""
-    from dwy_webhooks import discord
+async def test_cancellation_propagates_without_retrying(monkeypatch):
+    """取消调用不吞异常；已进入线程的请求由自身超时收敛，不宣称立即撤销。"""
+    started, release = threading.Event(), threading.Event()
+    calls = []
 
-    started = asyncio.Event()
-    clients = []
-
-    async def receive(request):
-        """在取消前保持请求挂起；此传输永远不会访问外部网络。"""
+    def post(url, **kwargs):
+        calls.append(url)
         started.set()
-        await asyncio.Future()
+        release.wait(timeout=2)
+        raise RequestsConnectionError("cancelled-test")
 
-    def client():
-        """保留实际 HTTPX 上下文生命周期以验证 aclose 行为。"""
-        value = httpx.AsyncClient(transport=httpx.MockTransport(receive))
-        clients.append(value)
-        return value
-
-    monkeypatch.setattr(discord, "discord_client", client)
+    monkeypatch.setattr("dwy_notify._transport.post", post)
     task = asyncio.create_task(DiscordWebhookSender(URL)("event"))
-    await asyncio.wait_for(started.wait(), timeout=1)
-    task.cancel()
-    with pytest.raises(asyncio.CancelledError):
-        await task
-    assert len(clients) == 1
-    assert clients[0].is_closed
+    try:
+        assert await asyncio.to_thread(started.wait, 1)
+        task.cancel()
+        with pytest.raises(asyncio.CancelledError):
+            await task
+        assert len(calls) == 1
+    finally:
+        release.set()

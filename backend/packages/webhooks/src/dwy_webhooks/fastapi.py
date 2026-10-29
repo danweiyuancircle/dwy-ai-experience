@@ -9,7 +9,8 @@ from fastapi import APIRouter, FastAPI
 
 from .config import WebhookConfig, WebhookSourceConfig
 from .events import EventSink
-from .sinks import DiscordRelay, MemoryReceiptStore, ReceiptStore
+from .notifications import configured_notifier
+from .sinks import MemoryReceiptStore, NotificationRelay, ReceiptStore
 
 
 class _CloseableVerifier(Protocol):
@@ -22,7 +23,7 @@ class _CloseableVerifier(Protocol):
 
 @dataclass(frozen=True, slots=True)
 class WebhookSinks:
-    """有自己账本的项目可按来源替换接收行为；缺省使用 DiscordRelay。"""
+    """有自己账本的项目可按来源替换接收行为；缺省使用统一通知出口。"""
 
     resend: EventSink | None = None
     app_store_connect: EventSink | None = None
@@ -51,14 +52,13 @@ class WebhookRuntime:
 
 def _sink(source: WebhookSourceConfig, config: WebhookConfig,
           override: EventSink | None, receipts: ReceiptStore) -> EventSink:
-    """自定义接收优先；自动转发必须显式配置可信 Discord 目标。"""
+    """自定义接收优先；每个来源可以独立配置一个或多个通知目标。"""
     if override is not None:
         return override
-    destination = source.discord_webhook_url or config.discord_webhook_url
-    if destination is None:
-        raise ValueError("Enabled webhook source requires a Discord target or a custom sink")
-    username = source.discord_username if source.discord_username is not None else config.discord_username
-    return DiscordRelay(destination.get_secret_value(), receipts, username=username)
+    notifier = configured_notifier(source, config)
+    if notifier is None:
+        raise ValueError("Webhook source requires notifications, legacy Discord target or a custom sink")
+    return NotificationRelay(notifier, receipts)
 
 
 def install_webhooks(app: FastAPI, config: WebhookConfig, *,

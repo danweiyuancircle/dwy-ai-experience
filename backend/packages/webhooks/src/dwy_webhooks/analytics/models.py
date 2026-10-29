@@ -7,8 +7,7 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
 
-from ..config import ASCAppID, Destination, DiscordUsername
-from ..validation import DEFAULT_DISCORD_USERNAME
+from ..config import ASCAppID, NotificationSettings
 
 
 class AnalyticsCollectionError(Exception):
@@ -26,7 +25,7 @@ class AnalyticsApp(BaseModel):
     name: str = Field(min_length=1, max_length=128)
 
 
-class AppleAnalyticsConfig(BaseModel):
+class AppleAnalyticsConfig(NotificationSettings):
     """仅消费显式配置；定时使用指定时区，固定取昨天的 Apple UTC 统计日报表。"""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -40,8 +39,6 @@ class AppleAnalyticsConfig(BaseModel):
     send_hour: int = Field(default=8, ge=0, le=23, strict=True)
     send_minute: int = Field(default=30, ge=0, le=59, strict=True)
     retention_days: int = Field(default=400, ge=7, le=3650, strict=True)
-    discord_webhook_url: Destination = Field(default=None, max_length=2048, repr=False)
-    discord_username: DiscordUsername = DEFAULT_DISCORD_USERNAME
 
     @field_validator("timezone")
     @classmethod

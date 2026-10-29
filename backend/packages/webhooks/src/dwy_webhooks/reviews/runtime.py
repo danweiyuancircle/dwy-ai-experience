@@ -3,8 +3,8 @@
 import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from functools import partial
 
+from ..notifications import configured_notifier
 from .client import AppleReviewClient
 from .delivery import ReviewDeliveryQueue
 from .service import ReviewMonitor
@@ -23,23 +23,15 @@ def install_review_monitor(app, config, sessions, tables, *, client=None, sender
     """只装配，不连接或迁移数据库；外部注入客户端不由当前运行时关闭。"""
     if hasattr(app.state, "dwy_review_monitor"):
         raise ValueError("Review monitor already installed")
-    if sender is None:
-        if config.discord_webhook_url is None:
-            raise ValueError("Review monitor requires a Discord destination or sender")
-        from ..discord import DiscordWebhookSender
-
-        sender = partial(
-            DiscordWebhookSender(
-                config.discord_webhook_url.get_secret_value(), username=config.discord_username,
-            ),
-            suppress_embeds=True,
-        )
+    notifier = configured_notifier(config) if sender is None else None
+    if sender is None and notifier is None:
+        raise ValueError("Review monitor requires notifications, legacy Discord destination or sender")
     owned_client = client is None
     collector = AppleReviewClient(config) if owned_client else client
     store = ReviewStore(sessions, tables)
     monitor = ReviewMonitor(config, store, collector)
     queue = ReviewDeliveryQueue(
-        sessions, tables.deliveries, sender, retention_days=config.retention_days,
+        sessions, tables.deliveries, sender, notifier=notifier, retention_days=config.retention_days,
         allowed_scopes=config.apps,
     )
     runtime = ReviewRuntime(monitor, queue)

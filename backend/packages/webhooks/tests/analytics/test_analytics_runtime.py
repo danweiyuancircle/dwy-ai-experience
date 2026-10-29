@@ -56,4 +56,5 @@ async def test_lifespan_ownership_shutdown_order_and_public_state(monkeypatch, o
 
 def test_install_requires_destination_before_creating_resources():
     with pytest.raises(ValueError, match="destination"):
-        install_analytics_monitor(FastAPI(), SimpleNamespace(discord_webhook_url=None), object(), object())
+        install_analytics_monitor(FastAPI(), SimpleNamespace(notifications=None, discord_webhook_url=None),
+                                  object(), object())

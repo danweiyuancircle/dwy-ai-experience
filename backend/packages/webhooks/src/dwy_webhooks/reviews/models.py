@@ -2,8 +2,7 @@
 
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, SecretStr
 
-from ..config import ASCAppID, Destination, DiscordUsername
-from ..validation import DEFAULT_DISCORD_USERNAME
+from ..config import ASCAppID, NotificationSettings
 
 
 class ReviewCollectionError(Exception):
@@ -34,7 +33,7 @@ class ReviewApp(BaseModel):
     name: str = Field(min_length=1, max_length=128)
 
 
-class AppleReviewsConfig(BaseModel):
+class AppleReviewsConfig(NotificationSettings):
     """仅消费显式参数；账号 API 密钥用于已列出的 App 评论读取。"""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
@@ -45,5 +44,3 @@ class AppleReviewsConfig(BaseModel):
     private_key: SecretStr = Field(min_length=1, max_length=16384, repr=False)
     poll_interval_seconds: int = Field(default=3600, ge=60, le=604800)
     retention_days: int = Field(default=30, ge=1, le=3650)
-    discord_webhook_url: Destination = Field(default=None, max_length=2048, repr=False)
-    discord_username: DiscordUsername = DEFAULT_DISCORD_USERNAME

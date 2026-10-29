@@ -4,7 +4,10 @@ import asyncio
 from collections import OrderedDict
 from typing import Protocol
 
+from dwy_notify import Notifier
+
 from .events import WebhookEvent
+from .notifications import delivery_error
 from .validation import DEFAULT_DISCORD_USERNAME
 
 EventKey = tuple[str, str, str]
@@ -47,24 +50,44 @@ class MemoryReceiptStore:
             self._items.popitem(last=False)
 
 
-class DiscordRelay:
+class NotificationRelay:
+    """逐目标确认成功；来源重投只重试尚未确认的目标。"""
+
+    def __init__(self, notifier: Notifier, receipts: ReceiptStore | None = None):
+        """默认去重仅在实例内；跨重启持久确认由宿主注入接收账本。"""
+        self.notifier = notifier
+        self.receipts = receipts if receipts is not None else MemoryReceiptStore()
+        self._lock = asyncio.Lock()
+
+    async def __call__(self, event: WebhookEvent) -> bool:
+        """一个目标失败不阻止其他目标；只记录已实际成功的投递。"""
+        accepted, failure = False, None
+        async with self._lock:
+            for target in self.notifier.targets:
+                identity = f"{event.source}:{target}:{self.notifier.target_fingerprint(target)}"
+                key = (identity, event.scope, event.event_id)
+                if await self.receipts.contains(key):
+                    continue
+                result = await self.notifier.send(event.content, targets=(target,))
+                delivery = result.deliveries[0]
+                if delivery.success:
+                    await self.receipts.add(key)
+                    accepted = True
+                elif failure is None:
+                    failure = delivery_error(delivery)
+            if failure is not None:
+                raise failure
+        return accepted
+
+
+class DiscordRelay(NotificationRelay):
     """发送成功才接受事件；网络故障由接收端返回失败供提供方重试。"""
 
     def __init__(self, webhook_url: str, receipts: ReceiptStore | None = None, *,
                  username: str = DEFAULT_DISCORD_USERNAME):
         """锁和去重状态属于当前集成，不存在跨项目的模块全局状态。"""
-        from .discord import DiscordWebhookSender
+        from .notifications import legacy_discord_config
+        from .validation import validate_discord_webhook_url
 
-        self.sender = DiscordWebhookSender(webhook_url, username=username)
-        self.receipts = receipts if receipts is not None else MemoryReceiptStore()
-        self._lock = asyncio.Lock()
-
-    async def __call__(self, event: WebhookEvent) -> bool:
-        """所有提供方按完整身份去重；失败和取消都不会提交已送达记录。"""
-        key = (event.source, event.scope, event.event_id)
-        async with self._lock:
-            if await self.receipts.contains(key):
-                return False
-            await self.sender(event.content, suppress_embeds=True)
-            await self.receipts.add(key)
-            return True
+        super().__init__(Notifier(legacy_discord_config(validate_discord_webhook_url(webhook_url), username)),
+                         receipts)

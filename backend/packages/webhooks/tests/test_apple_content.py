@@ -107,7 +107,7 @@ def test_application_config_rejects_names_that_cannot_be_formatted(name):
                              root_certificates=(b"offline",))
 
 
-async def test_shared_sender_receives_portable_content_and_username_override(monkeypatch):
+async def test_shared_sender_receives_portable_content_and_username_override(capture_notification_http):
     """真实 Discord HTTP JSON 可独立使用，既不导入 App Cloud，也不需要其数据库。"""
     from dwy_webhooks.apple import apple_notification_content
     from dwy_webhooks.discord import DiscordWebhookSender
@@ -119,9 +119,7 @@ async def test_shared_sender_receives_portable_content_and_username_override(mon
         requests.append(json.loads(request.content))
         return httpx.Response(200, json={"id": "123456789"})
 
-    original = httpx.AsyncClient
-    monkeypatch.setattr("dwy_webhooks.discord.discord_client",
-                        lambda: original(transport=httpx.MockTransport(receive)))
+    capture_notification_http(receive)
     content = apple_notification_content(notification("CONSUMPTION_REQUEST",
                                         consumption_request_reason="UNINTENDED_PURCHASE"), app_name="Example")
     sender = DiscordWebhookSender(

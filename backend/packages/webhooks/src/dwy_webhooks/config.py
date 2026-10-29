@@ -5,6 +5,7 @@ import binascii
 from itertools import combinations
 from typing import Annotated, Literal
 
+from dwy_notify import NotificationConfig
 from pydantic import (
     BaseModel,
     BeforeValidator,
@@ -44,11 +45,25 @@ LocalPath = Annotated[str, Field(max_length=256, pattern=r"^/(?:[A-Za-z0-9_-]+/)
 ScopedPath = Annotated[str, Field(max_length=256, pattern=r"^/(?:[A-Za-z0-9_-]+/)+\{app_id\}$")]
 
 
-class WebhookSourceConfig(BaseModel):
-    """已实际重复的来源选项：可覆盖发送目标，并按事件类型筛选。"""
+class NotificationSettings(BaseModel):
+    """功能独立选择通知目标；旧 Discord 字段仅用于配置迁移。"""
 
-    model_config = ConfigDict(extra="forbid", frozen=True)
+    model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
+    notifications: NotificationConfig | None = None
     discord_webhook_url: Destination = Field(default=None, max_length=2048, repr=False)
+    discord_username: DiscordUsername = DEFAULT_DISCORD_USERNAME
+
+    @model_validator(mode="after")
+    def exclusive_destinations(self):
+        """同一层只能有一种配置，避免升级时意外双发。"""
+        if self.notifications is not None and self.discord_webhook_url is not None:
+            raise ValueError("Configure notifications or legacy Discord destination, not both")
+        return self
+
+
+class WebhookSourceConfig(NotificationSettings):
+    """来源可覆盖默认通知目标，并按事件类型筛选。"""
+
     discord_username: DiscordUsername | None = None
     # None 使用提供方适配器自己的已知事件集，避免配置与事件格式维护两份列表。
     events: frozenset[EventType] | None = Field(default=None, max_length=100)
@@ -83,10 +98,21 @@ class AppStoreConnectApp(BaseModel):
     secret: SecretStr = Field(min_length=32, max_length=512, repr=False)
 
 
+class AppStoreConnectAPIConfig(BaseModel):
+    """只读查询版本详情的 ASC 账号凭据；与 Webhook HMAC 密钥分开配置。"""
+
+    model_config = ConfigDict(extra="forbid", frozen=True, hide_input_in_errors=True)
+    issuer_id: str = Field(min_length=36, max_length=36,
+                           pattern=r"^[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}$")
+    key_id: str = Field(min_length=10, max_length=10, pattern=r"^[A-Z0-9]{10}$")
+    private_key: SecretStr = Field(min_length=1, max_length=16384, repr=False)
+
+
 class AppStoreConnectWebhookConfig(WebhookSourceConfig):
     """ASC 审核/构建通知；App ID 与签名密钥固定由项目配置。"""
 
     apps: dict[ASCAppID, AppStoreConnectApp] = Field(min_length=1, max_length=100)
+    api: AppStoreConnectAPIConfig | None = None
     path: ScopedPath = "/webhooks/app-store-connect/{app_id}"
 
 
@@ -119,12 +145,10 @@ class AppleNotificationsConfig(WebhookSourceConfig):
     path: ScopedPath = "/webhooks/apple/{app_id}"
 
 
-class WebhookConfig(BaseModel):
+class WebhookConfig(NotificationSettings):
     """由项目 Settings 显式组合；未配置来源不注册路由，不读取部署环境。"""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
-    discord_webhook_url: Destination = Field(default=None, max_length=2048, repr=False)
-    discord_username: DiscordUsername = DEFAULT_DISCORD_USERNAME
     resend: ResendWebhookConfig | None = None
     app_store_connect: AppStoreConnectWebhookConfig | None = None
     apple_notifications: AppleNotificationsConfig | None = None

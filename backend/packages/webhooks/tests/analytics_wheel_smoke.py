@@ -11,14 +11,14 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-import httpx
+import requests
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
+from dwy_notify import NotificationConfig, Notifier
 from dwyeapi.database import create_async_engine_factory, create_session_factory
 from sqlalchemy import MetaData, select
 
 import dwy_webhooks.analytics as analytics
-from dwy_webhooks import DiscordWebhookSender, discord
 from dwy_webhooks.analytics import (
     AnalyticsStore,
     AnalyticsValue,
@@ -35,7 +35,10 @@ async def main(expected_version: str) -> None:
     """检查实际导入来源、默认时间、独立存储和真实发送器的离线链路。"""
     assert importlib.metadata.version("dwy-webhooks") == expected_version
     assert Path(analytics.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
-    for name in ("app_cloud", "apple_iap", "cloud_kernel", "adbox_server", "resend", "appstoreserverlibrary"):
+    for name in (
+        "app_cloud", "apple_iap", "cloud_kernel", "adbox_server", "resend", "appstoreserverlibrary",
+        "discord_webhook",
+    ):
         assert importlib.util.find_spec(name) is None, name
     key = ec.generate_private_key(ec.SECP256R1())
     config = AppleAnalyticsConfig(
@@ -57,11 +60,16 @@ async def main(expected_version: str) -> None:
     assert all(len(part.encode("utf-16-le")) <= 4000 for part in parts)
     calls = []
 
-    def receive(request):
-        payload = json.loads(request.content)
+    def receive(url, **kwargs):
+        assert url.startswith("https://discord.com/api/webhooks/123456789/")
+        assert kwargs["verify"] is True and kwargs["allow_redirects"] is False
+        payload = kwargs["json"]
         assert payload["allowed_mentions"] == {"parse": []}
         calls.append(payload["content"])
-        return httpx.Response(200, json={"id": str(123456789 + len(calls))})
+        response = requests.Response()
+        response.status_code = 200
+        response._content = json.dumps({"id": str(123456789 + len(calls))}).encode()
+        return response
 
     with TemporaryDirectory(prefix="analytics-wheel-") as temporary:
         engine = create_async_engine_factory(f"sqlite+aiosqlite:///{Path(temporary) / 'analytics.db'}")
@@ -82,11 +90,9 @@ async def main(expected_version: str) -> None:
                     snapshot.report_date, parts)], next_poll_at=1800086400)
             assert await store.claim(config.issuer_id, snapshot.app_id, snapshot.report_date) is None
             queue = SQLAlchemyDeliveryQueue(sessions, tables.deliveries,
-                DiscordWebhookSender("https://discord.com/api/webhooks/123456789/wheel-test-token"),
+                notifier=Notifier(NotificationConfig(targets={"daily": "discord://123456789/wheel-test-token"})),
                 source="apple_analytics", clock=lambda: 1800000000)
-            with patch.object(discord, "discord_client", lambda: httpx.AsyncClient(
-                transport=httpx.MockTransport(receive),
-            )):
+            with patch("dwy_notify._transport.post", receive):
                 assert await queue.process_pending() == len(parts)
             async with sessions() as db:
                 assert set((await db.execute(select(tables.deliveries.c.status))).scalars()) == {"sent"}

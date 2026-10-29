@@ -3,9 +3,9 @@
 import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from functools import partial
 
 from ..delivery import SQLAlchemyDeliveryQueue
+from ..notifications import configured_notifier
 from .client import AppleAnalyticsClient
 from .service import AnalyticsMonitor
 from .storage import AnalyticsStore
@@ -25,23 +25,15 @@ def install_analytics_monitor(
     """不建表、不迁移；注入客户端不关闭，自有客户端在任务和宿主资源之后关闭。"""
     if hasattr(app.state, "dwy_analytics_monitor"):
         raise ValueError("Analytics monitor already installed")
-    if sender is None:
-        if config.discord_webhook_url is None:
-            raise ValueError("Analytics monitor requires a Discord destination or sender")
-        from ..discord import DiscordWebhookSender
-
-        sender = partial(
-            DiscordWebhookSender(
-                config.discord_webhook_url.get_secret_value(), username=config.discord_username
-            ),
-            suppress_embeds=True,
-        )
+    notifier = configured_notifier(config) if sender is None else None
+    if sender is None and notifier is None:
+        raise ValueError("Analytics monitor requires notifications, legacy Discord destination or sender")
     owned_client = client is None
     collector = AppleAnalyticsClient(config) if owned_client else client
     store = AnalyticsStore(sessions, tables)
     monitor = AnalyticsMonitor(config, store, collector, feedback=feedback)
     queue = SQLAlchemyDeliveryQueue(
-        sessions, tables.deliveries, sender, source="app_store_analytics",
+        sessions, tables.deliveries, sender, notifier=notifier, source="app_store_analytics",
         allowed_scopes={f"{config.issuer_id}:{app_id}" for app_id in config.apps},
     )
     runtime = AnalyticsRuntime(monitor, queue)

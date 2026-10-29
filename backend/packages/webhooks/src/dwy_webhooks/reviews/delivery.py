@@ -6,13 +6,13 @@ from ..delivery import SQLAlchemyDeliveryQueue
 class ReviewDeliveryQueue(SQLAlchemyDeliveryQueue):
     """已过评论保留期的消息不再发送，周期清理前也不能继续重试。"""
 
-    def __init__(self, sessions, table, sender, *, retention_days: int, **options):
+    def __init__(self, sessions, table, sender=None, *, retention_days: int, **options):
         """保留期限由同一采集配置注入，不读取宿主全局配置。"""
         super().__init__(sessions, table, sender, source="app_store_reviews", **options)
         self.retention_days = retention_days
 
     async def _send(self, row) -> dict:
-        """发送前复核期限；网络请求一旦开始，其平台接收行为由 Discord 决定。"""
+        """发送前复核期限；网络请求一旦开始，其接收行为由通知平台决定。"""
         if row["created_at"] < int(self.clock()) - self.retention_days * 86400:
             return {"status": "expired", "payload": {}, "error_code": None}
         return await super()._send(row)

@@ -4,13 +4,18 @@ import hashlib
 import hmac
 import json
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel, Field, ValidationError
 
 from ..config import AppStoreConnectWebhookConfig
+from ..errors import WebhookDeliveryError
 from ..events import EventSink, WebhookEvent
 from . import accept_event, read_payload
+
+if TYPE_CHECKING:
+    from .asc_versions import AppStoreVersionClient, AppStoreVersionMetadata
 
 EVENTS = {
     "appStoreVersionAppVersionStateUpdated": ("版本审核状态", "appStoreVersions"),
@@ -73,14 +78,22 @@ class Envelope(BaseModel):
     data: Resource
 
 
-def message(app_id: str, name: str, event: StatusEvent) -> str:
+def message(app_id: str, name: str, event: StatusEvent,
+            metadata: "AppStoreVersionMetadata | None" = None) -> str:
     """保留 Apple 原始状态；未知枚举可读，不猜测拒审原因或版本号。"""
     attrs = event.attributes
     state = attrs.newValue if event.type == "appStoreVersionAppVersionStateUpdated" else attrs.newState
     if state is None or event.relationships.instance.data.type != EVENTS[event.type][1]:
         raise ValueError("invalid status event")
-    lines = [f"App Store Connect · {EVENTS[event.type][0]}", f"应用：{name}",
-             f"状态：{STATES.get(state, state)} ({state})"]
+    lines = [f"App Store Connect · {EVENTS[event.type][0]}", f"应用：{name}"]
+    if event.type == "appStoreVersionAppVersionStateUpdated":
+        if metadata is None:
+            lines.extend(["平台：未查询（未配置 ASC API）", "版本：未查询（未配置 ASC API）"])
+        else:
+            platforms = {"IOS": "iOS", "MAC_OS": "macOS", "TV_OS": "tvOS", "VISION_OS": "visionOS"}
+            lines.extend([f"平台：{platforms.get(metadata.platform, metadata.platform)}",
+                          f"版本：{metadata.version_string}"])
+    lines.append(f"状态：{STATES.get(state, state)} ({state})")
     if attrs.oldValue:
         lines.append(f"原状态：{STATES.get(attrs.oldValue, attrs.oldValue)} ({attrs.oldValue})")
     if attrs.timestamp:
@@ -90,9 +103,14 @@ def message(app_id: str, name: str, event: StatusEvent) -> str:
     return "\n".join(lines)
 
 
-def create_asc_router(config: AppStoreConnectWebhookConfig, sink: EventSink) -> APIRouter:
+def create_asc_router(config: AppStoreConnectWebhookConfig, sink: EventSink, *,
+                      version_client: "AppStoreVersionClient | None" = None) -> APIRouter:
     """按配置挂载应用独立密钥；接收语义由可替换的 sink 决定。"""
     router = APIRouter()
+    if version_client is None and config.api is not None:
+        from .asc_versions import AppStoreVersionClient
+
+        version_client = AppStoreVersionClient(config.api)
 
     @router.post(config.path, include_in_schema=False)
     async def receive(app_id: str, request: Request):
@@ -121,13 +139,23 @@ def create_asc_router(config: AppStoreConnectWebhookConfig, sink: EventSink) -> 
                 data = {"app_id": app_id}
             elif event_type in EVENTS:
                 event = StatusEvent.model_validate(json.loads(raw)["data"])
-                content = message(app_id, application.name, event)
                 state = (event.attributes.newValue if event_type == "appStoreVersionAppVersionStateUpdated"
                          else event.attributes.newState)
+                if state is None or event.relationships.instance.data.type != EVENTS[event_type][1]:
+                    raise ValueError("invalid status event")
+                metadata = None
+                if event_type == "appStoreVersionAppVersionStateUpdated" and version_client is not None:
+                    metadata = await version_client.lookup(app_id, event.relationships.instance.data.id)
+                content = message(app_id, application.name, event, metadata)
                 data = {"app_id": app_id, "instance_id": event.relationships.instance.data.id, "state": state}
+                if metadata is not None:
+                    data.update(platform=metadata.platform, version_string=metadata.version_string)
             else:
                 # 已配置但尚无适配器的类型仍明确忽略，不伪造可处理事件。
                 return {"received": True, "ignored": True}
+        except WebhookDeliveryError:
+            # 不确认缺少详情的完整通知，让 Apple 重投；不泄露账号或响应内容。
+            raise HTTPException(502, "Unable to read App Store version") from None
         except (ValidationError, ValueError, UnicodeError):
             raise HTTPException(400, "Invalid webhook event") from None
         prepared = WebhookEvent(

@@ -155,3 +155,25 @@ def test_legacy_asc_table_shape_is_preserved_without_registration_side_effects()
         "lease_until", "lease_token", "error_code", "message_id",
     )
     assert table.c.app_id.type.length == 20 and table.c.id.type.length == 128
+
+
+async def test_sender_success_does_not_require_a_message_id(storage):
+    async def sender(content):
+        return None
+
+    queue = SQLAlchemyDeliveryQueue(*storage, sender, source="app_store_connect", clock=lambda: 100)
+    await queue(event())
+    assert await queue.process_pending() == 1
+    row = (await read(storage))[0]
+    assert row["status"] == "sent" and row["message_id"] is None
+
+
+@pytest.mark.parametrize("message_id", [False, 123, "", "x" * 129])
+async def test_sender_invalid_message_id_fails(storage, message_id):
+    async def sender(content):
+        return message_id
+
+    queue = SQLAlchemyDeliveryQueue(*storage, sender, source="app_store_connect", clock=lambda: 100)
+    await queue(event())
+    assert await queue.process_pending() == 0
+    assert (await read(storage))[0]["error_code"] == "webhook_invalid_response"

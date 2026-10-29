@@ -9,9 +9,11 @@ from pathlib import Path
 from unittest.mock import patch
 
 import httpx
+import requests
 from appstoreserverlibrary.models.Data import Data
 from appstoreserverlibrary.models.JWSTransactionDecodedPayload import JWSTransactionDecodedPayload
 from appstoreserverlibrary.models.ResponseBodyV2DecodedPayload import ResponseBodyV2DecodedPayload
+from dwy_notify import NotificationConfig
 from fastapi import FastAPI
 
 from dwy_webhooks import WebhookConfig, install_webhooks
@@ -25,7 +27,7 @@ async def main(expected_version: str):
     assert Path(sys.modules[AppleTransactionDetails.__module__].__file__).resolve().is_relative_to(
         Path(sys.prefix).resolve()
     )
-    for name in ("app_cloud", "apple_iap", "cloud_kernel", "resend"):
+    for name in ("app_cloud", "apple_iap", "cloud_kernel", "resend", "discord_webhook"):
         assert importlib.util.find_spec(name) is None, name
     now = 1793059200000
     transaction = JWSTransactionDecodedPayload(
@@ -57,19 +59,26 @@ async def main(expected_version: str):
 
     messages = []
 
-    def receive(request):
+    def receive(url, **kwargs):
         """捕获实际 Discord JSON，不发送真实消息。"""
-        messages.append(json.loads(request.content))
-        return httpx.Response(200, json={"id": "123456789"})
+        assert url.startswith("https://discord.com/api/webhooks/123456789/")
+        assert kwargs["verify"] is True and kwargs["allow_redirects"] is False
+        messages.append(kwargs["json"])
+        response = requests.Response()
+        response.status_code = 200
+        response._content = json.dumps({"id": "123456789"}).encode()
+        return response
 
     original = httpx.AsyncClient
     with patch("appstoreserverlibrary.signed_data_verifier.SignedDataVerifier", Verifier), patch(
-        "dwy_webhooks.discord.discord_client", lambda: original(transport=httpx.MockTransport(receive)),
+        "dwy_notify._transport.post", receive,
     ):
         app = FastAPI()
         config = WebhookConfig(
-            discord_webhook_url="https://discord.com/api/webhooks/123456789/offline-token",
-            apple_notifications=AppleNotificationsConfig(discord_username="Other Apple", apps={
+            notifications=NotificationConfig(targets={
+                "apple": "discord://Other%20Apple@123456789/offline-token",
+            }),
+            apple_notifications=AppleNotificationsConfig(apps={
                 "other": AppleNotificationApp(name="Other Project", bundle_id="com.example.other",
                                               environment="Sandbox", root_certificates=(b"offline-cert",)),
             }),

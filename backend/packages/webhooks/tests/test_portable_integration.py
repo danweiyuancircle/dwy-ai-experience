@@ -30,10 +30,8 @@ def signed_resend(event_id="new-project-event"):
                   "svix-signature": "v1," + base64.b64encode(digest.digest()).decode()}
 
 
-def test_one_registration_handles_verified_events_and_preserves_lifespan(monkeypatch):
+def test_one_registration_handles_verified_events_and_preserves_lifespan(capture_notification_http):
     """业务应用只安装模块并配置；相同事件去重，宿主生命周期不被覆盖。"""
-    from dwy_webhooks import discord
-
     lifecycle, calls = [], []
 
     @asynccontextmanager
@@ -48,8 +46,7 @@ def test_one_registration_handles_verified_events_and_preserves_lifespan(monkeyp
         calls.append(request)
         return httpx.Response(200, json={"id": "123456"})
 
-    monkeypatch.setattr(discord, "discord_client", lambda: httpx.AsyncClient(
-        transport=httpx.MockTransport(receive)))
+    capture_notification_http(receive)
     app = FastAPI(lifespan=lifespan)
     runtime = install_webhooks(app, WebhookConfig(
         discord_webhook_url=URL, resend={"secret": SECRET, "name": "Another Project"}))

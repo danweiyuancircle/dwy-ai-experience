@@ -61,6 +61,7 @@ jobs:
       - name: Test
         run: |
           uv sync --project ci --frozen
+          uv run --project ci --frozen pytest -c backend/packages/notify/pyproject.toml backend/packages/notify/tests -q
           uv run --project ci --frozen pytest -c backend/packages/webhooks/pyproject.toml backend/packages/webhooks/tests -q
           uv run --project ci --frozen ruff check --config backend/packages/webhooks/pyproject.toml backend/packages/webhooks/src backend/packages/webhooks/tests
 
@@ -71,17 +72,24 @@ jobs:
       - name: Verify installable distributions
         run: >-
           python scripts/check_python_distribution.py backend/packages/webhooks
-          --module dwy_webhooks --extras discord,resend,apple,reviews,analytics
+          --module dwy_webhooks --extras resend,asc,apple,reviews,analytics
           --import-module dwy_webhooks.reviews.client
           --import-module dwy_webhooks.reviews.runtime
           --import-module dwy_webhooks.apple
           --import-module dwy_webhooks.analytics.client
           --import-module dwy_webhooks.analytics.runtime
+          --import-module dwy_webhooks.providers.asc_versions
+
+      - name: Verify ASC lookup without other platform SDKs
+        run: >-
+          python scripts/check_python_distribution.py backend/packages/webhooks
+          --module dwy_webhooks --extras asc
+          --import-module dwy_webhooks.providers.asc_versions
 
       - name: Verify reviews without other platform SDKs
         run: >-
           python scripts/check_python_distribution.py backend/packages/webhooks
-          --module dwy_webhooks --extras discord,reviews
+          --module dwy_webhooks --extras reviews
           --import-module dwy_webhooks.reviews.client
           --import-module dwy_webhooks.reviews.runtime
 
@@ -89,14 +97,21 @@ jobs:
         run: |
           uv venv --python 3.11.17 "$RUNNER_TEMP/apple-wheel"
           WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/webhooks/dist").glob("*.whl")).resolve())')
-          uv pip install --python "$RUNNER_TEMP/apple-wheel/bin/python" --no-config --no-sources --default-index https://pypi.org/simple "$WHEEL[discord,apple]"
+          uv pip install --python "$RUNNER_TEMP/apple-wheel/bin/python" --no-config --no-sources --default-index https://pypi.org/simple "$WHEEL[apple]"
           "$RUNNER_TEMP/apple-wheel/bin/python" backend/packages/webhooks/tests/apple_wheel_smoke.py "${{ steps.verify.outputs.package_version }}"
+
+      - name: Verify independent ASC wheel
+        run: |
+          uv venv --python 3.11.17 "$RUNNER_TEMP/asc-wheel"
+          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/webhooks/dist").glob("*.whl")).resolve())')
+          uv pip install --python "$RUNNER_TEMP/asc-wheel/bin/python" --no-config --no-sources --default-index https://pypi.org/simple "$WHEEL[asc]"
+          "$RUNNER_TEMP/asc-wheel/bin/python" backend/packages/webhooks/tests/asc_wheel_smoke.py "${{ steps.verify.outputs.package_version }}"
 
       - name: Verify independent analytics wheel
         run: |
           uv venv --python 3.11.17 "$RUNNER_TEMP/analytics-wheel"
           WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/webhooks/dist").glob("*.whl")).resolve())')
-          uv pip install --python "$RUNNER_TEMP/analytics-wheel/bin/python" --no-config --no-sources --default-index https://pypi.org/simple "$WHEEL[discord,analytics]" aiosqlite==0.22.1
+          uv pip install --python "$RUNNER_TEMP/analytics-wheel/bin/python" --no-config --no-sources --default-index https://pypi.org/simple "$WHEEL[analytics]" aiosqlite==0.22.1
           "$RUNNER_TEMP/analytics-wheel/bin/python" backend/packages/webhooks/tests/analytics_wheel_smoke.py "${{ steps.verify.outputs.package_version }}"
 
       - name: Stage universal wheel only

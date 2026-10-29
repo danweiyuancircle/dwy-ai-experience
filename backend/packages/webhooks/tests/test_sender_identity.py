@@ -8,7 +8,7 @@ import pytest
 from fastapi import FastAPI
 from sqlalchemy import MetaData
 
-from dwy_webhooks import DiscordWebhookSender, discord
+from dwy_webhooks import DiscordWebhookSender
 from dwy_webhooks.config import ResendWebhookConfig, WebhookConfig
 from dwy_webhooks.events import WebhookEvent
 from dwy_webhooks.fastapi import _sink
@@ -19,7 +19,7 @@ URL = "https://discord.com/api/webhooks/123456789/identity-test-token"
 
 
 @pytest.fixture
-def payloads(monkeypatch):
+def payloads(capture_notification_http):
     """仅替代网络边界，保留 SDK 构造与发送。"""
     received = []
 
@@ -27,9 +27,7 @@ def payloads(monkeypatch):
         received.append(json.loads(request.content))
         return httpx.Response(200, json={"id": "123456789"})
 
-    monkeypatch.setattr(discord, "discord_client", lambda: httpx.AsyncClient(
-        transport=httpx.MockTransport(capture),
-    ))
+    capture_notification_http(capture)
     return received
 
 
@@ -77,5 +75,6 @@ async def test_review_config_passes_sender_name_to_sdk(payloads, options, expect
     runtime = install_review_monitor(
         FastAPI(), config, None, build_review_tables(MetaData()), client=SimpleNamespace(),
     )
-    assert await runtime.queue.sender("Review") == "123456789"
+    result = await runtime.queue.notifier.send("Review")
+    assert result.deliveries[0].message_id == "123456789"
     assert payloads[0]["username"] == expected
