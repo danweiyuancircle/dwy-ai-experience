@@ -288,6 +288,7 @@ public actor SyncCoordinator {
         var attempt = 0
         while epoch == generation && !isPaused && !Task.isCancelled {
             requestedAgain = false
+            var retryDelay: TimeInterval?
             do {
                 try await synchronize()
                 attempt = 0
@@ -299,16 +300,19 @@ public actor SyncCoordinator {
                     let exponential = min(retryPolicy.maximumDelay, retryPolicy.initialDelay * pow(2, Double(attempt - 1)))
                     let jittered = min(retryPolicy.maximumDelay, exponential * Double.random(in: 0.8...1.2))
                     let serverDelay = (error as? SyncServerError)?.retryAfter ?? 0
-                    do {
-                        try await updateCounts(epoch: epoch)
-                        publish(phase: .waitingForRetry, errorCode: "retry_pending")
-                        try await sleep(max(jittered, serverDelay))
-                    }
-                    catch { return }
+                    retryDelay = max(jittered, serverDelay)
                 } else {
                     guard requestedAgain else { return }
                     attempt = 0
                 }
+            }
+            if let retryDelay {
+                do {
+                    try await updateCounts(epoch: epoch)
+                    publish(phase: .waitingForRetry, errorCode: "retry_pending")
+                    try await sleep(retryDelay)
+                }
+                catch { return }
             }
         }
     }
