@@ -57,9 +57,9 @@ public actor SyncCoordinator {
         identityProvider: @escaping @Sendable (_ forceRefresh: Bool) async throws -> SyncIdentity,
         retryPolicy: SyncRetryPolicy,
         sleep: @escaping @Sendable (TimeInterval) async throws -> Void = { seconds in
-            // 避免旧 Swift 工具链跨模块生成 Task.sleep(for:) 特化时崩溃（swiftlang/swift#86204）。
-            let clock = ContinuousClock()
-            try await clock.sleep(until: clock.now.advanced(by: .seconds(seconds)))
+            // 避免旧 Swift 泛型时钟异步帧崩溃；超长 Retry-After 饱和为可表示的纳秒上限。
+            let nanoseconds = min(seconds * 1_000_000_000, Double(UInt64.max).nextDown)
+            try await Task.sleep(nanoseconds: UInt64(nanoseconds))
         }
     ) {
         self.store = store

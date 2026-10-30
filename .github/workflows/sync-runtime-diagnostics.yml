@@ -18,6 +18,8 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Reproduce automatic retry runtime failure
         run: swift test --filter SyncCoordinatorTests.testAutomaticRetryConfirmsLostResponseWithoutNewVersion
+      - name: Verify full Swift suite
+        run: swift test
       - name: Capture native failure backtrace
         if: failure()
         run: |
