@@ -1,5 +1,7 @@
 # SyncCore 测试用例
 
+默认等待与注入等待分别由 `testAutomaticRetryConfirmsLostResponseWithoutNewVersion` 和 `testAutomaticRetryHonorsAttemptLimitAndServerDelay` 验证；旧 Swift 工具链也须完整执行，不能只用新工具链的源码测试代替。
+
 当前 93 项 XCTest，使用临时 SQLite 文件、受控远端 transport 与 URLProtocol 响应；不依赖真实账号或生产服务。
 
 | 测试文件 | 数量 | 重点 |

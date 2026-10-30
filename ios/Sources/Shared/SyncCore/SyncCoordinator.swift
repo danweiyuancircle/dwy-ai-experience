@@ -37,7 +37,7 @@ public actor SyncCoordinator {
     private let transport: any SyncTransport
     private let identityProvider: @Sendable (Bool) async throws -> SyncIdentity
     private let retryPolicy: SyncRetryPolicy
-    private let sleep: @Sendable (TimeInterval) async throws -> Void
+    private let sleep: (@Sendable (TimeInterval) async throws -> Void)?
     private var generation: UInt64 = 0
     private var execution = SyncExecutionLease()
     private var isPaused = false
@@ -51,14 +51,13 @@ public actor SyncCoordinator {
     private var state = SyncState(phase: .idle, pendingCount: 0, conflictCount: 0, lastSuccessfulSync: nil, errorCode: nil)
 
     /// identityProvider(false) 取得可用会话，true 仅在 401 后要求刷新一次；不得返回其他账号身份。
+    /// sleep 为 nil 时直接使用系统等待；注入实现必须响应任务取消。
     public init(
         store: SyncStore,
         transport: any SyncTransport,
         identityProvider: @escaping @Sendable (_ forceRefresh: Bool) async throws -> SyncIdentity,
         retryPolicy: SyncRetryPolicy,
-        sleep: @escaping @Sendable (TimeInterval) async throws -> Void = { seconds in
-            try await Task.sleep(for: .seconds(seconds))
-        }
+        sleep: (@Sendable (TimeInterval) async throws -> Void)? = nil
     ) {
         self.store = store
         self.transport = transport
@@ -310,7 +309,12 @@ public actor SyncCoordinator {
                 do {
                     try await updateCounts(epoch: epoch)
                     publish(phase: .waitingForRetry, errorCode: "retry_pending")
-                    try await sleep(retryDelay)
+                    if let sleep {
+                        try await sleep(retryDelay)
+                    } else {
+                        // 旧 Swift 的默认异步闭包会破坏任务帧；默认路径直接调用系统 API。
+                        try await Task.sleep(for: .seconds(retryDelay))
+                    }
                 }
                 catch { return }
             }
