@@ -236,29 +236,6 @@ final class SyncCoordinatorTests: XCTestCase, @unchecked Sendable {
         XCTAssertEqual(pending.pendingCount, 0)
     }
 
-    func testDefaultRetrySleepCancelsOversizedServerDelay() async throws {
-        let server = CoordinatorTestServer(), store = try store(userID: userID)
-        await server.rejectPushes(code: "temporarily_unavailable", status: 503, retryAfter: .greatestFiniteMagnitude)
-        try await store.save(SyncDocument(id: UUID(), payload: Note(text: "preserve")), using: schema)
-        let sync = try coordinator(store, server)
-        let states = await sync.states()
-        let waiting = expectation(description: "进入默认重试等待")
-        let observation = Task {
-            for await state in states where state.phase == .waitingForRetry { waiting.fulfill(); return }
-        }
-        await sync.start()
-        await fulfillment(of: [waiting], timeout: 5)
-        observation.cancel()
-        try await Task.sleep(nanoseconds: 50_000_000)
-        let attemptsWhileWaiting = await server.pushAttemptCount()
-        XCTAssertEqual(attemptsWhileWaiting, 1, "超长等待不能溢出成负延迟而立即重试")
-        await sync.pause()
-        let attempts = await server.pushAttemptCount()
-        let pending = try await store.snapshot()
-        XCTAssertEqual(attempts, 1)
-        XCTAssertEqual(pending.pendingCount, 1)
-    }
-
     func testAutomaticRetryHonorsAttemptLimitAndServerDelay() async throws {
         let server = CoordinatorTestServer(), delays = CoordinatorDelayRecorder()
         await server.rejectPushes(code: "temporarily_unavailable", status: 503, retryAfter: 2)

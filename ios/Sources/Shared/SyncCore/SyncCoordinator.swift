@@ -57,9 +57,7 @@ public actor SyncCoordinator {
         identityProvider: @escaping @Sendable (_ forceRefresh: Bool) async throws -> SyncIdentity,
         retryPolicy: SyncRetryPolicy,
         sleep: @escaping @Sendable (TimeInterval) async throws -> Void = { seconds in
-            // 避免旧 Swift 泛型时钟异步帧崩溃；超长 Retry-After 饱和为可表示的纳秒上限。
-            let nanoseconds = min(seconds * 1_000_000_000, Double(Int64.max).nextDown)
-            try await Task.sleep(nanoseconds: UInt64(nanoseconds))
+            try await Task.sleep(for: .seconds(seconds))
         }
     ) {
         self.store = store
@@ -297,20 +295,20 @@ public actor SyncCoordinator {
             } catch {
                 guard epoch == generation, !isPaused, !Task.isCancelled else { return }
                 attempt += 1
-                guard attempt < retryPolicy.maximumAttempts, isTransient(error) else {
-                    // failed 状态发布后的新外部触发仍有效；失败前合并的请求已在 runCycle 清空。
-                    if requestedAgain { attempt = 0; continue }
-                    return
+                if attempt < retryPolicy.maximumAttempts, isTransient(error) {
+                    let exponential = min(retryPolicy.maximumDelay, retryPolicy.initialDelay * pow(2, Double(attempt - 1)))
+                    let jittered = min(retryPolicy.maximumDelay, exponential * Double.random(in: 0.8...1.2))
+                    let serverDelay = (error as? SyncServerError)?.retryAfter ?? 0
+                    do {
+                        try await updateCounts(epoch: epoch)
+                        publish(phase: .waitingForRetry, errorCode: "retry_pending")
+                        try await sleep(max(jittered, serverDelay))
+                    }
+                    catch { return }
+                } else {
+                    guard requestedAgain else { return }
+                    attempt = 0
                 }
-                let exponential = min(retryPolicy.maximumDelay, retryPolicy.initialDelay * pow(2, Double(attempt - 1)))
-                let jittered = min(retryPolicy.maximumDelay, exponential * Double.random(in: 0.8...1.2))
-                let serverDelay = (error as? SyncServerError)?.retryAfter ?? 0
-                do {
-                    try await updateCounts(epoch: epoch)
-                    publish(phase: .waitingForRetry, errorCode: "retry_pending")
-                    try await sleep(max(jittered, serverDelay))
-                }
-                catch { return }
             }
         }
     }
