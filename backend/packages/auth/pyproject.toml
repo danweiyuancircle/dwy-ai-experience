@@ -1,6 +1,6 @@
 [project]
 name = "dwy-auth"
-version = "0.1.1"
+version = "0.2.0"
 description = "Apple, Google and email/password authentication with application-owned sessions and storage"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"

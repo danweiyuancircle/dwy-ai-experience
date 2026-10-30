@@ -8,7 +8,7 @@ from collections.abc import Callable
 from uuid import UUID, uuid4
 
 from jose import JWTError, jwt
-from sqlalchemy import func, insert, select, update
+from sqlalchemy import delete, func, insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from .contracts import AuthPrincipal, SessionTokens, VerifiedIdentity
@@ -43,8 +43,9 @@ class JWTSessionBackend:
         *,
         access_ttl: int = 900,
         refresh_ttl: int = 30 * 86400,
+        rolling_refresh: bool = False,
     ):
-        """校验并保存显式配置；session工厂供自持事务使用，不触发建表。"""
+        """默认固定期限；显式开启 rolling_refresh 后仅成功刷新续期，工厂不触发建表。"""
         if not isinstance(app_id, str) or not re.fullmatch(r"[a-z][a-z0-9-]{0,31}", app_id):
             raise ValueError("Invalid app id")
         if not isinstance(secret, str) or len(secret.encode("utf-8")) < 32:
@@ -55,10 +56,13 @@ class JWTSessionBackend:
             raise ValueError("Access TTL must be between 1 and 3600 seconds")
         if type(refresh_ttl) is not int or not access_ttl <= refresh_ttl <= 366 * 86400:
             raise ValueError("Refresh TTL must cover access TTL and be at most 366 days")
+        if type(rolling_refresh) is not bool:
+            raise ValueError("Rolling refresh must be a boolean")
         self.app_id, self.issuer, self.audience = app_id, issuer, audience
         self._secret = secret
         self.session_factory, self.tables = session_factory, tables
         self.access_ttl, self.refresh_ttl = access_ttl, refresh_ttl
+        self.rolling_refresh = rolling_refresh
 
     def _tokens(
         self, principal: AuthPrincipal, now: int, jti: str, refresh: str, family_expires_at: int
@@ -214,6 +218,7 @@ class JWTSessionBackend:
                     # 纯主体检查先锁 account, 与改密/删账号保持 account→session 顺序。
                     await before_lock(db, principal)
                 refresh, jti = "rf_" + secrets.token_urlsafe(48), str(uuid4())
+                expires_at = now + self.refresh_ttl if self.rolling_refresh else row["expires_at"]
                 consumed = await db.execute(
                     update(s)
                     .where(
@@ -223,9 +228,18 @@ class JWTSessionBackend:
                         s.c.revoked_at.is_(None),
                         s.c.expires_at > now,
                     )
-                    .values(refresh_hash=_digest(refresh), access_jti=jti)
+                    .values(refresh_hash=_digest(refresh), access_jti=jti, expires_at=expires_at)
                 )
                 if consumed.rowcount == 1:
+                    if self.rolling_refresh:
+                        # 只清理本 family 到期证据，长期活跃不会累积终身配额或删除有效重放证据。
+                        await db.execute(
+                            delete(h).where(
+                                h.c.app_id == self.app_id,
+                                h.c.session_id == row["id"],
+                                h.c.expires_at <= now,
+                            )
+                        )
                     # CAS 已获得 family 写锁，计数与插入不会被同一 family 的并发刷新穿透。
                     count = await db.scalar(
                         select(func.count())
@@ -248,10 +262,10 @@ class JWTSessionBackend:
                                 app_id=self.app_id,
                                 refresh_hash=old_hash,
                                 session_id=row["id"],
-                                expires_at=row["expires_at"],
+                                expires_at=expires_at,
                             )
                         )
-                        result = self._tokens(principal, now, jti, refresh, row["expires_at"])
+                        result = self._tokens(principal, now, jti, refresh, expires_at)
             if result is None:
                 replayed = select(h.c.session_id).where(
                     h.c.app_id == self.app_id, h.c.refresh_hash == old_hash, h.c.expires_at > now

@@ -63,3 +63,11 @@ Review 修补回归：password_reset 发码绑定 subject/凭据代次，改邮�
 - `backend/packages/auth/tests/test_admission.py`：注册、首次外部登录、会话签发失败时原子回滚；低层入口不能绕过准入；外部证明独立预算；拒绝刷新不消费旧 token。
 - `backend/packages/auth/tests/test_apple_auth.py`：Apple 准入先于上游授权，拒绝后回滚主体与会话并保留撤销任务；Apple 管理挑战绑定当前主体与用途，proof 和挑战只消费一次，非法材料不访问上游。
 - `backend/tests/test_auth_apple.py`：管理挑战要求当前会话，邮箱管理将 Apple 重新认证路由到专用授权服务；请求总预算覆盖准入证明。
+
+## JWT 滑动会话 (`test_session_backend.py`)
+
+- 默认固定期限保持不变；`rolling_refresh=True` 第25天刷新续期到第55天，后续成功刷新继续顺延30天。
+- 到期边界与已撤销会话不能续期；准入拒绝回滚期限、凭据与摘要写入，旧 refresh 仍可重试。
+- 连续活跃跨多个月清理到期摘要，不累计终身配额；保留同 family 有效证据，不清理其他 family 的记录。
+- 旧 refresh 消费后保留30天，即使超过最初会话到期日，重放仍撤销后继；窗口到期清理后旧摘要不再撤销后继。
+- 固定与滑动两种模式均验证单次消费、真实 SQLite 并发仅一次胜出、重放撤销、4096有效摘要边界；可选 PostgreSQL 并发测试需要 `APP_CLOUD_TEST_POSTGRES_URL`。

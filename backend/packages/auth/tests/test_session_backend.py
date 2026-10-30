@@ -39,9 +39,9 @@ async def environment(tmp_path):
     await engine.dispose()
 
 
-async def issue(environment, subject="42", device_id=None, app_id="adbox"):
+async def issue(environment, subject="42", device_id=None, app_id="adbox", **kwargs):
     factory, contracts, _, sessions = environment
-    backend = factory(app_id)
+    backend = factory(app_id, **kwargs)
     async with sessions() as db, db.begin():
         tokens = await backend.issue(
             contracts.VerifiedIdentity(app_id, subject, "password"), device_id=device_id, db=db
@@ -94,8 +94,9 @@ async def test_issue_rolls_back_with_host_transaction(environment):
         assert (await db.execute(select(tables.sessions))).first() is None
 
 
-async def test_refresh_rotates_and_replay_revokes_family(environment):
-    backend, old = await issue(environment, device_id=uuid4())
+@pytest.mark.parametrize("rolling_refresh", [False, True])
+async def test_refresh_rotates_and_replay_revokes_family(environment, rolling_refresh):
+    backend, old = await issue(environment, device_id=uuid4(), rolling_refresh=rolling_refresh)
     fresh = await backend.refresh(old.refresh_token)
     assert fresh.refresh_token != old.refresh_token
     assert fresh.access_token != old.access_token
@@ -111,8 +112,9 @@ async def test_refresh_rotates_and_replay_revokes_family(environment):
         await backend.refresh(fresh.refresh_token)
 
 
-async def test_refresh_concurrency_has_one_winner_and_revokes_replayed_family(environment):
-    backend, old = await issue(environment)
+@pytest.mark.parametrize("rolling_refresh", [False, True])
+async def test_refresh_concurrency_has_one_winner_and_revokes_replayed_family(environment, rolling_refresh):
+    backend, old = await issue(environment, rolling_refresh=rolling_refresh)
     results = await asyncio.gather(
         backend.refresh(old.refresh_token), backend.refresh(old.refresh_token), return_exceptions=True
     )
@@ -123,9 +125,12 @@ async def test_refresh_concurrency_has_one_winner_and_revokes_replayed_family(en
         await backend.verify(winners[0].access_token)
 
 
-async def test_refresh_history_boundary_revokes_family_commits_and_preserves_evidence(environment):
+@pytest.mark.parametrize("rolling_refresh", [False, True])
+async def test_refresh_history_boundary_revokes_family_commits_and_preserves_evidence(
+    environment, rolling_refresh
+):
     _, _, tables, sessions = environment
-    backend, tokens = await issue(environment)
+    backend, tokens = await issue(environment, rolling_refresh=rolling_refresh)
     _, independent = await issue(environment)
     async with sessions() as db, db.begin():
         await db.execute(
@@ -261,6 +266,113 @@ async def test_expired_family_cannot_verify_or_refresh_and_rotation_preserves_de
         await backend.refresh(rotated.refresh_token)
 
 
+async def test_rolling_refresh_extends_30_days_from_each_success(environment, monkeypatch):
+    _, _, tables, sessions = environment
+    now = [2_000_000_000]
+    monkeypatch.setattr("dwy_auth.session_backend.time.time", lambda: now[0])
+    backend, tokens = await issue(environment, rolling_refresh=True)
+    for day in (25, 50):
+        now[0] = 2_000_000_000 + day * 86400
+        tokens = await backend.refresh(tokens.refresh_token)
+        assert tokens.expires_in == 900
+        assert jwt.get_unverified_claims(tokens.access_token)["exp"] == now[0] + 900
+        async with sessions() as db:
+            assert await db.scalar(select(tables.sessions.c.expires_at)) == now[0] + 30 * 86400
+
+
+@pytest.mark.parametrize("state", ["expired", "revoked"])
+async def test_rolling_refresh_never_restores_expired_or_revoked_session(environment, monkeypatch, state):
+    _, _, tables, sessions = environment
+    now = [2_000_000_000]
+    monkeypatch.setattr("dwy_auth.session_backend.time.time", lambda: now[0])
+    backend, tokens = await issue(environment, rolling_refresh=True)
+    if state == "expired":
+        now[0] += 30 * 86400
+    else:
+        await backend.revoke(tokens.principal)
+    async with sessions() as db:
+        original = (await db.execute(select(tables.sessions))).mappings().one()
+    with pytest.raises(AuthError):
+        await backend.refresh(tokens.refresh_token)
+    async with sessions() as db:
+        current = (await db.execute(select(tables.sessions))).mappings().one()
+    assert current["expires_at"] == original["expires_at"]
+    assert current["refresh_hash"] == original["refresh_hash"]
+
+
+async def test_rolling_refresh_prunes_expired_history_without_lifetime_quota(environment, monkeypatch):
+    _, _, tables, sessions = environment
+    now = [2_000_000_000]
+    monkeypatch.setattr("dwy_auth.session_backend.time.time", lambda: now[0])
+    backend, tokens = await issue(environment, rolling_refresh=True)
+    backend.MAX_REFRESH_HISTORY = 2
+    for _ in range(8):
+        now[0] += 20 * 86400
+        tokens = await backend.refresh(tokens.refresh_token)
+    async with sessions() as db:
+        rows = (await db.execute(select(tables.refresh_history))).mappings().all()
+        assert len(rows) == 2
+        assert all(now[0] < row["expires_at"] <= now[0] + 30 * 86400 for row in rows)
+        assert await db.scalar(select(tables.sessions.c.revoked_at)) is None
+
+
+async def test_rolling_replay_after_original_deadline_still_revokes_successor(environment, monkeypatch):
+    now = [2_000_000_000]
+    monkeypatch.setattr("dwy_auth.session_backend.time.time", lambda: now[0])
+    backend, original = await issue(environment, rolling_refresh=True)
+    now[0] += 25 * 86400
+    fresh = await backend.refresh(original.refresh_token)
+    now[0] += 10 * 86400
+    with pytest.raises(AuthError):
+        await backend.refresh(original.refresh_token)
+    with pytest.raises(AuthError):
+        await backend.refresh(fresh.refresh_token)
+
+
+async def test_rolling_cleanup_keeps_other_family_and_bounds_replay_retention(environment, monkeypatch):
+    _, _, tables, sessions = environment
+    now = [2_000_000_000]
+    monkeypatch.setattr("dwy_auth.session_backend.time.time", lambda: now[0])
+    backend, original = await issue(environment, rolling_refresh=True)
+    _, independent = await issue(environment, subject="43", rolling_refresh=True)
+    await backend.refresh(independent.refresh_token)
+    now[0] += 25 * 86400
+    fresh = await backend.refresh(original.refresh_token)
+    now[0] += 30 * 86400 - 1
+    fresh = await backend.refresh(fresh.refresh_token)
+    now[0] += 1
+    fresh = await backend.refresh(fresh.refresh_token)
+    async with sessions() as db:
+        history = (await db.execute(select(tables.refresh_history))).mappings().all()
+        assert len(history) == 3
+        assert any(row["session_id"] == str(independent.principal.session_id) for row in history)
+        assert not any(
+            row["refresh_hash"] == hashlib.sha256(original.refresh_token.encode()).hexdigest()
+            for row in history
+        )
+    with pytest.raises(AuthError):
+        await backend.refresh(original.refresh_token)
+    assert (await backend.refresh(fresh.refresh_token)).refresh_token != fresh.refresh_token
+
+
+async def test_rolling_extension_rolls_back_when_admission_rejects(environment, monkeypatch):
+    _, _, tables, sessions = environment
+    now = [2_000_000_000]
+    monkeypatch.setattr("dwy_auth.session_backend.time.time", lambda: now[0])
+    backend, tokens = await issue(environment, rolling_refresh=True)
+    now[0] += 25 * 86400
+
+    async def reject(db, principal):
+        raise AuthError("ADMISSION_DENIED", "准入被拒绝", 403)
+
+    with pytest.raises(AuthError, match="准入被拒绝"):
+        await backend.refresh(tokens.refresh_token, before_rotate=reject)
+    async with sessions() as db:
+        assert await db.scalar(select(tables.sessions.c.expires_at)) == 2_000_000_000 + 30 * 86400
+        assert await db.scalar(select(func.count()).select_from(tables.refresh_history)) == 0
+    assert (await backend.refresh(tokens.refresh_token)).refresh_token != tokens.refresh_token
+
+
 async def test_token_tampering_and_opaque_refresh_are_not_access_credentials(environment):
     backend, tokens = await issue(environment)
     for token in (tokens.refresh_token, "invalid", tokens.access_token + "x", "x" * 8193):
@@ -280,6 +392,8 @@ async def test_token_tampering_and_opaque_refresh_are_not_access_credentials(env
         {"access_ttl": True},
         {"refresh_ttl": 899},
         {"refresh_ttl": 367 * 86400},
+        {"rolling_refresh": 1},
+        {"rolling_refresh": "true"},
     ],
 )
 async def test_invalid_ttl_configuration_is_closed(environment, kwargs):
@@ -321,7 +435,8 @@ def test_unsafe_signing_configuration_rejected(kwargs):
 
 
 @pytest.mark.skipif(not os.getenv("APP_CLOUD_TEST_POSTGRES_URL"), reason="PostgreSQL URL not configured")
-async def test_postgres_refresh_has_single_winner_and_replay_revokes_winner():
+@pytest.mark.parametrize("rolling_refresh", [False, True])
+async def test_postgres_refresh_has_single_winner_and_replay_revokes_winner(rolling_refresh):
     from sqlalchemy.schema import CreateSchema, DropSchema
 
     contracts = importlib.import_module("dwy_auth.contracts")
@@ -339,7 +454,13 @@ async def test_postgres_refresh_has_single_winner_and_replay_revokes_winner():
         async with engine.begin() as connection:
             await connection.run_sync(metadata.create_all)
         backend = backend_module.JWTSessionBackend(
-            "adbox", "https://auth.example.test", "native-app", SECRET, sessions, tables
+            "adbox",
+            "https://auth.example.test",
+            "native-app",
+            SECRET,
+            sessions,
+            tables,
+            rolling_refresh=rolling_refresh,
         )
         async with sessions() as db, db.begin():
             tokens = await backend.issue(

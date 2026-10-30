@@ -2,7 +2,9 @@
 
 New integrations use `AuthRuntime` with application-owned users and a replaceable `SessionBackend`. See [runtime integration](../../../docs/auth-runtime-integration.md). The authentication core is independent of EAPI and FastAPI; the legacy service, HTTP and administrator interfaces below require EAPI when used.
 
-Python distribution `dwy-auth==0.1.1`, import `dwy_auth`. Install the independent core from public PyPI with `pip install "dwy-auth==0.1.1"`. For the EAPI integration and compatibility interfaces, install `pip install "dwyeapi[auth]==0.12.1"`; this includes `dwy-auth` and the EAPI email SDK. Source is available in the public repository; registry releases use `.github/workflows/publish-auth.yml` with GitHub Actions OIDC. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
+Python distribution `dwy-auth==0.2.0`, import `dwy_auth`. Install the independent core from public PyPI with `pip install "dwy-auth==0.2.0"`. For EAPI integration and compatibility interfaces, install `pip install "dwyeapi[email]==0.12.1" "dwy-auth==0.2.0"`; the older `dwyeapi[auth]==0.12.1` aggregate extra pins authentication to 0.1.1. Source is available in the public repository; registry releases use `.github/workflows/publish-auth.yml` with GitHub Actions OIDC. The Google user entry and administrator Cookie entry are separate. No dependency on app-cloud or cloud-kernel; no environment variables or global database are read by this package.
+
+Upgrading runtime hosts from 0.1.1 requires a host-owned Alembic revision: add the `auth_runtime_credential_versions` table from `build_runtime_tables`, plus nullable `subject` and `credential_version` columns on `auth_runtime_email_challenges`. Snapshot these definitions in the revision; do not import a future builder inside historical migrations. Existing accounts and sessions remain intact; application admission remains opt-in.
 
 When upgrading a preview integration, update both the dependency name and Python imports. The new wheel exports only `dwy_auth`; no legacy namespace alias is shipped. The source package is `backend/packages/auth` and release tags use `dwy-auth@VERSION`.
 
@@ -151,3 +153,9 @@ Apple 专用 `AppleAuthService.login(..., admission_proof=...)` 使用同一准�
 
 先用当前 Bearer 向 `/api/v1/auth/apple/challenges` 提交 `purpose=reauth_email_update`、`reauth_bind` 或 `reauth_unlink`；服务端将挑战绑定当前 subject 与具体操作。原生授权使用服务端原始 nonce。
 管理请求的 `reauthentication` 使用 `method=external, identifier=apple`，其 `credential` 为包含 `challenge_id`、`identity_token`、`authorization_code` 的 JSON 字符串（最多 32768 个 UTF-8 字节）。EAPI 通过 `AppleAuthService.reauthenticate` 兑换一次性 code 并生成当前主体、限用途、单次消费的 proof；跨主体、跨操作或重放均拒绝。通用 Apple 登录仍拒绝单凭据路径，不能恢复旧 `AppleIdentityProvider` 或客户端自建 nonce 方案。
+
+## JWT 会话滑动有效期
+
+`JWTSessionBackend(..., rolling_refresh=True)` 在每次刷新成功时，把会话期限延到当时起 `refresh_ttl` 秒（默认 30 天）；第 25 天刷新后到期日为第 55 天。默认 `False` 保持签发起固定期限，不影响已有调用方。普通业务请求不会续期；已经过期或撤销的会话不能恢复。客户端继续使用现有刷新接口和返回的轮换凭据，无需修改协议或数据库结构。
+
+滑动模式下，每个已消费 refresh 摘要从消费时起再保留 `refresh_ttl` 秒用于重放撤销，刷新成功时只清理同应用、同 family 的到期摘要。4096 条上限约束有效证据窗口，不再累计终身刷新次数；短时间超额仍返回 `REFRESH_QUOTA_EXCEEDED` 并撤销当前 family，需重新登录。CAS 轮换、期限更新与准入写入共同提交，失败回滚不会消费旧凭据或延长期限。
