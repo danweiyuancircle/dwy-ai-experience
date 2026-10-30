@@ -55,6 +55,16 @@ public actor SyncStore {
             } else {
                 try Self.writeMetadata(Metadata(scope: scope), db: db)
             }
+            // 策略由注册表决定；升级后旧冲突即使游标已越过该版本，也必须自动收口。
+            for data in try Data.fetchAll(db, sql: "SELECT body FROM documents WHERE conflicted = 1") {
+                var stored = try decodeStored(data)
+                if registry[stored.kind]?.conflictPolicy == .remoteWins, stored.frozen == nil,
+                   ["version_conflict", "import_collision"].contains(stored.conflictReason),
+                   let remote = stored.remote, !identityChanged(remote, for: stored) {
+                    adopt(remote, into: &stored)
+                    try write(stored, db: db)
+                }
+            }
         }
     }
 
@@ -68,11 +78,12 @@ public actor SyncStore {
     public nonisolated func saveLocally<P>(_ document: SyncDocument<P>, using schema: SyncSchema<P>) throws {
         let payload = try validatedPayload(document.payload, schema: schema)
         try schema.validateRecord(document.id, document.payload)
-        try transaction { db in
+        try transaction(localChange: true) { db in
             var stored = try read(document.id, db: db) ?? StoredDocument(id: document.id, kind: schema.kind)
             guard stored.kind == schema.kind || stored.kind.isEmpty else { throw SyncError.invalidPayload("record kind cannot change") }
             guard !isUnsupported(stored) else { throw SyncError.unsupportedRecord }
-            let merged = try merge(payload, into: stored.payload ?? stored.lastPayload, schema: schema.erased)
+            let remote = schema.conflictPolicy == .remoteWins ? stored.remote : nil
+            let merged = try merge(payload, into: remote?.payload ?? stored.payload ?? stored.lastPayload, schema: schema.erased)
             try validatePayload(merged, id: document.id)
             stored.kind = schema.kind
             stored.payload = merged
@@ -81,6 +92,13 @@ public actor SyncStore {
             stored.dirty = true
             stored.initialization = false
             stored.rebaseAttempts = 0
+            stored.localEditBaseVersion = max(stored.baseline?.version ?? 0, stored.remote?.version ?? 0)
+            if schema.conflictPolicy == .remoteWins, let remote, stored.frozen == nil,
+               ["version_conflict", "import_collision"].contains(stored.conflictReason) {
+                stored.baseline = remote
+                stored.remote = nil
+                stored.conflictReason = nil
+            }
             if stored.frozen == nil, stored.conflictReason == "version_conflict",
                schema.conflictPolicy == .localIntent, let remote = stored.remote {
                 reconcile(remote, with: &stored)
@@ -96,7 +114,7 @@ public actor SyncStore {
         try schema.validateRecord(document.id, document.payload)
         try validatePayload(payload, id: document.id)
         var created = false
-        try transaction { db in
+        try transaction(localChange: true) { db in
             guard try Self.readMetadata(db).initialPullCompleted else { throw SyncError.importRequiresInitialPull }
             guard try read(document.id, db: db) == nil else { return }
             var stored = StoredDocument(id: document.id, kind: schema.kind)
@@ -178,7 +196,7 @@ public actor SyncStore {
 
     /// 使用墓碑保留删除意图；上传中的新增也必须先确认，再发删除。
     public func delete(id: UUID) throws {
-        try transaction { db in
+        try transaction(localChange: true) { db in
             guard var stored = try read(id, db: db), !stored.deleted else { return }
             guard !isUnsupported(stored) else { throw SyncError.unsupportedRecord }
             stored.payload = nil
@@ -187,6 +205,7 @@ public actor SyncStore {
             stored.dirty = true
             stored.initialization = false
             stored.rebaseAttempts = 0
+            stored.localEditBaseVersion = max(stored.baseline?.version ?? 0, stored.remote?.version ?? 0)
             try write(stored, db: db)
         }
     }
@@ -216,7 +235,7 @@ public actor SyncStore {
 
     /// 显式选择一方；本地优先会基于最新已知远端版本生成全新操作。
     public func resolveConflict(recordID: UUID, resolution: SyncResolution) throws {
-        try transaction { db in
+        try transaction(localChange: true) { db in
             var stored = try conflicted(recordID, db: db)
             let remote = stored.remote
             let unsupported = isUnsupported(stored)
@@ -244,7 +263,7 @@ public actor SyncStore {
     /// 业务合并必须再次通过已注册模型与字节上限校验，不能绕过 typed 写入。
     public func resolveConflict<P>(recordID: UUID, payload: P, using schema: SyncSchema<P>) throws {
         let validated = try validatedPayload(payload, schema: schema)
-        try transaction { db in
+        try transaction(localChange: true) { db in
             var stored = try conflicted(recordID, db: db)
             guard stored.kind == schema.kind else { throw SyncError.invalidPayload("record kind mismatch") }
             guard !isUnsupported(stored) else { throw SyncError.unsupportedRecord }
@@ -270,7 +289,7 @@ public actor SyncStore {
             return (document.id, payload)
         }
         guard Set(documents.map(\.id)).count == documents.count else { throw SyncError.invalidPayload("duplicate import UUID") }
-        try transaction { db in
+        try transaction(localChange: true) { db in
             if try Bool.fetchOne(db, sql: "SELECT EXISTS(SELECT 1 FROM imports WHERE id = ?)", arguments: [importID.uuidString]) == true { return }
             let metadata = try Self.readMetadata(db)
             guard scope.userID == nil || metadata.initialPullCompleted else { throw SyncError.importRequiresInitialPull }
@@ -283,6 +302,11 @@ public actor SyncStore {
                     // 导入必须在初次拉取后显式执行，不能替换正在上传的本地请求。
                     guard stored.frozen == nil, !stored.dirty, stored.conflictReason == nil else {
                         throw SyncError.invalidPayload("import target has local changes")
+                    }
+                    if schema.conflictPolicy == .remoteWins, let baseline = stored.baseline {
+                        adopt(baseline, into: &stored)
+                        try write(stored, db: db)
+                        continue
                     }
                     stored.remote = stored.baseline
                     stored.payload = merged
@@ -324,6 +348,7 @@ public actor SyncStore {
                     var stored = try read(record.recordID, db: db) ?? StoredDocument(id: record.recordID, kind: kind(record.payload) ?? "")
                     let knownVersion = max(stored.baseline?.version ?? 0, stored.remote?.version ?? 0)
                     if record.version > knownVersion {
+                        if stored.pauseReason == "remote_state_missing" { stored.pauseReason = nil }
                         if identityChanged(record, for: stored) {
                             stored.remote = record
                             stored.projectionIssue = "record_identity_changed"
@@ -442,8 +467,14 @@ public actor SyncStore {
                     adopt(remote, into: &stored)
                 } else if let remote, sameContent(stored, remote) {
                     adopt(remote, into: &stored)
+                } else if let remote, schemas[stored.kind]?.conflictPolicy == .remoteWins {
+                    reconcileRemoteWins(remote, with: &stored)
                 } else if let remote, rebase(remote, with: &stored) {
                     // 新操作使用最新基线，原冻结请求永远不变。
+                } else if schemas[stored.kind]?.conflictPolicy == .remoteWins {
+                    // 409 已确认旧请求失败，但没有可信远端正文时不能伪造墓碑。
+                    stored.pauseReason = "remote_state_missing"
+                    stored.conflictReason = nil
                 } else {
                     stored.remote = remote
                     stored.conflictReason = "version_conflict"
@@ -502,11 +533,12 @@ public actor SyncStore {
 
     private func removeObserver(_ id: UUID) { observers.removeValue(forKey: id) }
 
-    private nonisolated func transaction(_ body: (Database) throws -> Void) throws {
+    private nonisolated func transaction(localChange: Bool = false, _ body: (Database) throws -> Void) throws {
         let value = try database.write { db in
             try body(db)
             var metadata = try Self.readMetadata(db)
             metadata.changeSequence += 1
+            if localChange { metadata.localChangeSequence = (metadata.localChangeSequence ?? 0) + 1 }
             try Self.writeMetadata(metadata, db: db)
             return try snapshot(db: db)
         }
@@ -522,9 +554,11 @@ public actor SyncStore {
     private nonisolated func snapshot(db: Database) throws -> SyncStoreSnapshot {
         let rows = try Data.fetchAll(db, sql: "SELECT body FROM documents WHERE pending = 1 AND conflicted = 0")
         let pending = try rows.reduce(0) { count, data in count + (eligible(try decodeStored(data)) ? 1 : 0) }
+        let metadata = try Self.readMetadata(db)
         return SyncStoreSnapshot(pendingCount: pending,
                                  conflictCount: try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents WHERE conflicted = 1")!,
-                                 changeSequence: try Self.readMetadata(db).changeSequence)
+                                 changeSequence: metadata.changeSequence,
+                                 localChangeSequence: metadata.localChangeSequence ?? 0)
     }
 
     private nonisolated func registered<P>(_ schema: SyncSchema<P>) throws {
@@ -642,6 +676,7 @@ public actor SyncStore {
         stored.initialization = nil
         stored.rebaseAttempts = nil
         stored.projectionIssue = nil
+        stored.localEditBaseVersion = nil
         if let kind = kind(record.payload) { stored.kind = kind }
     }
 
@@ -654,11 +689,25 @@ public actor SyncStore {
             stored.baseline = remote
             stored.remote = nil
             stored.conflictReason = nil
+        } else if schemas[stored.kind]?.conflictPolicy == .remoteWins {
+            reconcileRemoteWins(remote, with: &stored)
         } else if rebase(remote, with: &stored) {
             // 仅设置类使用字段级本地意图；普通文档仍交由宿主解决冲突。
         } else {
             stored.remote = remote
             stored.conflictReason = "version_conflict"
+        }
+    }
+
+    private nonisolated func reconcileRemoteWins(_ remote: SyncRecord, with stored: inout StoredDocument) {
+        // 远端之后的新编辑属于下一次写入；不能把旧冻结请求的冲突套在新意图上。
+        if let base = stored.localEditBaseVersion, base >= remote.version {
+            stored.baseline = remote
+            stored.remote = nil
+            stored.conflictReason = nil
+            stored.dirty = true
+        } else {
+            adopt(remote, into: &stored)
         }
     }
 
@@ -766,6 +815,7 @@ private struct StoredDocument: Codable {
     var rebaseAttempts: Int?
     var pauseReason: String?
     var projectionIssue: String?
+    var localEditBaseVersion: Int64?
 }
 
 /// 冻结时记录设备与本地 revision，确认后才能为后续编辑创建操作。
@@ -782,5 +832,6 @@ private struct Metadata: Codable {
     var pullCursor: Int64 = 0
     var deviceID: UUID?
     var changeSequence: Int64 = 0
+    var localChangeSequence: Int64?
     var initialPullCompleted = false
 }

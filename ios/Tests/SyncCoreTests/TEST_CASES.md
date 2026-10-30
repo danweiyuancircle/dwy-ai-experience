@@ -1,6 +1,6 @@
 # SyncCore 测试用例
 
-当前 72 项 XCTest，使用临时 SQLite 文件、受控远端 transport 与 URLProtocol 响应；不依赖真实账号或生产服务。
+当前 93 项 XCTest，使用临时 SQLite 文件、受控远端 transport 与 URLProtocol 响应；不依赖真实账号或生产服务。
 
 | 测试文件 | 数量 | 重点 |
 |---|---:|---|
@@ -9,6 +9,10 @@
 | `ios/Tests/SyncCoreTests/SyncTransportTests.swift` | 15 | HTTP 信封、路径、分页、Int64、限长、脱敏、scope 绑定与拒绝回执 |
 | `ios/Tests/SyncCoreTests/SyncEvolutionTests.swift` | 15 | raw 隔离、实例约束、字段保留、条件初始化、有界重基、墓碑身份、冻结恢复与双连接竞争 |
 | `ios/Tests/SyncCoreTests/SyncUsageTests.swift` | 1 | 无关 payload 模型共用引擎，不串 kind |
+| `ios/Tests/SyncCoreTests/SyncRemoteWinsTests.swift` | 13 | 静默远端优先、冻结幂等、新意图版本、墓碑、raw 隔离、旧冲突升级与无快照诊断 |
+| `ios/Tests/SyncCoreTests/SyncAutomaticTriggerTests.swift` | 3 | 单次失败不被内部提交再次触发，可等待启动不另起自动轮，新本地编辑或 start 才继续 |
+| `ios/Tests/SyncCoreTests/SyncLifecycleDriverTests.swift` | 2 | 前后台动作、首次网络可用、恢复边沿与后台恢复禁止重启 |
+| `ios/Tests/SyncCoreTests/SyncPreferencesStoreTests.swift` | 3 | 提交后投影、scope 世代隔离、串行命令保序与失败保留现值 |
 
 ## 存储：24 项
 
@@ -92,6 +96,27 @@
 - 未知实例的远端墓碑无需合成业务 payload，仍可接收并推进游标。
 - 已确认删除后导入同身份配置，重开、保留本地与后续上传仍保留未知字段。
 - 未识别枚举或已移除实例被远端确认删除后，按墓碑重置投影，历史原文不再阻断。
+
+## 静默冲突、触发与生命周期：21 项
+
+- pull 实际冲突采用远端，新编辑使用新远端版本上传；仅版本变化保留本地意图。
+- 409 与已拉候选取最高版本，不生成内容冲突。
+- frozen 请求经 pull、重开库仍保留原 operationID、baseVersion、正文；旧回执到达后才采用远端。
+- 新远端之后再次编辑，重开及旧回执后仍能上传，保留最新远端未知字段。
+- 新意图不受旧操作 409 覆盖；再次遭遇更新远端时按远端优先。
+- 墓碑覆盖离线编辑；之后明确编辑可按墓碑版本重建。
+- 冻结请求遇到新远端后，本地删除以该远端版本继续上传。
+- 未支持远端原文保留，无冲突弹窗或自动回传；恢复 schema 后可投影。
+- 改用远端优先后重开，已有手动冲突自动收口。
+- 导入碰撞采用远端，不新增弹窗冲突。
+- 409 无远端快照时本地内容保留为诊断，后续确认远端才恢复对账。
+- 身份或 kind 变化继续隔离，不用远端优先绕过校验。
+- 单次失败后内部 pull 提交不重发；新本地提交、外部 start 均可重放原 frozen 请求。
+- 可等待启动遇到立即 pull 失败只执行一次；随后真实本地编辑再触发一次。
+- 可等待启动已有 pending 快照时，push 立即失败仍只执行一次，不因内部快照另起自动轮；随后真实本地编辑继续触发。
+- 前台、后台与首次网络可用/恢复边沿按根层动作驱动；后台网络恢复不会重启。
+- 偏好命令提交后才投影，同值跨 scope 重新投影，拒绝旧 snapshot。
+- 串行命令保持顺序，本地失败不改值；排队旧 scope 命令及迟到错误不影响新 scope。
 
 ## 执行与边界
 

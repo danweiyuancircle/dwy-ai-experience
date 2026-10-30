@@ -46,6 +46,7 @@ public actor SyncCoordinator {
     private var automaticTask: Task<Void, Never>?
     private var observationTask: Task<Void, Never>?
     private var requestedAgain = false
+    private var observedLocalChangeSequence: Int64 = 0
     private var observers: [UUID: AsyncStream<SyncState>.Continuation] = [:]
     private var state = SyncState(phase: .idle, pendingCount: 0, conflictCount: 0, lastSuccessfulSync: nil, errorCode: nil)
 
@@ -79,18 +80,34 @@ public actor SyncCoordinator {
 
     /// 开启本地提交观察并触发同步；前台与网络恢复时可重复调用以重新触发。
     public func start() {
+        resumeExecution()
+        observeLocalChanges()
+        requestAutomaticSync()
+    }
+
+    /// 开启本地提交观察并等待一轮；失败直接抛出，不额外启动自动轮次。
+    public func startAndSynchronize() async throws {
+        resumeExecution()
+        try await updateCounts(epoch: generation, consumeLocalChanges: true)
+        observeLocalChanges()
+        try await synchronize()
+    }
+
+    private func resumeExecution() {
         if isPaused { execution = SyncExecutionLease() }
         isPaused = false
+    }
+
+    private func observeLocalChanges() {
         if observationTask == nil {
             observationTask = Task { [weak self, store] in
                 let stream = await store.changes()
                 for await snapshot in stream {
                     guard !Task.isCancelled else { break }
-                    if snapshot.pendingCount > 0 { await self?.requestAutomaticSync() }
+                    await self?.localStoreChanged(snapshot)
                 }
             }
         }
-        requestAutomaticSync()
     }
 
     /// 必须在宿主卸载账号库前调用；即使网络不响应取消，旧回调也会被世代拒绝。
@@ -160,7 +177,7 @@ public actor SyncCoordinator {
                 return
             }
             guard transport.scope == store.scope else { throw SyncError.scopeMismatch }
-            try await updateCounts(epoch: epoch)
+            try await updateCounts(epoch: epoch, consumeLocalChanges: true)
             publish(phase: .syncing)
             var identity = try await identityProvider(false)
             try check(epoch)
@@ -184,7 +201,8 @@ public actor SyncCoordinator {
         } catch {
             guard epoch == generation, !isPaused, !Task.isCancelled else { throw CancellationError() }
             // 请求期间仍可本地编辑；失败状态不能用旧统计覆盖已持久化的队列计数。
-            try await updateCounts(epoch: epoch)
+            try await updateCounts(epoch: epoch, consumeLocalChanges: true)
+            requestedAgain = false
             if let syncError = error as? SyncError, syncError == .identityChanged {
                 publish(phase: .identityChanged, errorCode: "identity_changed")
             } else if let server = error as? SyncServerError {
@@ -259,6 +277,12 @@ public actor SyncCoordinator {
         automaticTask = Task { [weak self] in await self?.runAutomatic(epoch: epoch) }
     }
 
+    private func localStoreChanged(_ snapshot: SyncStoreSnapshot) {
+        guard snapshot.localChangeSequence > observedLocalChangeSequence else { return }
+        observedLocalChangeSequence = snapshot.localChangeSequence
+        if snapshot.pendingCount > 0 { requestAutomaticSync() }
+    }
+
     private func runAutomatic(epoch: UInt64) async {
         defer { if generation == epoch { automaticTask = nil } }
         var attempt = 0
@@ -271,7 +295,11 @@ public actor SyncCoordinator {
             } catch {
                 guard epoch == generation, !isPaused, !Task.isCancelled else { return }
                 attempt += 1
-                guard attempt < retryPolicy.maximumAttempts, isTransient(error) else { return }
+                guard attempt < retryPolicy.maximumAttempts, isTransient(error) else {
+                    // failed 状态发布后的新外部触发仍有效；失败前合并的请求已在 runCycle 清空。
+                    if requestedAgain { attempt = 0; continue }
+                    return
+                }
                 let exponential = min(retryPolicy.maximumDelay, retryPolicy.initialDelay * pow(2, Double(attempt - 1)))
                 let jittered = min(retryPolicy.maximumDelay, exponential * Double.random(in: 0.8...1.2))
                 let serverDelay = (error as? SyncServerError)?.retryAfter ?? 0
@@ -300,9 +328,12 @@ public actor SyncCoordinator {
         guard epoch == generation, !isPaused, !Task.isCancelled else { throw CancellationError() }
     }
 
-    private func updateCounts(epoch: UInt64) async throws {
+    private func updateCounts(epoch: UInt64, consumeLocalChanges: Bool = false) async throws {
         let snapshot = try await store.snapshot()
         try check(epoch)
+        if consumeLocalChanges {
+            observedLocalChangeSequence = max(observedLocalChangeSequence, snapshot.localChangeSequence)
+        }
         state = SyncState(phase: state.phase, pendingCount: snapshot.pendingCount, conflictCount: snapshot.conflictCount,
                           lastSuccessfulSync: state.lastSuccessfulSync, errorCode: state.errorCode)
     }

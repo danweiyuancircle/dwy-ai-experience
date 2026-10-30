@@ -95,8 +95,8 @@ public struct AnySyncSchema: Sendable {
     }
 }
 
-/// 普通文档保留冲突候选；设置类可基于最新原文重叠明确的本地字段，最多重基三次。
-public enum SyncConflictPolicy: Sendable { case manual, localIntent }
+/// manual 保留冲突；localIntent 最多重基三次；remoteWins 在实际版本冲突时采用最新已确认远端。
+public enum SyncConflictPolicy: Sendable { case manual, localIntent, remoteWins }
 
 /// 缺失、墓碑和暂不可解释必须区分，初始化只能使用 missing。
 public enum SyncRecordState: Sendable, Equatable { case missing, deleted, available, unsupported }
@@ -116,11 +116,14 @@ public struct SyncStoreSnapshot: Sendable, Equatable {
     public let pendingCount: Int
     public let conflictCount: Int
     public let changeSequence: Int64
+    /// 仅本地意图提交递增；pull、回执与队列内部状态不会触发下一轮自动上传。
+    public let localChangeSequence: Int64
 
-    public init(pendingCount: Int, conflictCount: Int, changeSequence: Int64) {
+    public init(pendingCount: Int, conflictCount: Int, changeSequence: Int64, localChangeSequence: Int64 = 0) {
         self.pendingCount = pendingCount
         self.conflictCount = conflictCount
         self.changeSequence = changeSequence
+        self.localChangeSequence = localChangeSequence
     }
 }
 
