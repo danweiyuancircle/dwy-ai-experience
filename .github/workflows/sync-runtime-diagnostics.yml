@@ -18,27 +18,50 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        xcode: ['26.0.1', '26.6']
-        sleep-binding: ['direct', 'local']
+        xcode: ['26.0.1']
+        sleep-binding: ['helper', 'void-task', 'helper-and-void']
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
       - name: Isolate stored async closure access
-        if: matrix.sleep-binding == 'local'
+        env:
+          DIAGNOSTIC_BINDING: ${{ matrix.sleep-binding }}
         run: |
           python3 - <<'PY'
+          import os
           from pathlib import Path
           path = Path('ios/Sources/Shared/SyncCore/SyncCoordinator.swift')
           text = path.read_text()
-          old = 'try await sleep(retryDelay)'
-          assert text.count(old) == 1
-          path.write_text(text.replace(old, 'let wait = sleep\n                    try await wait(retryDelay)'))
+          binding = os.environ['DIAGNOSTIC_BINDING']
+          if 'helper' in binding:
+              old = 'try await sleep(retryDelay)'
+              assert text.count(old) == 1
+              text = text.replace(old, 'try await waitForRetry(retryDelay)')
+              anchor = '    private func isTransient'
+              helper = '''    @inline(never)
+              private func waitForRetry(_ seconds: TimeInterval) async throws {
+                  let wait = sleep
+                  try await wait(seconds)
+              }
+
+          '''
+              text = text.replace(anchor, helper + anchor)
+          if 'void' in binding:
+              old = 'automaticTask = Task { [weak self] in await self?.runAutomatic(epoch: epoch) }'
+              assert text.count(old) == 1
+              text = text.replace(old, '''automaticTask = Task<Void, Never> { [weak self] in
+                      guard let self else { return }
+                      await self.runAutomatic(epoch: epoch)
+                  }''')
+          path.write_text(text)
           PY
       - name: Reproduce automatic retry runtime failure
         run: swift test --filter SyncCoordinatorTests.testAutomaticRetryConfirmsLostResponseWithoutNewVersion
       - name: Verify full Swift suite
         run: swift test
+      - name: Verify optimized automatic retry
+        run: swift test -c release --filter SyncCoordinatorTests.testAutomaticRetryConfirmsLostResponseWithoutNewVersion
       - name: Capture native failure backtrace
         if: failure()
         timeout-minutes: 2
