@@ -3,10 +3,7 @@ name: Swift sync runtime diagnostics
 on:
   push:
     branches: [develop]
-    paths:
-      - '.github/workflows/sync-runtime-diagnostics.yml'
-      - 'ios/Sources/Shared/SyncCore/**'
-      - 'ios/Tests/SyncCoreTests/**'
+    paths: ['.github/workflows/sync-runtime-diagnostics.yml']
   workflow_dispatch:
 
 permissions:
@@ -14,19 +11,17 @@ permissions:
 
 jobs:
   diagnose:
-    runs-on: macos-26
+    runs-on: macos-15
     strategy:
       fail-fast: false
       matrix:
-        xcode: ['26.0.1']
-        sleep-binding: ['helper', 'void-task', 'helper-and-void']
+        binding: ['named-default', 'optional-default', 'injected-only']
     env:
-      DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
+      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+      DIAGNOSTIC_BINDING: ${{ matrix.binding }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
-      - name: Isolate stored async closure access
-        env:
-          DIAGNOSTIC_BINDING: ${{ matrix.sleep-binding }}
+      - name: Isolate default async callback generation
         run: |
           python3 - <<'PY'
           import os
@@ -34,56 +29,40 @@ jobs:
           path = Path('ios/Sources/Shared/SyncCore/SyncCoordinator.swift')
           text = path.read_text()
           binding = os.environ['DIAGNOSTIC_BINDING']
-          if 'helper' in binding:
-              old = 'try await sleep(retryDelay)'
-              assert text.count(old) == 1
-              text = text.replace(old, 'try await waitForRetry(retryDelay)')
+          old = '''sleep: @escaping @Sendable (TimeInterval) async throws -> Void = { seconds in
+                      try await Task.sleep(for: .seconds(seconds))
+                  }'''
+          assert text.count(old) == 1
+          if binding == 'named-default':
+              text = text.replace(old, 'sleep: @escaping @Sendable (TimeInterval) async throws -> Void = SyncCoordinator.defaultSleep')
               anchor = '    private func isTransient'
-              helper = '''    @inline(never)
-              private func waitForRetry(_ seconds: TimeInterval) async throws {
-                  let wait = sleep
-                  try await wait(seconds)
+              helper = '''    @usableFromInline
+              static func defaultSleep(_ seconds: TimeInterval) async throws {
+                  try await Task.sleep(for: .seconds(seconds))
               }
 
           '''
               text = text.replace(anchor, helper + anchor)
-          if 'void' in binding:
-              old = 'automaticTask = Task { [weak self] in await self?.runAutomatic(epoch: epoch) }'
-              assert text.count(old) == 1
-              text = text.replace(old, '''automaticTask = Task<Void, Never> { [weak self] in
-                      guard let self else { return }
-                      await self.runAutomatic(epoch: epoch)
-                  }''')
+          if binding == 'optional-default':
+              text = text.replace(old, 'sleep: (@Sendable (TimeInterval) async throws -> Void)? = nil')
+              text = text.replace('private let sleep: @Sendable (TimeInterval) async throws -> Void', 'private let sleep: (@Sendable (TimeInterval) async throws -> Void)?')
+              text = text.replace('try await sleep(retryDelay)', '''if let sleep {
+                                  try await sleep(retryDelay)
+                              } else {
+                                  try await Task.sleep(for: .seconds(retryDelay))
+                              }''')
           path.write_text(text)
           PY
       - name: Reproduce automatic retry runtime failure
-        run: swift test --filter SyncCoordinatorTests.testAutomaticRetryConfirmsLostResponseWithoutNewVersion
+        run: |
+          if [ "$DIAGNOSTIC_BINDING" = injected-only ]; then
+            swift test --filter SyncCoordinatorTests.testAutomaticRetryHonorsAttemptLimitAndServerDelay
+          else
+            swift test --filter SyncCoordinatorTests.testAutomaticRetryConfirmsLostResponseWithoutNewVersion
+          fi
       - name: Verify full Swift suite
+        if: matrix.binding != 'injected-only'
         run: swift test
       - name: Verify optimized automatic retry
+        if: matrix.binding != 'injected-only'
         run: swift test -c release --filter SyncCoordinatorTests.testAutomaticRetryConfirmsLostResponseWithoutNewVersion
-      - name: Capture native failure backtrace
-        if: failure()
-        timeout-minutes: 2
-        run: |
-          python3 - <<'PY'
-          import json
-          from pathlib import Path
-          for path in Path.home().joinpath('Library/Logs/DiagnosticReports').glob('*AppleAppKit*'):
-              text = path.read_text()
-              decoder = json.JSONDecoder()
-              header, end = decoder.raw_decode(text)
-              report = decoder.raw_decode(text[end:].lstrip())[0]
-              print(path.name, report.get('exception'), report.get('asi'))
-              images = report.get('usedImages', [])
-              for thread in report.get('threads', []):
-                  if not thread.get('triggered'):
-                      continue
-                  for frame in thread.get('frames', []):
-                      image = images[frame['imageIndex']]
-                      print(image.get('name'), frame.get('symbol'), frame.get('symbolLocation'))
-          PY
-          xcrun lldb --batch -o run -k 'thread backtrace all' -- \
-            "$(xcrun --find xctest)" -XCTest \
-            SyncCoreTests.SyncCoordinatorTests/testAutomaticRetryConfirmsLostResponseWithoutNewVersion \
-            .build/debug/AppleAppKitPackageTests.xctest
