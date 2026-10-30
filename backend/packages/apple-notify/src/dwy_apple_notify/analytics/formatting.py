@@ -109,7 +109,7 @@ def _change(current, previous, *, stock=False, label="变化"):
 def apple_business_digest_content(
     app_name, snapshots, *, period="daily", comparison=(), week_comparison=()
 ) -> list[str]:
-    """生成确定性、每段 ≤2000 UTF-16 码元的正文；周流量只累计连续完整七天。"""
+    """逐项展示数值或无数据，每段 ≤2000 UTF-16 码元；周流量只累计连续完整七天。"""
     snapshots, previous = (
         sorted(snapshots, key=lambda s: s.report_date),
         sorted(comparison, key=lambda s: s.report_date),
@@ -138,6 +138,7 @@ def apple_business_digest_content(
     for key, label in _LABELS.items():
         value = _metric(snapshots, key, weekly)
         if not _available(value) or (key.endswith("_usd") and value.currency != "USD"):
+            lines.append(f"{label}：无数据")
             continue
         rendered = _number(value, key)
         money_present |= key.endswith("_usd")
@@ -155,8 +156,10 @@ def apple_business_digest_content(
             week_comparison_used |= bool(change)
         lines.append(f"{label}：{rendered}")
     for key, label in _DIMENSIONS.items():
+        prefix = label + " Top 3（可见部分，不代表全量覆盖）："
         dimensions = [snap.breakdowns.get(key) for snap in snapshots]
         if any(d is None for d in dimensions):
+            lines.append(prefix + "无数据")
             continue
         totals = {}
         for dimension in dimensions:
@@ -164,6 +167,7 @@ def apple_business_digest_content(
                 totals[name] = totals.get(name, Decimal(0)) + count
         top = sorted(totals, key=lambda name: (-totals[name], name))[:3]
         if not top:
+            lines.append(prefix + "无数据")
             continue
         top += [
             name
@@ -171,22 +175,16 @@ def apple_business_digest_content(
             if name.upper() in ("OTHER", "OTHERS", "UNKNOWN", "其他", "未知") and name not in top
         ]
         lines.append(
-            label
-            + " Top 3（可见部分，不代表全量覆盖）："
+            prefix
             + "；".join(f"{_bounded(name, 64)} {totals[name]:f}" for name in top)
         )
-    # 内部来源和诊断备注留在快照，用户只接收可用数值与必要口径。
+    # 内部状态和诊断备注留在快照，缺失字段在正文统一显示无数据。
     if money_present:
         header_lines.append("金额：Apple 报表 USD 估算，非最终到账。")
     if comparison_used:
         lines.insert(0, f"比较期间：{previous[0].report_date} 至 {previous[-1].report_date}")
     if week_comparison_used:
         lines.insert(0, f"上周同日：{previous_week[0].report_date}")
-    pending = any(value.status == "pending" for snap in snapshots for value in snap.metrics.values())
-    if pending:
-        lines.append("部分经营数据待发布。" if lines else "经营数据待发布。")
-    elif not lines:
-        lines.append("暂无可展示的经营数据。")
     # 每段自带应用、统计日及币种，单段重试或晚到也可独立阅读。
     header = "\n".join(header_lines)
     budget = 2000 - len(header.encode("utf-16-le")) // 2 - 1

@@ -43,7 +43,7 @@ def test_daily_keeps_values_and_safe_comparison_without_source_noise():
         comparison=[daily(date(2026, 10, 24), sales_usd=0, first_downloads=2)],
     )
     assert "2026-10-25" in rendered and "USD -1.25" in rendered
-    assert rendered.count("待发布") == 1 and "续订：" not in rendered
+    assert "续订：无数据" in rendered and "待发布" not in rendered
     assert "不可用" not in rendered and "来源：" not in rendered
     assert "+50.0%" in rendered and "基期为 0" in rendered
     assert "MRR" not in rendered and "@everyone" not in rendered
@@ -68,9 +68,9 @@ def test_weekly_sums_only_complete_flows_and_uses_endpoint_stocks():
     rendered = text(days, period="weekly", comparison=previous)
     assert "首次下载：14" in rendered and "+100.0%" in rendered
     assert "付费订阅存量：16" in rendered and "期末" in rendered
-    assert "曝光：" not in rendered
+    assert "曝光：无数据" in rendered
     partial = days[:-1] + [daily(start + timedelta(days=6), paid_subscriptions=16)]
-    assert "首次下载：" not in text(partial, period="weekly")
+    assert "首次下载：无数据" in text(partial, period="weekly")
 
 
 def test_comparisons_require_matching_sources_and_contiguous_periods():
@@ -141,7 +141,7 @@ def test_incomplete_status_and_mismatched_currency_never_produce_rate():
     invalid = AnalyticsValue(value=5, status="available", currency="CNY", source="Apple")
     earlier = invalid.model_copy(update={"value": Decimal(1)})
     rendered = text([daily(sales_usd=invalid)], comparison=[daily(date(2026, 10, 24), sales_usd=earlier)])
-    assert "销售额：" not in rendered and "+400.0%" not in rendered
+    assert "销售额：无数据" in rendered and "+400.0%" not in rendered
 
 
 def test_unknown_source_cannot_claim_comparable_change():
@@ -159,8 +159,8 @@ def test_daily_week_comparison_uses_prior_same_day_and_never_fills_missing_histo
     assert "+50.0%" not in text([current], week_comparison=[daily(date(2026, 10, 17), first_downloads=2)])
 
 
-def test_daily_hides_missing_metrics_and_empty_dimensions_but_keeps_real_zero():
-    """缺失、未发布和不适用均不冒充数值，已有的零必须保留。"""
+def test_daily_shows_missing_metrics_and_empty_dimensions_but_keeps_real_zero():
+    """缺失值逐项显示无数据，已有的零必须保留。"""
     snapshot = daily(
         first_downloads=0,
         sales_usd=0,
@@ -172,21 +172,27 @@ def test_daily_hides_missing_metrics_and_empty_dimensions_but_keeps_real_zero():
     rendered = text([snapshot])
     assert "首次下载：0" in rendered and "销售额：USD 0.00" in rendered
     assert "USD 估算" in rendered
-    assert rendered.count("待发布") == 1
-    for hidden in ("付费开始：", "免费试用存量：", "续订：", "试用开始：", "Top 3", "来源："):
-        assert hidden not in rendered
+    assert "待发布" not in rendered and "来源：" not in rendered
+    for label in ("付费开始", "免费试用存量", "续订", "试用开始", "商店转化率"):
+        assert f"{label}：无数据" in rendered
+    for label in ("下载地区", "收益地区（USD）", "获客来源"):
+        assert f"{label} Top 3（可见部分，不代表全量覆盖）：无数据" in rendered
 
 
-@pytest.mark.parametrize("pending", [False, True])
-def test_empty_report_has_only_one_short_chinese_status(pending):
-    """整份无可展示值时，只保留应用、日期和一行状态。"""
-    snapshot = daily(renewals=AnalyticsValue(status="pending" if pending else "unavailable"))
-    rendered = text([snapshot])
-    assert len(rendered.splitlines()) == 4
+@pytest.mark.parametrize("period", ["daily", "weekly"])
+@pytest.mark.parametrize("status", ["pending", "unavailable", "not_applicable", "available"])
+def test_empty_report_lists_every_field_as_no_data(period, status):
+    """日报周报均逐项展示缺失值，状态或空值不能冒充零。"""
+    start = date(2026, 10, 25)
+    snapshots = [daily(start + timedelta(days=index), renewals=AnalyticsValue(status=status))
+                 for index in range(7 if period == "weekly" else 1)]
+    rendered = text(snapshots, period=period)
+    assert len(rendered.splitlines()) == 28
     assert "2026-10-25" in rendered and "工具" in rendered
-    assert ("待发布" in rendered) is pending
-    assert ("经营数据待发布。" if pending else "暂无可展示的经营数据。") in rendered
-    for hidden in ("收益：", "来源：", "Top 3", "比较期间", "上周同日"):
+    assert rendered.count("：无数据") == 25
+    assert "续订：无数据" in rendered and "收益：无数据" in rendered
+    assert all(snapshot.metrics["renewals"].status == status for snapshot in snapshots)
+    for hidden in ("待发布", "暂无可展示", "来源：", "比较期间", "上周同日"):
         assert hidden not in rendered
 
 
