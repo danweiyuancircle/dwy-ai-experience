@@ -18,17 +18,30 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        xcode: ['26.0.1', '26.4.1']
+        xcode: ['26.0.1', '26.6']
+        sleep-binding: ['direct', 'local']
     env:
       DEVELOPER_DIR: /Applications/Xcode_${{ matrix.xcode }}.app/Contents/Developer
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Isolate stored async closure access
+        if: matrix.sleep-binding == 'local'
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('ios/Sources/Shared/SyncCore/SyncCoordinator.swift')
+          text = path.read_text()
+          old = 'try await sleep(retryDelay)'
+          assert text.count(old) == 1
+          path.write_text(text.replace(old, 'let wait = sleep\n                    try await wait(retryDelay)'))
+          PY
       - name: Reproduce automatic retry runtime failure
         run: swift test --filter SyncCoordinatorTests.testAutomaticRetryConfirmsLostResponseWithoutNewVersion
       - name: Verify full Swift suite
         run: swift test
       - name: Capture native failure backtrace
         if: failure()
+        timeout-minutes: 2
         run: |
           python3 - <<'PY'
           import json
