@@ -3,21 +3,24 @@
 独立多目标异步通知包，基于 `apprise==2.1.0`，公共配置和结果类型由本包拥有。依赖 `dwyeapi==0.12.1` 基础规范，不要求运行 Webhook 服务。
 
 ```bash
-pip install dwy-notify==0.1.0
+pip install dwy-notify==0.2.0
 ```
 
 ```python
 import asyncio
 import os
 
-from dwy_notify import NotificationConfig, Notifier
+from dwy_notify import NotificationAppearance, NotificationConfig, Notifier
 
 
 async def main() -> None:
-    notifier = Notifier(NotificationConfig(targets={
-        "discord": os.environ["DISCORD_NOTIFY_URL"],
-        "wecom": os.environ["WECOM_NOTIFY_URL"],
-    }))
+    notifier = Notifier(NotificationConfig(
+        targets={
+            "discord": os.environ["DISCORD_NOTIFY_URL"],
+            "wecom": os.environ["WECOM_NOTIFY_URL"],
+        },
+        appearance=NotificationAppearance(username="业务通知"),
+    ))
     result = await notifier.send("任务完成", title="每日汇总")
     for delivery in result.deliveries:
         if not delivery.success:
@@ -43,3 +46,13 @@ asyncio.run(main())
 - `Notifier` 不提供持久化、调度或自动重试。分段通知中已经成功的部分可能在调用方整体重试时重复；HTTP 接收后丢失响应也无法保证恰好一次。
 
 仅 Discord、企业微信、钉钉和飞书通过模拟 HTTP 验证；未进行真实渠道投递验收，也未逐一验收全部 Apprise 插件。发布必须通过 GitHub Actions OIDC，不使用长期发布 token。
+
+## 发送者名称与可选头像
+
+`NotificationAppearance(username=..., avatar_url=...)` 只描述平台基础展示，不包含购买、审核等业务预设。每个目标最终必须具有发送者名称；所有配置层都未提供名称时，`send` 在任何目标发出网络请求前抛出 `ValueError("missing_username")`。正文 `title` 不能代替发送者名称。头像可省略，沿用平台默认头像，不注入 Apprise Logo。
+
+应用在 `NotificationConfig.appearance` 设置默认展示；单次 `send(..., appearance=...)` 可覆盖；具体业务库通过 `send(..., default_appearance=...)` 提供低优先级预设。按字段选择：单次设置 > 应用配置 > 目标 URL 的显式名称/头像 > 业务预设。未设置字段继承；名称不能显式设为 `None` 或空白，头像可通过 `avatar_url=None` 清除预设、恢复平台默认。仅覆盖头像时，名称继续从应用或具体模块继承。
+
+名称限制为 1–80 字符且不包含控制字符；图片 URL 限长 2048，要求 HTTPS 且不携带账号密码。图片须由平台匿名访问，不接受本地路径，不在应用发送进程中下载图片。当前 Discord 适配使用这些字段，其它渠道保留自身展示行为。展示不参与目标 URL 指纹，不改变接收方去重或发送重试。
+
+兼容层若把隐式默认名称编码进旧 URL，构造 `Notifier(..., url_appearance_is_default=True)` 可让这些展示字段退到业务预设之后，同时保留原目标 URL 与指纹；真实用户显式设置的 URL 保持默认优先级。

@@ -1,5 +1,7 @@
 # 通知包测试用例
 
+- `tests/test_appearance.py`：发送者名称必填，单目标、多目标及其它渠道缺名时全部在网络前拒绝，正文标题不能代替名称；头像可省略或显式 null。按字段校验单次/应用/URL/业务预设优先级、名称不可清空、并发隔离、指纹稳定及不支持头像的其它渠道。拒绝控制字符、超长名称和非 HTTPS/带账号密码的头像地址。
+
 执行：在 `backend/packages/notify/` 下运行 `python -m pytest tests/ -q`。
 
 `tests/test_notify.py` 覆盖：

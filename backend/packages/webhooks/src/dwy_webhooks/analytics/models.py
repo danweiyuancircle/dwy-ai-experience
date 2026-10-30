@@ -26,7 +26,7 @@ class AnalyticsApp(BaseModel):
 
 
 class AppleAnalyticsConfig(NotificationSettings):
-    """仅消费显式配置；定时使用指定时区，固定取昨天的 Apple UTC 统计日报表。"""
+    """仅消费显式配置；定时使用指定时区，固定取前两天的 Apple UTC 统计日报表。"""
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     apps: dict[ASCAppID, AnalyticsApp] = Field(min_length=1, max_length=100)

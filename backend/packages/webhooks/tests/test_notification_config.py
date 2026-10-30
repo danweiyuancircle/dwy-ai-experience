@@ -48,7 +48,7 @@ def test_same_level_legacy_and_new_destinations_are_rejected(model, extra):
 async def test_relay_only_retries_failed_targets_and_isolates_event_scope():
     calls = []
 
-    async def send(body, *, targets):
+    async def send(body, *, targets, default_appearance=None):
         name = targets[0]
         calls.append(name)
         return NotificationResult((NotificationDelivery(

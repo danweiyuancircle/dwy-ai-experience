@@ -1,5 +1,9 @@
 # 公共 Webhook 测试场景
 
+- `test_notification_appearance.py`：实际离线 HTTP 验证购买、审核、日报/周报、邮件和通用展示；应用按字段覆盖与清除头像，JSON outbox 首次发送持久化及重试不随默认预设变化，旧队列记录取得来源默认展示。
+- 同文件覆盖 legacy 来源/全局目标的隐式默认、自定义及显式旧默认名称；旧含默认名称的指纹快照升级后仍可发送，不能把展示变化当作接收方变更。
+- `appearance_wheel_smoke.py`：本轮实际 wheel 在全新环境导入，无宿主或平台 SDK；验证新基础展示 API、平台默认头像、五类业务预设与应用自定义。
+
 - `backend/packages/webhooks/tests/test_asc_version_metadata.py`：按事件的版本资源 ID 补查 iOS/macOS/visionOS 与应用版本；保留原始审核状态；验证所属 App、版本 ID、字段和响应大小；查询失败不确认接收；未配置凭据明确标记缺失；签名失败、畸形事件、构建事件不查询；自有客户端有界且及时关闭，注入客户端不被关闭。
 - `backend/packages/webhooks/tests/asc_wheel_smoke.py`：只安装实际 wheel 的 `[asc]`，无业务应用、Apple Server SDK、Resend 或旧 Discord SDK，验证版本查询与审核消息中的平台和应用版本。
 
@@ -7,7 +11,7 @@
 
 - `analytics/test_client.py`、`analytics/test_metrics.py`：真实 Apple 下载/订阅报表名称的字面量回归、官方 Standard 报表、ONGOING 显式初始化、分页/分片、日期修正替换、压缩与解压限额、认证下载边界、USD/退款与非可加总指标。
 - `analytics/test_storage.py`：账号/App 隔离、租约过期与旧 worker 栅栏、快照/outbox 原子回滚、消息去重及历史清理。
-- `backend/packages/webhooks/tests/analytics/test_monitor.py`、`backend/packages/webhooks/tests/analytics/test_analytics_runtime.py`：北京时间 08:30 前后、日报固定昨天及移除日期滞后配置、截至昨天的周一周报、七日重查、重启、失败告警与取消、资源所有权。
+- `backend/packages/webhooks/tests/analytics/test_monitor.py`、`backend/packages/webhooks/tests/analytics/test_analytics_runtime.py`：北京时间 08:30 前后、日报固定发送日期前两天（30 日取 28 日、31 日取 29 日、跨月及跨年）、截至前两天的周一周报、七日重查、重启、失败告警与取消、资源所有权。
 - `analytics/test_formatting.py`：仅显示可用值并保留真实零、中文汇总待发布状态、隐藏空维度及内部备注；七日流量与期末订阅存量、同来源/币种比较、Top 3 与可见范围、有界确定性 UTF-16 分段。
 - `test_delivery.py`：调用方应用范围在发送前拦截历史待发消息，持久标记 suppressed，保留正常租约及重试。
 - `analytics/test_metrics.py`：真实 `First-time download` 等五种下载类型，兼容大小写且不计入更新和恢复。

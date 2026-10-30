@@ -26,15 +26,24 @@ def configured_notifier(options: NotificationSettings,
         return Notifier(legacy_discord_config(
             options.discord_webhook_url.get_secret_value(),
             options.discord_username or DEFAULT_DISCORD_USERNAME,
+        ), url_appearance_is_default=(
+            "discord_username" not in options.model_fields_set or options.discord_username is None
         ))
     if default is None:
         return None
     if default.notifications is not None:
         return Notifier(default.notifications)
     if default.discord_webhook_url is not None:
-        username = (options.discord_username if options.discord_username is not None
-                    else default.discord_username)
-        return Notifier(legacy_discord_config(default.discord_webhook_url.get_secret_value(), username))
+        # 保留旧 URL 和指纹，仅调整隐式历史默认名的展示优先级。
+        source_explicit = (
+            "discord_username" in options.model_fields_set and options.discord_username is not None
+        )
+        default_explicit = "discord_username" in default.model_fields_set
+        username = options.discord_username if source_explicit else default.discord_username
+        return Notifier(
+            legacy_discord_config(default.discord_webhook_url.get_secret_value(), username),
+            url_appearance_is_default=not (source_explicit or default_explicit),
+        )
     return None
 
 

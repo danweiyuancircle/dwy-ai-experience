@@ -27,7 +27,7 @@ class FakeNotifier:
     def target_fingerprint(self, name):
         return self.fingerprints[name]
 
-    async def send(self, body, *, targets):
+    async def send(self, body, *, targets, default_appearance=None):
         return SimpleNamespace(deliveries=(await self.callback(targets[0]),))
 
 

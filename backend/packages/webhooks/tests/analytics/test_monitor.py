@@ -39,22 +39,41 @@ def monitor(day="2026-10-26T08:30:00"):
     return AnalyticsMonitor(config, store, client), store, client
 
 
-async def test_boundary_yesterday_seven_day_refresh_and_monday_weekly_without_history_flood():
+async def test_boundary_two_days_ago_seven_day_refresh_and_monday_weekly_without_history_flood():
     worker, store, client = monitor("2026-10-26T08:29:59")
     assert await worker.run_once() == 0
     client.collect.assert_not_awaited()
     worker, store, client = monitor()
     assert await worker.run_once() == 1
     assert [call.args[1] for call in client.collect.await_args_list] == [
-        date(2026, 10, 19) + timedelta(days=i) for i in range(7)
+        date(2026, 10, 18) + timedelta(days=i) for i in range(7)
     ]
     messages = store.complete.call_args.kwargs["messages"]
     assert [message[0] for message in messages] == ["daily", "weekly"]
-    assert messages[0][1:3] == (date(2026, 10, 25), date(2026, 10, 25))
-    assert messages[1][1:3] == (date(2026, 10, 19), date(2026, 10, 25))
+    assert messages[0][1:3] == (date(2026, 10, 24), date(2026, 10, 24))
+    assert messages[1][1:3] == (date(2026, 10, 18), date(2026, 10, 24))
     assert store.complete.call_args.kwargs["next_poll_at"] == int(
         datetime(2026, 10, 27, 8, 30, tzinfo=ZoneInfo("Asia/Shanghai")).timestamp()
     )
+
+
+@pytest.mark.parametrize(
+    ("send_day", "report_day"),
+    [
+        ("2026-10-30T08:30:00", date(2026, 10, 28)),
+        ("2026-10-31T08:30:00", date(2026, 10, 29)),
+        ("2026-11-01T08:30:00", date(2026, 10, 30)),
+        ("2027-01-01T08:30:00", date(2026, 12, 30)),
+    ],
+)
+async def test_daily_report_uses_two_days_before_local_send_date(send_day, report_day):
+    worker, store, client = monitor(send_day)
+    assert await worker.run_once() == 1
+    assert client.collect.await_args_list[-1].args[1] == report_day
+    assert store.complete.call_args.kwargs["report_date"] == report_day
+    daily = store.complete.call_args.kwargs["messages"][0]
+    assert daily[1:3] == (report_day, report_day)
+    assert f"统计日：{report_day.isoformat()}" in "\n".join(daily[3])
 
 
 async def test_historical_comparison_feedback_and_non_monday_daily_only():
@@ -82,7 +101,7 @@ async def test_failed_or_cancelled_collection_releases_without_partial_writes(fa
         store.release.assert_awaited_once_with("issuer", "123", "lease")
         store.fail.assert_not_awaited()
     else:
-        store.fail.assert_awaited_once_with("issuer", "123", "lease", date(2026, 10, 25), app_name="工具")
+        store.fail.assert_awaited_once_with("issuer", "123", "lease", date(2026, 10, 24), app_name="工具")
     store.complete.assert_not_awaited()
 
 
@@ -108,7 +127,7 @@ async def test_daily_week_comparison_reads_persisted_history_without_extra_reque
     store.load.return_value = [
         AppleBusinessSnapshot(
             app_id="123",
-            report_date=date(2026, 10, 19),
+            report_date=date(2026, 10, 18),
             metrics={
                 "first_downloads": AnalyticsValue(value=2, status="available", source="Apple"),
             },

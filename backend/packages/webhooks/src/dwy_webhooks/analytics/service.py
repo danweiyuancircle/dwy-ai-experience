@@ -26,7 +26,8 @@ class AnalyticsMonitor:
         boundary = now.replace(hour=config.send_hour, minute=config.send_minute, second=0, microsecond=0)
         if now < boundary:
             return 0
-        target = now.date() - timedelta(days=1)
+        # Apple UTC 日报存在生成延迟，早间只读取发送日期前两天的数据。
+        target = now.date() - timedelta(days=2)
         start = target - timedelta(days=6)
         next_poll = int((boundary + timedelta(days=1)).timestamp())
         completed = 0

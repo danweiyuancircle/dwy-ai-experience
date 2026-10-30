@@ -2,15 +2,17 @@
 
 import importlib
 import logging
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import parse_qs, urlsplit, urlunsplit
 
 import requests
-from apprise import AppriseAsset, NotifyFormat
+from apprise import AppriseAsset, NotifyFormat, NotifyType
 from apprise.plugins import N_MGR
 from apprise.plugins.discord import NotifyDiscord
 from apprise.plugins.wecombot import NotifyWeComBot
 
 from . import _transport
+from ._appearance import active_appearance
+from .models import NotificationAppearance
 
 
 class _QuietLogger(logging.Logger):
@@ -33,6 +35,11 @@ class _Discord(NotifyDiscord):
         payload.pop("allow_mentions", None)
         payload["allowed_mentions"] = {"parse": []}
         payload["flags"] = payload.get("flags", 0) | 4
+        for key, value in active_appearance.get().items():
+            if value is None:
+                payload.pop(key, None)
+            else:
+                payload[key] = value
         response = _transport.send(
             self,
             f"{self.notify_url}/{self.webhook_id}/{self.webhook_token}",
@@ -124,4 +131,19 @@ def create_plugin(url: str, timeout: float):
         raise ValueError("invalid_target")
     if isinstance(plugin, _Discord):
         plugin.notify_format = NotifyFormat.TEXT
+        plugin.notification_appearance = {}
+        if plugin.user:
+            plugin.notification_appearance.update(
+                NotificationAppearance(username=plugin.user).model_dump(exclude_unset=True),
+            )
+        if plugin.avatar_url:
+            plugin.notification_appearance["avatar_url"] = plugin.avatar_url
+        avatar_explicit = "avatar" in parse_qs(parsed.query)
+        if avatar_explicit:
+            plugin.notification_appearance["avatar_url"] = (
+                (plugin.avatar_url or plugin.image_url(NotifyType.INFO)) if plugin.avatar else None
+            )
+        # 默认头像归平台；只保留用户显式要求的 Apprise 头像行为。
+        if not avatar_explicit:
+            plugin.avatar = bool(plugin.avatar_url)
     return plugin

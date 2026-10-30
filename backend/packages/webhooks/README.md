@@ -1,8 +1,16 @@
 # dwy-webhooks
 
+## 模块展示预设
+
+业务展示由各模块拥有：Apple 购买为「购买通知」、ASC 为「应用审核通知」、经营日报/周报为「经营报表」、Resend 为「邮件通知」，其它来源共用「系统通知」。模块预设不下沉到 dwy-notify。独立宿主队列可以通过 `dwy_webhooks.appearance.notification_appearance(source)` 获取同一预设，并传给 `deliver_notifications(..., appearance=...)`。
+
+五张 PNG、SVG 源图和 Lucide 许可维护在 `backend/packages/webhooks/assets/`；默认公网地址固定到资产提交 `091ad4fea18ed3840fec83dc833f18b759256ca7`，例如 `https://raw.githubusercontent.com/danweiyuancircle/dwy-ai-experience/091ad4fea18ed3840fec83dc833f18b759256ca7/backend/packages/webhooks/assets/purchase.png`。Discord 自行读取公开图片，各应用不需要部署图片服务。
+
+应用可在各来源的 `notifications.appearance` 设置 `username` 和 `avatar_url`，覆盖单个字段或整套预设；`avatar_url: null` 使用平台默认头像。现有目标 URL 中显式配置的展示也优先于模块默认值。直接转发和持久队列共用预设；首次发送前把预设写入现有 JSON outbox，失败重试保留原预设，无需数据库迁移。
+
 ## Apple 经营日报与周报
 
-`dwy-webhooks[analytics]==0.6.1` 提供公开的 `dwy_webhooks.analytics`。默认北京时间 `Asia/Shanghai` 每天 08:30，固定统计昨天的数据，周一附加截至昨天的连续七天周报。未发布或不可用的指标按状态展示，不等待或自动补发旧日报。
+`dwy-webhooks[analytics]==0.6.2` 提供公开的 `dwy_webhooks.analytics`。默认北京时间 `Asia/Shanghai` 每天 08:30，固定统计发送日期前两天的数据（如 30 日取 28 日、31 日取 29 日），为 Apple UTC 报表预留生成时间；周一附加截至前两天的连续七天周报。未发布或不可用的指标按状态展示，不等待或自动补发旧日报。
 
 调用项目注入 `AppleAnalyticsConfig`、会话及 `build_analytics_tables(metadata)` 的表定义，再使用 `install_analytics_monitor(app, config, sessions, tables)` 安装。数据库迁移和 engine 生命周期仍由项目拥有；示例见 `backend/packages/webhooks/examples/new_project/analytics.py`。
 
@@ -18,7 +26,7 @@
 
 ## 安装与依赖
 
-核心依赖固定兼容版本 `dwyeapi==0.12.1` 与 `dwy-notify==0.1.0`；平台 SDK 按需选择 `dwy-webhooks[resend,apple]`，评论与经营采集分别选择 `reviews`、`analytics`。旧 `discord` extra 保留为空，不安装 `discord-webhook` SDK。ASC Webhook 使用标准库 HMAC；只有 Apple Server Notifications 需要 Apple SDK。源码由 dwy-shared 维护，项目安装独立 wheel，不引用共享仓库的绝对源码路径。发布配置不表示已经发布。
+核心依赖固定兼容版本 `dwyeapi==0.12.1` 与 `dwy-notify==0.2.0`；平台 SDK 按需选择 `dwy-webhooks[resend,apple]`，评论与经营采集分别选择 `reviews`、`analytics`。旧 `discord` extra 保留为空，不安装 `discord-webhook` SDK。ASC Webhook 使用标准库 HMAC；只有 Apple Server Notifications 需要 Apple SDK。源码由 dwy-shared 维护，项目安装独立 wheel，不引用共享仓库的绝对源码路径。发布配置不表示已经发布。
 
 ## 统一通知配置（0.6.0）
 

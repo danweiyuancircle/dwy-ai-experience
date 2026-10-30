@@ -65,6 +65,8 @@ async def main(expected_version: str) -> None:
         assert kwargs["verify"] is True and kwargs["allow_redirects"] is False
         payload = kwargs["json"]
         assert payload["allowed_mentions"] == {"parse": []}
+        assert payload["username"] == "经营报表"
+        assert payload["avatar_url"].endswith("/report.png")
         calls.append(payload["content"])
         response = requests.Response()
         response.status_code = 200
@@ -91,7 +93,7 @@ async def main(expected_version: str) -> None:
             assert await store.claim(config.issuer_id, snapshot.app_id, snapshot.report_date) is None
             queue = SQLAlchemyDeliveryQueue(sessions, tables.deliveries,
                 notifier=Notifier(NotificationConfig(targets={"daily": "discord://123456789/wheel-test-token"})),
-                source="apple_analytics", clock=lambda: 1800000000)
+                source="app_store_analytics", clock=lambda: 1800000000)
             with patch("dwy_notify._transport.post", receive):
                 assert await queue.process_pending() == len(parts)
             async with sessions() as db:

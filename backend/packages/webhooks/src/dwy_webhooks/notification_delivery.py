@@ -7,6 +7,8 @@ import re
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING
 
+from dwy_notify import NotificationAppearance
+
 from .errors import WebhookDeliveryError
 
 if TYPE_CHECKING:
@@ -40,6 +42,7 @@ def delivery_failure(
 async def deliver_notifications(
     notifier: Notifier, payload: dict, *, policy: DeliveryPolicy, clock: Callable[[], float],
     checkpoint: Callable[..., Awaitable[bool]],
+    appearance: NotificationAppearance | None = None,
 ) -> dict:
     """投递 payload['content'] 并返回聚合状态，不创建数据库或自行领取租约。
 
@@ -48,13 +51,19 @@ async def deliver_notifications(
     payload 必须是当前记录独立解码的可变字典，既有 notifications 状态会原地推进。
     每个成功目标后提交检查点；取消和检查点异常直接传播，网络确认丢失仍可能重复。
     """
+    changed = False
+    if appearance is not None and "appearance" not in payload:
+        payload = dict(payload, appearance=appearance.model_dump(exclude_unset=True))
+        changed = True
     if "notifications" not in payload:
         payload = dict(payload, notifications={
             name: dict(fingerprint=notifier.target_fingerprint(name), status="pending", attempts=0,
                        next_attempt_at=0, error_code=None, message_id=None)
             for name in notifier.targets
         })
-        # 调用方可直接写入旧载荷；快照必须先提交，取消后不能改变收件方。
+        changed = True
+    if changed:
+        # 接收方与模块展示一并持久化；重启后不随新版默认预设变化。
         if not await checkpoint(payload=payload):
             return dict(status="processing")
     states = payload["notifications"]
@@ -70,7 +79,12 @@ async def deliver_notifications(
             if not await checkpoint(lease_until=int(clock()) + policy.lease_seconds):
                 return dict(status="processing")
             try:
-                result = await notifier.send(payload["content"], targets=(name,))
+                options = {}
+                if "appearance" in payload:
+                    options["default_appearance"] = NotificationAppearance.model_validate(
+                        payload["appearance"],
+                    )
+                result = await notifier.send(payload["content"], targets=(name,), **options)
                 if len(result.deliveries) != 1 or result.deliveries[0].target != name:
                     raise WebhookDeliveryError("webhook_invalid_response")
                 delivery = result.deliveries[0]

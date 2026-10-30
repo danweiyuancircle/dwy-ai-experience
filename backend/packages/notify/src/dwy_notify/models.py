@@ -2,7 +2,32 @@
 
 from dataclasses import dataclass
 
-from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, HttpUrl, SecretStr, field_validator
+
+
+class NotificationAppearance(BaseModel):
+    """展示字段按层继承；发送者名称不能清空，头像可显式 None 使用平台默认。"""
+
+    model_config = ConfigDict(frozen=True, extra="forbid", hide_input_in_errors=True)
+
+    username: str | None = Field(default=None, min_length=1, max_length=80)
+    avatar_url: str | None = Field(default=None, min_length=1, max_length=2048)
+
+    @field_validator("username")
+    @classmethod
+    def valid_username(cls, value):
+        if value is None or not value.strip() or any(ord(char) < 32 or ord(char) == 127 for char in value):
+            raise ValueError("invalid_username")
+        return value
+
+    @field_validator("avatar_url")
+    @classmethod
+    def valid_avatar_url(cls, value):
+        if value is not None:
+            url = HttpUrl(value)
+            if url.scheme != "https" or url.username is not None or url.password is not None:
+                raise ValueError("invalid_avatar_url")
+        return value
 
 
 class NotificationConfig(BaseModel):
@@ -12,6 +37,7 @@ class NotificationConfig(BaseModel):
 
     targets: dict[str, SecretStr] = Field(min_length=1)
     timeout_seconds: float = Field(default=10, gt=0, le=30, strict=True, allow_inf_nan=False)
+    appearance: NotificationAppearance = Field(default_factory=NotificationAppearance)
 
     @field_validator("targets")
     @classmethod

@@ -432,7 +432,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "dwy-notify"
-version = "0.1.0"
+version = "0.2.0"
 source = { editable = "../backend/packages/notify" }
 dependencies = [
     { name = "apprise" },
@@ -479,7 +479,7 @@ requires-dist = [
 
 [[package]]
 name = "dwy-webhooks"
-version = "0.6.1"
+version = "0.6.2"
 source = { editable = "../backend/packages/webhooks" }
 dependencies = [
     { name = "dwy-notify" },
@@ -523,7 +523,7 @@ requires-dist = [
     { name = "cryptography", marker = "extra == 'analytics'", specifier = "==50.0.2" },
     { name = "cryptography", marker = "extra == 'asc'", specifier = "==50.0.2" },
     { name = "cryptography", marker = "extra == 'reviews'", specifier = "==50.0.2" },
-    { name = "dwy-notify", specifier = "==0.1.0" },
+    { name = "dwy-notify", specifier = "==0.2.0" },
     { name = "dwyeapi", specifier = "==0.12.1" },
     { name = "httpx", marker = "extra == 'analytics'", specifier = "==0.28.1" },
     { name = "httpx", marker = "extra == 'asc'", specifier = "==0.28.1" },

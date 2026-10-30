@@ -161,9 +161,13 @@ class SQLAlchemyDeliveryQueue:
             return bool(result.rowcount)
 
     async def _send_notifications(self, row) -> dict:
+        # analytics 的公开入口也导出队列存储；延迟解析展示以避免初始化循环。
+        from .appearance import notification_appearance
+
         return await deliver_notifications(
             self.notifier, row["payload"], policy=self.policy, clock=self.clock,
             checkpoint=partial(self._checkpoint, row),
+            appearance=notification_appearance(self.source),
         )
 
     async def run(self) -> None:

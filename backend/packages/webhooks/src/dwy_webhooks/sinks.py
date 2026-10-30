@@ -6,6 +6,7 @@ from typing import Protocol
 
 from dwy_notify import Notifier
 
+from .appearance import notification_appearance
 from .events import WebhookEvent
 from .notifications import delivery_error
 from .validation import DEFAULT_DISCORD_USERNAME
@@ -68,7 +69,10 @@ class NotificationRelay:
                 key = (identity, event.scope, event.event_id)
                 if await self.receipts.contains(key):
                     continue
-                result = await self.notifier.send(event.content, targets=(target,))
+                result = await self.notifier.send(
+                    event.content, targets=(target,),
+                    default_appearance=notification_appearance(event.source),
+                )
                 delivery = result.deliveries[0]
                 if delivery.success:
                     await self.receipts.add(key)
@@ -84,10 +88,15 @@ class DiscordRelay(NotificationRelay):
     """发送成功才接受事件；网络故障由接收端返回失败供提供方重试。"""
 
     def __init__(self, webhook_url: str, receipts: ReceiptStore | None = None, *,
-                 username: str = DEFAULT_DISCORD_USERNAME):
+                 username: str | None = None):
         """锁和去重状态属于当前集成，不存在跨项目的模块全局状态。"""
         from .notifications import legacy_discord_config
         from .validation import validate_discord_webhook_url
 
-        super().__init__(Notifier(legacy_discord_config(validate_discord_webhook_url(webhook_url), username)),
-                         receipts)
+        notifier = Notifier(
+            legacy_discord_config(
+                validate_discord_webhook_url(webhook_url), username or DEFAULT_DISCORD_USERNAME,
+            ),
+            url_appearance_is_default=username is None,
+        )
+        super().__init__(notifier, receipts)

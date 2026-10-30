@@ -7,9 +7,10 @@ from collections.abc import Sequence
 
 import requests
 
+from ._appearance import active_appearance
 from ._logging import notification_http_active
 from ._plugins import create_plugin
-from .models import NotificationConfig, NotificationDelivery, NotificationResult
+from .models import NotificationAppearance, NotificationConfig, NotificationDelivery, NotificationResult
 
 
 class Notifier:
@@ -18,8 +19,8 @@ class Notifier:
     取消等待会向调用方传播；已开始的同步请求由超时结束，同目标锁直到请求结束才释放。
     """
 
-    def __init__(self, config: NotificationConfig):
-        """固定目标与安全配置；无效 URL 只抛出固定错误，不回显凭据。"""
+    def __init__(self, config: NotificationConfig, *, url_appearance_is_default: bool = False):
+        """固定目标；兼容层生成的隐式 URL 展示可降为默认值，不改变旧目标指纹。"""
         self._plugins = {
             name: create_plugin(url.get_secret_value(), config.timeout_seconds)
             for name, url in config.targets.items()
@@ -29,6 +30,8 @@ class Notifier:
             for name, url in config.targets.items()
         }
         self._locks = {name: threading.Lock() for name in self._plugins}
+        self._appearance = config.appearance
+        self._url_appearance_is_default = url_appearance_is_default
 
     @property
     def targets(self) -> tuple[str, ...]:
@@ -39,9 +42,15 @@ class Notifier:
         return self._fingerprints[name]
 
     async def send(
-        self, body: str, *, title: str = "", targets: Sequence[str] | None = None
+        self, body: str, *, title: str = "", targets: Sequence[str] | None = None,
+        appearance: NotificationAppearance | None = None,
+        default_appearance: NotificationAppearance | None = None,
     ) -> NotificationResult:
-        """发送到全部或指定目标；结果保留顺序，未知或重复目标在网络调用前报错。"""
+        """逐目标发送；展示按单次、应用配置、URL 显式配置、调用方预设的顺序覆盖。
+
+        合并后每个目标必须有发送者名称，缺少时在任何网络请求前拒绝。
+        头像可显式 None 使用平台默认；正文 title 不代替发送者名称。
+        """
         if not isinstance(body, str) or not body.strip():
             raise ValueError("invalid_body")
         if not isinstance(title, str):
@@ -55,15 +64,33 @@ class Notifier:
             raise ValueError("unknown_target")
         if len(selected) != len(set(selected)):
             raise ValueError("duplicate_target")
+        displays = {}
+        for name in selected:
+            display = {}
+            url_display = getattr(self._plugins[name], "notification_appearance", {})
+            if self._url_appearance_is_default:
+                display.update(url_display)
+            if default_appearance is not None:
+                display.update(default_appearance.model_dump(exclude_unset=True))
+            if not self._url_appearance_is_default:
+                display.update(url_display)
+            display.update(self._appearance.model_dump(exclude_unset=True))
+            if appearance is not None:
+                display.update(appearance.model_dump(exclude_unset=True))
+            if display.get("username") is None:
+                raise ValueError("missing_username")
+            displays[name] = display
         deliveries = await asyncio.gather(
-            *(asyncio.to_thread(self._send, name, body, title) for name in selected)
+            *(asyncio.to_thread(self._send, name, body, title, displays[name])
+              for name in selected)
         )
         return NotificationResult(deliveries=tuple(deliveries))
 
-    def _send(self, target: str, body: str, title: str) -> NotificationDelivery:
+    def _send(self, target, body, title, display) -> NotificationDelivery:
         with self._locks[target]:
             plugin = self._plugins[target]
             plugin.outcome = {}
+            display_token = active_appearance.set(display)
             token = notification_http_active.set(True)
             try:
                 success = bool(plugin.notify(body=body, title=title))
@@ -76,6 +103,7 @@ class Notifier:
                 return NotificationDelivery(target=target, success=False, error_code="provider_error")
             finally:
                 notification_http_active.reset(token)
+                active_appearance.reset(display_token)
             return NotificationDelivery(
                 target=target,
                 success=success,
