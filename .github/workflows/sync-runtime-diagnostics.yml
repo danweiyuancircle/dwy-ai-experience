@@ -20,7 +20,24 @@ jobs:
         run: swift test --filter SyncCoordinatorTests.testAutomaticRetryConfirmsLostResponseWithoutNewVersion
       - name: Capture native failure backtrace
         if: failure()
-        run: >-
-          xcrun lldb --batch -o run -o 'thread backtrace all' --
-          .build/debug/AppleAppKitPackageTests.xctest/Contents/MacOS/AppleAppKitPackageTests
-          SyncCoreTests.SyncCoordinatorTests/testAutomaticRetryConfirmsLostResponseWithoutNewVersion
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          for path in Path.home().joinpath('Library/Logs/DiagnosticReports').glob('*AppleAppKit*'):
+              text = path.read_text()
+              decoder = json.JSONDecoder()
+              header, end = decoder.raw_decode(text)
+              report = decoder.raw_decode(text[end:].lstrip())[0]
+              print(path.name, report.get('exception'), report.get('asi'))
+              images = report.get('usedImages', [])
+              for thread in report.get('threads', []):
+                  if not thread.get('triggered'):
+                      continue
+                  for frame in thread.get('frames', []):
+                      image = images[frame['imageIndex']]
+                      print(image.get('name'), frame.get('symbol'), frame.get('symbolLocation'))
+          PY
+          xcrun lldb --batch -o run -k 'thread backtrace all' -- \
+            .build/debug/AppleAppKitPackageTests.xctest/Contents/MacOS/AppleAppKitPackageTests \
+            SyncCoreTests.SyncCoordinatorTests/testAutomaticRetryConfirmsLostResponseWithoutNewVersion
