@@ -380,7 +380,7 @@ wheels = [
 
 [[package]]
 name = "dwy-apple-notify"
-version = "0.1.1"
+version = "0.1.2"
 source = { editable = "../backend/packages/apple-notify" }
 dependencies = [
     { name = "dwy-notify" },

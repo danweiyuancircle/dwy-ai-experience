@@ -20,7 +20,7 @@ def notification(kind="ONE_TIME_CHARGE", **changes):
 
 @pytest.mark.parametrize("price,currency,expected", [
     (4990, "USD", "4.99 USD"), (0, "CNY", "0 CNY"), (1, "USD", "0.001 USD"),
-    (3300000, "KRW", "3300 KRW"), (4990, None, "Apple 未提供"),
+    (3300000, "KRW", "3300 KRW"), (4990, None, "Apple 未提供（金额或币种缺失）"),
 ])
 def test_portable_price_is_exact_and_has_no_product_brand(price, currency, expected):
     """整毫单位只换算一次，不猜币种，不将家庭共享或交易价格写成收入。"""
@@ -32,9 +32,53 @@ def test_portable_price_is_exact_and_has_no_product_brand(price, currency, expec
     ))
     content = apple_notification_content(notice, app_name="Other Project")
     assert "Other Project · 家庭共享内购授权" in content and "ADBox" not in content
-    assert f"交易金额：{expected}" in content and "购买地区：AUS" in content
+    assert f"原交易金额：{expected}（家庭共享，无新增付款）" in content
+    assert "购买地区：AUS" in content
     assert "购买时间：2026-10-27T00:00:00+00:00" in content
     assert "收入" not in content and "到账" not in content
+
+
+@pytest.mark.parametrize("subtype", ["INITIAL_BUY", "RESUBSCRIBE"])
+@pytest.mark.parametrize("ownership", ["FAMILY_SHARED", "PURCHASED", None, "UNKNOWN"])
+def test_shared_subscription_access_is_distinct_from_a_purchase(subtype, ownership):
+    """首次共享和重新共享都不算新付款；仅明确的家庭共享归属改变文案。"""
+    from dwy_apple_notify.apple import AppleTransactionDetails, apple_notification_content
+
+    notice = notification("SUBSCRIBED", subtype=subtype, transaction_details=AppleTransactionDetails(
+        ownership_type=ownership, price_milliunits=12000, currency="CNY",
+        expires_date="2026-11-30T10:08:36Z",
+    ))
+    content = apple_notification_content(notice, app_name="Example")
+    assert f"事件：SUBSCRIBED / {subtype}" in content
+    assert "有效期至：2026-11-30T10:08:36+00:00" in content
+    if ownership == "FAMILY_SHARED":
+        assert content.startswith("Example · 家庭成员已获得订阅共享\n")
+        assert "原订阅价格：12 CNY（家庭共享，无新增付款）" in content
+        assert "订阅已开始" not in content
+    else:
+        assert content.startswith("Example · 订阅已开始\n")
+        assert "交易金额：12 CNY\n" in content
+        assert "无新增付款" not in content
+
+
+@pytest.mark.parametrize("kind,subtype,label", [
+    ("DID_RENEW", None, "家庭共享订阅已续期"),
+    ("DID_CHANGE_RENEWAL_STATUS", "AUTO_RENEW_DISABLED", "已关闭自动续订（当前有效期不受影响）"),
+    ("EXPIRED", "VOLUNTARY", "订阅已到期"),
+    ("REVOKE", None, "家庭共享授权已撤销"),
+    ("REFUND", None, "退款成功"),
+])
+def test_shared_subscription_keeps_lifecycle_events(kind, subtype, label):
+    """家庭共享只改写获权和续期标题，不覆盖到期、退款或撤销事实。"""
+    from dwy_apple_notify.apple import AppleTransactionDetails, apple_notification_content
+
+    notice = notification(kind, subtype=subtype, transaction_details=AppleTransactionDetails(
+        ownership_type="FAMILY_SHARED", price_milliunits=12000, currency="CNY",
+        expires_date="2026-11-30T10:08:36Z",
+    ))
+    content = apple_notification_content(notice, app_name="Example")
+    assert content.startswith(f"Example · {label}\n")
+    assert "原订阅价格：12 CNY（家庭共享，无新增付款）" in content
 
 
 @pytest.mark.parametrize("reason,expected", [

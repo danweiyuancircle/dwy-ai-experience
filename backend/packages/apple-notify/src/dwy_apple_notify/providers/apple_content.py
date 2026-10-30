@@ -70,8 +70,13 @@ def apple_notification_content(notice: VerifiedAppleNotification, *, app_name: s
             "AUTO_RENEW_ENABLED": "已恢复自动续订",
         }.get(notice.subtype, label)
     tx = notice.transaction_details
-    if tx and tx.ownership_type == "FAMILY_SHARED" and notice.notification_type == "ONE_TIME_CHARGE":
-        label = "家庭共享内购授权"
+    family_shared = tx is not None and tx.ownership_type == "FAMILY_SHARED"
+    if family_shared:
+        label = {
+            "ONE_TIME_CHARGE": "家庭共享内购授权",
+            "SUBSCRIBED": "家庭成员已获得订阅共享",
+            "DID_RENEW": "家庭共享订阅已续期",
+        }.get(notice.notification_type, label)
     event = notice.notification_type + (f" / {notice.subtype}" if notice.subtype else "")
     lines = [f"{app_name} · {label}", f"环境：{notice.environment}", f"事件：{event}"]
     if notice.notification_type == "CONSUMPTION_REQUEST":
@@ -86,8 +91,13 @@ def apple_notification_content(notice: VerifiedAppleNotification, *, app_name: s
         amount_label = "原交易金额" if notice.notification_type in {
             "CONSUMPTION_REQUEST", "REFUND", "REFUND_DECLINED", "REFUND_REVERSED",
         } else "交易金额"
+        if family_shared:
+            amount_label = "原订阅价格" if tx.expires_date is not None else "原交易金额"
+        amount = _money(tx.price_milliunits, tx.currency)
+        if family_shared:
+            amount += "（家庭共享，无新增付款）"
         lines.extend([
-            f"{amount_label}：{_money(tx.price_milliunits, tx.currency)}",
+            f"{amount_label}：{amount}",
             f"购买地区：{tx.storefront or 'Apple 未提供'}（App Store 店面）",
             "购买时间：" + (_date(tx.purchase_date) if tx.purchase_date is not None else "Apple 未提供"),
             "购买归属：" + _category(tx.ownership_type, {
