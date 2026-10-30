@@ -73,6 +73,13 @@ jobs:
           python scripts/check_python_distribution.py backend/packages/notify
           --module dwy_notify
 
+      - name: Verify queue wheel
+        run: |
+          uv venv "$RUNNER_TEMP/notify-smoke"
+          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/notify/dist").glob("*.whl")).resolve())')
+          uv pip install --python "$RUNNER_TEMP/notify-smoke/bin/python" --default-index https://pypi.org/simple "${WHEEL}[sqlalchemy]" 'aiosqlite==0.22.1'
+          "$RUNNER_TEMP/notify-smoke/bin/python" backend/packages/notify/tests/delivery_wheel_smoke.py "${{ steps.verify.outputs.package_version }}"
+
       - name: Stage universal wheel only
         run: |
           python - <<'PY'

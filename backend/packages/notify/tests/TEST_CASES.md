@@ -1,5 +1,9 @@
 # 通知包测试用例
 
+- `tests/test_integration.py`：任意业务来源通过显式预设发送；relay 逐目标去重和失败重投；队列持久化展示快照；历史 URL 指纹与隐式名称优先级兼容；重复目标配置拒绝。
+- `tests/delivery_wheel_smoke.py`：仓库外实际 wheel 版本、基础导入不加载 ORM/FastAPI/旧业务包、真实 SQLite 展示快照及重启去重；仅离线发送器。
+- `tests/test_delivery_queue.py`、`tests/test_target_delivery.py`、`tests/test_delivery_helpers.py`：外部会话与表、应用隔离、租约接管、逐目标成功检查点、取消恢复、目标变更拒发和有界安全失败状态。
+
 - `tests/test_appearance.py`：发送者名称必填，单目标、多目标及其它渠道缺名时全部在网络前拒绝，正文标题不能代替名称；头像可省略或显式 null。按字段校验单次/应用/URL/业务预设优先级、名称不可清空、并发隔离、指纹稳定及不支持头像的其它渠道。拒绝控制字符、超长名称和非 HTTPS/带账号密码的头像地址。
 
 执行：在 `backend/packages/notify/` 下运行 `python -m pytest tests/ -q`。

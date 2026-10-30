@@ -1,13 +1,14 @@
 [project]
 name = "dwy-notify"
-version = "0.2.0"
+version = "0.2.1"
 description = "基于 Apprise 的独立多目标通知与安全发送边界"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 dependencies = ["dwyeapi==0.12.1", "apprise==2.1.0", "requests==2.34.2"]
 
 [project.optional-dependencies]
-dev = ["pytest==9.0.3", "pytest-asyncio==1.3.0", "ruff==0.15.12"]
+sqlalchemy = ["SQLAlchemy==2.0.49"]
+dev = ["pytest==9.0.3", "pytest-asyncio==1.3.0", "aiosqlite==0.22.1", "ruff==0.15.12"]
 
 [build-system]
 requires = ["hatchling==1.27.0"]

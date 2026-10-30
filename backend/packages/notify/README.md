@@ -2,8 +2,20 @@
 
 独立多目标异步通知包，基于 `apprise==2.1.0`，公共配置和结果类型由本包拥有。依赖 `dwyeapi==0.12.1` 基础规范，不要求运行 Webhook 服务。
 
+来源无关的通知集成入口：
+
+- `dwy_notify.events.NotificationEvent`、`EventSink`：已验证事件的接收合同，不包含原始签名或邮件正文。
+- `dwy_notify.relay.NotificationRelay`：单次转发和有界成功去重；调用方通过 `appearance` 注入模块名称与可选头像，不按来源猜测业务预设。
+- `dwy_notify.delivery`：`DeliveryPolicy`、`NotificationDeliveryError`、`deliver_notifications`、`delivery_failure`，复用逐目标检查点和安全退避；不创建数据库。
+- `dwy_notify.sqlalchemy`：通过 `dwy-notify[sqlalchemy]` 安装的 `build_delivery_table`、`SQLAlchemyDeliveryQueue`；会话、表、生命周期、迁移均归宿主，队列显式接收 `appearance`。
+- `dwy_notify.integration`：`NotificationSettings`、`configured_notifier` 等目标选择与历史 Discord 配置适配，保留旧 URL 指纹；新集成优先使用 `NotificationConfig`。
+
+基础发送器不依赖 Apple、邮件或 Webhook 业务包。新模块使用自己的展示预设；历史兼容字段的旧名称仅为保证已有队列目标指纹稳定，不作为新业务的默认名称。
+
+实际 wheel 的发布验收在仓库外执行 `tests/delivery_wheel_smoke.py EXPECTED_VERSION`；需安装 `sqlalchemy` extra 与测试 SQLite 驱动。它核对安装版本、基础导入不加载 ORM/FastAPI/旧业务包，以及队列持久化显式预设和重启去重；不向外部服务发消息。
+
 ```bash
-pip install dwy-notify==0.2.0
+pip install dwy-notify==0.2.1
 ```
 
 ```python

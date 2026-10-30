@@ -44,7 +44,9 @@ class PrivateReleaseTests(unittest.TestCase):
             "publish-cli.yml": "npm publish --access public",
             "publish-eapi.yml": "pypa/gh-action-pypi-publish@",
             "publish-auth.yml": "pypa/gh-action-pypi-publish@",
-            "publish-webhooks.yml": "pypa/gh-action-pypi-publish@",
+            "publish-notify.yml": "pypa/gh-action-pypi-publish@",
+            "publish-apple-notify.yml": "pypa/gh-action-pypi-publish@",
+            "publish-email-notify.yml": "pypa/gh-action-pypi-publish@",
             "publish-device-fingerprint.yml": "pypa/gh-action-pypi-publish@",
         }
         for filename, publish in workflows.items():
@@ -59,20 +61,27 @@ class PrivateReleaseTests(unittest.TestCase):
                 self.assertNotIn("secrets.PYPI_API_TOKEN", value)
 
     def test_python_packages_allow_public_uploads(self):
-        """三个 Python 分发包都允许上传公开 PyPI。"""
+        """在用 Python 分发包都允许上传公开 PyPI。"""
         for directory in ("backend", "backend/packages/auth", "backend/packages/device-fingerprint",
-                          "backend/packages/webhooks"):
+                          "backend/packages/notify", "backend/packages/apple-notify",
+                          "backend/packages/email-notify"):
             with self.subTest(directory=directory):
                 value = tomllib.loads((ROOT / directory / "pyproject.toml").read_text())
                 self.assertNotIn("Private :: Do Not Upload", value["project"].get("classifiers", []))
 
-    def test_webhooks_are_tested_and_built_in_the_shared_release(self):
+    def test_notification_packages_are_tested_and_built_in_the_shared_release(self):
         """共享轮包必须经过同一验收与构建，不能只在业务项目本地存在。"""
         workflow = (ROOT / ".github/workflows/private-release.yml").read_text()
-        self.assertIn("backend/packages/webhooks/tests", workflow)
-        self.assertIn("uv build --project backend/packages/webhooks", workflow)
         manifest = tomllib.loads((ROOT / "ci/pyproject.toml").read_text())
-        self.assertTrue(any(value.startswith("dwy-webhooks[") for value in manifest["project"]["dependencies"]))
+        for directory, name in (("notify", "dwy-notify"), ("apple-notify", "dwy-apple-notify"),
+                                ("email-notify", "dwy-email-notify")):
+            with self.subTest(package=name):
+                self.assertIn(f"backend/packages/{directory}/tests", workflow)
+                self.assertIn(f"uv build --project backend/packages/{directory}", workflow)
+                self.assertTrue(any(value.startswith(name + "[")
+                                    for value in manifest["project"]["dependencies"]))
+        self.assertNotIn("backend/packages/webhooks", workflow)
+        self.assertFalse((ROOT / ".github/workflows/publish-webhooks.yml").exists())
 
     def test_github_public_and_private_repositories_are_accessible(self):
         """切换可见性不影响发布，仍须拿到服务端有效响应。"""

@@ -46,11 +46,14 @@ jobs:
           uv sync --project ci --frozen
       - name: Python contracts and package tests
         run: |
-          uv run --project ci --frozen pytest backend/tests backend/packages/auth/tests backend/packages/notify/tests backend/packages/webhooks/tests scripts/tests -q -o asyncio_mode=auto
+          uv run --project ci --frozen pytest backend/tests backend/packages/auth/tests backend/packages/notify/tests scripts/tests -q -o asyncio_mode=auto
+          uv run --project ci --frozen pytest -c backend/packages/apple-notify/pyproject.toml backend/packages/apple-notify/tests -q
+          uv run --project ci --frozen pytest -c backend/packages/email-notify/pyproject.toml backend/packages/email-notify/tests -q
           uv run --project ci --frozen pytest -c backend/packages/device-fingerprint/pyproject.toml backend/packages/device-fingerprint/tests -q
           uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py backend/packages/auth/src scripts/private_release.py
           uv run --project ci --frozen ruff check backend/src/dwyeapi/device.py backend/packages/device-fingerprint/src backend/packages/device-fingerprint/tests
-          uv run --project ci --frozen ruff check --config backend/packages/webhooks/pyproject.toml backend/packages/webhooks/src backend/packages/webhooks/tests
+          uv run --project ci --frozen ruff check --config backend/packages/apple-notify/pyproject.toml backend/packages/apple-notify/src backend/packages/apple-notify/tests
+          uv run --project ci --frozen ruff check --config backend/packages/email-notify/pyproject.toml backend/packages/email-notify/src backend/packages/email-notify/tests
           uv run --project ci --frozen ruff check --config backend/packages/notify/pyproject.toml backend/packages/notify/src backend/packages/notify/tests
       - name: Web and CLI regression
         run: |
@@ -75,7 +78,8 @@ jobs:
           uv build --project backend/packages/device-fingerprint --out-dir "$GITHUB_WORKSPACE/private-dist" --default-index https://pypi.org/simple
           uv build --project backend/packages/auth --out-dir "$GITHUB_WORKSPACE/private-dist"
           uv build --project backend/packages/notify --out-dir "$GITHUB_WORKSPACE/private-dist"
-          uv build --project backend/packages/webhooks --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/apple-notify --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/email-notify --out-dir "$GITHUB_WORKSPACE/private-dist"
           # uv 自动生成的目录忽略标记不是发布产物；其余非白名单文件仍需拒绝。
           rm -f private-dist/.gitignore
           python3 scripts/private_release.py manifest --directory private-dist --tag "0.0.0-ci.$GITHUB_RUN_ID" --revision "$GITHUB_SHA"
