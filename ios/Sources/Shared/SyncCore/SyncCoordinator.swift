@@ -58,7 +58,7 @@ public actor SyncCoordinator {
         retryPolicy: SyncRetryPolicy,
         sleep: @escaping @Sendable (TimeInterval) async throws -> Void = { seconds in
             // 避免旧 Swift 泛型时钟异步帧崩溃；超长 Retry-After 饱和为可表示的纳秒上限。
-            let nanoseconds = min(seconds * 1_000_000_000, Double(UInt64.max).nextDown)
+            let nanoseconds = min(seconds * 1_000_000_000, Double(Int64.max).nextDown)
             try await Task.sleep(nanoseconds: UInt64(nanoseconds))
         }
     ) {

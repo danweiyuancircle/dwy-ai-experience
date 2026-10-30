@@ -3,7 +3,10 @@ name: Swift sync runtime diagnostics
 on:
   push:
     branches: [develop]
-    paths: ['.github/workflows/sync-runtime-diagnostics.yml']
+    paths:
+      - '.github/workflows/sync-runtime-diagnostics.yml'
+      - 'ios/Sources/Shared/SyncCore/**'
+      - 'ios/Tests/SyncCoreTests/**'
   workflow_dispatch:
 
 permissions:
@@ -41,5 +44,6 @@ jobs:
                       print(image.get('name'), frame.get('symbol'), frame.get('symbolLocation'))
           PY
           xcrun lldb --batch -o run -k 'thread backtrace all' -- \
-            .build/debug/AppleAppKitPackageTests.xctest/Contents/MacOS/AppleAppKitPackageTests \
-            SyncCoreTests.SyncCoordinatorTests/testAutomaticRetryConfirmsLostResponseWithoutNewVersion
+            "$(xcrun --find xctest)" -XCTest \
+            SyncCoreTests.SyncCoordinatorTests/testAutomaticRetryConfirmsLostResponseWithoutNewVersion \
+            .build/debug/AppleAppKitPackageTests.xctest
