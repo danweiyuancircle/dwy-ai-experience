@@ -57,7 +57,9 @@ public actor SyncCoordinator {
         identityProvider: @escaping @Sendable (_ forceRefresh: Bool) async throws -> SyncIdentity,
         retryPolicy: SyncRetryPolicy,
         sleep: @escaping @Sendable (TimeInterval) async throws -> Void = { seconds in
-            try await Task.sleep(for: .seconds(seconds))
+            // 避免旧 Swift 工具链跨模块生成 Task.sleep(for:) 特化时崩溃（swiftlang/swift#86204）。
+            let clock = ContinuousClock()
+            try await clock.sleep(until: clock.now.advanced(by: .seconds(seconds)))
         }
     ) {
         self.store = store
