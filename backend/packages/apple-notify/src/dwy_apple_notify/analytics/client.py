@@ -31,7 +31,7 @@ _REQUIRED = {
     DOWNLOADS: {"Download Type", "Counts", "Territory", "Source Type"},
     DISCOVERY: {"Event", "Page Type", "Counts"},
     PURCHASES: {"Purchases", "Sales in USD", "Proceeds in USD", "Territory"},
-    STATE: {"State Metric", "State Metric Grouping", "Counts"},
+    STATE: {"State Metric", "Counts"},
     EVENTS: {"Event Grouping", "Event Sub Type", "Counts"},
 }
 
@@ -249,6 +249,11 @@ class AppleAnalyticsClient:
         try:
             reader = csv.DictReader(io.StringIO(raw.decode("utf-8-sig")), delimiter="\t", strict=True)
             columns = reader.fieldnames
+            if source == EVENTS and columns:
+                # 实际下载列名与文档不同；统一后检查重名，不能掩盖歧义列。
+                aliases = {"Event Group": "Event Grouping", "Event Name": "Event Sub Type"}
+                columns = [aliases.get(column, column) for column in columns]
+                reader.fieldnames = columns
             required = _REQUIRED[source] | {
                 "App Apple Identifier",
                 "Event Date" if source == EVENTS else "Date",

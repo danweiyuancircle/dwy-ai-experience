@@ -30,6 +30,7 @@ from dwy_apple_notify.analytics import (
     build_analytics_tables,
 )
 from dwy_apple_notify.analytics.appearance import DEFAULT_APPEARANCE
+from dwy_apple_notify.analytics.metrics import aggregate_reports
 
 
 async def main(expected_version: str) -> None:
@@ -51,6 +52,20 @@ async def main(expected_version: str) -> None:
     assert (config.timezone, config.send_hour, config.send_minute) == ("Asia/Shanghai", 8, 30)
     client = AppleAnalyticsClient(config)
     await client.aclose()
+    rows = {
+        "App Store Subscription State Report Standard": (
+            "Date\tApp Apple Identifier\tState Metric\tCounts\n2026-10-30\t1234567890\tFull price\t4\n"
+        ),
+        "App Store Subscription Event Report Standard": (
+            "Event Date\tApp Apple Identifier\tEvent Group\tEvent Name\tCounts\n"
+            "2026-10-30\t1234567890\tPaid subscription start\tFull price subscription start activation\t2\n"
+        ),
+    }
+    subscriptions = aggregate_reports("1234567890", date(2026, 10, 30), {
+        source: AppleAnalyticsClient._rows(raw.encode(), source) for source, raw in rows.items()
+    })
+    assert subscriptions.metrics["paid_subscriptions"].value == 4
+    assert subscriptions.metrics["paid_starts"].value == 2
     snapshot = AppleBusinessSnapshot(app_id="1234567890", report_date=date(2026, 10, 25), metrics={
         "first_downloads": AnalyticsValue(value=Decimal(9), status="available", source="Downloads Standard"),
         "sales_usd": AnalyticsValue(value=Decimal("1.25"), status="available", currency="USD",

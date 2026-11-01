@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from dwy_apple_notify.analytics.models import AppleBusinessSnapshot
+from dwy_apple_notify.analytics.models import AnalyticsCollectionError, AppleBusinessSnapshot
 from dwy_apple_notify.analytics.service import AnalyticsMonitor
 
 
@@ -103,6 +103,25 @@ async def test_failed_or_cancelled_collection_releases_without_partial_writes(fa
     else:
         store.fail.assert_awaited_once_with("issuer", "123", "lease", date(2026, 10, 24), app_name="工具")
     store.complete.assert_not_awaited()
+
+
+@pytest.mark.parametrize(
+    "failure,reason",
+    [(AnalyticsCollectionError("analytics_invalid_report"), "analytics_invalid_report"),
+     (TimeoutError("private-download-url"), "analytics_collection_timeout"),
+     (RuntimeError("private-download-url"), "analytics_unexpected_error")],
+)
+async def test_collection_failure_logs_safe_reason_without_exception_details(monkeypatch, failure, reason):
+    messages = []
+    monkeypatch.setattr("dwy_apple_notify.analytics.service.get_logger",
+                        lambda name: SimpleNamespace(error=messages.append))
+    worker, store, client = monitor()
+    client.collect.side_effect = failure
+    assert await worker.run_once() == 0
+    assert len(messages) == 1 and f"reason={reason}" in messages[0]
+    assert "private-download-url" not in messages[0]
+    store.complete.assert_not_awaited()
+    store.fail.assert_awaited_once()
 
 
 async def test_busy_or_completed_database_schedule_skips_collection():

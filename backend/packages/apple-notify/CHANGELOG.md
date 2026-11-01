@@ -1,5 +1,11 @@
 # dwy-apple-notify
 
+## 0.1.3
+
+- 修复实际订阅事件报表 Event Group/Event Name 列名及 Paid subscription start 分类解析，保留文档字段形式支持并拒绝歧义重名列。
+- 订阅存量直接按 State Metric 分类，不再依赖实际文件可能缺少的 State Metric Grouping；未知类别仍显示无数据。
+- 采集失败日志保留安全的底层错误码和超时原因，不记录异常原文或签名下载地址。
+
 ## 0.1.2
 
 - 家庭共享订阅首次获权、重新获权和续期使用独立标题，避免误认为新增购买。

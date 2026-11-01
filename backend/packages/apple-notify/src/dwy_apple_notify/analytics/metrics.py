@@ -49,18 +49,18 @@ _GROUPS = {
     ),
 }
 _EVENT_GROUPS = {
-    "Offer Starts",
-    "Offer Renewals",
-    "Paid Subscriptions from Offers",
-    "Paid Subscription Starts",
-    "Renewals",
-    "Commitment-Based Payments",
-    "Entered Billing Issue",
-    "Recoveries from Billing Issue",
-    "Involuntary Churn",
-    "Voluntary Churn",
-    "Exits",
-    "Extensions",
+    "offer starts",
+    "offer renewals",
+    "paid subscriptions from offers",
+    "paid subscription starts",
+    "renewals",
+    "commitment-based payments",
+    "entered billing issue",
+    "recoveries from billing issue",
+    "involuntary churn",
+    "voluntary churn",
+    "exits",
+    "extensions",
 }
 _STATES = {
     "Free trials",
@@ -168,17 +168,12 @@ def aggregate_reports(
                         if row["Event"] == "Page view" and row["Page Type"] == "Product page":
                             totals["page_views"] += count
                     elif source == STATE:
-                        state, group = row["State Metric"], row["State Metric Grouping"]
-                        if state not in _STATES or group not in {
-                            "Subscription offers",
-                            "Paid plans",
-                            "Billing issue",
-                            "Churned",
-                        }:
+                        state = row["State Metric"]
+                        if state not in _STATES:
                             unrecognized = True
-                        if group == "Paid plans":
+                        if state in {"Full price", "Preserved price", "Contingent price"}:
                             totals["paid_subscriptions"] += count
-                        if group == "Billing issue":
+                        if state in {"Grace period", "Billing retry", "Suspended"}:
                             totals["billing_issues"] += count
                         key = {"Free trials": "free_trials", "Paid offers": "paid_offer_subscriptions"}.get(
                             state
@@ -186,19 +181,22 @@ def aggregate_reports(
                         if key:
                             totals[key] += count
                     elif source == EVENTS:
-                        if row["Event Grouping"] not in _EVENT_GROUPS:
+                        group = row["Event Grouping"].casefold()
+                        if group == "paid subscription start":
+                            group = "paid subscription starts"
+                        if group not in _EVENT_GROUPS:
                             unrecognized = True
                         key = {
-                            "Paid Subscription Starts": "paid_starts",
-                            "Paid Subscriptions from Offers": "offer_conversions",
-                            "Renewals": "renewals",
-                            "Voluntary Churn": "voluntary_churn",
-                            "Involuntary Churn": "involuntary_churn",
-                            "Recoveries from Billing Issue": "billing_recoveries",
-                        }.get(row["Event Grouping"])
+                            "paid subscription starts": "paid_starts",
+                            "paid subscriptions from offers": "offer_conversions",
+                            "renewals": "renewals",
+                            "voluntary churn": "voluntary_churn",
+                            "involuntary churn": "involuntary_churn",
+                            "recoveries from billing issue": "billing_recoveries",
+                        }.get(group)
                         if key:
                             totals[key] += count
-                        if row["Event Sub Type"] == "Free Trial Starts":
+                        if row["Event Sub Type"].casefold() == "free trial starts":
                             totals["trial_starts"] += count
             except (KeyError, ValueError, TypeError):
                 raise AnalyticsCollectionError("analytics_invalid_report") from None

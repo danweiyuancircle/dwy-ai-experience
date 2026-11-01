@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 from dwyeapi.logger import get_logger
 
 from .formatting import apple_business_digest_content
-from .models import AnalyticsValue
+from .models import AnalyticsCollectionError, AnalyticsValue
 
 
 class AnalyticsMonitor:
@@ -110,9 +110,14 @@ class AnalyticsMonitor:
             except asyncio.CancelledError:
                 await self.store.release(config.issuer_id, app_id, token)
                 raise
-            except Exception:
+            except Exception as error:
+                reason = "analytics_unexpected_error"
+                if isinstance(error, AnalyticsCollectionError):
+                    reason = error.code
+                elif isinstance(error, TimeoutError):
+                    reason = "analytics_collection_timeout"
                 get_logger(__name__).error(
-                    "Apple analytics collection failed code=ANALYTICS_COLLECTION_FAILED"
+                    f"Apple analytics collection failed code=ANALYTICS_COLLECTION_FAILED reason={reason}"
                 )
                 await self.store.fail(config.issuer_id, app_id, token, target, app_name=application.name)
         return completed

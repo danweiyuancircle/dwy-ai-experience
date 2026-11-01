@@ -360,6 +360,18 @@ async def test_huge_api_response_rejected_without_content_length(monkeypatch):
             f"{DAY}\t123\tRenewals\tFull Price Renewals\t7",
             "renewals",
         ),
+        (
+            "App Store Subscription State Report Standard",
+            "Date\tApp Apple Identifier\tState Metric\tCounts",
+            f"{DAY}\t123\tFull price\t7",
+            "paid_subscriptions",
+        ),
+        (
+            "App Store Subscription Event Report Standard",
+            "Event Date\tApp Apple Identifier\tEvent Group\tEvent Name\tCounts",
+            f"{DAY}\t123\tPaid subscription start\tFull price subscription start activation\t7",
+            "paid_starts",
+        ),
     ],
 )
 async def test_collect_matches_literal_report_names_returned_by_apple(report_name, columns, values, metric):
@@ -395,3 +407,12 @@ async def test_collect_matches_literal_report_names_returned_by_apple(report_nam
     assert result.metrics[metric].status == "available"
     assert result.metrics[metric].value == 7
     assert result.metrics[metric].source == report_name
+
+
+def test_event_header_aliases_cannot_hide_duplicate_columns():
+    from dwy_apple_notify.analytics.metrics import EVENTS
+
+    raw = ("Event Date\tApp Apple Identifier\tEvent Group\tEvent Grouping\tEvent Sub Type\tCounts\n"
+           f"{DAY}\t123\tPaid subscription start\tRenewals\tFull price subscription start activation\t7\n")
+    with pytest.raises(AnalyticsCollectionError, match="^analytics_invalid_report$"):
+        AppleAnalyticsClient._rows(raw.encode(), EVENTS)

@@ -187,6 +187,41 @@ def test_verified_subscription_stocks_and_events_and_discovery_counts():
     assert {k: result.metrics[k].value for k in expected} == expected
 
 
+@pytest.mark.parametrize(
+    "state,metric",
+    [
+        ("Full price", "paid_subscriptions"),
+        ("Preserved price", "paid_subscriptions"),
+        ("Contingent price", "paid_subscriptions"),
+        ("Free trials", "free_trials"),
+        ("Paid offers", "paid_offer_subscriptions"),
+        ("Grace period", "billing_issues"),
+        ("Billing retry", "billing_issues"),
+        ("Suspended", "billing_issues"),
+    ],
+)
+def test_subscription_stocks_use_state_metric_without_requiring_grouping(state, metric):
+    from dwy_apple_notify.analytics.metrics import STATE
+
+    snapshot = aggregate_reports("123", DAY, {STATE: [{
+        "Date": str(DAY), "App Apple Identifier": "123", "State Metric": state, "Counts": "4",
+    }]})
+    stocks = ("paid_subscriptions", "paid_offer_subscriptions", "free_trials", "billing_issues")
+    assert snapshot.metrics[metric].status == "available"
+    assert snapshot.metrics[metric].value == 4
+    assert all(snapshot.metrics[key].value == 0 for key in stocks if key != metric)
+
+
+def test_unknown_subscription_state_is_unavailable_without_grouping():
+    from dwy_apple_notify.analytics.metrics import STATE
+
+    snapshot = aggregate_reports("123", DAY, {STATE: [{
+        "Date": str(DAY), "App Apple Identifier": "123", "State Metric": "Future state", "Counts": "4",
+    }]})
+    assert snapshot.metrics["paid_subscriptions"].status == "unavailable"
+    assert snapshot.metrics["paid_subscriptions"].value is None
+
+
 def test_unknown_event_category_does_not_claim_zero_and_missing_rows_stay_unknown():
     from dwy_apple_notify.analytics.metrics import DOWNLOADS, EVENTS
 
