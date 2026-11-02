@@ -8,7 +8,12 @@ import {
   copySkillsToProjectPlatforms,
   normalizeSkillScope,
   resolveProjectSkillDir,
+  resolveGlobalSkillDir,
+  deduplicateProjectSkills,
+  findGlobalSkill,
+  scanGlobalSkills,
 } from './sync-global-skills.js'
+import { prepareSharedSkills, removeSkillEntry } from './skill-store.js'
 import { chalk } from './utils.js'
 import {
   interactiveSelect,
@@ -117,7 +122,7 @@ export function buildSelectionDefaultsFromSyncState(existing, syncState) {
   return hasSetItems(stateDefaults) ? stateDefaults : existing
 }
 
-async function scanCombinedExisting(projectDir) {
+async function scanCombinedExisting(projectDir, global = false) {
   const claudeDir = path.join(projectDir, '.claude')
   const agentsMdPath = path.join(projectDir, 'AGENTS.md')
   const agentsMdContent = await fs.pathExists(agentsMdPath) ? await fs.readFile(agentsMdPath, 'utf-8') : ''
@@ -126,6 +131,7 @@ async function scanCombinedExisting(projectDir) {
     skills: unionSets(
       await scanExisting(claudeDir, 'skills'),
       await scanExistingCodexSkills(projectDir),
+      await scanExisting(path.join(projectDir, ...(global ? ['.config', 'opencode'] : ['.opencode'])), 'skills'),
     ),
     rules: unionSets(
       await scanExisting(claudeDir, 'rules'),
@@ -174,6 +180,9 @@ async function syncSkillsOnly({
   templateSkillNames,
   staleSkillNames,
   skillScope,
+  homeDir,
+  global,
+  duplicateNames,
 }) {
   const writeProject = skillScope.destinations.includes('project')
   if (!writeProject) return
@@ -185,24 +194,25 @@ async function syncSkillsOnly({
   }
 
   console.log(chalk.blue('\nSyncing skills only (rules / commands / hooks untouched)...\n'))
-  await copySkillsToProjectPlatforms({
-    projectDir,
-    platforms: skillPlatforms,
-    skills,
-  })
-
-  const selectedNames = new Set(skills.map(item => item.name))
-  const toRemove = new Set(
-    [...templateSkillNames, ...staleSkillNames].filter(name => !selectedNames.has(name)),
-  )
   for (const platform of skillPlatforms) {
-    const destRoot = resolveProjectSkillDir(projectDir, platform)
+    const platformSkills = skills.filter(skill => !duplicateNames[platform]?.has(skill.name))
+    if (global) {
+      await copySkillsToGlobalDirs({ skills: platformSkills, destIds: [platform === 'codex' ? 'agents' : platform], homeDir })
+    } else {
+      await copySkillsToProjectPlatforms({ projectDir, platforms: [platform], skills: platformSkills, homeDir })
+    }
+    const selectedNames = new Set(platformSkills.map(item => item.name))
+    const toRemove = new Set([...templateSkillNames, ...staleSkillNames].filter(name => !selectedNames.has(name)))
+    const destRoot = global
+      ? resolveGlobalSkillDir(platform === 'codex' ? 'agents' : platform, homeDir)
+      : resolveProjectSkillDir(projectDir, platform)
     const existingNames = await scanExisting(path.dirname(destRoot), 'skills')
     await removeManagedItems(
       destRoot,
       existingNames,
       toRemove,
       path.relative(projectDir, destRoot),
+      path.join(global ? homeDir : projectDir, '.dwy', 'skill-backups'),
     )
   }
 }
@@ -381,12 +391,12 @@ function buildNextPlatformState(selected, staleEntries, approvedRemovals, platfo
   return state
 }
 
-async function removeManagedItems(targetDir, existingNames, managedNames, labelPrefix) {
+async function removeManagedItems(targetDir, existingNames, managedNames, labelPrefix, backupRoot) {
   let removedCount = 0
 
   for (const name of existingNames) {
     if (!managedNames.has(name)) continue
-    await fs.remove(path.join(targetDir, name))
+    await removeSkillEntry({ dest: path.join(targetDir, name), backupRoot })
     logAction(`${labelPrefix}/${name}`, 'red', '×')
     removedCount++
   }
@@ -417,6 +427,62 @@ export async function runDwy(opts = {}) {
     return
   }
   await syncAll(opts)
+}
+
+/**
+ * 一键迁移当前项目已有的 CLI Skills，不进入选择流程、不补装其他平台、不修改 Rules / Hooks。
+ * 仅当前模板或历史同步记录中的名称视为托管；已移除的历史模板和整个根目录链接保留并报告。
+ */
+export async function migrateSkills({
+  sourceDir,
+  projectDir = process.cwd(),
+  homeDir = os.homedir(),
+  codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'),
+} = {}) {
+  const scans = await scanSkills(sourceDir || await resolveSourceDir())
+  const available = new Map(scans.map(skill => [skill.name, skill]))
+  const state = await loadSyncState(projectDir)
+  const existingByPlatform = {}
+  const neededNames = new Set()
+  const retained = []
+  const realProject = await fs.realpath(projectDir)
+  for (const platform of ['claude', 'codex', 'opencode']) {
+    const root = resolveProjectSkillDir(projectDir, platform)
+    if (!await fs.pathExists(root)) continue
+    if (await fs.realpath(root) !== path.join(realProject, path.relative(projectDir, root))) {
+      console.log(chalk.yellow(`${root} 已通过根目录链接共享内容，保留原链接，不迁移其目标。`))
+      continue
+    }
+    const existing = await scanExisting(path.dirname(root), 'skills')
+    const historical = new Set(state.platforms[platform]?.skills || [])
+    const managed = [...existing].filter(name => available.has(name) || historical.has(name))
+    if (managed.length === 0) continue
+    existingByPlatform[platform] = managed
+    for (const name of managed) {
+      if (available.has(name)) neededNames.add(name)
+      else {
+        retained.push({ platform, name })
+        console.log(chalk.yellow(`${platform}/${name} 已不在当前模板中，保留原目录。`))
+      }
+    }
+  }
+  const shared = await prepareSharedSkills({ skills: [...neededNames].map(name => available.get(name)), homeDir })
+  let linked = 0
+  let globalCount = 0
+  for (const [platform, names] of Object.entries(existingByPlatform)) {
+    const skills = shared.filter(skill => names.includes(skill.name))
+    const duplicates = await deduplicateProjectSkills({ projectDir, platform, skills, homeDir, codexHome })
+    const local = skills.filter(skill => !duplicates.has(skill.name))
+    linked += await copySkillsToProjectPlatforms({ projectDir, platforms: [platform], skills: local, homeDir })
+    globalCount += duplicates.size
+    state.platforms[platform] = {
+      ...(state.platforms[platform] || createEmptyPlatformState()),
+      skills: names.filter(name => !duplicates.has(name)).sort(),
+    }
+  }
+  if (Object.keys(existingByPlatform).length) await saveSyncState(projectDir, state)
+  console.log(chalk.green(`迁移完成：${linked} 个项目链接，${globalCount} 个使用全局入口，${retained.length} 个历史条目保留。`))
+  return { linked, global: globalCount, retained }
 }
 
 export async function syncAll({
@@ -452,7 +518,10 @@ export async function syncAll({
   const syncState = await loadSyncState(projectDir)
   const globalState = await loadSyncState(homeDir)
   const projectDefaults = buildSelectionDefaultsFromSyncState(existing, syncState)
-  const globalDefaults = buildSelectionDefaultsFromSyncState({ skills: new Set(), rules: new Set(), hooks: new Set() }, globalState)
+  const globalExisting = await scanCombinedExisting(homeDir, true)
+  globalExisting.skills = await scanGlobalSkills({ homeDir, codexHome })
+  const globalDefaults = buildSelectionDefaultsFromSyncState(globalExisting, globalState)
+  globalDefaults.skills = unionSets(globalDefaults.skills, globalExisting.skills)
   const selectionDefaults = Object.fromEntries(['skills', 'rules', 'hooks'].map(type => [type, unionSets(projectDefaults[type], globalDefaults[type])]))
   selectionDefaults.rules = projectDefaults.rules
   const syncMode = normalizeSyncMode(syncModeOverride)
@@ -529,6 +598,7 @@ export async function syncAll({
       for (const dest of legacyClaudeRules) console.log(`删除旧 Claude Rules → ${dest}`)
     }
     console.log('Hooks 按支持的平台自动启用。')
+    console.log('Skills 将迁为用户共享副本的目录链接；原真实目录先备份，同平台全局入口优先。')
     for (const platform of selectedPlatforms) {
       for (const type of PLATFORM_SYNC_TYPES[platform]) {
         const existingNames = currentManaged[platform]?.[type] || new Set()
@@ -548,7 +618,32 @@ export async function syncAll({
   if (!selectedOverride && selected.skills.some(item => item.category === '产品0到1')) await ensureSkillsInstalled()
 
   const selectedSkillNames = new Set((selected.skills || []).map(item => item.name))
-  const skillsToWrite = scans.skills.filter(item => selectedSkillNames.has(item.name))
+  const globalSkillNameSet = new Set(skillScope.globalSkills)
+  const neededNames = new Set(skillScope.destinations.some(id => id !== 'project') ? globalSkillNameSet : [])
+  if (selectedPlatforms.some(platform => resolveProjectSkillDir(projectDir, platform))) {
+    for (const name of selectedSkillNames) neededNames.add(name)
+  }
+  for (const platform of selectedPlatforms) {
+    for (const skill of scans.skills) {
+      if (await findGlobalSkill({ name: skill.name, platform, homeDir, codexHome })) neededNames.add(skill.name)
+    }
+  }
+  const sharedSkills = await prepareSharedSkills({ skills: scans.skills.filter(item => neededNames.has(item.name)), homeDir })
+  const skillsToWrite = sharedSkills.filter(item => selectedSkillNames.has(item.name))
+  const globalSkills = sharedSkills.filter(item => globalSkillNameSet.has(item.name))
+  if (globalSkills.length > 0 && skillScope.destinations.some(id => id !== 'project')) {
+    await copySkillsToGlobalDirs({ skills: globalSkills, destIds: skillScope.destinations, homeDir })
+  }
+  const duplicateNames = {}
+  if (!global) {
+    for (const platform of selectedPlatforms) {
+      duplicateNames[platform] = await deduplicateProjectSkills({ projectDir, platform, skills: sharedSkills, homeDir, codexHome })
+    }
+  }
+  const selectionFor = platform => ({
+    ...selected,
+    skills: selected.skills.filter(skill => !duplicateNames[platform]?.has(skill.name)),
+  })
   let syncedAnySupportedPlatform = false
 
   if (syncMode === SYNC_MODE_SKILLS) {
@@ -563,6 +658,9 @@ export async function syncAll({
       templateSkillNames: new Set(scans.skills.map(item => item.name)),
       staleSkillNames,
       skillScope,
+      homeDir,
+      global,
+      duplicateNames,
     })
     syncedAnySupportedPlatform = selectedPlatforms.some(platform => resolveProjectSkillDir(projectDir, platform))
       || skillScope.destinations.some(id => id !== 'project')
@@ -586,7 +684,9 @@ export async function syncAll({
         sourceDir,
         projectDir: targetRoot,
         global,
-        selected,
+        selected: selectionFor('claude'),
+        homeDir,
+        sharedSkills,
         staleRemovals: approvedStaleRemovals.claude,
       })
     }
@@ -598,7 +698,9 @@ export async function syncAll({
         sourceDir,
         projectDir: targetRoot,
         global,
-        selected,
+        selected: selectionFor('codex'),
+        homeDir,
+        sharedSkills,
         staleRemovals: approvedStaleRemovals.codex,
       })
     }
@@ -619,7 +721,9 @@ export async function syncAll({
         sourceDir,
         projectDir: targetRoot,
         global,
-        selected,
+        selected: selectionFor('opencode'),
+        homeDir,
+        sharedSkills,
         staleRemovals: approvedStaleRemovals.opencode,
       })
     }
@@ -627,21 +731,19 @@ export async function syncAll({
 
   }
 
-  const globalSkillNameSet = new Set(skillScope.globalSkills)
-  const globalSkills = scans.skills.filter(item => globalSkillNameSet.has(item.name))
-  if (globalSkills.length > 0 && skillScope.destinations.some(id => id !== 'project')) {
-    console.log(chalk.blue('\nSyncing selected skills to global directories...\n'))
-    await copySkillsToGlobalDirs({
-      skills: globalSkills,
-      destIds: skillScope.destinations,
-      homeDir,
-    })
+  if (global) {
+    for (const platform of selectedPlatforms) {
+      duplicateNames[platform] = await deduplicateProjectSkills({ projectDir, platform, skills: sharedSkills, homeDir, codexHome })
+      if (syncState.platforms[platform]) {
+        syncState.platforms[platform].skills = syncState.platforms[platform].skills.filter(name => !duplicateNames[platform].has(name))
+      }
+    }
   }
 
   if (syncMode === SYNC_MODE_SKILLS) {
     for (const platform of selectedPlatforms) {
-      const previous = syncState.platforms[platform] || createEmptyPlatformState()
-      const skillsOnlySelected = { skills: selected.skills || [], rules: [], commands: [], hooks: [] }
+      const previous = targetState.platforms[platform] || createEmptyPlatformState()
+      const skillsOnlySelected = { skills: (global ? selected : selectionFor(platform)).skills, rules: [], commands: [], hooks: [] }
       targetState.platforms[platform] = {
         ...previous,
         skills: buildNextPlatformState(skillsOnlySelected, staleEntries, approvedStaleRemovals, platform).skills,
@@ -649,7 +751,7 @@ export async function syncAll({
     }
   } else {
     for (const platform of selectedPlatforms) {
-      const next = buildNextPlatformState(selected, staleEntries, approvedStaleRemovals, platform)
+      const next = buildNextPlatformState(global ? selected : selectionFor(platform), staleEntries, approvedStaleRemovals, platform)
       if (global) {
         syncState.platforms[platform] = {
           ...(syncState.platforms[platform] || createEmptyPlatformState()),
@@ -675,7 +777,7 @@ export async function syncAll({
   }
   targetState.skillScope = skillScope
   targetState.syncMode = syncMode
-  if (syncMode === SYNC_MODE_ALL && global) {
+  if (global) {
     syncState.syncMode = syncMode
     await saveSyncState(projectDir, syncState)
     if (cliPlatforms.length) await saveSyncState(homeDir, targetState)

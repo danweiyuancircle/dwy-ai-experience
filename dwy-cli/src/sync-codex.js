@@ -1,6 +1,7 @@
 import fs from 'fs-extra'
 import path from 'path'
 import { chalk } from './utils.js'
+import { linkSkill, prepareSharedSkills, removeSkillEntry } from './skill-store.js'
 import {
   extractDescription,
   loadHookManifests,
@@ -186,15 +187,14 @@ export async function scanExistingCodexSkills(proj) {
   const dir = path.join(proj, '.agents', 'skills')
   if (!await fs.pathExists(dir)) return new Set()
   const entries = await fs.readdir(dir, { withFileTypes: true })
-  return new Set(entries.filter(e => e.isDirectory()).map(e => e.name))
+  return new Set(entries.filter(e => e.isDirectory() || e.isSymbolicLink()).map(e => e.name))
 }
 
 async function copySkillsFlat(skills, proj) {
   const root = path.join(proj, '.agents', 'skills')
   for (const s of skills) {
     const dest = path.join(root, s.name)
-    await fs.ensureDir(path.dirname(dest))
-    await fs.copy(s.sourcePath, dest, { overwrite: true, filter: copyFilter(s.sourcePath) })
+    await linkSkill({ skill: s, dest, backupRoot: path.join(proj, '.dwy', 'skill-backups') })
     logAction(`.agents/skills/${s.name}`)
   }
   return skills.length
@@ -206,7 +206,12 @@ async function removeUnselectedFlat(subdir, existingNames, selectedNames, templa
     if (selectedNames.has(name)) continue
     // 项目独有(模板未提供过)的条目永不删除,保留用户自定义
     if (!templateNames.has(name)) continue
-    await fs.remove(path.join(proj, ...subdir, name))
+    const dest = path.join(proj, ...subdir, name)
+    if (subdir[1] === 'skills') {
+      await removeSkillEntry({ dest, backupRoot: path.join(proj, '.dwy', 'skill-backups') })
+    } else {
+      await fs.remove(dest)
+    }
     logAction(`${subdir.join('/')}/${name}`, 'red', '×')
     count++
   }
@@ -345,6 +350,8 @@ export async function syncCodex({
   projectDir,
   global = false,
   selected,
+  homeDir,
+  sharedSkills,
   staleRemovals = {},
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
@@ -378,7 +385,10 @@ export async function syncCodex({
   let syncedCount = 0
   let removedCount = 0
 
-  syncedCount += await copySkillsFlat(syncedSelection.skills, proj)
+  const skills = sharedSkills
+    ? sharedSkills.filter(skill => selectedNames('skills').has(skill.name))
+    : await prepareSharedSkills({ skills: syncedSelection.skills, homeDir })
+  syncedCount += await copySkillsFlat(skills, proj)
   syncedCount += await copyCodexHooks(syncedSelection.hooks, proj)
   syncedCount += await syncCodexHooksJson(sourceDir, proj, selectedHookNames, global)
 

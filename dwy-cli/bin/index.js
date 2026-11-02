@@ -3,7 +3,8 @@
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
-import { runDwy } from '../src/sync-all.js'
+import { runDwy, migrateSkills } from '../src/sync-all.js'
+import { refreshSharedSkills } from '../src/skill-store.js'
 import { selfUpgrade } from '../src/self-upgrade.js'
 import { buildHelpText } from '../src/cli-help.js'
 
@@ -24,14 +25,16 @@ if (wantsHelp(argv)) {
   printHelp()
 } else if (argv.includes('--version') || argv.includes('-V')) {
   console.log(pkg.version)
-} else if (argv[0] === 'upgrade') {
+} else if (['upgrade', 'refresh', 'migrate'].includes(argv[0])) {
   if (argv.length > 1) {
     console.error(`未知命令: dwy ${argv.join(' ')}`)
     printHelp()
     process.exitCode = 1
   } else {
     try {
-      await selfUpgrade()
+      if (argv[0] === 'upgrade') await selfUpgrade()
+      if (argv[0] === 'refresh') await refreshSharedSkills()
+      if (argv[0] === 'migrate') await migrateSkills()
     } catch (error) {
       console.error(error.message)
       process.exitCode = 1

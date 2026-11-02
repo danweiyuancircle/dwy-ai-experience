@@ -141,6 +141,7 @@ export async function selfUpgrade({
   const latest = await fetchLatest()
   const cmp = compareVersions(current, latest)
   if (cmp === 0) {
+    await runCommand('dwy', ['refresh'])
     console.log(chalk.green(`已是最新正式版 ${current}`))
     return { status: 'up-to-date', current, latest, installer }
   }
@@ -153,6 +154,12 @@ export async function selfUpgrade({
   console.log(chalk.blue(`升级 ${PACKAGE_NAME} ${current} → ${latest}`))
   console.log(chalk.gray(`  ${cmd} ${args.join(' ')}`))
   await runCommand(cmd, args)
+  try {
+    // 必须启动新安装的 CLI；pnpm 升级后旧进程的模块路径仍可能指向旧版本。
+    await runCommand('dwy', ['refresh'])
+  } catch (error) {
+    throw new Error(`CLI 已安装新版本，但共享 Skills 刷新失败：${error.message}`, { cause: error })
+  }
   console.log(chalk.green(`已升级到 ${latest}`))
   return { status: 'upgraded', current, latest, installer }
 }

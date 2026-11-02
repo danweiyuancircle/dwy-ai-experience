@@ -71,6 +71,27 @@ Apple 验证需要完整 Xcode 环境。本机使用 Node 26 时，如 Vitest/js
 
 Claude Code 直接读取项目 `AGENTS.md` 需要 v2.1.277 或更新版本，并启用对应内置插件；默认情况下，工作目录及祖先目录中若存在 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md`，会优先读取这些旧文件。全局 `~/.claude/CLAUDE.md` 会与项目指令一起加载。加载条件见 [Claude Code 官方说明](https://code.claude.com/docs/en/memory#agents-md)。
 
+## Skills 共享副本与老项目迁移
+
+Skills 内容来自 CLI 包内模板，用户目录 `.dwy/skills/<name>` 保存一份共享副本；项目和全局的发现目录通过整个 Skill 目录的软链接引用它。相同平台已有有效全局入口时，项目不保留重复入口。Rules、Hooks 的存放规则不变。
+
+```bash
+# 老项目：在项目根目录执行一次，无需重新勾选
+dwy migrate
+
+# 日常更新：升级 CLI 后自动刷新共享 Skills
+dwy upgrade
+
+# 通过包管理器手动升级 CLI 后，刷新一次即可影响所有已迁移项目
+dwy refresh
+```
+
+`dwy migrate` 只迁移项目已有、能通过当前模板名称或历史同步记录识别的托管 Skills；未知个人 Skill 不改动，当前包已移除的历史条目保留并报告。原真实目录先备份到项目或用户目录的 `.dwy/skill-backups`，重复执行不会重复备份已有正确链接。原有的整个 Skills 根目录链接保留，不通过它改写外部目录。
+
+旧项目需各执行一次迁移，之后无需逐项目更新 Skills。链接只在当前机器有效，跨机器使用需重新同步；正在运行的 AI 会话可能缓存 Skill，需要重新加载。macOS / Linux 使用目录软链接，Windows 使用目录 junction。
+
+开发中的命令可用 `node dwy-cli/bin/index.js migrate` 或 `node dwy-cli/bin/index.js refresh` 执行；迁移其他项目时，使用指向本仓库 CLI 入口的实际路径，并在目标项目根目录运行。
+
 ## 接入与分发
 
 - 认证总览：[docs/auth.md](docs/auth.md)。

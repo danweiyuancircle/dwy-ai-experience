@@ -3,6 +3,7 @@ import path from 'path'
 import { isCancel } from '@clack/prompts'
 import { tabMultiselect } from './tab-multiselect.js'
 import { chalk, PACKAGE_ROOT } from './utils.js'
+import { linkSkill, prepareSharedSkills, removeSkillEntry } from './skill-store.js'
 
 const CATEGORIES = [
   { key: 'skills', label: 'Skills' },
@@ -243,8 +244,7 @@ export function logAction(label, color = 'green', prefix = '✓') {
 async function copyItems(items, targetDir) {
   for (const item of items) {
     const dest = path.join(targetDir, item.type + 's', item.name)
-    await fs.ensureDir(path.dirname(dest))
-    await fs.copy(item.sourcePath, dest, { overwrite: true, filter: copyFilter(item.sourcePath) })
+    await linkSkill({ skill: item, dest, backupRoot: path.join(targetDir, '..', '.dwy', 'skill-backups') })
     logAction(`${item.type}s/${item.name}`)
   }
   return items.length
@@ -278,7 +278,11 @@ async function removeUnselected(typePlural, existingNames, selectedNames, templa
     // 项目独有(模板未提供过)的条目永不删除,保留用户自定义
     if (!templateNames.has(name)) continue
     const target = path.join(targetDir, typePlural, name)
-    await fs.remove(target)
+    if (typePlural === 'skills') {
+      await removeSkillEntry({ dest: target, backupRoot: path.join(targetDir, '..', '.dwy', 'skill-backups') })
+    } else {
+      await fs.remove(target)
+    }
     logAction(`${typePlural}/${name}`, 'red', '×')
     count++
   }
@@ -400,6 +404,8 @@ export async function syncClaude({
   projectDir,
   global = false,
   selected,
+  homeDir,
+  sharedSkills,
   staleRemovals = {},
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
@@ -455,7 +461,10 @@ export async function syncClaude({
   let syncedCount = 0
   let removedCount = 0
 
-  syncedCount += await copyItems(syncedSelection.skills, projectTargetDir)
+  const skills = sharedSkills
+    ? sharedSkills.filter(skill => selectedNames('skills').has(skill.name))
+    : await prepareSharedSkills({ skills: syncedSelection.skills, homeDir })
+  syncedCount += await copyItems(skills, projectTargetDir)
   syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, global)
   syncedCount += await copyHooks(syncedSelection.hooks, projectTargetDir)
 

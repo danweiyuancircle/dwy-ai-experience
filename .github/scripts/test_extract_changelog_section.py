@@ -78,6 +78,17 @@ class ExtractChangelogSectionTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("version section not found", result.stderr)
 
+    def test_extracts_dated_version_headers(self) -> None:
+        """Accepts explicit version/date headers while retaining legacy titles."""
+        for header in ("0.22.0 - 2026-11-02", "[0.22.0] - 2026-11-02", "[0.22.0]"):
+            with self.subTest(header=header):
+                output = self.run_script(
+                    f"# create-dwy\n\n## {header}\n\n- shared skills\n\n## 0.21.0\n\n- old\n",
+                    "0.22.0",
+                    "create-dwy@0.22.0",
+                )
+                self.assertEqual(output, "## create-dwy@0.22.0\n\n- shared skills\n")
+
 
 if __name__ == "__main__":
     unittest.main()

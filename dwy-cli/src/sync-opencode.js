@@ -1,8 +1,8 @@
 import fs from 'fs-extra'
 import path from 'path'
 import { chalk } from './utils.js'
+import { linkSkill, prepareSharedSkills, removeSkillEntry } from './skill-store.js'
 import {
-  copyFilter,
   logAction,
   resolveSourceDir,
   scanExisting,
@@ -15,8 +15,7 @@ async function copyItemsTo(baseDir, typeDir, items) {
 
   for (const item of items) {
     const dest = path.join(targetDir, item.name)
-    await fs.ensureDir(path.dirname(dest))
-    await fs.copy(item.sourcePath, dest, { overwrite: true, filter: copyFilter(item.sourcePath) })
+    await linkSkill({ skill: item, dest, backupRoot: path.join(baseDir, '..', '.dwy', 'skill-backups') })
     logAction(`.opencode/${typeDir}/${item.name}`)
     count++
   }
@@ -31,7 +30,7 @@ async function removeUnselected(typeDir, existingNames, selectedNames, templateN
   for (const name of existingNames) {
     if (selectedNames.has(name)) continue
     if (!templateNames.has(name)) continue
-    await fs.remove(path.join(targetDir, name))
+    await removeSkillEntry({ dest: path.join(targetDir, name), backupRoot: path.join(baseDir, '..', '.dwy', 'skill-backups') })
     logAction(`.opencode/${typeDir}/${name}`, 'red', '×')
     count++
   }
@@ -45,6 +44,8 @@ export async function syncOpenCode({
   projectDir,
   global = false,
   selected,
+  homeDir,
+  sharedSkills,
   staleRemovals = {},
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
@@ -74,7 +75,10 @@ export async function syncOpenCode({
   let syncedCount = 0
   let removedCount = 0
 
-  syncedCount += await copyItemsTo(openCodeDir, 'skills', syncedSelection.skills)
+  const skills = sharedSkills
+    ? sharedSkills.filter(skill => selectedNames('skills').has(skill.name))
+    : await prepareSharedSkills({ skills: syncedSelection.skills, homeDir })
+  syncedCount += await copyItemsTo(openCodeDir, 'skills', skills)
 
   removedCount += await removeUnselected(
     'skills',

@@ -38,7 +38,7 @@ test('selfUpgrade 已是最新则不执行安装', async () => {
     runCommand: async (cmd, args) => { calls.push([cmd, args]) },
   })
   assert.equal(result.status, 'up-to-date')
-  assert.equal(calls.length, 0)
+  assert.deepEqual(calls, [['dwy', ['refresh']]])
 })
 
 test('selfUpgrade 落后则按安装器升级到 latest', async () => {
@@ -50,7 +50,16 @@ test('selfUpgrade 落后则按安装器升级到 latest', async () => {
     runCommand: async (cmd, args) => { calls.push([cmd, args]) },
   })
   assert.equal(result.status, 'upgraded')
-  assert.deepEqual(calls, [['npm', ['install', '-g', 'create-dwy@latest']]])
+  assert.deepEqual(calls, [['npm', ['install', '-g', 'create-dwy@latest']], ['dwy', ['refresh']]])
+})
+
+test('selfUpgrade 刷新失败不能报告完整升级成功', async () => {
+  await assert.rejects(selfUpgrade({
+    currentVersion: '1.0.0',
+    pkgRoot: '/usr/local/lib/node_modules/create-dwy',
+    fetchLatest: async () => '1.2.3',
+    runCommand: async cmd => { if (cmd === 'dwy') throw new Error('refresh failed') },
+  }), /刷新失败/)
 })
 
 test('selfUpgrade 当前新于 npm 不降级', async () => {

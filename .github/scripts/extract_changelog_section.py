@@ -14,8 +14,10 @@ VERSION_HEADER_RE = re.compile(r"^##\s+(.+?)\s*$", re.MULTILINE)
 def extract_version_body(changelog_text: str, version: str) -> str:
     """Returns the markdown body for one version section, excluding the version header."""
     matches = list(VERSION_HEADER_RE.finditer(changelog_text))
+    escaped_version = re.escape(version)
+    version_title = re.compile(rf"(?:{escaped_version}|\[{escaped_version}\])(?:\s+-\s+\d{{4}}-\d{{2}}-\d{{2}})?")
     for index, match in enumerate(matches):
-      if match.group(1).strip() != version:
+      if not version_title.fullmatch(match.group(1).strip()):
         continue
 
       body_start = match.end()

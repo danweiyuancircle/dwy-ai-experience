@@ -1,13 +1,13 @@
 /**
- * 将已选 skill 额外拷到用户全局目录。
- * 项目目录同步仍由各平台 sync 负责；本模块只处理 ~/.claude / ~/.grok 等 home 下目录。
- * 只覆盖本次点名的 skill，不删除全局目录里其它个人 skill。
+ * 将 Skills 安装为用户共享副本的目录链接，并处理同平台全局优先去重。
+ * 只处理模板或同步记录中的条目；个人 Skill 不参与清理，原真实目录先备份。
  */
 
 import fs from 'fs-extra'
 import os from 'node:os'
 import path from 'path'
-import { copyFilter, logAction } from './sync.js'
+import { logAction, scanExisting } from './sync.js'
+import { linkSkill, prepareSharedSkills, removeSkillEntry } from './skill-store.js'
 
 /** 项目目录：随所选平台落到 .claude/skills、.agents/skills 等 */
 export const SKILL_DEST_PROJECT = 'project'
@@ -115,7 +115,7 @@ export function listSkillDestOptions(homeDir = os.homedir()) {
 }
 
 /**
- * 把 skill 目录拷到已选全局 dest。destIds 含 project 时跳过（项目侧已同步）。
+ * 将 skill 的共享副本链接到已选全局 dest。destIds 含 project 时跳过。
  * 只写传入的 skills，不清理目标根目录里其它条目。
  *
  * @param {{ skills: Array<{ name: string, sourcePath: string }>, destIds: string[], homeDir?: string }} opts
@@ -123,15 +123,15 @@ export function listSkillDestOptions(homeDir = os.homedir()) {
  */
 export async function copySkillsToGlobalDirs({ skills, destIds, homeDir = os.homedir() }) {
   let count = 0
+  const sharedSkills = await prepareSharedSkills({ skills, homeDir })
 
   for (const destId of destIds) {
     const destRoot = resolveGlobalSkillDir(destId, homeDir)
     if (!destRoot) continue
 
-    for (const skill of skills) {
+    for (const skill of sharedSkills) {
       const dest = path.join(destRoot, skill.name)
-      await fs.ensureDir(path.dirname(dest))
-      await fs.copy(skill.sourcePath, dest, { overwrite: true, filter: copyFilter(skill.sourcePath) })
+      await linkSkill({ skill, dest, backupRoot: path.join(homeDir, '.dwy', 'skill-backups') })
       logAction(`${DEST_LABELS[destId] || destId}/${skill.name}`)
       count++
     }
@@ -141,27 +141,78 @@ export async function copySkillsToGlobalDirs({ skills, destIds, homeDir = os.hom
 }
 
 /**
- * 仅 Skills 模式：把 skill 拷到项目内已选平台的 skills 目录。
+ * 将 skill 的共享副本链接到项目内已选平台的 skills 目录。
  * 不写 rules / commands / hooks。
  *
- * @param {{ projectDir: string, platforms: string[], skills: Array<{ name: string, sourcePath: string }> }} opts
+ * @param {{ projectDir: string, platforms: string[], skills: Array<{ name: string, sourcePath: string }>, homeDir?: string }} opts
  * @returns {Promise<number>}
  */
-export async function copySkillsToProjectPlatforms({ projectDir, platforms, skills }) {
+export async function copySkillsToProjectPlatforms({ projectDir, platforms, skills, homeDir }) {
   let count = 0
+  const sharedSkills = await prepareSharedSkills({ skills, homeDir })
 
   for (const platform of platforms) {
     const destRoot = resolveProjectSkillDir(projectDir, platform)
     if (!destRoot) continue
 
-    for (const skill of skills) {
+    for (const skill of sharedSkills) {
       const dest = path.join(destRoot, skill.name)
-      await fs.ensureDir(path.dirname(dest))
-      await fs.copy(skill.sourcePath, dest, { overwrite: true, filter: copyFilter(skill.sourcePath) })
+      await linkSkill({ skill, dest, backupRoot: path.join(projectDir, '.dwy', 'skill-backups') })
       logAction(`${path.relative(projectDir, destRoot)}/${skill.name}`)
       count++
     }
   }
 
   return count
+}
+
+/** 当前平台实际发现的用户级目录；OpenCode 同时兼容 Claude 与 .agents。 */
+export function globalSkillRoots(platform, homeDir, codexHome = path.join(homeDir, '.codex')) {
+  if (platform === 'claude') return [resolveGlobalSkillDir('claude', homeDir)]
+  if (platform === 'codex') return [resolveGlobalSkillDir('agents', homeDir), path.join(codexHome, 'skills')]
+  if (platform === 'opencode') return ['opencode', 'claude', 'agents'].map(id => resolveGlobalSkillDir(id, homeDir))
+  return []
+}
+
+/** 查找有效全局入口；坏链或目录缺少 SKILL.md 时不能作为项目去重依据。 */
+export async function findGlobalSkill({ name, platform, homeDir, codexHome }) {
+  for (const root of globalSkillRoots(platform, homeDir, codexHome)) {
+    const dest = path.join(root, name)
+    const stat = await fs.stat(path.join(dest, 'SKILL.md')).catch(error => {
+      if (error.code === 'ENOENT' || error.code === 'ENOTDIR') return null
+      throw error
+    })
+    if (stat?.isFile()) return dest
+  }
+  return null
+}
+
+/** 按实际发现范围扫描有效全局 Skills，供默认选择使用；覆盖自定义 CODEX_HOME。 */
+export async function scanGlobalSkills({ homeDir, codexHome }) {
+  const names = new Set()
+  for (const platform of ['claude', 'codex', 'opencode']) {
+    for (const root of globalSkillRoots(platform, homeDir, codexHome)) {
+      for (const name of await scanExisting(path.dirname(root), 'skills')) {
+        if (await findGlobalSkill({ name, platform, homeDir, codexHome })) names.add(name)
+      }
+    }
+  }
+  return names
+}
+
+/** 全局优先：已有全局副本迁为共享链接，项目重复真实目录备份后移除，返回去重名称。 */
+export async function deduplicateProjectSkills({ projectDir, platform, skills, homeDir, codexHome }) {
+  const projectRoot = resolveProjectSkillDir(projectDir, platform)
+  const duplicates = new Set()
+  if (!projectRoot || path.resolve(projectDir) === path.resolve(homeDir)) return duplicates
+  for (const skill of skills) {
+    const globalEntry = await findGlobalSkill({ name: skill.name, platform, homeDir, codexHome })
+    if (!globalEntry) continue
+    await linkSkill({ skill, dest: globalEntry, backupRoot: path.join(homeDir, '.dwy', 'skill-backups') })
+    const dest = path.join(projectRoot, skill.name)
+    await removeSkillEntry({ dest, backupRoot: path.join(projectDir, '.dwy', 'skill-backups') })
+    duplicates.add(skill.name)
+    logAction(`${platform}/${skill.name} 使用全局入口，移除项目重复入口`)
+  }
+  return duplicates
 }
