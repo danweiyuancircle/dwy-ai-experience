@@ -126,10 +126,13 @@ async def deliver_notifications(
                              message_id=message_id, error_code=None)
         if not await checkpoint(payload=payload):
             return dict(status="processing")
+    return dict(payload=payload, **_delivery_values(states))
+
+
+def _delivery_values(states: dict) -> dict:
     retrying = [state for state in states.values() if state["status"] not in ("sent", "dead")]
     status = "dead" if any(state["status"] == "dead" for state in states.values()) else "sent"
     return dict(
-        payload=payload,
         status="retry" if retrying else status,
         attempts=max((state["attempts"] for state in states.values()), default=0),
         next_attempt_at=min((state["next_attempt_at"] for state in retrying), default=0),

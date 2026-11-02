@@ -15,7 +15,7 @@
 实际 wheel 的发布验收在仓库外执行 `tests/delivery_wheel_smoke.py EXPECTED_VERSION`；需安装 `sqlalchemy` extra 与测试 SQLite 驱动。它核对安装版本、基础导入不加载 ORM/FastAPI/旧业务包，以及队列持久化显式预设和重启去重；不向外部服务发消息。
 
 ```bash
-pip install dwy-notify==0.2.1
+pip install dwy-notify==0.3.0
 ```
 
 ```python
@@ -68,3 +68,36 @@ asyncio.run(main())
 名称限制为 1–80 字符且不包含控制字符；图片 URL 限长 2048，要求 HTTPS 且不携带账号密码。图片须由平台匿名访问，不接受本地路径，不在应用发送进程中下载图片。当前 Discord 适配使用这些字段，其它渠道保留自身展示行为。展示不参与目标 URL 指纹，不改变接收方去重或发送重试。
 
 兼容层若把隐式默认名称编码进旧 URL，构造 `Notifier(..., url_appearance_is_default=True)` 可让这些展示字段退到业务预设之后，同时保留原目标 URL 与指纹；真实用户显式设置的 URL 保持默认优先级。
+
+## 与业务共用事务及失败重放
+
+`SQLAlchemyDeliveryQueue` 通过 `dwy-notify[sqlalchemy]` 使用 PostgreSQL 或 SQLite。`enqueue` 继续创建并提交独立事务；需要与支付、订单等业务状态同时提交时，调用 `enqueue_in_session(db, app_id, event_id, event_type, content)`。`db` 是宿主的 `AsyncSession`，队列不会 begin、commit、rollback 或 close 它。返回 `True` 表示新入队，`False` 表示同一 `(app_id, event_id)` 已存在；冲突忽略不会使外层事务失效。
+
+```python
+from dwy_notify.sqlalchemy import SQLAlchemyDeliveryQueue
+from sqlalchemy.ext.asyncio import AsyncSession
+
+
+async def enqueue_payment_notice(
+    db: AsyncSession, queue: SQLAlchemyDeliveryQueue, order_id: str, content: str,
+) -> bool:
+    """由宿主把业务更新和本次入队一同提交，异常时一同回滚。"""
+    return await queue.enqueue_in_session(db, "payments", order_id, "payment.paid", content)
+
+
+async def replay_failed_notice(
+    db: AsyncSession, queue: SQLAlchemyDeliveryQueue, order_id: str,
+) -> bool:
+    """宿主完成操作者鉴权与审计后，仅重放账本中失败的指定目标。"""
+    return await queue.requeue_failed_in_session(db, "payments", order_id, ("wecom",))
+```
+
+scope 非空白且不超过注入表 `app_id` 的长度（默认 128）；`event_id`、`event_type` 非空白且不超过 128 字符；正文非空白且最多 65536 字符。内容完整保留，超限拒绝，不截断。`ValueError` 仅包含固定原因码，不回显标识、正文或目标 URL。
+
+`allowed_scopes` 限制消费者领取范围：`None` 领取全部 scope，空集合不领取；显式集合只处理其中的 scope。同表其它 scope 的积压正文、状态和租约保持原样，不会因当前消费者的配置被清除。
+
+`requeue_failed_in_session` 要求队列注入 `notifier`，`targets` 为非空、不重复的目标名元组。只把指定的 `dead` / `retry` 目标重置为 `pending`、尝试次数 0、当前时刻可发；父记录重新聚合调度与失败状态。正文、展示快照、原目标指纹及其它目标的状态保持不变；当前配置新增的目标不会收到历史消息。无记录、尚未初始化目标快照或选中目标没有失败状态时返回 `False`。
+
+成功目标抛出 `notification_target_sent`；快照中不存在的目标抛出 `notification_target_not_in_snapshot`；当前已移除或指纹变化的目标分别抛出 `notification_target_missing` / `notification_target_changed`；活跃父租约抛出 `notification_active_lease`。先验证全部选择再重置，混合选择不会部分生效。重放自身不发送消息，由既有消费者在事务提交后处理；外层回滚会撤销重放。该接口持有数据库写锁直到宿主提交或回滚，宿主应及时结束事务；SQLite 需要支持 `RETURNING` 的 3.35 及以上版本。
+
+过期租约的 token 会在重放时清除，旧消费者无法覆盖新状态。网络已接收但响应丢失的失败记录仍可能在重放后产生重复消息，沿用原投递语义。

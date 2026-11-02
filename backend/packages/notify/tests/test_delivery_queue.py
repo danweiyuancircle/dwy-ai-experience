@@ -1,5 +1,7 @@
 """通用投递队列使用外部资源，保持租约、失败重试与来源隔离。"""
 
+import asyncio
+
 import pytest
 from dwyeapi.database import create_async_engine_factory, create_session_factory
 from sqlalchemy import MetaData, select, update
@@ -70,7 +72,7 @@ async def test_retry_after_and_safe_failure_survive_a_new_consumer(storage):
     assert (await read(storage))[0]["status"] == "sent"
 
 
-async def test_app_selection_also_suppresses_previously_queued_messages(storage):
+async def test_scope_filtered_consumers_leave_other_scope_rows_untouched(storage):
     calls = []
 
     async def sender(content):
@@ -80,16 +82,40 @@ async def test_app_selection_also_suppresses_previously_queued_messages(storage)
     old = SQLAlchemyDeliveryQueue(*storage, sender, source="app_store_connect")
     await old(event(scope="selected"))
     await old(event(scope="removed"))
+    sessions, table = storage
+    async with sessions.begin() as db:
+        await db.execute(update(table).where(table.c.app_id == "removed").values(
+            status="retry", attempts=3, lease_until=77, lease_token="other-expired-lease",
+        ))
+    before = {row["app_id"]: row for row in await read(storage)}
     queue = SQLAlchemyDeliveryQueue(
         *storage, sender, source="app_store_connect", allowed_scopes={"selected"}
     )
     assert await queue.process_pending() == 1
     rows = {row["app_id"]: row for row in await read(storage)}
     assert rows["selected"]["status"] == "sent"
-    assert rows["removed"]["status"] == "suppressed"
-    assert rows["removed"]["payload"] == {}
+    assert rows["removed"] == before["removed"]
     assert len(calls) == 1
     assert await queue.process_pending() == 0
+    other = SQLAlchemyDeliveryQueue(
+        *storage, sender, source="app_store_connect", allowed_scopes={"removed"},
+    )
+    assert await other.process_pending() == 1
+    assert len(calls) == 2
+    assert {row["app_id"]: row for row in await read(storage)}["selected"] == rows["selected"]
+
+
+async def test_empty_scope_selection_claims_nothing(storage):
+    async def unexpected(content):
+        pytest.fail("empty scope selection must not send")
+
+    queue = SQLAlchemyDeliveryQueue(
+        *storage, unexpected, source="app_store_connect", allowed_scopes=set(),
+    )
+    await queue(event())
+    before = await read(storage)
+    assert await queue.process_pending() == 0
+    assert await read(storage) == before
 
 
 async def test_active_lease_is_not_stolen_and_expiry_recovers(storage):
@@ -178,3 +204,66 @@ async def test_sender_invalid_message_id_fails(storage, message_id):
     await queue(event())
     assert await queue.process_pending() == 0
     assert (await read(storage))[0]["error_code"] == "webhook_invalid_response"
+
+
+async def test_enqueue_in_session_obeys_outer_commit_and_rollback(storage):
+    queue = SQLAlchemyDeliveryQueue(*storage, lambda content: None, source="payments")
+    sessions, table = storage
+    async with sessions() as db:
+        assert await queue.enqueue_in_session(db, "app", "rollback", "paid", "notice")
+        await db.rollback()
+    assert await read(storage) == []
+    async with sessions.begin() as db:
+        assert await queue.enqueue_in_session(db, "app", "commit", "paid", "notice")
+        assert not await queue.enqueue_in_session(db, "app", "commit", "paid", "duplicate")
+        assert await queue.enqueue_in_session(db, "app", "second", "paid", "notice")
+        assert len((await db.execute(select(table))).all()) == 2
+    assert {row["id"] for row in await read(storage)} == {"commit", "second"}
+    assert await queue.enqueue("app", "legacy", "paid", "notice")
+    assert len(await read(storage)) == 3
+
+
+async def test_concurrent_enqueue_conflict_keeps_both_outer_sessions_usable(storage):
+    queue = SQLAlchemyDeliveryQueue(*storage, lambda content: None, source="payments")
+    sessions, _ = storage
+
+    async def insert(suffix):
+        async with sessions.begin() as db:
+            accepted = await queue.enqueue_in_session(db, "app", "same", "paid", "notice")
+            assert await queue.enqueue_in_session(db, "app", suffix, "paid", "notice")
+            return accepted
+
+    assert sorted(await asyncio.gather(insert("a"), insert("b"))) == [False, True]
+    assert len(await read(storage)) == 3
+
+
+@pytest.mark.parametrize("field,value", [
+    ("app_id", ""), ("app_id", "x" * 129), ("app_id", None),
+    ("event_id", ""), ("event_id", "x" * 129), ("event_id", 1),
+    ("event_type", ""), ("event_type", "x" * 129),
+    ("content", " "), ("content", "x" * 65537), ("content", None),
+], ids=["empty_scope", "long_scope", "null_scope", "empty_id", "long_id", "numeric_id",
+        "empty_type", "long_type", "blank_body", "long_body", "null_body"])
+async def test_enqueue_rejects_invalid_boundary_without_echoing_input(storage, field, value):
+    queue = SQLAlchemyDeliveryQueue(*storage, lambda content: None, source="payments")
+    values = dict(app_id="app", event_id="event", event_type="paid", content="notice")
+    values[field] = value
+    sessions, _ = storage
+    async with sessions.begin() as db:
+        with pytest.raises(ValueError, match="^invalid_notification_"):
+            await queue.enqueue_in_session(db, **values)
+        assert await queue.enqueue_in_session(db, "app", "valid", "paid", "notice")
+    assert len(await read(storage)) == 1
+
+
+async def test_enqueue_preserves_full_boundary_values_and_custom_scope_limit(storage):
+    queue = SQLAlchemyDeliveryQueue(*storage, lambda content: None, source="payments")
+    assert await queue.enqueue("a" * 128, "e" * 128, "t" * 128, "正" * 65536)
+    row = (await read(storage))[0]
+    assert row["id"] == "e" * 128 and row["payload"]["content"] == "正" * 65536
+    table = build_delivery_table(MetaData(), "short_scopes", scope_length=20)
+    queue.table = table
+    sessions, _ = storage
+    async with sessions.begin() as db:
+        with pytest.raises(ValueError, match="invalid_notification_scope"):
+            await queue.enqueue_in_session(db, "a" * 21, "id", "paid", "notice")

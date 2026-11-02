@@ -3,6 +3,9 @@
 - `tests/test_integration.py`：任意业务来源通过显式预设发送；relay 逐目标去重和失败重投；队列持久化展示快照；历史 URL 指纹与隐式名称优先级兼容；重复目标配置拒绝。
 - `tests/delivery_wheel_smoke.py`：仓库外实际 wheel 版本、基础导入不加载 ORM/FastAPI/旧业务包、真实 SQLite 展示快照及重启去重；仅离线发送器。
 - `tests/test_delivery_queue.py`、`tests/test_target_delivery.py`、`tests/test_delivery_helpers.py`：外部会话与表、应用隔离、租约接管、逐目标成功检查点、取消恢复、目标变更拒发和有界安全失败状态。
+- `tests/test_delivery_queue.py`：同事务入队随宿主回滚消失、提交后新会话可见，重复及并发冲突不中断外层事务；原有 `enqueue` 继续提交；scope、事件标识和正文的类型、空白与长度校验，不截断边界内容，适配自定义 scope 长度。
+- `tests/test_delivery_queue.py`、`tests/test_target_delivery.py`：同表多 scope 消费者在 SQL 领取时限域，A 消费后 B 的正文、状态和租约完整不变，B 仍能自行消费；空 scope 集合不领取，发送阶段的额外 scope 防线仍然拒发。
+- `tests/test_target_delivery.py`：死信重放后真实消费只发送指定失败目标，保留成功目标、正文、展示和指纹；重放随外层回滚撤销、并发仅一次生效；拒绝成功、未知、新增、移除、指纹变化和活跃租约；混合选择原子拒绝、失效旧 token、父状态和调度重算、其它失败目标保持不变。
 
 - `tests/test_appearance.py`：发送者名称必填，单目标、多目标及其它渠道缺名时全部在网络前拒绝，正文标题不能代替名称；头像可省略或显式 null。按字段校验单次/应用/URL/业务预设优先级、名称不可清空、并发隔离、指纹稳定及不支持头像的其它渠道。拒绝控制字符、超长名称和非 HTTPS/带账号密码的头像地址。
 

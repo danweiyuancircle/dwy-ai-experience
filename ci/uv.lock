@@ -8,6 +8,18 @@ exclude-newer = "2026-10-13T00:00:00Z"
 [options.exclude-newer-package]
 apprise = "2026-10-25T00:00:00Z"
 
+[manifest]
+overrides = [{ name = "dwy-notify", editable = "../backend/packages/notify" }]
+
+[[package]]
+name = "aiofiles"
+version = "25.1.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/41/c3/534eac40372d8ee36ef40df62ec129bee4fdb5ad9706e58a29be53b2c970/aiofiles-25.1.0.tar.gz", hash = "sha256:a8d728f0a29de45dc521f18f07297428d56992a742f0cd2701ba86e44d23d5b2", size = 46354, upload-time = "2025-10-09T20:51:04.358Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bc/8a/340a1555ae33d7354dbca4faa54948d76d89a27ceef032c8c3bc661d003e/aiofiles-25.1.0-py3-none-any.whl", hash = "sha256:abe311e527c862958650f9438e859c1fa7568a141b22abcd015e120e86a85695", size = 14668, upload-time = "2025-10-09T20:51:03.174Z" },
+]
+
 [[package]]
 name = "aiosqlite"
 version = "0.22.1"
@@ -522,23 +534,12 @@ provides-extras = ["resend", "dev"]
 
 [[package]]
 name = "dwy-notify"
-version = "0.2.1"
+version = "0.3.0"
 source = { editable = "../backend/packages/notify" }
 dependencies = [
     { name = "apprise" },
     { name = "dwyeapi" },
     { name = "requests" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "aiosqlite" },
-    { name = "pytest" },
-    { name = "pytest-asyncio" },
-    { name = "ruff" },
-]
-sqlalchemy = [
-    { name = "sqlalchemy" },
 ]
 
 [package.metadata]
@@ -562,7 +563,8 @@ dependencies = [
     { name = "dwy-apple-notify", extra = ["analytics", "asc", "dev", "iap", "reviews"] },
     { name = "dwy-auth", extra = ["dev"] },
     { name = "dwy-email-notify", extra = ["dev", "resend"] },
-    { name = "dwy-notify", extra = ["dev", "sqlalchemy"] },
+    { name = "dwy-notify" },
+    { name = "dwy-wechatpay-notify", extra = ["fastapi"] },
     { name = "dwyeapi", extra = ["dev", "device"] },
 ]
 
@@ -572,8 +574,37 @@ requires-dist = [
     { name = "dwy-auth", extras = ["dev"], editable = "../backend/packages/auth" },
     { name = "dwy-email-notify", extras = ["resend", "dev"], editable = "../backend/packages/email-notify" },
     { name = "dwy-notify", extras = ["dev", "sqlalchemy"], editable = "../backend/packages/notify" },
+    { name = "dwy-wechatpay-notify", extras = ["fastapi"], editable = "../backend/packages/wechatpay-notify" },
     { name = "dwyeapi", extras = ["dev", "device"], editable = "../backend" },
 ]
+
+[[package]]
+name = "dwy-wechatpay-notify"
+version = "0.1.0"
+source = { editable = "../backend/packages/wechatpay-notify" }
+dependencies = [
+    { name = "dwy-notify" },
+    { name = "pydantic" },
+    { name = "wechatpayv3", extra = ["async"] },
+]
+
+[package.optional-dependencies]
+fastapi = [
+    { name = "fastapi" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "dwy-notify", specifier = ">=0.2.1,<0.4" },
+    { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.115,<1" },
+    { name = "httpx", marker = "extra == 'dev'", specifier = "==0.28.1" },
+    { name = "pydantic", specifier = ">=2.10,<3" },
+    { name = "pytest", marker = "extra == 'dev'", specifier = "==9.0.3" },
+    { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = "==1.3.0" },
+    { name = "ruff", marker = "extra == 'dev'", specifier = "==0.15.12" },
+    { name = "wechatpayv3", extras = ["async"], specifier = "==2.0.4" },
+]
+provides-extras = ["fastapi", "dev"]
 
 [[package]]
 name = "dwyeapi"
@@ -1363,6 +1394,25 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/e3/05/b17359e1cefb4f909b5e40b1b90a496d987258916dbbf88e842c729f510e/urllib3-2.8.0.tar.gz", hash = "sha256:63bf2ead4c879426ebf22ef2a781eeb4aa3b4ae798a0435506f8687fd5bb9b63", size = 458972, upload-time = "2026-09-15T19:29:36.253Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/92/9d/c4e665119135114480843e7ab388fa94d8480650450e6f8e26b70d323a4c/urllib3-2.8.0-py3-none-any.whl", hash = "sha256:0cf3cae568d36aa9576b28dfb35f11328f1cb974ca7647d9475ebb86c75ac6e3", size = 135717, upload-time = "2026-09-15T19:29:34.577Z" },
+]
+
+[[package]]
+name = "wechatpayv3"
+version = "2.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "cryptography" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/e5/5b/1a9c93285bd71b6740fa205fc663347ed0ecbf828f7e4ab91c64fba99914/wechatpayv3-2.0.4.tar.gz", hash = "sha256:08f7ac7a94ad420c1c9c54208b846c449a25be607b3d07b4ef722ad672132e41", size = 92564, upload-time = "2026-09-11T02:07:52.181Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/19/c9/9e17abca36a4056478e4ebb85e0542900e3bebd76404c5df7da864ad0c95/wechatpayv3-2.0.4-py3-none-any.whl", hash = "sha256:20e74fe05a33399ba9c0896a31c392e9ebb578ea538a713db1507954679a1870", size = 114173, upload-time = "2026-09-11T02:07:50.751Z" },
+]
+
+[package.optional-dependencies]
+async = [
+    { name = "aiofiles" },
+    { name = "httpx" },
 ]
 
 [[package]]

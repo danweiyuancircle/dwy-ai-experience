@@ -9,6 +9,7 @@ from test_delivery_queue import event, read
 from test_delivery_queue import storage as storage
 
 from dwy_notify.delivery import DeliveryPolicy
+from dwy_notify.models import NotificationAppearance
 from dwy_notify.sqlalchemy import SQLAlchemyDeliveryQueue
 
 
@@ -151,7 +152,7 @@ async def test_mixed_permanent_and_temporary_failures_finish_independently(stora
     assert row["status"] == "dead" and calls == ["gone", "retry", "retry"]
 
 
-async def test_disallowed_scope_clears_content_without_initializing_targets(storage):
+async def test_disallowed_scope_send_defense_suppresses_without_initializing_targets(storage):
     async def unexpected(target):
         pytest.fail("suppressed scope must not send")
 
@@ -159,7 +160,8 @@ async def test_disallowed_scope_clears_content_without_initializing_targets(stor
     await consumer(event())
     assert await consumer.process_pending() == 0
     row = (await read(storage))[0]
-    assert row["status"] == "suppressed" and row["payload"] == {}
+    assert row["status"] == "pending" and row["payload"] == {"content": "safe content"}
+    assert await consumer._send(row) == dict(status="suppressed", payload={}, error_code=None)
 
 
 def test_queue_requires_exactly_one_delivery_implementation(storage):
@@ -203,3 +205,152 @@ async def test_failed_targets_have_independent_due_times(storage):
     assert row["payload"]["notifications"]["fast"]["attempts"] == 2
     assert row["payload"]["notifications"]["slow"]["attempts"] == 1
     assert row["next_attempt_at"] == 106
+
+
+async def failed_queue(storage, *, permanent=True):
+    """经过真实消费者生成成功与失败目标快照，避免手工状态掩盖重放缺陷。"""
+    async def send(target):
+        if target == "ok":
+            return delivery(target)
+        return SimpleNamespace(target=target, success=False, message_id=None,
+                               error_code="notify_failed", retry_after=15, permanent=permanent)
+
+    consumer = queue(storage, FakeNotifier({"ok": "a", "failed": "b"}, send),
+                     appearance=NotificationAppearance(username="原始展示"))
+    await consumer(event())
+    await consumer.process_pending()
+    return consumer
+
+
+async def test_requeue_dead_target_really_sends_only_failed_snapshot_target(storage):
+    consumer = await failed_queue(storage)
+    before = (await read(storage))[0]
+    assert before["status"] == "dead"
+    calls = []
+
+    async def recover(target):
+        calls.append(target)
+        return delivery(target)
+
+    consumer.notifier = FakeNotifier({"ok": "a", "failed": "b", "new": "c"}, recover)
+    consumer.appearance = NotificationAppearance(username="新展示")
+    sessions, _ = storage
+    async with sessions.begin() as db:
+        assert await consumer.requeue_failed_in_session(db, "app-1", "event-1", ("failed",))
+    row = (await read(storage))[0]
+    assert row["status"] == "retry" and row["next_attempt_at"] == 100
+    state = row["payload"]["notifications"]["failed"]
+    assert state == dict(fingerprint="b", status="pending", attempts=0, next_attempt_at=100,
+                         error_code=None, message_id=None)
+    assert row["payload"]["content"] == before["payload"]["content"]
+    assert row["payload"]["appearance"] == before["payload"]["appearance"]
+    assert row["payload"]["notifications"]["ok"] == before["payload"]["notifications"]["ok"]
+    assert await consumer.process_pending() == 1
+    assert calls == ["failed"]
+    assert (await read(storage))[0]["status"] == "sent"
+
+
+async def test_requeue_changes_follow_outer_rollback_and_concurrent_replay_is_single(storage):
+    consumer = await failed_queue(storage)
+    sessions, _ = storage
+    before = await read(storage)
+    async with sessions() as db:
+        assert await consumer.requeue_failed_in_session(db, "app-1", "event-1", ("failed",))
+        await db.rollback()
+    assert await read(storage) == before
+
+    async def replay():
+        async with sessions.begin() as db:
+            return await consumer.requeue_failed_in_session(db, "app-1", "event-1", ("failed",))
+
+    assert sorted(await asyncio.gather(replay(), replay())) == [False, True]
+
+
+@pytest.mark.parametrize("case,code", [
+    ("sent", "notification_target_sent"),
+    ("new", "notification_target_not_in_snapshot"),
+    ("unknown", "notification_target_not_in_snapshot"),
+    ("changed", "notification_target_changed"),
+    ("removed", "notification_target_missing"),
+    ("lease", "notification_active_lease"),
+])
+async def test_requeue_rejects_unsafe_targets_without_changing_snapshot(storage, case, code):
+    consumer = await failed_queue(storage)
+    sessions, table = storage
+    target = "failed"
+    if case == "sent":
+        target = "ok"
+    elif case in ("new", "unknown"):
+        target = case
+        consumer.notifier.targets += ("new",)
+    elif case == "changed":
+        consumer.notifier.fingerprints["failed"] = "replacement"
+    elif case == "removed":
+        consumer.notifier.targets = ("ok",)
+    elif case == "lease":
+        async with sessions.begin() as db:
+            await db.execute(update(table).values(lease_until=101, lease_token="active"))
+    before = await read(storage)
+    async with sessions.begin() as db:
+        with pytest.raises(ValueError, match=f"^{code}$"):
+            await consumer.requeue_failed_in_session(db, "app-1", "event-1", (target,))
+    assert await read(storage) == before
+
+
+async def test_requeue_retry_recomputes_parent_and_preserves_other_failed_targets(storage):
+    consumer = await failed_queue(storage, permanent=False)
+    sessions, table = storage
+    async with sessions.begin() as db:
+        row = (await read(storage))[0]
+        payload = row["payload"]
+        payload["notifications"]["other"] = dict(
+            fingerprint="c", status="dead", attempts=4, next_attempt_at=90,
+            error_code="other_failure", message_id=None,
+        )
+        await db.execute(update(table).values(payload=payload))
+    async with sessions.begin() as db:
+        assert await consumer.requeue_failed_in_session(db, "app-1", "event-1", ("failed",))
+    row = (await read(storage))[0]
+    assert row["status"] == "retry" and row["attempts"] == 4 and row["next_attempt_at"] == 100
+    assert row["error_code"] == "other_failure"
+    assert row["payload"]["notifications"]["other"] == payload["notifications"]["other"]
+
+
+async def test_requeue_mixed_sent_selection_is_atomic_and_expires_old_worker_token(storage):
+    consumer = await failed_queue(storage)
+    sessions, table = storage
+    before = await read(storage)
+    async with sessions.begin() as db:
+        with pytest.raises(ValueError, match="^notification_target_sent$"):
+            await consumer.requeue_failed_in_session(db, "app-1", "event-1", ("failed", "ok"))
+    assert await read(storage) == before
+    async with sessions.begin() as db:
+        await db.execute(update(table).values(lease_until=99, lease_token="expired"))
+    async with sessions.begin() as db:
+        assert await consumer.requeue_failed_in_session(db, "app-1", "event-1", ("failed",))
+    assert not await consumer._checkpoint(
+        dict(app_id="app-1", id="event-1", lease_token="expired"), status="sent",
+    )
+    row = (await read(storage))[0]
+    assert row["status"] == "retry" and row["lease_token"] is None and row["lease_until"] == 0
+
+
+@pytest.mark.parametrize("targets", [(), ("failed", "failed"), (1,), "failed", ["failed"]])
+async def test_requeue_validates_target_selection(storage, targets):
+    consumer = await failed_queue(storage)
+    sessions, _ = storage
+    async with sessions.begin() as db:
+        with pytest.raises(ValueError, match="^invalid_notification_targets$"):
+            await consumer.requeue_failed_in_session(db, "app-1", "event-1", targets)
+
+
+async def test_requeue_missing_or_uninitialized_record_returns_false(storage):
+    async def unexpected(target):
+        pytest.fail("requeue must never send directly")
+
+    consumer = queue(storage, FakeNotifier({"failed": "b"}, unexpected))
+    await consumer(event())
+    sessions, _ = storage
+    async with sessions.begin() as db:
+        assert not await consumer.requeue_failed_in_session(db, "other", "event-1", ("failed",))
+        assert not await consumer.requeue_failed_in_session(db, "app-1", "event-1", ("failed",))
