@@ -1,5 +1,9 @@
 # dwy-notify
 
+## 0.3.1
+
+- 新增来源无关的 NotificationField 和有 UTF-8 字节预算的 render_notification_fields，外部项目可显式传入有序展示字段；保留标签、标记截断，不改变发送和持久队列接口。
+
 ## 0.3.0
 
 - 新增 `SQLAlchemyDeliveryQueue.enqueue_in_session`，可与宿主业务状态共用事务；重复事件不会中断外层事务，原有 `enqueue` 继续自行提交。

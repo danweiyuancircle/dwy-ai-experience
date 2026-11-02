@@ -6,7 +6,7 @@ from dwy_wechatpay_notify import ConfirmedWechatPayResult, __version__, wechatpa
 
 assert "fastapi" not in sys.modules
 assert "dwy_payment" not in sys.modules
-assert __version__ == "0.1.0"
+assert __version__ == "0.1.1"
 result = ConfirmedWechatPayResult(
     event_type="TRANSACTION.SUCCESS",
     order_no="order123",

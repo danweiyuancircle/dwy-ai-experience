@@ -1,5 +1,6 @@
 """付款/退款与主动查单共用业务去重键，向统一通知出口投递安全元数据。"""
 
+from dwy_notify import NotificationField, render_notification_fields
 from dwy_notify.events import NotificationEvent
 from pydantic import TypeAdapter
 
@@ -14,6 +15,15 @@ from .models import (
 
 def _money(fen: int) -> str:
     return f"{fen // 100}.{fen % 100:02d}"
+
+
+def _context_field(label: str, value: str) -> tuple[NotificationField, ...]:
+    # 旧上下文允许空白及格式字符；新增展示能力不能让这些历史输入阻断支付事务。
+    value = "".join(char for char in value if char.isprintable()).strip()
+    if not value:
+        return ()
+    value = value if len(value) <= 256 else value[:255] + "…"
+    return (NotificationField(label=label, value=value),)
 
 
 def wechatpay_notification_event(
@@ -53,7 +63,20 @@ def wechatpay_notification_event(
         ]
     if result.occurred_at is not None:
         lines.append(f"事件时间：{result.occurred_at.isoformat()}")
-    if context is not None:
+    if context is not None and context.extra_fields:
+        # 附加资料先于可选商品描述分配预算；固定金融事实始终保留。
+        for fields in (
+            _context_field("业务结果", context.outcome),
+            context.extra_fields,
+            _context_field("商品", context.description),
+        ):
+            rendered = render_notification_fields(
+                fields,
+                max_bytes=1800 - len("\n".join(lines).encode("utf8")) - 1,
+            )
+            if rendered:
+                lines.append(rendered)
+    elif context is not None:
         for label, value in (("商品", context.description), ("业务结果", context.outcome)):
             if value and len(("\n".join(lines) + f"\n{label}：{value}").encode("utf8")) <= 1800:
                 lines.append(f"{label}：{value}")

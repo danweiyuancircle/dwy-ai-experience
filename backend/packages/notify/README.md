@@ -69,6 +69,29 @@ asyncio.run(main())
 
 兼容层若把隐式默认名称编码进旧 URL，构造 `Notifier(..., url_appearance_is_default=True)` 可让这些展示字段退到业务预设之后，同时保留原目标 URL 与指纹；真实用户显式设置的 URL 保持默认优先级。
 
+## 追加公开展示字段
+
+`NotificationField` 与 `render_notification_fields` 从 `dwy_notify` 根导出，用于给正文追加少量业务标签。宿主先从用户、订单等对象中筛选公开字符串，再构造字段；不要传完整对象、凭据或个人敏感信息。它们不读取数据库或网络，不修改官方回调数据，也不改变 `send` 和队列接口。
+
+```python
+from dwy_notify import NotificationField, render_notification_fields
+
+body = "支付成功"
+fields = (
+    NotificationField(label="来源", value="网站"),
+    NotificationField(label="套餐", value="专业版"),
+)
+# 2048 是宿主选定的正文总预算，额外预留一个拼接换行的 UTF-8 字节。
+extra = render_notification_fields(fields, max_bytes=2048 - len(body.encode("utf-8")) - 1)
+content = f"{body}\n{extra}" if extra else body
+```
+
+模型冻结、拒绝额外属性，`label` / `value` 必须为严格字符串，分别为 1–32 / 1–256 个字符，不能全为空白，也不能包含控制字符、格式控制字符（含双向文本控制和零宽连接符）、孤立代理项或 Unicode 行分隔符。校验错误的文本不回显输入；调用方记录 Pydantic 结构化错误时仍须移除 `input`。
+
+渲染接收最多八个 `NotificationField` 的元组，保留顺序，每行采用「标签：值」。`max_bytes` 必须是整数（不接受布尔），表示本段剩余 UTF-8 字节预算；正文、标题、分隔符由宿主另外预留。值截短后加 `…`，其余字段放不下时加 `[已省略]`；标签不会截短，提示也放不下时返回空串，零或负预算同样返回空串。字段数量、类型或预算类型无效时抛出固定原因码 `ValueError`，不会回显内容。
+
+输出沿用当前传输：企业微信发送 `text.content`，不添加 `mentioned_list` / `mentioned_mobile_list`，Markdown 和 `@all` 为普通文本；Discord 的 `allowed_mentions={"parse": []}` 继续禁用提醒。渲染器不添加 Markdown 转义，不提供跨所有 Apprise 渠道的富文本安全保证。
+
 ## 与业务共用事务及失败重放
 
 `SQLAlchemyDeliveryQueue` 通过 `dwy-notify[sqlalchemy]` 使用 PostgreSQL 或 SQLite。`enqueue` 继续创建并提交独立事务；需要与支付、订单等业务状态同时提交时，调用 `enqueue_in_session(db, app_id, event_id, event_type, content)`。`db` 是宿主的 `AsyncSession`，队列不会 begin、commit、rollback 或 close 它。返回 `True` 表示新入队，`False` 表示同一 `(app_id, event_id)` 已存在；冲突忽略不会使外层事务失效。

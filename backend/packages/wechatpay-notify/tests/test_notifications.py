@@ -252,6 +252,103 @@ def test_strict_models_and_utf8_content_budget():
         api().wechatpay_notification_event(result, scope="shop", context={"token": "private"})
 
 
+@pytest.mark.parametrize("refund", [False, True])
+def test_custom_fields_are_display_only_and_cannot_replace_payment_facts(refund):
+    """宿主显示字段可复用，不能改变渠道事实、去重身份或白名单元数据。"""
+    from dwy_notify import NotificationField
+
+    values = {
+        "event_type": "TRANSACTION.SUCCESS", "order_no": "order123", "transaction_id": "wx123",
+        "amount_fen": 100, "trade_type": "NATIVE", "trade_state": "SUCCESS",
+    }
+    if refund:
+        values = {
+            "event_type": "REFUND.SUCCESS", "order_no": "order123", "transaction_id": "wx123",
+            "amount_fen": 100, "refund_no": "refund123", "refund_id": "wxrefund123",
+            "refund_fen": 50, "refund_status": "SUCCESS",
+        }
+    result = api().ConfirmedWechatPayResult(**values)
+    original = api().wechatpay_notification_event(result, scope="shop")
+    event = api().wechatpay_notification_event(
+        result, scope="shop", context=api().PaymentNotificationContext(
+            description="项目套餐", outcome="权益已核验",
+            extra_fields=(
+                NotificationField(label="本站用户 ID", value="user-uuid"),
+                NotificationField(label="用户名", value="完整用户名"),
+                NotificationField(label="邮箱", value="person@example.com"),
+            ),
+        ),
+    )
+    assert event.event_id == original.event_id and event.data == original.data
+    assert "本站用户 ID：user-uuid\n用户名：完整用户名\n邮箱：person@example.com" in event.content
+    assert "权益已核验" in event.content and "项目套餐" in event.content
+    assert "1.00" in event.content
+    assert "person@example.com" not in repr(event.data)
+
+
+def test_custom_fields_keep_core_and_outcome_within_utf8_budget():
+    """附加信息耗尽预算时只能裁剪展示，不能丢失金融标识和正常业务结果。"""
+    from dwy_notify import NotificationField
+
+    result = api().ConfirmedWechatPayResult(
+        event_type="REFUND.ABNORMAL", order_no="x" * 32, transaction_id="y" * 64,
+        amount_fen=999999999999, refund_no="r" * 64, refund_id="i" * 64,
+        refund_fen=1, refund_status="ABNORMAL",
+    )
+    context = api().PaymentNotificationContext(
+        description="商品" * 500, outcome="权益待核对",
+        extra_fields=tuple(NotificationField(label=f"字段{n}", value="汉😀" * 128) for n in range(8)),
+    )
+    event = api().wechatpay_notification_event(result, scope="shop", context=context)
+    assert len(event.content.encode()) <= 1800
+    assert "x" * 32 in event.content and "i" * 64 in event.content
+    assert "微信退款异常" in event.content and "权益待核对" in event.content
+    assert "…" in event.content
+    with pytest.raises(ValidationError):
+        api().PaymentNotificationContext(extra_fields=context.extra_fields + context.extra_fields)
+
+
+def test_no_custom_fields_preserves_legacy_text():
+    result = api().ConfirmedWechatPayResult(
+        event_type="TRANSACTION.SUCCESS", order_no="order123", transaction_id="wx123",
+        amount_fen=100, trade_type="NATIVE", trade_state="SUCCESS",
+    )
+    event = api().wechatpay_notification_event(
+        result, scope="shop", context=api().PaymentNotificationContext(description="商品", outcome="已发放"),
+    )
+    assert event.content == (
+        "微信支付成功\n订单号：order123\n微信交易号：wx123\n金额：CNY 1.00\n商品：商品\n业务结果：已发放"
+    )
+
+
+def test_custom_fields_reject_duplicate_and_reserved_labels():
+    from dwy_notify import NotificationField
+
+    for labels in (("金额",), (" 金额 ",), ("客户", "客户"), ("客户", " 客户 ")):
+        with pytest.raises(ValidationError):
+            api().PaymentNotificationContext(extra_fields=tuple(
+                NotificationField(label=label, value="display-value") for label in labels
+            ))
+
+
+@pytest.mark.parametrize("field", ["description", "outcome"])
+@pytest.mark.parametrize("value", [" ", "家庭👨\u200d👩", "业务\u2028内容"])
+def test_custom_fields_do_not_reject_legacy_context_text(field, value):
+    """已有上下文契约较宽；不能因启用附加字段而使已验证付款无法入队。"""
+    from dwy_notify import NotificationField
+
+    result = api().ConfirmedWechatPayResult(
+        event_type="TRANSACTION.SUCCESS", order_no="order123", transaction_id="wx123",
+        amount_fen=100, trade_type="NATIVE", trade_state="SUCCESS",
+    )
+    context = api().PaymentNotificationContext(
+        **{field: value}, extra_fields=(NotificationField(label="客户", value="customer123"),),
+    )
+    event = api().wechatpay_notification_event(result, scope="shop", context=context)
+    assert "客户：customer123" in event.content and "CNY 1.00" in event.content
+    assert len(event.content.encode()) <= 1800
+
+
 @pytest.mark.asyncio
 async def test_installer_acknowledges_duplicates_but_retries_sink_failure_and_limits_stream(key):
     app, accepted, calls = FastAPI(), [], []

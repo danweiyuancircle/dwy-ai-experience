@@ -1,6 +1,6 @@
 # dwy-wechatpay-notify
 
-独立微信支付来源包（0.1.0）：复用 `wechatpayv3[async]==2.0.4` 的公开 `callback(headers, body)` 验签解密，把付款和退款结果转成 `dwy_notify.events.NotificationEvent`。不依赖宿主支付模块，不实现 RSA/AES、业务账本、权益变更或群消息发送。
+独立微信支付来源包（0.1.1）：复用 `wechatpayv3[async]==2.0.4` 的公开 `callback(headers, body)` 验签解密，把付款和退款结果转成 `dwy_notify.events.NotificationEvent`。不依赖宿主支付模块，不实现 RSA/AES、业务账本、权益变更或群消息发送。
 
 本包采用 [MIT License](LICENSE)。微信支付 SDK `wechatpayv3==2.0.4` 同样采用 MIT，具体版权声明以各发行包为准。
 
@@ -62,10 +62,36 @@ def configure_callbacks(app, sdk_client, durable_sink):
 
 ## 安全与幂等
 
+0.1.1 起，外部项目可以通过 `PaymentNotificationContext.extra_fields` 提供自定义展示字段：
+
+```python
+from dwy_notify import NotificationField
+from dwy_wechatpay_notify import ConfirmedWechatPayResult, PaymentNotificationContext, wechatpay_notification_event
+
+result = ConfirmedWechatPayResult(
+    event_type="TRANSACTION.SUCCESS", order_no="order123", transaction_id="wx123",
+    amount_fen=1, trade_type="NATIVE", trade_state="SUCCESS",
+)
+event = wechatpay_notification_event(
+    result, scope="shop-preview",
+    context=PaymentNotificationContext(
+        description="基础套餐", outcome="权益已发放",
+        extra_fields=(
+            NotificationField(label="客户编号", value="customer-001"),
+            NotificationField(label="项目名称", value="示例项目"),
+        ),
+    ),
+)
+```
+
+最多 8 项，每项标签 1–32、值 1–256 字符，均为单行纯文本。禁止重复标签及“订单号、金额、退款金额、业务结果”等固定标签；字段不会合并进官方 `data` 或改变去重键。库不查询用户表，也不自动序列化业务对象。字段是否允许包含个人资料及是否脱敏由宿主显式决定；不得传入密码、密钥或原始回调。入队前渲染正文，重试沿用快照。`NotificationEvent.data` 不会自动成为群消息。
+
+传入字段时，固定金融事实与业务结果优先，其次附加字段，最后商品描述；总预算仍为 1800 UTF-8 字节，附加展示过长会标记截断或省略。未传字段时保持 0.1.0 的正文兼容行为。
+
 - 配置显式注入，商户/应用身份非空，scope 最长 128 字符；不同商户/应用必须使用不同 scope。
 - 付款键 `wechat:payment:{order_no}:success`；退款键 `wechat:refund:{refund_no}:{SUCCESS|ABNORMAL|CLOSED}`。回调与主动查单使用同一业务键；sink 按 source、scope、event_id 持久幂等。
-- 事件 data 仅包含类型化白名单字段；不转发 payer/openid、邮箱、手机号、密钥、签名或原文。`PaymentNotificationContext` 仅接安全商品快照/已确认业务结果，不接受任意字典；调用方不能在这些文字里填个人信息或凭据。
-- 通知正文严格不超过 1800 UTF8 bytes；放不下的商品/业务结果整项省略，不截断金融标识。金额用整数分格式化。
+- 事件 data 仅包含类型化白名单字段；不自动转发 payer/openid、邮箱、手机号、密钥、签名或原文。商品与业务结果不能夹带个人信息；需要展示的宿主资料须显式选择 `extra_fields`，不接受任意账号对象。
+- 通知正文严格不超过 1800 UTF8 bytes，不截断金融标识。未传自定义字段时沿用原有商品/业务结果整项省略规则。金额用整数分格式化。
 - `WECHATPAY/SIGNTEST/` 不是交易，安全拒绝；SDK 的异常统一转成 `WechatPayVerificationError`，不携带原文或密钥。宿主不得给 SDK 配置记录回调原文的日志器。
 
 ## 开发与验收

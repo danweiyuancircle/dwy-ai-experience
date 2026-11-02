@@ -3,6 +3,7 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
+from dwy_notify import NotificationField
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Identifier = Annotated[str, Field(min_length=1, max_length=64, pattern=r"^[A-Za-z0-9_*|@-]+$")]
@@ -27,10 +28,24 @@ class WechatPayNotifyConfig(_Model):
 
 
 class PaymentNotificationContext(_Model):
-    """宿主仅提供安全商品快照及已确认业务结果；不得填入个人信息或原始报文。"""
+    """宿主投影业务快照；资料须显式选择 extra_fields，禁止自动转发账号或原始报文。"""
 
     description: str = Field(default="", max_length=1024)
     outcome: str = Field(default="", max_length=1024)
+    extra_fields: tuple[NotificationField, ...] = Field(default=(), max_length=8)
+
+    @field_validator("extra_fields")
+    @classmethod
+    def distinct_display_fields(cls, values: tuple[NotificationField, ...]) -> tuple[NotificationField, ...]:
+        """展示标签不能冒充支付固定字段，也不能用重复标签制造歧义。"""
+        reserved = {
+            "订单号", "微信交易号", "金额", "退款单号", "微信退款号", "原金额", "退款金额",
+            "事件时间", "商品", "业务结果",
+        }
+        labels = [value.label.strip() for value in values]
+        if len(labels) != len(set(labels)) or reserved.intersection(labels):
+            raise ValueError("custom notification labels must be distinct and non-reserved")
+        return values
 
     @field_validator("description", "outcome")
     @classmethod

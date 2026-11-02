@@ -534,7 +534,7 @@ provides-extras = ["resend", "dev"]
 
 [[package]]
 name = "dwy-notify"
-version = "0.3.0"
+version = "0.3.1"
 source = { editable = "../backend/packages/notify" }
 dependencies = [
     { name = "apprise" },
@@ -580,7 +580,7 @@ requires-dist = [
 
 [[package]]
 name = "dwy-wechatpay-notify"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "../backend/packages/wechatpay-notify" }
 dependencies = [
     { name = "dwy-notify" },
@@ -595,7 +595,7 @@ fastapi = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dwy-notify", specifier = ">=0.2.1,<0.4" },
+    { name = "dwy-notify", specifier = ">=0.3.1,<0.4" },
     { name = "fastapi", marker = "extra == 'fastapi'", specifier = ">=0.115,<1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = "==0.28.1" },
     { name = "pydantic", specifier = ">=2.10,<3" },

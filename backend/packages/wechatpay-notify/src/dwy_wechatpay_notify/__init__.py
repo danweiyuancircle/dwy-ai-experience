@@ -10,7 +10,7 @@ from .models import (
 )
 from .verifier import WechatPayNotificationVerifier, WechatPayVerificationError
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __all__ = [
     "ConfirmedWechatPayResult",
     "PaymentNotificationContext",

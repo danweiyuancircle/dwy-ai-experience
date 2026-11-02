@@ -1,11 +1,11 @@
 [project]
 name = "dwy-wechatpay-notify"
-version = "0.1.0"
+version = "0.1.1"
 description = "微信支付官方回调验证与安全通知事件适配"
 license = { file = "LICENSE" }
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
-dependencies = ["dwy-notify>=0.2.1,<0.4", "pydantic>=2.10,<3", "wechatpayv3[async]==2.0.4"]
+dependencies = ["dwy-notify>=0.3.1,<0.4", "pydantic>=2.10,<3", "wechatpayv3[async]==2.0.4"]
 
 [project.optional-dependencies]
 fastapi = ["fastapi>=0.115,<1"]

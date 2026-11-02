@@ -1,5 +1,6 @@
 # 通知包测试用例
 
+- `tests/test_fields.py`：冻结严格字符串字段、字符长度上下界、对象与额外属性拒绝、控制字符与 Unicode 行分隔符拒绝及校验错误隐藏输入；最多八字段、有序标签、逐字节中英文/emoji 预算、值截断与字段省略提示、极小及负预算，以及现有企业微信纯文本格式保留。
 - `tests/test_integration.py`：任意业务来源通过显式预设发送；relay 逐目标去重和失败重投；队列持久化展示快照；历史 URL 指纹与隐式名称优先级兼容；重复目标配置拒绝。
 - `tests/delivery_wheel_smoke.py`：仓库外实际 wheel 版本、基础导入不加载 ORM/FastAPI/旧业务包、真实 SQLite 展示快照及重启去重；仅离线发送器。
 - `tests/test_delivery_queue.py`、`tests/test_target_delivery.py`、`tests/test_delivery_helpers.py`：外部会话与表、应用隔离、租约接管、逐目标成功检查点、取消恢复、目标变更拒发和有界安全失败状态。

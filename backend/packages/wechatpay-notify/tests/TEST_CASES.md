@@ -1,6 +1,6 @@
 # 微信支付通知来源测试
 
-`tests/test_notifications.py`（30 cases）：
+`tests/test_notifications.py`（以 pytest 实际收集数量为准）：
 
 | 用例 | 验证 |
 | --- | --- |
@@ -18,3 +18,5 @@
 | test_installer_preserves_lifecycle_and_refuses_conflicting_routes | 保留宿主 lifespan，拒绝重复安装/同路径冲突 |
 
 `tests/wheel_smoke.py`：已安装 wheel 核心导入/公共版本/统一键/隐私字段合同。真实微信交易、退款、企微发送、生产持久队列与部署验收不属于本地测试。
+
+新增自定义字段用例：付款/退款仅扩展正文、不改变官方 data 和去重键；长 Unicode 字段预算、正常业务结果保留、字段数量限制、空字段旧文案兼容、重复及保留标签拒绝。
