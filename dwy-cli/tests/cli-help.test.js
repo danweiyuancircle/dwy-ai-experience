@@ -22,6 +22,18 @@ test('dwy --help lists sync and upgrade, no hidden commands', () => {
   assert.doesNotMatch(help, /隐藏命令/)
 })
 
+test('帮助说明显式范围、内容选择与共享副本更新边界', () => {
+  const help = buildHelpText('0.0.0')
+  assert.match(help, /1\. 选择同步范围/)
+  assert.match(help, /2\. 选择.*平台/)
+  assert.match(help, /3\. 选择本次处理内容.*默认只选 Skills/)
+  assert.match(help, /未选择的类型保持原样/)
+  assert.match(help, /全局已启用.*不能重复勾选/)
+  assert.match(help, /部分平台.*缺少全局入口/)
+  assert.match(help, /sync.*migrate.*不刷新已有共享内容/)
+  assert.doesNotMatch(help, /位置选择只影响|Hooks 按平台自动同步，无需选择/)
+})
+
 test('dwy 启动展示品牌，取消后退出', async t => {
   const { spawn } = await import('node:child_process')
   const child = spawn(process.execPath, ['dwy-cli/bin/index.js'], {
@@ -36,7 +48,7 @@ test('dwy 启动展示品牌，取消后退出', async t => {
     const timer = setTimeout(() => { child.kill(); reject(new Error('dwy 启动超时')) }, 5000)
     child.stdout.on('data', chunk => {
       output += chunk.toString()
-      if (!cancelled && output.includes('选择 Skills')) {
+      if (!cancelled && output.includes('选择同步范围')) {
         cancelled = true
         setTimeout(() => child.stdin.write('\u001b'), 30)
       }
@@ -50,7 +62,7 @@ test('dwy 启动展示品牌，取消后退出', async t => {
     })
   })
   assert.match(output, /\bdwy\b/)
-  assert.ok(output.indexOf('dwy') < output.indexOf('选择 Skills'))
+  assert.ok(output.indexOf('dwy') < output.indexOf('选择同步范围'))
   assert.match(output, /已取消/)
-  assert.doesNotMatch(output, /选择要做的事|初始化|选择同步范围/)
+  assert.doesNotMatch(output, /选择要做的事|初始化/)
 })

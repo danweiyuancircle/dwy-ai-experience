@@ -51,7 +51,8 @@ for (const syncMode of ['all', 'skills']) {
     assert.deepEqual(state.platforms.claude.skills, [])
     assert.deepEqual(state.platforms.codex.skills, ['sample'])
     assert.deepEqual(state.platforms.opencode.skills, [])
-    assert.equal((await fs.lstat(path.join(opts.homeDir, '.claude/skills/sample'))).isSymbolicLink(), true)
+    assert.equal((await fs.lstat(path.join(opts.homeDir, '.claude/skills/sample'))).isDirectory(), true)
+    assert.equal(await fs.readFile(path.join(opts.homeDir, '.claude/skills/sample/SKILL.md'), 'utf8'), '# global old')
   })
 
   test(`${syncMode}：切换为全局同步后清理项目重复入口，仍保留共享内容`, async t => {

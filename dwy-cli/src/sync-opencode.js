@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import path from 'path'
 import { chalk } from './utils.js'
-import { linkSkill, prepareSharedSkills, removeSkillEntry } from './skill-store.js'
+import { linkSkill, ensureSharedSkills, removeSkillEntry } from './skill-store.js'
 import {
   logAction,
   resolveSourceDir,
@@ -77,7 +77,7 @@ export async function syncOpenCode({
 
   const skills = sharedSkills
     ? sharedSkills.filter(skill => selectedNames('skills').has(skill.name))
-    : await prepareSharedSkills({ skills: syncedSelection.skills, homeDir })
+    : await ensureSharedSkills({ skills: syncedSelection.skills, homeDir })
   syncedCount += await copyItemsTo(openCodeDir, 'skills', skills)
 
   removedCount += await removeUnselected(

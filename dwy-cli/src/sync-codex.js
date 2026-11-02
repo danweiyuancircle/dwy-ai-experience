@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import path from 'path'
 import { chalk } from './utils.js'
-import { linkSkill, prepareSharedSkills, removeSkillEntry } from './skill-store.js'
+import { linkSkill, ensureSharedSkills, removeSkillEntry } from './skill-store.js'
 import {
   extractDescription,
   loadHookManifests,
@@ -220,16 +220,16 @@ async function removeUnselectedFlat(subdir, existingNames, selectedNames, templa
 
 // ---------- hooks → .codex/ ----------
 
-export async function scanExistingCodexHooks(proj) {
-  const dir = path.join(proj, '.codex', 'hooks')
+export async function scanExistingCodexHooks(proj, configDir = path.join(proj, '.codex')) {
+  const dir = path.join(configDir, 'hooks')
   if (!await fs.pathExists(dir)) return new Set()
   const entries = await fs.readdir(dir)
   return new Set(entries.filter(n => n !== '.gitkeep' && n !== '.DS_Store'))
 }
 
-async function copyCodexHooks(hooks, proj) {
+async function copyCodexHooks(hooks, configDir) {
   if (hooks.length === 0) return 0
-  const dir = path.join(proj, '.codex', 'hooks')
+  const dir = path.join(configDir, 'hooks')
   await fs.ensureDir(dir)
   for (const h of hooks) {
     if (!await fs.pathExists(h.sourcePath)) {
@@ -248,7 +248,12 @@ async function copyCodexHooks(hooks, proj) {
   return hooks.length
 }
 
-function buildCodexHooksJson(manifests, selectedHookNames, global) {
+function globalHookCommand(configDir, name) {
+  const script = path.join(configDir, 'hooks', name).replace(/\\/g, '/')
+  return `bash '${script.replace(/'/g, "'\\''")}'`
+}
+
+function buildCodexHooksJson(manifests, selectedHookNames, global, configDir) {
   const hooksJson = { hooks: {} }
   const grouped = new Map()
 
@@ -263,7 +268,7 @@ function buildCodexHooksJson(manifests, selectedHookNames, global) {
     hooks.push({
       type: 'command',
       command: global
-        ? `bash "$HOME/.codex/hooks/${manifest.name}"`
+        ? globalHookCommand(configDir, manifest.name)
         : `bash "$(git rev-parse --show-toplevel)/.codex/hooks/${manifest.name}"`,
       ...(manifest.timeout ? { timeout: manifest.timeout } : {}),
     })
@@ -279,13 +284,14 @@ function buildCodexHooksJson(manifests, selectedHookNames, global) {
   return Object.keys(hooksJson.hooks).length > 0 ? hooksJson : {}
 }
 
-function isManagedCodexHookCommand(command, managedHookNames) {
+function isManagedCodexHookCommand(command, managedHookNames, configDir) {
   if (typeof command !== 'string') return false
   const match = command.match(/\.codex\/hooks\/([^\s'"]+)/)
   return !!(match && managedHookNames.has(match[1]))
+    || [...managedHookNames].some(name => command === globalHookCommand(configDir, name))
 }
 
-function mergeCodexHooks(existingHooks, generatedHooks, managedHookNames) {
+function mergeCodexHooks(existingHooks, generatedHooks, managedHookNames, configDir) {
   const merged = {}
   const sourceEvents = new Set([
     ...Object.keys(existingHooks || {}),
@@ -296,7 +302,7 @@ function mergeCodexHooks(existingHooks, generatedHooks, managedHookNames) {
     const kept = []
 
     for (const cfg of existingHooks?.[event] || []) {
-      const remainingHooks = (cfg.hooks || []).filter(hook => !isManagedCodexHookCommand(hook.command, managedHookNames))
+      const remainingHooks = (cfg.hooks || []).filter(hook => !isManagedCodexHookCommand(hook.command, managedHookNames, configDir))
       if (remainingHooks.length > 0) kept.push({ ...cfg, hooks: remainingHooks })
     }
 
@@ -307,10 +313,10 @@ function mergeCodexHooks(existingHooks, generatedHooks, managedHookNames) {
   return Object.keys(merged).length > 0 ? merged : undefined
 }
 
-async function syncCodexHooksJson(sourceDir, proj, selectedHookNames, global) {
-  const dest = path.join(proj, '.codex', 'hooks.json')
+async function syncCodexHooksJson(sourceDir, configDir, selectedHookNames, global) {
+  const dest = path.join(configDir, 'hooks.json')
   const manifests = await loadHookManifests(sourceDir)
-  const generated = buildCodexHooksJson(manifests, selectedHookNames, global)
+  const generated = buildCodexHooksJson(manifests, selectedHookNames, global, configDir)
   const managedHookNames = new Set(
     manifests
       .filter(manifest => !manifest.platforms || manifest.platforms.includes('codex'))
@@ -320,7 +326,7 @@ async function syncCodexHooksJson(sourceDir, proj, selectedHookNames, global) {
   let nextJson
   if (await fs.pathExists(dest)) {
     const existing = await fs.readJson(dest)
-    const nextHooks = mergeCodexHooks(existing.hooks, generated.hooks, managedHookNames)
+    const nextHooks = mergeCodexHooks(existing.hooks, generated.hooks, managedHookNames, configDir)
     if (!nextHooks) {
       if (!existing.hooks) return 0
       const { hooks, ...rest } = existing
@@ -344,14 +350,16 @@ async function syncCodexHooksJson(sourceDir, proj, selectedHookNames, global) {
   return 1
 }
 
-/** 同步 Codex 配置；global 模式将规则写入用户 .codex/AGENTS.md。 */
+/** 同步 Codex Skills 与 Hooks；全局 Hooks 遵循 codexHome。 */
 export async function syncCodex({
   sourceDir: sourceDirOverride,
   projectDir,
   global = false,
   selected,
   homeDir,
+  codexHome,
   sharedSkills,
+  syncTypes = ['skills', 'hooks'],
   staleRemovals = {},
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
@@ -360,6 +368,7 @@ export async function syncCodex({
   }
 
   const proj = projectDir || process.cwd()
+  const configDir = global && codexHome ? codexHome : path.join(proj, '.codex')
 
   console.log(chalk.blue('\nScanning available config for Codex...\n'))
 
@@ -371,7 +380,7 @@ export async function syncCodex({
 
   const existing = {
     skills: await scanExistingCodexSkills(proj),
-    hooks: await scanExistingCodexHooks(proj),
+    hooks: await scanExistingCodexHooks(proj, configDir),
   }
   const selectedNames = key => new Set((selected[key] || []).map(item => item.name))
   const syncedSelection = {
@@ -385,12 +394,16 @@ export async function syncCodex({
   let syncedCount = 0
   let removedCount = 0
 
-  const skills = sharedSkills
-    ? sharedSkills.filter(skill => selectedNames('skills').has(skill.name))
-    : await prepareSharedSkills({ skills: syncedSelection.skills, homeDir })
-  syncedCount += await copySkillsFlat(skills, proj)
-  syncedCount += await copyCodexHooks(syncedSelection.hooks, proj)
-  syncedCount += await syncCodexHooksJson(sourceDir, proj, selectedHookNames, global)
+  if (syncTypes.includes('skills')) {
+    const skills = sharedSkills
+      ? sharedSkills.filter(skill => selectedNames('skills').has(skill.name))
+      : await ensureSharedSkills({ skills: syncedSelection.skills, homeDir })
+    syncedCount += await copySkillsFlat(skills, proj)
+  }
+  if (syncTypes.includes('hooks')) {
+    syncedCount += await copyCodexHooks(syncedSelection.hooks, configDir)
+    syncedCount += await syncCodexHooksJson(sourceDir, configDir, selectedHookNames, global)
+  }
 
   const skillTemplateNames = new Set([
     ...scans.skills.map(s => s.name),
@@ -400,10 +413,10 @@ export async function syncCodex({
     ...scans.hooks.map(h => h.name),
     ...(staleRemovals.hooks || new Set()),
   ])
-  removedCount += await removeUnselectedFlat(['.agents', 'skills'], existing.skills, new Set(syncedSelection.skills.map(s => s.name)), skillTemplateNames, proj)
-  removedCount += await removeUnselectedFlat(['.codex', 'hooks'], existing.hooks, selectedHookNames, hookTemplateNames, proj)
+  if (syncTypes.includes('skills')) removedCount += await removeUnselectedFlat(['.agents', 'skills'], existing.skills, new Set(syncedSelection.skills.map(s => s.name)), skillTemplateNames, proj)
+  if (syncTypes.includes('hooks')) removedCount += await removeUnselectedFlat([path.relative(proj, configDir), 'hooks'], existing.hooks, selectedHookNames, hookTemplateNames, proj)
 
   console.log(chalk.blue(`\nDone! ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
   console.log(chalk.gray(`  Skills → ${path.join(proj, '.agents', 'skills')}`))
-  console.log(chalk.gray(`  Hooks  → ${path.join(proj, '.codex')}`))
+  console.log(chalk.gray(`  Hooks  → ${configDir}`))
 }

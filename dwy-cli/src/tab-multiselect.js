@@ -72,8 +72,8 @@ function symbol(state) {
  */
 export function tabSelectionStats(tab, selectedValues) {
   const set = selectedValues instanceof Set ? selectedValues : new Set(selectedValues)
-  const total = tab.options.length
-  const selected = tab.options.filter(option => set.has(option.value)).length
+  const total = tab.options.filter(option => !option.disabled).length
+  const selected = tab.options.filter(option => !option.disabled && set.has(option.value)).length
   return { selected, total }
 }
 
@@ -211,7 +211,8 @@ class TabMultiSelectPrompt extends Prompt {
   constructor(opts) {
     super(opts, false)
     this.tabs = opts.tabs
-    this.value = [...(opts.initialValues ?? [])]
+    const selectable = new Set(this.tabs.flatMap(tab => tab.options.filter(option => !option.disabled).map(option => option.value)))
+    this.value = (opts.initialValues ?? []).filter(value => selectable.has(value))
     this.cursors = this.tabs.map(() => 0)
     this.tabIndex = firstTabWithSelection(this.tabs, this.value)
     this.on('cursor', (action) => this.#onCursor(action))
@@ -248,7 +249,7 @@ class TabMultiSelectPrompt extends Prompt {
   /** Space：只动光标那一条。 */
   toggleValue() {
     const option = this.currentOptions[this.cursor]
-    if (!option) return
+    if (!option || option.disabled) return
     const selected = this.value.includes(option.value)
     this.value = selected
       ? this.value.filter(value => value !== option.value)
@@ -257,7 +258,7 @@ class TabMultiSelectPrompt extends Prompt {
 
   /** a：当前 Tab 全选或全不选。 */
   toggleAllCurrentTab() {
-    const tabValues = this.currentOptions.map(option => option.value)
+    const tabValues = this.currentOptions.filter(option => !option.disabled).map(option => option.value)
     this.value = toggleTabValues(this.value, tabValues)
   }
 }
@@ -384,6 +385,7 @@ export function tabMultiselect(opts) {
             label: opt.label ?? String(opt.value ?? ''),
             selected: selected.includes(opt.value),
             active,
+            disabled: opt.disabled,
           }),
         })
 

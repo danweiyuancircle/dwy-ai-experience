@@ -3,7 +3,7 @@ import path from 'path'
 import { isCancel } from '@clack/prompts'
 import { tabMultiselect } from './tab-multiselect.js'
 import { chalk, PACKAGE_ROOT } from './utils.js'
-import { linkSkill, prepareSharedSkills, removeSkillEntry } from './skill-store.js'
+import { linkSkill, ensureSharedSkills, removeSkillEntry } from './skill-store.js'
 
 const CATEGORIES = [
   { key: 'skills', label: 'Skills' },
@@ -195,8 +195,9 @@ export function buildCategoryTabs(items, type) {
     if (!groups.has(category)) groups.set(category, [])
     groups.get(category).push({
       value: item.name,
-      label: item.name,
+      label: item.label || item.name,
       description: item.description,
+      disabled: item.disabled,
       type,
     })
   }
@@ -210,21 +211,21 @@ export function buildCategoryTabs(items, type) {
 }
 
 /**
- * 顺序选择 Skills、Rules；Enter 进入下一类，不再提供回退或重选菜单。
- * 完整同步默认启用全部模板 Hooks；仅 Skills 模式不得写入其他配置。
+ * 只展开调用方点名的内容，Enter 进入下一类，不提供回退菜单。
  * 取消返回 null，调用方必须终止同步。
  *
  * @param {object} scans
  * @param {{ skills: Iterable<string>, rules: Iterable<string> }} existing
- * @param {{ skillsOnly?: boolean }} [opts]
+ * @param {{ skillsOnly?: boolean, types?: string[] }} [opts]
  */
-export async function interactiveSelect(scans, existing, { skillsOnly = false } = {}) {
-  const selected = { skills: [], rules: [], commands: [], hooks: skillsOnly ? [] : scans.hooks }
-  for (const { key, label } of skillsOnly ? CATEGORIES.slice(0, 1) : CATEGORIES) {
+export async function interactiveSelect(scans, existing, { skillsOnly = false, types } = {}) {
+  const activeTypes = types || (skillsOnly ? ['skills'] : ['skills', 'rules', 'hooks'])
+  const selected = { skills: [], rules: [], commands: [], hooks: activeTypes.includes('hooks') ? scans.hooks : [] }
+  for (const { key, label } of CATEGORIES.filter(item => activeTypes.includes(item.key))) {
     const tabs = buildCategoryTabs(scans[key], key)
-    const availableNames = new Set(scans[key].map(item => item.name))
+    const availableNames = new Set(scans[key].filter(item => !item.disabled).map(item => item.name))
     const names = await tabMultiselect({
-      message: `选择 ${label}`,
+      message: `选择 ${label}（取消已有勾选将移除当前范围的托管项）`,
       tabs,
       initialValues: [...existing[key]].filter(name => availableNames.has(name)),
       required: false,
@@ -406,6 +407,7 @@ export async function syncClaude({
   selected,
   homeDir,
   sharedSkills,
+  syncTypes = ['skills', 'rules', 'hooks'],
   staleRemovals = {},
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
@@ -461,19 +463,23 @@ export async function syncClaude({
   let syncedCount = 0
   let removedCount = 0
 
-  const skills = sharedSkills
-    ? sharedSkills.filter(skill => selectedNames('skills').has(skill.name))
-    : await prepareSharedSkills({ skills: syncedSelection.skills, homeDir })
-  syncedCount += await copyItems(skills, projectTargetDir)
-  syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, global)
-  syncedCount += await copyHooks(syncedSelection.hooks, projectTargetDir)
+  if (syncTypes.includes('skills')) {
+    const skills = sharedSkills
+      ? sharedSkills.filter(skill => selectedNames('skills').has(skill.name))
+      : await ensureSharedSkills({ skills: syncedSelection.skills, homeDir })
+    syncedCount += await copyItems(skills, projectTargetDir)
+  }
+  if (syncTypes.includes('hooks')) {
+    syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, global)
+    syncedCount += await copyHooks(syncedSelection.hooks, projectTargetDir)
+  }
 
   const skillTemplateNames = new Set([...scans.skills.map(s => s.name), ...approvedStaleSkills])
   const ruleTemplateNames = new Set([...scans.rules.map(r => r.name), ...approvedStaleRules])
   const hookTemplateNames = new Set([...scans.hooks.map(h => h.name), ...approvedStaleHooks])
-  removedCount += await removeUnselected('skills', existing.skills, new Set(syncedSelection.skills.map(s => s.name)), skillTemplateNames, projectTargetDir)
-  removedCount += await removeUnselected('rules', existing.rules, new Set(), ruleTemplateNames, projectTargetDir)
-  removedCount += await removeUnselected('hooks', existing.hooks, selectedHookNames, hookTemplateNames, projectTargetDir)
+  if (syncTypes.includes('skills')) removedCount += await removeUnselected('skills', existing.skills, new Set(syncedSelection.skills.map(s => s.name)), skillTemplateNames, projectTargetDir)
+  if (syncTypes.includes('rules')) removedCount += await removeUnselected('rules', existing.rules, new Set(), ruleTemplateNames, projectTargetDir)
+  if (syncTypes.includes('hooks')) removedCount += await removeUnselected('hooks', existing.hooks, selectedHookNames, hookTemplateNames, projectTargetDir)
 
   console.log(chalk.blue(`\nDone! ${syncedCount} synced${removedCount > 0 ? `, ${removedCount} removed` : ''}.`))
   console.log(chalk.gray(`  Project config → ${projectTargetDir}`))

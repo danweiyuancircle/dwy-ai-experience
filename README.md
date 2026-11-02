@@ -58,7 +58,13 @@ Apple 验证需要完整 Xcode 环境。本机使用 Node 26 时，如 Vitest/js
 
 ## AI 配置基线
 
-`dwy-cli/templates/ai-tools/AGENTS.md` 是通用基线源文件，包含新功能开发前的工具发现与风险评估规则。`dwy` 默认将基线写入所选 AI CLI 的全局入口，所选 Rules 固定写入当前项目。位置选择仅控制 Skills / Hooks。项目脚手架统一生成 `AGENTS.md`；Claude Code 的用户级全局入口使用原生的 `CLAUDE.md`。
+`dwy-cli/templates/ai-tools/AGENTS.md` 是通用基线源文件，包含新功能开发前的工具发现与风险评估规则。`dwy` / `dwy sync` 按「范围 → 平台 → 本次处理内容 → 逐项选择 → 清单确认」执行，默认只选择 Skills。未选择的类型及其同步记录保持原样，确认前不写入任何配置。项目脚手架统一生成 `AGENTS.md`；Claude Code 的用户级全局入口使用原生的 `CLAUDE.md`。
+
+- 当前项目：可选择 Skills、项目 Rules、Hooks。
+- 全局：可选择 Skills、全局通用规范、Hooks，不提供 Cursor。
+- 类型按所选平台能力过滤。Skills / Rules 按分类逐项勾选；Hooks 选中类型后按平台自动同步；全局通用规范显示摘要。
+- 取消已有勾选会移除当前范围的托管入口；未勾选整个类型则不处理该类型。确认页列出本次写入、备份和清理项。
+- 用户主目录及其别名不能作为项目范围同步，需选择全局或进入项目目录，避免项目入口与全局入口重合。
 
 | 平台 | 所选 Rules 的项目位置 | 通用基线的全局位置 |
 |------|----------|------------------------|
@@ -67,13 +73,17 @@ Apple 验证需要完整 Xcode 环境。本机使用 Node 26 时，如 Vitest/js
 | OpenCode | 根 `AGENTS.md` 的托管规则块 | `~/.config/opencode/AGENTS.md` |
 | Cursor | `.cursor/rules/dwy-<规则名>.mdc` | 不支持文件同步，使用应用设置 |
 
-三种 CLI 共用项目根 `AGENTS.md`，基线不再重复注入项目。同步会更新 dwy 托管块、迁移旧基线和项目 Rules 的落点，保留托管块之外的手写内容。旧 Claude 基线文件无托管标记时，仅在其内容与当前模板完全一致时清理；无法确认归属的文件保留。确认步骤会列出全局基线位置、项目 Rules 位置和旧 Claude Rules 删除项；取消不写入任何配置。
+三种 CLI 共用项目根 `AGENTS.md`。只有选择项目 Rules 才更新项目托管块、清理旧项目基线和迁移旧规则入口；只有选择全局通用规范才更新原生全局指令入口。托管块之外的手写内容保留。旧 Claude 基线文件无托管标记时，仅在其内容与当前模板完全一致时清理；无法确认归属的文件保留。
 
 Claude Code 直接读取项目 `AGENTS.md` 需要 v2.1.277 或更新版本，并启用对应内置插件；默认情况下，工作目录及祖先目录中若存在 `CLAUDE.md`、`.claude/CLAUDE.md` 或 `CLAUDE.local.md`，会优先读取这些旧文件。全局 `~/.claude/CLAUDE.md` 会与项目指令一起加载。加载条件见 [Claude Code 官方说明](https://code.claude.com/docs/en/memory#agents-md)。
 
 ## Skills 共享副本与老项目迁移
 
-Skills 内容来自 CLI 包内模板，用户目录 `.dwy/skills/<name>` 保存一份共享副本；项目和全局的发现目录通过整个 Skill 目录的软链接引用它。相同平台已有有效全局入口时，项目不保留重复入口。Rules、Hooks 的存放规则不变。
+Skills 内容来自 CLI 包内模板，用户目录 `.dwy/skills/<name>` 保存一份共享副本；项目和全局的发现目录通过整个 Skill 目录的软链接引用它。项目选择页根据实际入口判断覆盖：全部适用平台均已全局启用时禁用重复勾选；只有部分平台启用时仍可选，只给缺少全局入口的平台建立项目链接。
+
+相同平台已有有效全局入口时，项目不保留重复入口，真实目录先备份，清理操作在确认页单独列出。项目同步不改写全局提供者。默认勾选只来自所选范围及平台，不混入另一范围的记录。`dwy sync` / `dwy migrate` 仅准备缺失或损坏的共享副本，已有共享内容只由 `dwy refresh` / `dwy upgrade` 更新。
+
+选择产品流程 Skills 时，缺失的外部依赖会在确认清单中列出，确认后联网拉取固定版本；已有外部副本保留。
 
 ```bash
 # 老项目：在项目根目录执行一次，无需重新勾选

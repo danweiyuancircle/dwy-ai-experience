@@ -20,6 +20,21 @@ async function readInstalledNames(homeDir) {
   return names
 }
 
+/** 仅为缺失或损坏的 Skill 准备共享副本；已有有效内容只登记，不随入口同步刷新。 */
+export async function ensureSharedSkills({ skills, homeDir = os.homedir() }) {
+  const sources = []
+  for (const skill of skills) {
+    validateName(skill.name)
+    const cached = path.join(homeDir, '.dwy', 'skills', skill.name)
+    const stat = await fs.stat(path.join(cached, 'SKILL.md')).catch(error => {
+      if (['ENOENT', 'ENOTDIR', 'ELOOP'].includes(error.code)) return null
+      throw error
+    })
+    sources.push(stat?.isFile() ? { ...skill, sourcePath: cached } : skill)
+  }
+  return prepareSharedSkills({ skills: sources, homeDir })
+}
+
 /**
  * 将包内 Skills 准备到稳定用户目录，返回指向共享副本的条目。
  * 同一用户的刷新互斥；完整副本准备失败时不替换旧内容。外部 Skills 缓存不纳入本模块清单。

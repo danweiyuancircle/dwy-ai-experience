@@ -7,7 +7,7 @@ import fs from 'fs-extra'
 import os from 'node:os'
 import path from 'path'
 import { logAction, scanExisting } from './sync.js'
-import { linkSkill, prepareSharedSkills, removeSkillEntry } from './skill-store.js'
+import { linkSkill, ensureSharedSkills, removeSkillEntry } from './skill-store.js'
 
 /** 项目目录：随所选平台落到 .claude/skills、.agents/skills 等 */
 export const SKILL_DEST_PROJECT = 'project'
@@ -123,7 +123,7 @@ export function listSkillDestOptions(homeDir = os.homedir()) {
  */
 export async function copySkillsToGlobalDirs({ skills, destIds, homeDir = os.homedir() }) {
   let count = 0
-  const sharedSkills = await prepareSharedSkills({ skills, homeDir })
+  const sharedSkills = await ensureSharedSkills({ skills, homeDir })
 
   for (const destId of destIds) {
     const destRoot = resolveGlobalSkillDir(destId, homeDir)
@@ -149,7 +149,7 @@ export async function copySkillsToGlobalDirs({ skills, destIds, homeDir = os.hom
  */
 export async function copySkillsToProjectPlatforms({ projectDir, platforms, skills, homeDir }) {
   let count = 0
-  const sharedSkills = await prepareSharedSkills({ skills, homeDir })
+  const sharedSkills = await ensureSharedSkills({ skills, homeDir })
 
   for (const platform of platforms) {
     const destRoot = resolveProjectSkillDir(projectDir, platform)
@@ -200,7 +200,7 @@ export async function scanGlobalSkills({ homeDir, codexHome }) {
   return names
 }
 
-/** 全局优先：已有全局副本迁为共享链接，项目重复真实目录备份后移除，返回去重名称。 */
+/** 全局优先：仅备份并移除项目重复入口，不改写全局提供者，返回去重名称。 */
 export async function deduplicateProjectSkills({ projectDir, platform, skills, homeDir, codexHome }) {
   const projectRoot = resolveProjectSkillDir(projectDir, platform)
   const duplicates = new Set()
@@ -208,7 +208,6 @@ export async function deduplicateProjectSkills({ projectDir, platform, skills, h
   for (const skill of skills) {
     const globalEntry = await findGlobalSkill({ name: skill.name, platform, homeDir, codexHome })
     if (!globalEntry) continue
-    await linkSkill({ skill, dest: globalEntry, backupRoot: path.join(homeDir, '.dwy', 'skill-backups') })
     const dest = path.join(projectRoot, skill.name)
     await removeSkillEntry({ dest, backupRoot: path.join(projectDir, '.dwy', 'skill-backups') })
     duplicates.add(skill.name)

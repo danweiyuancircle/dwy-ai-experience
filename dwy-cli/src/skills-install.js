@@ -71,24 +71,54 @@ async function shallowCloneTag(repoUrl, tag, destDir) {
   await runGit(['clone', '--depth', '1', '--branch', tag, repoUrl, destDir])
 }
 
-// 安装/更新全部外部 skill 到 ~/.dwy/skills/。再次运行即覆盖式更新。
-export async function installSkills() {
-  const targetDir = getGlobalSkillsDir()
+async function validExternalSkill(dest) {
+  const stat = await fs.stat(path.join(dest, 'SKILL.md')).catch(error => {
+    if (['ENOENT', 'ENOTDIR', 'ELOOP'].includes(error.code)) return null
+    throw error
+  })
+  return Boolean(stat?.isFile())
+}
+
+async function missingExternalSources(targetDir) {
+  const sources = []
+  for (const [name, source] of Object.entries(SKILL_SOURCES)) {
+    const skills = {}
+    for (const [skill, repoPath] of Object.entries(source.skills)) {
+      if (!await validExternalSkill(path.join(targetDir, skill))) skills[skill] = repoPath
+    }
+    if (Object.keys(skills).length) sources.push([name, { ...source, skills }])
+  }
+  return sources
+}
+
+/** 只读列出产品流程缺失的外部依赖；确认后再联网补齐，已有副本不刷新。 */
+export async function planMissingExternalSkills(targetDir) {
+  const sources = await missingExternalSources(targetDir)
+  const paths = sources.flatMap(([, source]) => Object.keys(source.skills).map(name => path.join(targetDir, name)))
+  for (const [, source] of sources) {
+    const license = path.join(targetDir, source.licenseDest)
+    if (!await fs.pathExists(license)) paths.push(license)
+  }
+  if (sources.length) paths.push(path.join(targetDir, 'VERSIONS.json'))
+  return { paths, run: () => installSkillSources(sources, targetDir, true) }
+}
+
+async function installSkillSources(sources, targetDir, missingOnly) {
+  if (sources.length === 0) return
+  const versionsFile = path.join(targetDir, 'VERSIONS.json')
+  const previous = missingOnly && await fs.pathExists(versionsFile) ? await fs.readJson(versionsFile) : {}
+  const versions = { ...previous.versions }
   await fs.ensureDir(targetDir)
-
-  const tmpRoot = path.join(os.tmpdir(), `dwy-skills-${process.pid}`)
-  await fs.ensureDir(tmpRoot)
-
-  const versions = {}
+  const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-skills-'))
   try {
-    for (const [sourceName, src] of Object.entries(SKILL_SOURCES)) {
+    for (const [sourceName, src] of sources) {
       console.log(chalk.gray(`拉取 ${sourceName} @ ${src.tag} ...`))
       const repoDir = path.join(tmpRoot, sourceName)
       await shallowCloneTag(src.repo, src.tag, repoDir)
 
       // 搬 LICENSE（MIT 要求保留原版权声明）
       const licenseSrc = path.join(repoDir, src.licenseFile)
-      if (await fs.pathExists(licenseSrc)) {
+      if (await fs.pathExists(licenseSrc) && (!missingOnly || !await fs.pathExists(path.join(targetDir, src.licenseDest)))) {
         await fs.copy(licenseSrc, path.join(targetDir, src.licenseDest), { overwrite: true })
       }
 
@@ -96,6 +126,7 @@ export async function installSkills() {
       for (const [skillName, repoPath] of Object.entries(src.skills)) {
         const from = path.join(repoDir, repoPath)
         const to = path.join(targetDir, skillName)
+        if (missingOnly && await validExternalSkill(to)) continue
         if (!await fs.pathExists(from)) {
           throw new Error(`${sourceName} @ ${src.tag} 内未找到 ${repoPath}（仓库结构可能变了）`)
         }
@@ -109,14 +140,19 @@ export async function installSkills() {
     // 写版本清单 + 清单指纹，供查看与后续更新比对。
     // manifest_hash 变化（cli 加了 skill / 改了 tag）→ 下次 ensureSkillsInstalled 触发重装。
     await fs.writeJson(
-      path.join(targetDir, 'VERSIONS.json'),
-      { manifest_hash: computeManifestHash(), versions },
+      versionsFile,
+      { manifest_hash: missingOnly ? previous.manifest_hash : computeManifestHash(), versions },
       { spaces: 2 },
     )
     console.log(chalk.green(`\n✓ 外部 skill 已安装到 ${targetDir}`))
   } finally {
     await fs.remove(tmpRoot)
   }
+}
+
+/** 兼容显式安装调用：更新固定清单中的全部外部 Skills。 */
+export async function installSkills() {
+  return installSkillSources(Object.entries(SKILL_SOURCES), getGlobalSkillsDir(), false)
 }
 
 // 全局 skill 是否已就绪（VERSIONS.json 存在）。

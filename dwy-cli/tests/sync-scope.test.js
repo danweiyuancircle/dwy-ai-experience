@@ -24,16 +24,15 @@ async function fixture(t) {
     selected: { skills: [{ name: 'sample' }], rules: [{ name: 'sample.md' }], hooks: [{ name: 'check.sh' }] } }
 }
 
-test('Skills 与 Hooks 可选全局，基线固定全局且 Rules 固定项目，保留个人内容', async t => {
+test('全局显式选择 Skills、Hooks、通用规范，不触碰项目 Rules，保留个人内容', async t => {
   const opts = await fixture(t)
   for (const relative of ['.claude/CLAUDE.md', '.codex/AGENTS.md', '.config/opencode/AGENTS.md']) {
     await fs.outputFile(path.join(opts.homeDir, relative), '# Personal instructions')
   }
   await fs.outputJson(path.join(opts.homeDir, '.claude/settings.json'), { model: 'personal' })
-  await syncAll({ ...opts, scope: 'global' })
-  const projectRules = await fs.readFile(path.join(opts.projectDir, 'AGENTS.md'), 'utf8')
-  assert.match(projectRules, /# Rule/)
-  assert.doesNotMatch(projectRules, /# Baseline/)
+  await fs.outputFile(path.join(opts.projectDir, 'AGENTS.md'), '# Keep project rules')
+  await syncAll({ ...opts, scope: 'global', contentTypes: ['skills', 'hooks', 'baseline'] })
+  assert.equal(await fs.readFile(path.join(opts.projectDir, 'AGENTS.md'), 'utf8'), '# Keep project rules')
   for (const relative of ['.claude/skills', '.agents/skills', '.config/opencode/skills']) {
     assert.equal(await fs.pathExists(path.join(opts.homeDir, relative, 'sample/SKILL.md')), true)
   }
@@ -53,17 +52,16 @@ test('Skills 与 Hooks 可选全局，基线固定全局且 Rules 固定项目�
   }
   assert.equal(await fs.pathExists(path.join(opts.homeDir, 'AGENTS.md')), false)
   assert.equal(await fs.pathExists(path.join(opts.homeDir, '.dwy/sync-state.json')), true)
-  await syncAll({ ...opts, scope: 'global' })
+  await syncAll({ ...opts, scope: 'global', contentTypes: ['skills', 'hooks', 'baseline'] })
   for (const relative of ['.claude/CLAUDE.md', '.codex/AGENTS.md', '.config/opencode/AGENTS.md']) {
     const content = await fs.readFile(path.join(opts.homeDir, relative), 'utf8')
     assert.equal(content.split('# Baseline').length - 1, 1)
   }
   const repeated = await fs.readJson(path.join(opts.homeDir, '.claude/settings.json'))
   assert.equal(repeated.hooks.PreToolUse[0].hooks.length, 1)
-  const projectState = await fs.readJson(path.join(opts.projectDir, '.dwy/sync-state.json'))
+  assert.equal(await fs.pathExists(path.join(opts.projectDir, '.dwy/sync-state.json')), false)
   const globalState = await fs.readJson(path.join(opts.homeDir, '.dwy/sync-state.json'))
   for (const platform of opts.selectedPlatforms) {
-    assert.deepEqual(projectState.platforms[platform].rules, ['sample.md'])
     assert.deepEqual(globalState.platforms[platform].rules, [])
   }
   await fs.remove(path.join(opts.sourceDir, 'skills/通用/sample'))
@@ -99,9 +97,9 @@ test('最后取消不写配置或同步记录', async t => {
   assert.equal(await fs.pathExists(opts.homeDir), false)
 })
 
-test('Skills 位置选全局时 Cursor Rules 仍只写项目', async t => {
+test('全局范围拒绝只支持项目 Rules 的 Cursor，不跨范围写入', async t => {
   const opts = await fixture(t)
-  await syncAll({ ...opts, scope: 'global', selectedPlatforms: ['cursor'] })
-  assert.match(await fs.readFile(path.join(opts.projectDir, '.cursor/rules/dwy-sample.mdc'), 'utf8'), /# Rule/)
+  await assert.rejects(syncAll({ ...opts, scope: 'global', selectedPlatforms: ['cursor'] }), /不支持/)
+  assert.equal(await fs.pathExists(path.join(opts.projectDir, '.cursor')), false)
   assert.equal(await fs.pathExists(opts.homeDir), false)
 })

@@ -26,10 +26,15 @@ async function fixture(t) {
     selected: { skills: [], rules: [{ name: 'first.md' }], hooks: [] } }
 }
 
+async function syncBaseline(options) {
+  await syncAll({ ...options, scope: 'global', contentTypes: ['baseline'] })
+}
+
 for (const platform of Object.keys(globalFiles)) {
-  test(`${platform} 单独同步也默认更新全局基线，并把 Rules 写入项目根`, async t => {
+  test(`${platform} 全局规范与项目 Rules 分别显式同步，落点独立`, async t => {
     const opts = await fixture(t)
     await fs.outputFile(path.join(opts.projectDir, 'AGENTS.md'), '# Personal project\n')
+    await syncBaseline({ ...opts, selectedPlatforms: [platform] })
     await syncAll({ ...opts, selectedPlatforms: [platform] })
     const global = await fs.readFile(path.join(opts.homeDir, globalFiles[platform]), 'utf8')
     assert.match(global, /Universal baseline/)
@@ -44,9 +49,9 @@ for (const platform of Object.keys(globalFiles)) {
   })
 }
 
-test('没有选择 Rules 时只更新全局基线，不创建项目 AGENTS.md', async t => {
+test('显式选择全局规范，不创建项目 AGENTS.md', async t => {
   const opts = await fixture(t)
-  await syncAll({ ...opts, selectedPlatforms: ['claude', 'codex', 'opencode'],
+  await syncBaseline({ ...opts, selectedPlatforms: ['claude', 'codex', 'opencode'],
     selected: { skills: [], rules: [], hooks: [] } })
   assert.equal(await fs.pathExists(path.join(opts.projectDir, 'AGENTS.md')), false)
   for (const relative of Object.values(globalFiles)) {
@@ -57,6 +62,7 @@ test('没有选择 Rules 时只更新全局基线，不创建项目 AGENTS.md', 
 test('不同项目共享全局基线，Rules 及同步记录保持各自独立', async t => {
   const opts = await fixture(t)
   const secondProject = path.join(opts.homeDir, '..', 'second-project')
+  await syncBaseline({ ...opts, selectedPlatforms: ['codex'] })
   await syncAll({ ...opts, selectedPlatforms: ['codex'] })
   await syncAll({ ...opts, projectDir: secondProject, selectedPlatforms: ['codex'],
     selected: { skills: [], rules: [{ name: 'second.md' }], hooks: [] } })
@@ -78,6 +84,7 @@ test('不同项目共享全局基线，Rules 及同步记录保持各自独立',
 test('取消勾选只移除项目托管 Rules，保留全局基线及手写内容', async t => {
   const opts = await fixture(t)
   await fs.outputFile(path.join(opts.projectDir, 'AGENTS.md'), '# Personal project\n')
+  await syncBaseline({ ...opts, selectedPlatforms: ['claude'] })
   await syncAll({ ...opts, selectedPlatforms: ['claude'] })
   const globalFile = path.join(opts.homeDir, globalFiles.claude)
   const globalBefore = await fs.readFile(globalFile, 'utf8')
@@ -120,6 +127,7 @@ test('迁移可识别的旧托管内容，保留全局与项目的个人内容',
   await fs.outputFile(path.join(opts.projectDir, '.claude/AGENTS.md'), '# Universal baseline\n')
   await fs.outputFile(path.join(opts.projectDir, '.claude/rules/first.md'), '# Old rule')
   await fs.outputFile(path.join(opts.projectDir, '.claude/rules/personal.md'), '# Keep personal rule')
+  await syncBaseline({ ...opts, selectedPlatforms: ['claude', 'codex', 'opencode'] })
   await syncAll({ ...opts, selectedPlatforms: ['claude', 'codex', 'opencode'] })
   const project = await fs.readFile(path.join(opts.projectDir, 'AGENTS.md'), 'utf8')
   assert.match(project, /Project personal/)
@@ -140,7 +148,7 @@ test('迁移可识别的旧托管内容，保留全局与项目的个人内容',
 test('Codex 基线可写入指定配置目录', async t => {
   const opts = await fixture(t)
   const codexHome = path.join(opts.homeDir, 'custom codex')
-  await syncAll({ ...opts, codexHome, selectedPlatforms: ['codex'] })
+  await syncBaseline({ ...opts, codexHome, selectedPlatforms: ['codex'] })
   assert.match(await fs.readFile(path.join(codexHome, 'AGENTS.md'), 'utf8'), /Universal baseline/)
   assert.equal(await fs.pathExists(path.join(opts.homeDir, '.codex/AGENTS.md')), false)
 })
@@ -150,7 +158,7 @@ test('Codex 默认基线位置遵循 CODEX_HOME', async t => {
   const codexHome = path.join(opts.homeDir, 'profile')
   execFileSync(process.execPath, ['--input-type=module', '-e', `
     import { syncAll } from './dwy-cli/src/sync-all.js';
-    await syncAll(${JSON.stringify({ ...opts, codexHome: undefined, selectedPlatforms: ['codex'] })});
+    await syncAll(${JSON.stringify({ ...opts, scope: 'global', contentTypes: ['baseline'], codexHome: undefined, selectedPlatforms: ['codex'] })});
   `], { cwd: new URL('../../', import.meta.url), env: { ...process.env, CODEX_HOME: codexHome }, stdio: 'pipe' })
   assert.match(await fs.readFile(path.join(codexHome, 'AGENTS.md'), 'utf8'), /Universal baseline/)
   assert.equal(await fs.pathExists(path.join(opts.homeDir, '.codex/AGENTS.md')), false)
@@ -160,7 +168,7 @@ test('旧全局文件等于基线模板时迁移为单个托管块', async t => 
   const opts = await fixture(t)
   const target = path.join(opts.homeDir, globalFiles.claude)
   await fs.outputFile(target, '# Universal baseline\n')
-  await syncAll({ ...opts, selectedPlatforms: ['claude'] })
+  await syncBaseline({ ...opts, selectedPlatforms: ['claude'] })
   const content = await fs.readFile(target, 'utf8')
   assert.equal(content.split('Universal baseline').length - 1, 1)
   assert.match(content, /DWY-BASELINE:START/)
@@ -173,6 +181,6 @@ test('旧同步记录中的规则名不能越出规则目录删除文件', async
   await fs.outputJson(path.join(opts.homeDir, '.dwy/sync-state.json'), {
     version: 1, platforms: { claude: { rules: ['../../personal.md'] } },
   })
-  await syncAll({ ...opts, selectedPlatforms: ['claude'] })
+  await syncBaseline({ ...opts, selectedPlatforms: ['claude'] })
   assert.equal(await fs.readFile(personalFile, 'utf8'), '# Keep personal')
 })
