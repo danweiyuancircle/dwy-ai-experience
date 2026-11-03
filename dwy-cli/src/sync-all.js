@@ -6,12 +6,13 @@ import { SEARCH_PLACEHOLDER, searchableMultiselect, searchableSelect } from './s
 import { normalizeSkillScope, resolveProjectSkillDir, resolveGlobalSkillDir, copySkillsToProjectPlatforms, deduplicateProjectSkills } from './sync-global-skills.js'
 import { ensureSharedSkills } from './skill-store.js'
 import { chalk } from './utils.js'
-import { interactiveSelect, readBaselineDoc, resolveSourceDir, scanExisting, scanHooks, scanRules, scanSkills } from './sync.js'
+import { interactiveSelect, loadHookManifests, readBaselineDoc, resolveSourceDir, scanExisting, scanHooks, scanRules, scanSkills } from './sync.js'
 import { parseManagedRuleNames, scanExistingCodexHooks, scanExistingCodexSkills } from './sync-codex.js'
 import { scanExistingCursorRules } from './sync-cursor.js'
 import { installSkills } from './skills-install.js'
 import { selfUpgrade } from './self-upgrade.js'
 import { buildSyncPlan, contentOptions, projectSkillChoices, PLATFORM_LABELS, PLATFORM_SYNC_TYPES } from './sync-plan.js'
+import { assertConfigPath, baselineProviders, globalHookNames } from './sync-inheritance.js'
 
 const PLATFORM_OPTIONS = [
   { value: 'claude', label: 'Claude Code', description: '支持 Skills、项目 Rules、Hooks 和全局通用规范' },
@@ -126,11 +127,19 @@ function staleEntries(scans, state, existing, platforms) {
   const result = {}
   for (const platform of platforms) {
     result[platform] = {}
-    for (const type of PLATFORM_SYNC_TYPES[platform]) {
+    for (const type of PLATFORM_SYNC_TYPES[platform].filter(type => current[type])) {
       result[platform][type] = (state.platforms[platform]?.[type] || []).filter(name =>
         !current[type].has(name) && existing[platform][type].has(platform === 'cursor' && type === 'rules' ? buildCursorRuleName(name) : name))
     }
   }
+  return result
+}
+
+/** 全局首次默认管理基线；任一所选平台显式移除后不再整组默认开启。 */
+export function defaultContentTypes(scope, platforms, state) {
+  const allowed = new Set(contentOptions(scope, platforms).map(option => option.value))
+  const result = allowed.has('skills') ? ['skills'] : []
+  if (scope === 'global' && allowed.has('baseline') && platforms.every(platform => state.platforms[platform]?.baseline !== false)) result.push('baseline')
   return result
 }
 
@@ -220,6 +229,7 @@ export async function syncAll({
   selectedPlatforms: platformsOverride, contentTypes: typesOverride, staleRemovals: removalsOverride,
   skillScope: skillScopeOverride, syncMode: modeOverride, homeDir = os.homedir(),
   codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'), scope: scopeOverride, confirmed,
+  contentActions: actionsOverride,
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir()
   if (!await fs.pathExists(sourceDir)) throw new Error('ai-tools templates not found in repo')
@@ -227,8 +237,8 @@ export async function syncAll({
   const scope = scopeOverride || (selectedOverride || platformsOverride ? 'project' : await searchableSelect({
     message: '选择同步范围',
     options: [
-      { value: 'project', label: '当前项目', description: '管理项目启用的 Skills、项目 Rules 和 Hooks；全局已有 Skills 自动去重' },
-      { value: 'global', label: '全局', description: '管理用户级 Skills、通用规范和 Hooks；项目重复 Skill 入口会明确列出清理项' },
+      { value: 'project', label: '当前项目', description: '管理 Skills、Hooks、Rules 和通用规范；继承有效全局配置' },
+      { value: 'global', label: '全局', description: '管理 Skills、Hooks 和通用规范；清理当前项目重复入口' },
     ], initialValue: 'project',
   }))
   if (isCancel(scope)) { console.log(chalk.yellow('已取消同步。')); return }
@@ -239,13 +249,15 @@ export async function syncAll({
   if (platforms.length === 0 || platforms.some(platform => !PLATFORM_SYNC_TYPES[platform] || (global && platform === 'cursor'))) throw new Error('所选平台不支持此同步范围')
   const options = contentOptions(scope, platforms)
   const allowed = new Set(options.map(option => option.value))
+  const projectState = await loadSyncState(projectDir), globalState = await loadSyncState(homeDir)
+  const targetState = global ? globalState : projectState
   let contentTypes = typesOverride
   if (!contentTypes && modeOverride === SYNC_MODE_SKILLS) contentTypes = ['skills']
   if (!contentTypes && selectedOverride) contentTypes = Object.keys(selectedOverride).filter(type => allowed.has(type))
   if (!contentTypes) {
     const result = await searchableMultiselect({
       message: '选择本次处理内容（未勾选的类型保持原样）', options,
-      initialValues: allowed.has('skills') ? ['skills'] : [], required: true, maxItems: 5,
+      initialValues: defaultContentTypes(scope, platforms, targetState), required: true, maxItems: 5,
     })
     if (isCancel(result)) { console.log(chalk.yellow('已取消同步。')); return }
     contentTypes = result
@@ -253,8 +265,6 @@ export async function syncAll({
   if (contentTypes.some(type => !allowed.has(type))) throw new Error('所选范围或平台不支持此同步内容')
   if (contentTypes.length === 0) { console.log('未选择处理内容。'); return }
   const scans = { skills: await scanSkills(sourceDir), rules: await scanRules(sourceDir), hooks: await scanHooks(sourceDir), commands: [] }
-  const projectState = await loadSyncState(projectDir), globalState = await loadSyncState(homeDir)
-  const targetState = global ? globalState : projectState
   const existing = await managedNames(targetRoot, global, codexHome)
   const current = Object.fromEntries(['skills', 'rules', 'hooks'].map(type => [type,
     unionSets(...platforms.map(platform => existing[platform][type]))]))
@@ -266,12 +276,45 @@ export async function syncAll({
     ? { skills: selectedOverride.skills || [], rules: selectedOverride.rules || [], hooks: [], commands: [] }
     : await interactiveSelect(choices, defaults, { types: contentTypes })
   if (selected === null) { console.log(chalk.yellow('已取消同步。')); return }
+  const contentActions = { ...actionsOverride }
+  if (!selectedOverride) {
+    for (const type of ['hooks', 'baseline'].filter(type => contentTypes.includes(type))) {
+      if (contentActions[type]) continue
+      const inherited = type === 'baseline' && !global ? await baselineProviders(platforms, { homeDir, codexHome }) : []
+      const name = type === 'hooks' ? 'Hooks' : 'AGENTS.md 通用规范'
+      if (inherited.length) console.log(chalk.yellow(`全局已启用通用规范：${inherited.map(p => PLATFORM_LABELS[p]).join('、')}；项目禁止重复安装，其他平台需补齐全局规范。`))
+      let inheritedHooks = false
+      if (type === 'hooks' && !global) {
+        const manifests = await loadHookManifests(sourceDir)
+        let total = 0, covered = 0
+        for (const platform of platforms.filter(p => PLATFORM_SYNC_TYPES[p].includes('hooks'))) {
+          const available = scans.hooks.filter(hook => manifests.some(manifest => manifest.name === hook.name && (!manifest.platforms || manifest.platforms.includes(platform))))
+          const provided = await globalHookNames({ platform, sourceDir, homeDir, codexHome })
+          total += available.length
+          covered += available.filter(hook => provided.has(hook.name)).length
+          if (provided.size) console.log(`${PLATFORM_LABELS[platform]} Hooks 全局已启用：${[...provided].join('、')}`)
+        }
+        inheritedHooks = total > 0 && covered === total
+      }
+      const action = await searchableSelect({
+        message: `选择 ${name} 操作`, initialValue: 'sync',
+        options: [
+          { value: 'sync', label: inherited.length ? '使用全局，仅清理项目重复基线' : inheritedHooks ? '使用全局，仅清理项目重复 Hooks' : '启用 / 更新',
+            description: type === 'hooks' && !global ? '只为缺少有效全局注册的 Hook 安装项目配置，其他仅去重' : '执行清单会列出实际路径及清理项' },
+          { value: 'remove', label: `移除当前范围的${name}`, description: '只移除 dwy 托管内容，保留个人配置和其他类型' },
+        ],
+      })
+      if (isCancel(action)) { console.log(chalk.yellow('已取消同步。')); return }
+      contentActions[type] = action
+    }
+  }
   const stale = staleEntries(scans, targetState, existing, platforms)
   const removals = normalizeRemovals(removalsOverride || stale)
   const baseline = contentTypes.some(type => type === 'rules' || type === 'baseline') ? await readBaselineDoc(sourceDir) : ''
   const plan = await buildSyncPlan({
     scope, platforms, contentTypes, selected, scans, sourceDir, projectDir, homeDir, codexHome,
     projectState, globalState, staleRemovals: removals, staleEntries: stale, baseline,
+    contentActions,
     skillScope: normalizeSkillScope(skillScopeOverride),
   })
   const nextTarget = global ? plan.nextGlobal : plan.nextProject
@@ -279,16 +322,21 @@ export async function syncAll({
   nextTarget.syncMode = contentTypes.length === 1 && contentTypes[0] === 'skills' ? SYNC_MODE_SKILLS : SYNC_MODE_ALL
   nextTarget.skillScope = normalizeSkillScope(skillScopeOverride)
   const stateFile = path.join(targetRoot, ...SYNC_STATE_PATH)
-  plan.operations.push({ kind: 'state', label: '更新当前范围同步记录', paths: [stateFile], run: () => saveSyncState(targetRoot, nextTarget) })
+  await assertConfigPath(stateFile, targetRoot)
+  plan.operations.push({ kind: 'state', label: '更新当前范围同步记录', paths: [stateFile], run: async () => {
+    await assertConfigPath(stateFile, targetRoot)
+    await saveSyncState(targetRoot, nextTarget)
+  } })
   if (global && plan.projectChanged) plan.operations.push({
     kind: 'state', label: '更新项目去重记录', paths: [path.join(projectDir, ...SYNC_STATE_PATH)],
-    run: () => saveSyncState(projectDir, plan.nextProject),
+    run: async () => { await assertConfigPath(path.join(projectDir, ...SYNC_STATE_PATH), projectDir); await saveSyncState(projectDir, plan.nextProject) },
   })
+  if (global && plan.projectChanged) await assertConfigPath(path.join(projectDir, ...SYNC_STATE_PATH), projectDir)
   console.log(`\n同步范围：${global ? '全局' : '当前项目'}；平台：${platforms.map(p => PLATFORM_LABELS[p]).join('、')}`)
   console.log(`处理内容：${contentTypes.map(type => options.find(option => option.value === type).label).join('、')}`)
   if (contentTypes.includes('skills')) console.log(`Skills：${selected.skills.map(item => item.name).join('、') || '无项目安装选择；已有全局入口仅去重'}`)
   if (contentTypes.includes('rules')) console.log(`Rules：${selected.rules.map(item => item.name).join('、') || '移除当前项目托管规则'}`)
-  if (contentTypes.includes('baseline')) console.log(`全局通用规范摘要：${baseline.split('\n').filter(line => /^#/.test(line)).slice(0,3).join('；')}`)
+  if (contentTypes.includes('baseline')) console.log(`通用规范：${contentActions.baseline === 'remove' ? '显式移除' : baseline.split('\n').filter(line => /^#/.test(line)).slice(0,3).join('；')}`)
   for (const operation of plan.operations) {
     console.log(operation.label)
     for (const dest of operation.paths) console.log(`  → ${dest}`)

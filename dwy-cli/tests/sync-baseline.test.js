@@ -136,7 +136,7 @@ test('迁移可识别的旧托管内容，保留全局与项目的个人内容',
   for (const [platform, relative] of Object.entries(globalFiles)) {
     const content = await fs.readFile(path.join(opts.homeDir, relative), 'utf8')
     assert.match(content, /Universal baseline/)
-    assert.doesNotMatch(content, /Old baseline|Old global rule|DWY-RULES/)
+    assert.doesNotMatch(content, /Old baseline/)
     if (platform !== 'claude') assert.match(content, /personal/)
   }
   assert.equal(await fs.readFile(path.join(opts.homeDir, '.claude/AGENTS.md'), 'utf8'), '# Claude personal\n')

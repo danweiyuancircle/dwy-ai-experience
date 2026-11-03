@@ -171,8 +171,9 @@ test('显式选择 Hooks 后自动安装支持项，旧包记录不展开，Comm
     import { syncAll } from './dwy-cli/src/sync-all.js';
     await syncAll(${JSON.stringify(options)});
     console.log('RESULT:{}');
-  `, [{ label: 'Skills', keys: '\r' }, { label: 'Rules', keys: '\r' }])
-  assert.doesNotMatch(transcript, /项目配置怎么勾|选择技术栈和场景包|选择 Commands|选择 Hooks/)
+  `, [{ label: 'Skills', keys: '\r' }, { label: 'Rules', keys: '\r' }, { message: '选择 Hooks 操作', keys: '\r' }])
+  assert.doesNotMatch(transcript, /项目配置怎么勾|选择技术栈和场景包|选择 Commands/)
+  assert.match(transcript, /选择 Hooks 操作/)
   for (const platform of ['.claude', '.agents', '.opencode']) {
     assert.equal(await fs.pathExists(path.join(projectDir, platform, 'skills', 'keep', 'SKILL.md')), true)
     assert.equal(await fs.pathExists(path.join(projectDir, platform, 'skills', 'unselected')), false)
@@ -248,7 +249,7 @@ test('主交互按范围、平台、内容类型、逐项选择和确认完成�
   assert.equal(await fs.pathExists(homeDir), false)
 })
 
-test('全局主交互默认仅处理 Skills，确认后不写项目或全局规范和 Hooks', async t => {
+test('全局主交互首次默认 Skills 和通用规范，确认后不写项目或 Hooks', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-global-flow-'))
   t.after(() => fs.remove(root))
   const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
@@ -264,15 +265,16 @@ test('全局主交互默认仅处理 Skills，确认后不写项目或全局规�
     { message: '选择要同步的平台', keys: '\r' },
     { message: '选择本次处理内容', keys: '\r' },
     { label: 'Skills', keys: ' \r' },
+    { message: '选择 AGENTS.md 通用规范 操作', keys: '\r' },
     { message: '确认同步？', keys: '\r' },
   ])
   assert.match(transcript, /同步范围：全局/)
-  assert.match(transcript, /处理内容：Skills/)
+  assert.match(transcript, /处理内容：Skills、AGENTS.md 通用规范/)
   assert.doesNotMatch(transcript, /选择 Rules|选择 Hooks/)
   assert.deepEqual(await fs.readdir(projectDir), [])
   assert.equal(await fs.pathExists(path.join(homeDir, '.claude/skills/sample/SKILL.md')), true)
   assert.equal(await fs.pathExists(path.join(homeDir, '.agents/skills/sample/SKILL.md')), true)
-  assert.equal(await fs.pathExists(path.join(homeDir, '.claude/CLAUDE.md')), false)
+  assert.equal(await fs.pathExists(path.join(homeDir, '.claude/CLAUDE.md')), true)
   assert.equal(await fs.pathExists(path.join(homeDir, '.claude/settings.json')), false)
 })
 
@@ -312,4 +314,78 @@ test('部分平台全局已提供时仍能勾选，只为缺少入口的平台�
   assert.equal(await fs.pathExists(path.join(projectDir, '.claude/skills/sample')), false)
   assert.equal((await fs.lstat(path.join(projectDir, '.agents/skills/sample'))).isSymbolicLink(), true)
   assert.equal(await fs.readFile(path.join(homeDir, '.claude/skills/sample/SKILL.md'), 'utf8'), '# existing global')
+})
+
+test('全局规范移除后默认不复选，混合新平台也不重新启用', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-baseline-defaults-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.ensureDir(projectDir)
+  await fs.outputFile(path.join(sourceDir, 'AGENTS.md'), '# baseline')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# sample')
+  await syncAll({ sourceDir, projectDir, homeDir, scope: 'global', selectedPlatforms: ['claude'], selected: {},
+    contentTypes: ['baseline'], contentActions: { baseline: 'remove' } })
+  const options = { sourceDir, projectDir, homeDir, scope: 'global', selectedPlatforms: ['claude', 'codex'], confirmed: true }
+  const { transcript } = await runProgram(t, `
+    import { syncAll } from './dwy-cli/src/sync-all.js';
+    await syncAll(${JSON.stringify(options)}); console.log('RESULT:{}');
+  `, [{ message: '选择本次处理内容', keys: '\r' }, { label: 'Skills', keys: '\r' }])
+  assert.doesNotMatch(transcript, /选择 AGENTS.md 通用规范 操作/)
+  assert.match(transcript, /处理内容：Skills\s/)
+  assert.equal(await fs.pathExists(path.join(homeDir, '.claude/CLAUDE.md')), false)
+  assert.equal(await fs.pathExists(path.join(homeDir, '.codex/AGENTS.md')), false)
+  assert.equal((await fs.readJson(path.join(homeDir, '.dwy/sync-state.json'))).platforms.claude.baseline, false)
+})
+
+test('项目发现任一所选 CLI 已有全局规范时，动作页只能继承或移除', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-inherit-baseline-ui-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.ensureDir(projectDir)
+  await fs.outputFile(path.join(sourceDir, 'AGENTS.md'), '# baseline')
+  await syncAll({ sourceDir, projectDir, homeDir, scope: 'global', selectedPlatforms: ['claude'], selected: {}, contentTypes: ['baseline'] })
+  const options = { sourceDir, projectDir, homeDir, scope: 'project', selectedPlatforms: ['claude', 'codex'], contentTypes: ['baseline'], confirmed: true }
+  const { transcript } = await runProgram(t, `
+    import { syncAll } from './dwy-cli/src/sync-all.js';
+    await syncAll(${JSON.stringify(options)}); console.log('RESULT:{}');
+  `, [{ message: '选择 AGENTS.md 通用规范 操作', keys: '\r' }])
+  assert.match(transcript, /使用全局，仅清理项目重复基线/)
+  assert.doesNotMatch(transcript, /启用 \/ 更新/)
+  assert.equal(await fs.pathExists(path.join(projectDir, 'AGENTS.md')), false)
+})
+
+test('Hooks 移除通过动作页选择，最终取消保持脚本、配置和同步记录', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-remove-hooks-ui-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.outputFile(path.join(sourceDir, 'hooks/Git/check.sh'), '#!/bin/sh\necho hook')
+  await fs.outputJson(path.join(sourceDir, 'hook-manifests/hooks.json'), [{ name: 'check.sh', event: 'PreToolUse', platforms: ['claude'] }])
+  const options = { sourceDir, projectDir, homeDir, selectedPlatforms: ['claude'], contentTypes: ['hooks'] }
+  await syncAll({ ...options, selected: {} })
+  const files = ['.claude/hooks/check.sh', '.claude/settings.json', '.dwy/sync-state.json']
+  const before = await Promise.all(files.map(file => fs.readFile(path.join(projectDir, file), 'utf8')))
+  const { transcript } = await runProgram(t, `
+    import { syncAll } from './dwy-cli/src/sync-all.js';
+    await syncAll(${JSON.stringify(options)}); console.log('RESULT:{}');
+  `, [{ message: '选择 Hooks 操作', keys: '\u001b[B\r' }, { message: '确认同步？', keys: '\u001b' }])
+  assert.match(transcript, /移除 Claude Code 项目 托管 Hooks/)
+  assert.deepEqual(await Promise.all(files.map(file => fs.readFile(path.join(projectDir, file), 'utf8'))), before)
+})
+
+test('项目 Hooks 全部已有全局提供者时，动作页只提供继承清理', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-inherit-hooks-ui-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.ensureDir(projectDir)
+  await fs.outputFile(path.join(sourceDir, 'hooks/Git/check.sh'), '#!/bin/sh\necho hook')
+  await fs.outputJson(path.join(sourceDir, 'hook-manifests/hooks.json'), [{ name: 'check.sh', event: 'PreToolUse', platforms: ['claude'] }])
+  const options = { sourceDir, projectDir, homeDir, selectedPlatforms: ['claude'], contentTypes: ['hooks'] }
+  await syncAll({ ...options, scope: 'global', selected: {} })
+  const { transcript } = await runProgram(t, `
+    import { syncAll } from './dwy-cli/src/sync-all.js';
+    await syncAll(${JSON.stringify({ ...options, confirmed: true })}); console.log('RESULT:{}');
+  `, [{ message: '选择 Hooks 操作', keys: '\r' }])
+  assert.match(transcript, /使用全局，仅清理项目重复 Hooks/)
+  assert.doesNotMatch(transcript, /启用 \/ 更新/)
+  assert.equal(await fs.pathExists(path.join(projectDir, '.claude')), false)
 })

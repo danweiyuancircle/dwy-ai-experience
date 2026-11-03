@@ -144,6 +144,7 @@ test('syncAll mirrors one selected configuration to Claude Code and Codex', asyn
 
   await syncAll({
     sourceDir,
+    homeDir: path.join(tempDir, 'home'),
     projectDir,
     selected: buildSelected(),
     selectedPlatforms: ['claude', 'codex'],
@@ -197,6 +198,7 @@ test('syncAll keeps stale managed items until deletion is confirmed', async t =>
 
   await syncAll({
     sourceDir,
+    homeDir: path.join(tempDir, 'home'),
     projectDir,
     selected,
     selectedPlatforms: ['claude', 'codex', 'opencode'],
@@ -207,6 +209,7 @@ test('syncAll keeps stale managed items until deletion is confirmed', async t =>
 
   await syncAll({
     sourceDir,
+    homeDir: path.join(tempDir, 'home'),
     projectDir,
     selected: {
       skills: [],
@@ -231,6 +234,7 @@ test('syncAll keeps stale managed items until deletion is confirmed', async t =>
 
   await syncAll({
     sourceDir,
+    homeDir: path.join(tempDir, 'home'),
     projectDir,
     selected: {
       skills: [],
@@ -276,6 +280,7 @@ test('syncAll migrates old packs state and keeps only explicit item selections',
 
   await syncAll({
     sourceDir,
+    homeDir: path.join(tempDir, 'home'),
     projectDir,
     selected: { skills: [{ name: 'dwy-shared' }], rules: [], commands: [], hooks: [] },
     selectedPlatforms: ['claude'],
@@ -307,6 +312,7 @@ test('runDwy action=sync 走项目同步，不进刷新分支', async t => {
   await runDwy({
     action: ACTION_SYNC,
     sourceDir,
+    homeDir: path.join(tempDir, 'home'),
     projectDir,
     selected: buildSelected(),
     selectedPlatforms: ['claude'],

@@ -3,16 +3,17 @@ import path from 'node:path'
 import { ensureSharedSkills, linkSkill, removeSkillEntry } from './skill-store.js'
 import { findGlobalSkill, globalSkillRoots, resolveGlobalSkillDir, resolveProjectSkillDir } from './sync-global-skills.js'
 import { loadHookManifests, syncClaude } from './sync.js'
-import { removeLegacyBaseline, syncCodex, syncGlobalBaselineDoc, syncProjectAgentsMd } from './sync-codex.js'
+import { hasManagedBaseline, removeLegacyBaseline, syncBaselineDoc, syncCodex, syncProjectAgentsMd } from './sync-codex.js'
 import { syncCursor } from './sync-cursor.js'
 import { planMissingExternalSkills } from './skills-install.js'
+import { assertConfigPath, assertHooksEnabled, baselineProviders, globalBaselinePath, globalHookNames, hasManagedHookConfig, hookConfigFile, removeManagedHooks } from './sync-inheritance.js'
 
 /** 平台显示名，交互和变更清单共用。 */
 export const PLATFORM_LABELS = { claude: 'Claude Code', codex: 'Codex', opencode: 'OpenCode', cursor: 'Cursor' }
-/** 项目范围的平台能力；全局范围用通用规范替代项目 Rules，且不支持 Cursor。 */
+/** 平台能力；全局不提供 Rules，Cursor 仅提供项目 Rules。 */
 export const PLATFORM_SYNC_TYPES = {
-  claude: ['skills', 'rules', 'hooks'], codex: ['skills', 'rules', 'hooks'],
-  opencode: ['skills', 'rules'], cursor: ['rules'],
+  claude: ['skills', 'rules', 'hooks', 'baseline'], codex: ['skills', 'rules', 'hooks', 'baseline'],
+  opencode: ['skills', 'rules', 'baseline'], cursor: ['rules'],
 }
 
 /** 只提供所选范围和平台支持的内容；未勾选类型不进入清理或状态更新。 */
@@ -21,8 +22,9 @@ export function contentOptions(scope, platforms) {
   return [
     ...(supports('skills') ? [{ value: 'skills', label: 'Skills', description: '管理当前范围的启用入口；已有共享内容不刷新' }] : []),
     ...(scope === 'project' && supports('rules') ? [{ value: 'rules', label: '项目规则（Rules）', description: '只更新当前项目的托管规则' }] : []),
-    ...(scope === 'global' ? [{ value: 'baseline', label: '全局通用规范', description: '更新所选工具的原生全局指令入口，不修改项目规则' }] : []),
-    ...(supports('hooks') ? [{ value: 'hooks', label: 'Hooks（按平台自动同步）', description: '仅选择此类型后，自动同步所选平台支持的 Hooks' }] : []),
+    ...(supports('baseline') ? [{ value: 'baseline', label: 'AGENTS.md 通用规范', description: scope === 'global'
+      ? '管理原生全局指令入口；首次默认启用，可显式移除' : '管理项目基线块；已有全局规范时仅可清理重复项' }] : []),
+    ...(supports('hooks') ? [{ value: 'hooks', label: 'Hooks', description: '独立启用或移除整组；项目继承有效全局注册' }] : []),
   ]
 }
 
@@ -72,6 +74,7 @@ function ownedGlobalRoots(platform, homeDir, codexHome) {
 export async function buildSyncPlan({
   scope, platforms, contentTypes, selected, scans, sourceDir, projectDir, homeDir, codexHome,
   projectState, globalState, staleRemovals = {}, staleEntries = {}, baseline,
+  contentActions = {},
   skillScope = { destinations: ['project'], globalSkills: [] },
 }) {
   const global = scope === 'global'
@@ -85,7 +88,10 @@ export async function buildSyncPlan({
   if (platforms.some(platform => !PLATFORM_SYNC_TYPES[platform] || (global && platform === 'cursor'))
     || contentTypes.some(type => !allowed.has(type))) throw new Error('所选范围或平台不支持此同步内容')
   const active = new Set(contentTypes)
-  if (active.has('baseline') && !baseline.trim()) throw new Error('没有可同步的全局通用规范')
+  for (const [type, action] of Object.entries(contentActions)) {
+    if (!['baseline', 'hooks'].includes(type) || !['sync', 'remove'].includes(action)) throw new Error('无效的内容操作')
+  }
+  if (active.has('baseline') && contentActions.baseline !== 'remove' && !baseline.trim()) throw new Error('没有可同步的通用规范')
   const operations = []
   const nextProject = structuredClone(projectState), nextGlobal = structuredClone(globalState)
   const targetState = global ? nextGlobal : nextProject
@@ -96,7 +102,18 @@ export async function buildSyncPlan({
   const addedGlobalPaths = new Set(), removedGlobalPaths = new Set()
   const localCleanup = new Set()
   let projectChanged = !global && contentTypes.length > 0
-  const add = (kind, label, paths, run) => operations.push({ kind, label, paths, run })
+  const add = (kind, label, paths, run) => {
+    // 无标记旧基线须在 Rules 追加前识别，否则原文会变成无法确认归属的混合内容。
+    const beforeRules = ['baseline', 'remove-baseline'].includes(kind) ? operations.findIndex(operation => operation.kind === 'rules') : -1
+    operations.splice(beforeRules < 0 ? operations.length : beforeRules, 0, { kind, label, paths, run })
+  }
+  const addConfig = async (kind, label, paths, boundary, run) => {
+    for (const dest of paths) await assertConfigPath(dest, boundary)
+    add(kind, label, paths, async () => {
+      for (const dest of paths) await assertConfigPath(dest, boundary)
+      await run()
+    })
+  }
   const platformState = platform => targetState.platforms[platform] ||= { skills: [], rules: [], hooks: [], commands: [] }
   const approved = (platform, type) => [...(staleRemovals[platform]?.[type] || [])].filter(safeName)
   const retained = (platform, type) => (staleEntries[platform]?.[type] || []).filter(name => safeName(name) && !approved(platform, type).includes(name))
@@ -196,7 +213,7 @@ export async function buildSyncPlan({
     const rules = scans.rules.filter(rule => selectedNames.has(rule.name))
     const preserved = new Set(cliPlatforms.flatMap(platform => retained(platform, 'rules')))
     if (cliPlatforms.length) {
-      add('rules', '更新项目 Rules（保留手写内容）', [path.join(projectDir, 'AGENTS.md')],
+      await addConfig('rules', '更新项目 Rules（保留通用规范和手写内容）', [path.join(projectDir, 'AGENTS.md')], projectDir,
         () => syncProjectAgentsMd(projectDir, rules, { preservedRuleNames: preserved }))
       const names = [...new Set([...rules.map(rule => rule.name), ...preserved])].sort()
       for (const platform of ['claude', 'codex', 'opencode']) {
@@ -220,58 +237,110 @@ export async function buildSyncPlan({
         const dest = path.join(projectDir, '.claude', 'rules', name)
         if (safeName(name) && await existsEntry(dest)) add('legacy-rule', '清理旧项目规则入口', [dest], () => fs.remove(dest))
       }
-      for (const name of ['AGENTS.md', 'CLAUDE.md']) {
-        const dest = path.join(projectDir, '.claude', name)
-        if (await fs.pathExists(dest)) {
-          const text = await fs.readFile(dest, 'utf8')
-          if (text.trim() === baseline.trim() || /<!-- DWY-BASELINE:START[\s\S]*?DWY-BASELINE:END -->/.test(text)) {
-            add('legacy-baseline', '清理旧项目基线托管内容', [dest], () => removeLegacyBaseline(baseline, dest))
-          }
-        }
-      }
     }
   }
   if (active.has('baseline')) {
-    const paths = { claude: path.join(homeDir, '.claude', 'CLAUDE.md'), codex: path.join(codexHome, 'AGENTS.md'), opencode: path.join(homeDir, '.config', 'opencode', 'AGENTS.md') }
-    for (const platform of cliPlatforms) {
-      const dest = paths[platform]
-      add('baseline', `更新 ${PLATFORM_LABELS[platform]} 全局通用规范（保留手写内容）`, [dest], () => syncGlobalBaselineDoc(baseline, dest))
-      platformState(platform).rules = []
+    const remove = contentActions.baseline === 'remove'
+    const providers = global ? [] : await baselineProviders(cliPlatforms, { homeDir, codexHome })
+    const inherited = providers.length > 0
+    const markProject = enabled => {
+      for (const platform of ['claude', 'codex', 'opencode']) {
+        if ((!global && platforms.includes(platform)) || nextProject.platforms[platform]) {
+          nextProject.platforms[platform] ||= { skills: [], rules: [], hooks: [], commands: [] }
+          nextProject.platforms[platform].baseline = enabled
+          if (global) projectChanged = true
+        }
+      }
     }
-    if (platforms.includes('claude')) {
-      const dest = path.join(homeDir, '.claude', 'AGENTS.md')
-      if (await fs.pathExists(dest)) {
-        const text = await fs.readFile(dest, 'utf8')
-        if (text.trim() === baseline.trim() || /<!-- DWY-BASELINE:START[\s\S]*?DWY-BASELINE:END -->/.test(text)) {
-          add('legacy-baseline', '清理旧全局基线托管内容', [dest], () => removeLegacyBaseline(baseline, dest))
+    const cleanBaseline = async (dest, boundary, label) => {
+      if (!await fs.pathExists(dest)) return false
+      const text = await fs.readFile(dest, 'utf8')
+      if (!await hasManagedBaseline(dest) && (!baseline.trim() || text.trim() !== baseline.trim())) return false
+      await addConfig('remove-baseline', label, [dest], boundary, () => text.trim() === baseline.trim()
+        ? removeLegacyBaseline(baseline, dest) : syncBaselineDoc('', dest))
+      return true
+    }
+    if (global) {
+      for (const platform of cliPlatforms) {
+        const dest = globalBaselinePath(platform, homeDir, codexHome)
+        if (remove) await cleanBaseline(dest, platform === 'codex' ? codexHome : homeDir, `移除 ${PLATFORM_LABELS[platform]} 全局通用规范（保留 Rules 和手写内容）`)
+        else await addConfig('baseline', `启用/更新 ${PLATFORM_LABELS[platform]} 全局通用规范（保留其他内容）`, [dest], platform === 'codex' ? codexHome : homeDir, () => syncBaselineDoc(baseline, dest))
+        platformState(platform).baseline = !remove
+      }
+      if (platforms.includes('claude')) await cleanBaseline(path.join(homeDir, '.claude', 'AGENTS.md'), homeDir, '清理旧全局基线托管内容')
+    } else {
+      const dest = path.join(projectDir, 'AGENTS.md')
+      if (remove || inherited) {
+        await cleanBaseline(dest, projectDir, inherited ? '全局已启用，清理项目重复基线' : '移除项目通用规范（保留 Rules 和手写内容）')
+        if (inherited) add('inherit', `通用规范使用全局：${providers.map(p => PLATFORM_LABELS[p]).join('、')}；项目禁止重复安装`,
+          providers.map(p => globalBaselinePath(p, homeDir, codexHome)), async () => {})
+      } else await addConfig('baseline', '启用/更新项目 AGENTS.md 通用规范（保留 Rules 和手写内容）', [dest], projectDir, () => syncBaselineDoc(baseline, dest))
+      markProject(!remove && !inherited)
+    }
+    if ((!global || !remove) && !isHome) {
+      if (global && await cleanBaseline(path.join(projectDir, 'AGENTS.md'), projectDir, '全局优先，清理当前项目重复基线')) markProject(false)
+      if (platforms.includes('claude')) {
+        for (const name of ['AGENTS.md', 'CLAUDE.md']) {
+          await cleanBaseline(path.join(projectDir, '.claude', name), projectDir, '清理旧项目基线托管内容')
         }
       }
     }
   }
   if (active.has('hooks')) {
     const manifests = await loadHookManifests(sourceDir)
+    const remove = contentActions.hooks === 'remove'
+    const removeHooks = async (platform, root, boundary, names, label) => {
+      const paths = []
+      for (const name of names) {
+        const dest = path.join(root, 'hooks', name)
+        if (await existsEntry(dest)) paths.push(dest)
+      }
+      if (await hasManagedHookConfig(platform, root, names)) paths.push(hookConfigFile(platform, root))
+      if (!paths.length) return false
+      await addConfig('remove-hooks', label, paths, boundary, () => removeManagedHooks(platform, root, names, paths))
+      return true
+    }
     for (const platform of platforms.filter(p => PLATFORM_SYNC_TYPES[p].includes('hooks'))) {
-      const hooks = scans.hooks.filter(hook => manifests.some(manifest => manifest.name === hook.name && (!manifest.platforms || manifest.platforms.includes(platform))))
+      const available = scans.hooks.filter(hook => manifests.some(manifest => manifest.name === hook.name && (!manifest.platforms || manifest.platforms.includes(platform))))
+      const provided = !global && !remove ? await globalHookNames({ platform, sourceDir, homeDir, codexHome }) : new Set()
+      const hooks = remove ? [] : available.filter(hook => !provided.has(hook.name))
       const root = global && platform === 'codex' ? codexHome : path.join(targetRoot, platform === 'claude' ? '.claude' : '.codex')
-      const paths = hooks.map(hook => path.join(root, 'hooks', hook.name))
-      const selectedNames = new Set(hooks.map(hook => hook.name))
-      const managedNames = new Set([...scans.hooks.map(hook => hook.name), ...approved(platform, 'hooks')])
-      const removedNames = []
-      const hookDir = path.join(root, 'hooks')
-      if (await fs.pathExists(hookDir)) {
-        for (const name of await fs.readdir(hookDir)) {
-          if (managedNames.has(name) && !selectedNames.has(name)) {
-            paths.push(path.join(hookDir, name))
-            removedNames.push(name)
+      const boundary = global && platform === 'codex' ? codexHome : targetRoot
+      const historical = (targetState.platforms[platform]?.hooks || []).filter(safeName)
+      const allManaged = new Set([...scans.hooks.map(hook => hook.name), ...(remove ? historical : []), ...approved(platform, 'hooks')])
+      if (remove || hooks.length === 0) {
+        await removeHooks(platform, root, boundary, allManaged, `${remove ? '移除' : '全局已启用，清理重复'} ${PLATFORM_LABELS[platform]} ${global ? '全局' : '项目'} 托管 Hooks`)
+      } else {
+        await assertHooksEnabled(platform, root)
+        const paths = hooks.map(hook => path.join(root, 'hooks', hook.name))
+        const selectedNames = new Set(hooks.map(hook => hook.name))
+        const removedNames = []
+        const hookDir = path.join(root, 'hooks')
+        if (await fs.pathExists(hookDir)) {
+          for (const name of await fs.readdir(hookDir)) {
+            if (allManaged.has(name) && !selectedNames.has(name)) {
+              paths.push(path.join(hookDir, name))
+              removedNames.push(name)
+            }
           }
         }
+        paths.push(hookConfigFile(platform, root))
+        const sync = platform === 'claude' ? syncClaude : syncCodex
+        const cleanup = removedNames.length ? `；清理旧托管脚本：${removedNames.join('、')}` : ''
+        await addConfig('hooks', `同步 ${PLATFORM_LABELS[platform]} ${global ? '全局' : '项目'} Hooks${cleanup}`, paths, boundary,
+          () => sync({ sourceDir, projectDir: targetRoot, global, homeDir, codexHome, selected: { skills: [], hooks }, syncTypes: ['hooks'], staleRemovals: staleRemovals[platform] }))
       }
-      paths.push(path.join(root, platform === 'claude' ? 'settings.json' : 'hooks.json'))
-      const sync = platform === 'claude' ? syncClaude : syncCodex
-      const cleanup = removedNames.length ? `；清理旧托管脚本：${removedNames.join('、')}` : ''
-      add('hooks', `同步 ${PLATFORM_LABELS[platform]} ${global ? '全局' : '项目'} Hooks${cleanup}`, paths,
-        () => sync({ sourceDir, projectDir: targetRoot, global, homeDir, codexHome, selected: { skills: [], hooks }, syncTypes: ['hooks'], staleRemovals: staleRemovals[platform] }))
-      platformState(platform).hooks = [...new Set([...hooks.map(hook => hook.name), ...retained(platform, 'hooks')])].sort()
+      if (provided.size) add('inherit', `${PLATFORM_LABELS[platform]} Hooks 使用全局：${[...provided].join('、')}；项目不重复安装`, [], async () => {})
+      platformState(platform).hooks = remove ? [] : [...new Set([...hooks.map(hook => hook.name), ...retained(platform, 'hooks')])].sort()
+      if (global && !remove && !isHome) {
+        const local = path.join(projectDir, platform === 'claude' ? '.claude' : '.codex')
+        const duplicates = new Set(available.map(hook => hook.name))
+        if (await removeHooks(platform, local, projectDir, duplicates, `全局优先，清理当前项目 ${PLATFORM_LABELS[platform]} 重复 Hooks`)
+          && nextProject.platforms[platform]) {
+          nextProject.platforms[platform].hooks = (nextProject.platforms[platform].hooks || []).filter(name => !duplicates.has(name))
+          projectChanged = true
+        }
+      }
     }
   }
   return { operations, nextProject, nextGlobal, projectChanged, globalChanged: global && contentTypes.length > 0 }

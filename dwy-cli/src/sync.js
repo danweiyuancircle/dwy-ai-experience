@@ -290,7 +290,8 @@ async function removeUnselected(typePlural, existingNames, selectedNames, templa
   return count
 }
 
-function buildClaudeHooksSettings(manifests, selectedHookNames, global) {
+/** 生成 Claude Hook 注册，继承检测和写入共用相同命令格式。 */
+export function buildClaudeHooksSettings(manifests, selectedHookNames, global) {
   const grouped = new Map()
 
   for (const manifest of manifests) {
@@ -320,13 +321,18 @@ function buildClaudeHooksSettings(manifests, selectedHookNames, global) {
   return settings
 }
 
-function isManagedClaudeHookCommand(command, managedHookNames) {
+/** 仅识别完整的 dwy 生成命令，避免误删提到同名路径的个人命令。 */
+export function isManagedClaudeHookCommand(command, managedHookNames) {
   if (typeof command !== 'string') return false
-  const match = command.match(/\.claude\/hooks\/([^\s'"]+)/)
-  return !!(match && managedHookNames.has(match[1]))
+  return [...managedHookNames].some(name => [
+    `bash "$HOME/.claude/hooks/${name}"`,
+    `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/${name}"`,
+    `bash ~/.claude/hooks/${name}`,
+  ].includes(command))
 }
 
-function mergeClaudeHooks(existingHooks, generatedHooks, managedHookNames) {
+/** 替换指定托管 Hook 注册，保留其他命令及配置字段。 */
+export function mergeClaudeHooks(existingHooks, generatedHooks, managedHookNames) {
   const merged = {}
   const sourceEvents = new Set([
     ...Object.keys(existingHooks || {}),
@@ -348,14 +354,12 @@ function mergeClaudeHooks(existingHooks, generatedHooks, managedHookNames) {
   return Object.keys(merged).length > 0 ? merged : undefined
 }
 
-async function syncSettings(sourceDir, targetDir, selectedHookNames, global) {
+async function syncSettings(sourceDir, targetDir, selectedHookNames, global, staleHookNames) {
   const settingsDest = path.join(targetDir, 'settings.json')
   const manifests = await loadHookManifests(sourceDir)
   const generatedSettings = buildClaudeHooksSettings(manifests, selectedHookNames, global)
   const managedHookNames = new Set(
-    manifests
-      .filter(manifest => !manifest.platforms || manifest.platforms.includes('claude'))
-      .map(manifest => manifest.name),
+    [...manifests.map(manifest => manifest.name), ...staleHookNames],
   )
 
   let merged
@@ -470,7 +474,7 @@ export async function syncClaude({
     syncedCount += await copyItems(skills, projectTargetDir)
   }
   if (syncTypes.includes('hooks')) {
-    syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, global)
+    syncedCount += await syncSettings(sourceDir, projectTargetDir, selectedHookNames, global, approvedStaleHooks)
     syncedCount += await copyHooks(syncedSelection.hooks, projectTargetDir)
   }
 

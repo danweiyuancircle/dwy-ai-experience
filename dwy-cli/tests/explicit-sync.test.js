@@ -88,7 +88,8 @@ test('只有显式选择全局规范才更新用户入口，不能借全局流�
   assert.equal(await fs.readFile(path.join(opts.projectDir, 'AGENTS.md'), 'utf8'), '# keep project')
   assert.equal(await fs.pathExists(path.join(opts.homeDir, '.dwy/skills')), false)
   await assert.rejects(syncAll({ ...opts, scope: 'global', contentTypes: ['rules'] }), /不支持/)
-  await assert.rejects(syncAll({ ...opts, scope: 'project', contentTypes: ['baseline'] }), /不支持/)
+  await syncAll({ ...opts, scope: 'project', contentTypes: ['baseline'] })
+  assert.equal(await fs.readFile(path.join(opts.projectDir, 'AGENTS.md'), 'utf8'), '# keep project')
 })
 
 test('不支持的全局平台在确认前拒绝，取消不写任何文件', async t => {

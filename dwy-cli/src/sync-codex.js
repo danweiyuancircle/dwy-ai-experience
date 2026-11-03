@@ -111,18 +111,29 @@ function upsertBaselineBlock(content, baselineBody) {
   return base ? `${block}\n\n${base}` : `${block}\n`
 }
 
-/** 更新 CLI 全局基线，仅替换 dwy 托管块，并清除旧版写入的项目 Rules 托管块。 */
-export async function syncGlobalBaselineDoc(baseline, dest) {
-  if (!baseline.trim()) return 0
+/** 判断文件是否含有有效的 dwy 通用规范；个人文件不作为继承依据。 */
+export async function hasManagedBaseline(dest) {
+  if (!await fs.pathExists(dest)) return false
+  const match = (await fs.readFile(dest, 'utf8')).match(BASELINE_RE)
+  return Boolean(match && match[0].replace(/<!--[\s\S]*?-->/g, '').trim())
+}
+
+/** 独立更新通用规范，空内容移除基线块；保留 Rules 和个人内容。 */
+export async function syncBaselineDoc(baseline, dest) {
   const current = await fs.pathExists(dest) ? await fs.readFile(dest, 'utf-8') : ''
-  const previous = current.trim() === baseline.trim() ? '' : current
-  const next = upsertManagedBlock(upsertBaselineBlock(previous, baseline), '')
+  const previous = baseline.trim() && current.trim() === baseline.trim() ? '' : current
+  const next = upsertBaselineBlock(previous, baseline)
   if (next === current) return 0
-  await fs.ensureDir(path.dirname(dest))
-  await fs.writeFile(dest, next)
-  logAction(`global baseline → ${dest}`)
+  if (next.trim()) {
+    await fs.ensureDir(path.dirname(dest))
+    await fs.writeFile(dest, next)
+  } else await fs.remove(dest)
+  logAction(`baseline → ${dest}`)
   return 1
 }
+
+/** 兼容旧调用方；全局基线更新同样保留其他托管块。 */
+export const syncGlobalBaselineDoc = syncBaselineDoc
 
 /** 迁移旧入口中的基线；无托管标记时只移除与当前模板完全一致的文件。 */
 export async function removeLegacyBaseline(baseline, dest) {
@@ -153,7 +164,7 @@ export async function syncProjectAgentsMd(projectDir, selectedRules, {
   }
   const blockBody = sections.join('\n\n---\n\n')
 
-  const next = upsertManagedBlock(upsertBaselineBlock(current, ''), blockBody)
+  const next = upsertManagedBlock(current, blockBody)
   if (next === current) return 0
   await fs.ensureDir(path.dirname(dest))
   await fs.writeFile(dest, next)
@@ -253,7 +264,8 @@ function globalHookCommand(configDir, name) {
   return `bash '${script.replace(/'/g, "'\\''")}'`
 }
 
-function buildCodexHooksJson(manifests, selectedHookNames, global, configDir) {
+/** 生成 Codex Hook 注册，继承检测和写入共用相同命令格式。 */
+export function buildCodexHooksJson(manifests, selectedHookNames, global, configDir) {
   const hooksJson = { hooks: {} }
   const grouped = new Map()
 
@@ -284,14 +296,19 @@ function buildCodexHooksJson(manifests, selectedHookNames, global, configDir) {
   return Object.keys(hooksJson.hooks).length > 0 ? hooksJson : {}
 }
 
-function isManagedCodexHookCommand(command, managedHookNames, configDir) {
+/** 只识别完整生成命令及已知历史格式，保留同名个人路径。 */
+export function isManagedCodexHookCommand(command, managedHookNames, configDir) {
   if (typeof command !== 'string') return false
-  const match = command.match(/\.codex\/hooks\/([^\s'"]+)/)
-  return !!(match && managedHookNames.has(match[1]))
-    || [...managedHookNames].some(name => command === globalHookCommand(configDir, name))
+  return [...managedHookNames].some(name => [
+    globalHookCommand(configDir, name),
+    `bash "$(git rev-parse --show-toplevel)/.codex/hooks/${name}"`,
+    `bash "$HOME/.codex/hooks/${name}"`,
+    `bash ~/.codex/hooks/${name}`,
+  ].includes(command))
 }
 
-function mergeCodexHooks(existingHooks, generatedHooks, managedHookNames, configDir) {
+/** 只替换指定托管注册，保留其他命令及配置字段。 */
+export function mergeCodexHooks(existingHooks, generatedHooks, managedHookNames, configDir) {
   const merged = {}
   const sourceEvents = new Set([
     ...Object.keys(existingHooks || {}),
@@ -313,14 +330,12 @@ function mergeCodexHooks(existingHooks, generatedHooks, managedHookNames, config
   return Object.keys(merged).length > 0 ? merged : undefined
 }
 
-async function syncCodexHooksJson(sourceDir, configDir, selectedHookNames, global) {
+async function syncCodexHooksJson(sourceDir, configDir, selectedHookNames, global, staleHookNames) {
   const dest = path.join(configDir, 'hooks.json')
   const manifests = await loadHookManifests(sourceDir)
   const generated = buildCodexHooksJson(manifests, selectedHookNames, global, configDir)
   const managedHookNames = new Set(
-    manifests
-      .filter(manifest => !manifest.platforms || manifest.platforms.includes('codex'))
-      .map(manifest => manifest.name),
+    [...manifests.map(manifest => manifest.name), ...staleHookNames],
   )
 
   let nextJson
@@ -402,7 +417,7 @@ export async function syncCodex({
   }
   if (syncTypes.includes('hooks')) {
     syncedCount += await copyCodexHooks(syncedSelection.hooks, configDir)
-    syncedCount += await syncCodexHooksJson(sourceDir, configDir, selectedHookNames, global)
+    syncedCount += await syncCodexHooksJson(sourceDir, configDir, selectedHookNames, global, staleRemovals.hooks || [])
   }
 
   const skillTemplateNames = new Set([
