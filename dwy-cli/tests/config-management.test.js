@@ -5,6 +5,12 @@ import path from 'node:path'
 import os from 'node:os'
 import { syncAll } from '../src/sync-all.js'
 
+// shortcut: Node 22 的测试 IPC 在大量中文 stdout 下可能损坏；最低 CI 版本修复后可取消静默。
+// 终端文案与按键行为由 sync-selection.test.js 通过真实子进程单独验证。
+test.beforeEach(t => {
+  t.mock.method(console, 'log', () => {})
+})
+
 const baseBlock = '<!-- DWY-BASELINE:START 由 dwy 交互式同步生成，请勿手动编辑此区块 -->\n# old baseline\n<!-- DWY-BASELINE:END -->'
 const rulesBlock = '<!-- DWY-RULES:START 由 dwy 交互式同步生成，请勿手动编辑此区块 -->\n<!-- dwy-rule: personal.md -->\n# keep rules\n<!-- DWY-RULES:END -->'
 

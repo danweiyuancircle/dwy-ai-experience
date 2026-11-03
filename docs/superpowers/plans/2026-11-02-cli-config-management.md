@@ -65,3 +65,5 @@ Files: `README.md`、`dwy-cli/src/cli-help.js`、`dwy-cli/CHANGELOG.md`、`dwy-c
 完成记录：CLI 146/146 全量通过，独立只读复审无剩余阻断。发现并修复旧原文基线与 Rules 同轮处理顺序问题；完整记录见 `.dwy/reviews/cli-config-management/review.md`。
 
 实施验收后，用户已授权提交代码、发布 0.24.0 并更新本机全局 CLI。
+
+发布验证：0.24.0 在 Node 22 的测试日志序列化阶段失败，未发布 npm；保留原标签。收敛无断言测试日志后，以补丁版本 0.24.1 继续发布，产品行为不变。
