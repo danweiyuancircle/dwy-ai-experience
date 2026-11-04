@@ -1,5 +1,8 @@
+import asyncio
 import gzip
 from datetime import date
+from types import SimpleNamespace
+from unittest.mock import AsyncMock, call
 
 import httpx
 import pytest
@@ -136,6 +139,263 @@ async def test_collect_never_creates_and_initialize_explicitly_posts():
         assert methods == ["GET"]
         assert await client.initialize("123") == "created"
         assert methods[-1] == "POST"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "failure", [httpx.ConnectError, httpx.ReadTimeout, httpx.ReadError, httpx.RemoteProtocolError]
+)
+async def test_collect_retries_transient_get_failures_before_returning_snapshot(monkeypatch, failure):
+    """瞬断在当前请求内恢复，不能先把整轮采集判成失败。"""
+    sleep = AsyncMock()
+    monkeypatch.setattr(asyncio, "sleep", sleep)
+    attempts = 0
+
+    async def transport(request):
+        nonlocal attempts
+        attempts += 1
+        if attempts < 3:
+            raise failure("private-request-url", request=request)
+        return httpx.Response(200, json=collection([]))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        snapshot = await AppleAnalyticsClient(config(), client=http).collect("123", DAY)
+    assert snapshot.app_id == "123" and snapshot.report_date == DAY
+    assert snapshot.metrics["first_downloads"].status == "pending"
+    assert attempts == 3
+    assert sleep.await_args_list == [call(1), call(2)]
+
+
+@pytest.mark.asyncio
+async def test_collect_retries_read_failure_after_partial_response_without_reusing_bytes(monkeypatch):
+    """断流前的字节必须丢弃，重读完整响应后再解析。"""
+    monkeypatch.setattr(asyncio, "sleep", AsyncMock())
+    attempts = 0
+    closed = []
+
+    class BrokenStream(httpx.AsyncByteStream):
+        async def __aiter__(self):
+            yield b'{"data":['
+            raise httpx.ReadError("private-response-url")
+
+        async def aclose(self):
+            closed.append(True)
+
+    async def transport(request):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            return httpx.Response(200, stream=BrokenStream())
+        return httpx.Response(200, json=collection([]))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        snapshot = await AppleAnalyticsClient(config(), client=http).collect("123", DAY)
+    assert snapshot.report_date == DAY
+    assert attempts == 2 and closed == [True]
+
+
+@pytest.mark.asyncio
+async def test_collect_stops_after_three_network_failures_with_safe_error(monkeypatch):
+    """持续故障仍交给 monitor 告警，且不泄露底层异常正文。"""
+    sleep = AsyncMock()
+    monkeypatch.setattr(asyncio, "sleep", sleep)
+    attempts = 0
+
+    async def transport(request):
+        nonlocal attempts
+        attempts += 1
+        raise httpx.ReadError("private-request-url", request=request)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        with pytest.raises(AnalyticsCollectionError, match="^analytics_request_error$"):
+            await AppleAnalyticsClient(config(), client=http).collect("123", DAY)
+    assert attempts == 3
+    assert sleep.await_args_list == [call(1), call(2)]
+
+
+@pytest.mark.asyncio
+async def test_initialize_does_not_retry_post_after_transport_failure(monkeypatch):
+    """创建请求可能已被 Apple 接收，响应丢失时不能自动重复 POST。"""
+    sleep = AsyncMock()
+    monkeypatch.setattr(asyncio, "sleep", sleep)
+    methods = []
+
+    async def transport(request):
+        methods.append(request.method)
+        if request.method == "POST":
+            raise httpx.ReadTimeout("private-request-url", request=request)
+        return httpx.Response(200, json=collection([]))
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        with pytest.raises(AnalyticsCollectionError, match="^analytics_request_error$"):
+            await AppleAnalyticsClient(config(), client=http).initialize("123")
+    assert methods == ["GET", "POST"]
+    sleep.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "status,payload,code",
+    [
+        (401, {}, "analytics_http_error"),
+        (503, {}, "analytics_http_error"),
+        (200, [], "analytics_invalid_response"),
+    ],
+)
+async def test_collect_does_not_retry_http_or_payload_errors(monkeypatch, status, payload, code):
+    """只有传输故障属于本轮重试范围，不重试状态码或无效载荷。"""
+    sleep = AsyncMock()
+    monkeypatch.setattr(asyncio, "sleep", sleep)
+    attempts = 0
+
+    async def transport(request):
+        nonlocal attempts
+        attempts += 1
+        return httpx.Response(status, json=payload)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        with pytest.raises(AnalyticsCollectionError, match=f"^{code}$"):
+            await AppleAnalyticsClient(config(), client=http).collect("123", DAY)
+    assert attempts == 1
+    sleep.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_collect_cancellation_during_retry_backoff_propagates(monkeypatch):
+    """沿用总采集预算和停机取消，取消后不继续下一次网络请求。"""
+    monkeypatch.setattr(asyncio, "sleep", AsyncMock(side_effect=asyncio.CancelledError))
+    attempts = 0
+
+    async def transport(request):
+        nonlocal attempts
+        attempts += 1
+        raise httpx.ConnectError("private-request-url", request=request)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        with pytest.raises(asyncio.CancelledError):
+            await AppleAnalyticsClient(config(), client=http).collect("123", DAY)
+    assert attempts == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "failures,event,completed", [(2, "analytics.daily", 1), (3, "analytics.collection_failed", 0)]
+)
+async def test_monitor_only_alerts_after_request_retries_are_exhausted(
+    monkeypatch,
+    tmp_path,
+    failures,
+    event,
+    completed,
+):
+    """真实采集和 outbox 链路中，瞬断恢复只生成日报，持续故障仍告警。"""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    from dwyeapi.database import create_async_engine_factory, create_session_factory
+    from sqlalchemy import MetaData, select
+
+    from dwy_apple_notify.analytics.service import AnalyticsMonitor
+    from dwy_apple_notify.analytics.storage import AnalyticsStore, build_analytics_tables
+
+    monkeypatch.setattr(asyncio, "sleep", AsyncMock())
+    attempts = 0
+
+    async def transport(request):
+        nonlocal attempts
+        attempts += 1
+        if attempts <= failures:
+            raise httpx.ReadTimeout("private-request-url", request=request)
+        return httpx.Response(200, json=collection([]))
+
+    engine = create_async_engine_factory(f"sqlite+aiosqlite:///{tmp_path / 'retry.db'}")
+    metadata = MetaData()
+    tables = build_analytics_tables(metadata)
+    now = datetime(2026, 11, 4, 8, 30, tzinfo=ZoneInfo("Asia/Shanghai")).timestamp()
+    store = AnalyticsStore(create_session_factory(engine), tables, clock=lambda: now)
+    try:
+        async with engine.begin() as connection:
+            await connection.run_sync(metadata.create_all)
+        async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+            settings = config()
+            worker = AnalyticsMonitor(settings, store, AppleAnalyticsClient(settings, client=http))
+            assert await worker.run_once() == completed
+        async with store.sessions() as db:
+            events = (await db.execute(select(tables.deliveries.c.event_type))).scalars().all()
+        assert events == [event]
+    finally:
+        await engine.dispose()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "event,failure",
+    [("connection.connect_tcp", httpx.ConnectTimeout),
+     ("connection.start_tls", httpx.ConnectError),
+     ("http11.receive_response_headers", httpx.ReadTimeout)],
+)
+async def test_request_diagnostics_keep_failure_stage_and_redact_trace_details(monkeypatch, event, failure):
+    """阶段与类型要能定位首次故障，trace 的敏感参数和异常正文不得进入日志。"""
+    import dwy_apple_notify.analytics.client as module
+
+    messages = []
+    logger = SimpleNamespace(info=lambda message, *args: messages.append(message % args))
+    monkeypatch.setattr(module, "get_logger", lambda name: logger, raising=False)
+    monkeypatch.setattr(asyncio, "sleep", AsyncMock())
+    ticks = iter([10.0, 10.25, 11.0, 11.25, 12.0, 12.25])
+    monkeypatch.setattr(module, "time", SimpleNamespace(monotonic=lambda: next(ticks)))
+
+    async def transport(request):
+        trace = request.extensions.get("trace")
+        if trace is not None:
+            await trace(event + ".started", {"request": request, "token": "trace-secret"})
+            await trace(event + ".failed", {"exception": failure("exception-secret")})
+            await trace("http11.response_closed.started", {})
+        raise failure("exception-secret", request=request)
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        with pytest.raises(AnalyticsCollectionError, match="^analytics_request_error$"):
+            await AppleAnalyticsClient(config(), client=http)._request(
+                "GET", ORIGIN + "/v1/analyticsReports/private-id/instances?cursor=query-secret",
+            )
+    assert len(messages) == 3
+    assert all("operation=instances" in message for message in messages)
+    assert all(f"phase={event.rsplit('.', 1)[-1]}" in message for message in messages)
+    assert all(f"error_type={failure.__name__}" in message for message in messages)
+    assert all("elapsed_ms=250" in message and "outcome=failed" in message for message in messages)
+    assert [f"attempt={i}" in message for i, message in enumerate(messages, 1)] == [True, True, True]
+    assert len({message.split("request_id=")[1].split()[0] for message in messages}) == 1
+    assert not any(word in "\n".join(messages) for word in
+                   ("trace-secret", "exception-secret", "query-secret", "private-id", "Bearer", ORIGIN))
+
+
+@pytest.mark.asyncio
+async def test_request_diagnostics_log_recovery_status_without_response_body(monkeypatch):
+    """成功重试也应留存同一请求的尝试序号和状态码，便于确认恢复。"""
+    import dwy_apple_notify.analytics.client as module
+
+    messages = []
+    monkeypatch.setattr(module, "get_logger", lambda name: SimpleNamespace(
+        info=lambda message, *args: messages.append(message % args)), raising=False)
+    monkeypatch.setattr(asyncio, "sleep", AsyncMock())
+    attempts = 0
+
+    async def transport(request):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise httpx.ReadError("exception-secret", request=request)
+        return httpx.Response(200, json={"private": "response-secret"})
+
+    async with httpx.AsyncClient(transport=httpx.MockTransport(transport)) as http:
+        assert await AppleAnalyticsClient(config(), client=http)._request(
+            "GET", ORIGIN + "/v1/apps/private-id/analyticsReportRequests",
+        ) == {"private": "response-secret"}
+    assert len(messages) == 2
+    assert "outcome=failed" in messages[0] and "attempt=1" in messages[0]
+    assert "outcome=success" in messages[1] and "attempt=2" in messages[1]
+    assert "status=200" in messages[1]
+    assert "response-secret" not in "\n".join(messages)
 
 
 @pytest.mark.asyncio

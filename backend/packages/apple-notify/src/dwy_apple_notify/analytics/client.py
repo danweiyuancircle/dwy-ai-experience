@@ -1,5 +1,6 @@
 """Bounded official Analytics Reports discovery and unsigned gzip TSV downloads."""
 
+import asyncio
 import csv
 import gzip
 import io
@@ -10,8 +11,10 @@ import zlib
 from collections.abc import Callable
 from datetime import date
 from urllib.parse import urljoin, urlsplit
+from uuid import uuid4
 
 import httpx
+from dwyeapi.logger import get_logger
 
 from .._asc import asc_private_key, asc_token
 from .metrics import DISCOVERY, DOWNLOADS, EVENTS, PURCHASES, REPORT_NAMES, STATE, aggregate_reports
@@ -91,6 +94,47 @@ class AppleAnalyticsClient:
             raise AnalyticsCollectionError("analytics_invalid_pagination") from None
 
     async def _request(self, method: str, url: str, body: dict | None = None) -> dict:
+        request_id = uuid4().hex[:12]
+        # GET 瞬断只重读当前请求；POST 可能已生效，不重放，退避仍受整轮 240 秒预算约束。
+        for attempt in range(3):
+            try:
+                return await self._request_once(method, url, body, request_id, attempt + 1)
+            except (httpx.TimeoutException, httpx.NetworkError, httpx.RemoteProtocolError):
+                if method != "GET" or attempt == 2:
+                    raise AnalyticsCollectionError("analytics_request_error") from None
+                await asyncio.sleep(attempt + 1)
+            except httpx.HTTPError:
+                raise AnalyticsCollectionError("analytics_request_error") from None
+
+    async def _request_once(
+        self,
+        method: str,
+        url: str,
+        body: dict | None,
+        request_id: str,
+        attempt: int,
+    ) -> dict:
+        started = time.monotonic()
+        phase, status, outcome, error_type = "request", 0, "failed", "none"
+        operation = urlsplit(url).path.rsplit("/", 1)[-1]
+        if operation not in {"analyticsReportRequests", "reports", "instances", "segments"}:
+            operation = "other"
+
+        async def trace(event: str, _info: dict) -> None:
+            nonlocal phase
+            # trace 参数含请求头、连接和异常正文；只取固定阶段名，关闭连接不覆盖失败现场。
+            name = event.rsplit(".", 2)[-2]
+            if name in {
+                "connect_tcp",
+                "start_tls",
+                "send_request_headers",
+                "send_request_body",
+                "receive_response_headers",
+                "receive_response",
+                "receive_response_body",
+            }:
+                phase = name
+
         try:
             token = asc_token(self._config, self._key, self._clock)
             async with self._client.stream(
@@ -100,24 +144,46 @@ class AppleAnalyticsClient:
                 headers={"Authorization": "Bearer " + token, "Accept": "application/json"},
                 follow_redirects=False,
                 timeout=20,
+                extensions={"trace": trace},
             ) as response:
+                status = response.status_code
                 if response.status_code not in ({201} if method == "POST" else {200}):
                     raise AnalyticsCollectionError("analytics_http_error")
+                phase = "receive_response_body"
                 content = bytearray()
                 async for chunk in response.aiter_bytes():
                     if len(content) + len(chunk) > _MAX_PAGE_BYTES:
                         raise AnalyticsCollectionError("analytics_response_too_large")
                     content.extend(chunk)
+            phase = "decode_json"
             payload = json.loads(content)
             if not isinstance(payload, dict) or "errors" in payload:
                 raise ValueError
+            outcome = "success"
             return payload
-        except AnalyticsCollectionError:
+        except asyncio.CancelledError:
+            outcome, error_type = "cancelled", "CancelledError"
             raise
-        except httpx.HTTPError:
-            raise AnalyticsCollectionError("analytics_request_error") from None
-        except (ValueError, TypeError, UnicodeError, RecursionError):
+        except (AnalyticsCollectionError, httpx.HTTPError) as error:
+            error_type = type(error).__name__
+            raise
+        except (ValueError, TypeError, UnicodeError, RecursionError) as error:
+            error_type = type(error).__name__
             raise AnalyticsCollectionError("analytics_invalid_response") from None
+        finally:
+            get_logger(__name__).info(
+                "Apple analytics request request_id=%s operation=%s method=%s attempt=%d "
+                "phase=%s status=%d outcome=%s error_type=%s elapsed_ms=%d timeout_seconds=20",
+                request_id,
+                operation,
+                method,
+                attempt,
+                phase,
+                status,
+                outcome,
+                error_type,
+                int((time.monotonic() - started) * 1000),
+            )
 
     async def _list(self, path: str, resource: str, query: str = "") -> list[dict]:
         url = _ORIGIN + path + "?limit=200" + query

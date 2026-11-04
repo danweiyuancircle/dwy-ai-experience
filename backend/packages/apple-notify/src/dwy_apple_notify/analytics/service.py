@@ -1,8 +1,10 @@
 """北京时间发送边界驱动有界重查；网络任务不占用数据库事务。"""
 
 import asyncio
+import time
 from datetime import datetime, timedelta
 from decimal import Decimal
+from uuid import uuid4
 from zoneinfo import ZoneInfo
 
 from dwyeapi.logger import get_logger
@@ -35,12 +37,23 @@ class AnalyticsMonitor:
             token = await self.store.claim(config.issuer_id, app_id, target)
             if token is None:
                 continue
+            run_id, started, day = uuid4().hex[:12], time.monotonic(), start
+            logger = get_logger(__name__)
+            logger.info(
+                "Apple analytics collection started run_id=%s app_id=%s report_date=%s "
+                "window_start=%s collection_timeout_seconds=240",
+                run_id,
+                app_id,
+                target,
+                start,
+            )
             try:
                 # 采集预算小于 300 秒租约，超时不能提交部分日期。
                 async with asyncio.timeout(240):
                     snapshots = []
                     for index in range(7):
                         day = start + timedelta(days=index)
+                        logger.info("Apple analytics day started run_id=%s day=%s", run_id, day)
                         snapshot = await self.client.collect(app_id, day)
                         if snapshot.app_id != app_id or snapshot.report_date != day:
                             raise ValueError("Analytics client returned a mismatched scope or date")
@@ -107,7 +120,21 @@ class AnalyticsMonitor:
                             next_poll_at=next_poll,
                         )
                     )
+                    logger.info(
+                        "Apple analytics collection finished run_id=%s report_date=%s elapsed_ms=%d",
+                        run_id,
+                        target,
+                        int((time.monotonic() - started) * 1000),
+                    )
             except asyncio.CancelledError:
+                logger.info(
+                    "Apple analytics collection cancelled run_id=%s report_date=%s "
+                    "current_day=%s elapsed_ms=%d",
+                    run_id,
+                    target,
+                    day,
+                    int((time.monotonic() - started) * 1000),
+                )
                 await self.store.release(config.issuer_id, app_id, token)
                 raise
             except Exception as error:
@@ -116,8 +143,10 @@ class AnalyticsMonitor:
                     reason = error.code
                 elif isinstance(error, TimeoutError):
                     reason = "analytics_collection_timeout"
-                get_logger(__name__).error(
-                    f"Apple analytics collection failed code=ANALYTICS_COLLECTION_FAILED reason={reason}"
+                logger.error(
+                    f"Apple analytics collection failed code=ANALYTICS_COLLECTION_FAILED reason={reason} "
+                    f"run_id={run_id} report_date={target} failed_day={day} "
+                    f"elapsed_ms={int((time.monotonic() - started) * 1000)}"
                 )
                 await self.store.fail(config.issuer_id, app_id, token, target, app_name=application.name)
         return completed
