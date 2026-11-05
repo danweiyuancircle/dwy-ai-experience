@@ -1,8 +1,12 @@
 # dwyeapi
 
-## Unreleased
+## 0.12.2
 
-暂无未发布变更。
+发布日期：2026-11-05。
+
+- 新增公开模块 `dwyeapi.periodic.run_periodic`：固定延迟、顺序执行的异步循环，可选择启动即执行；只使用标准库，不要求 ARQ、Redis 或数据库配置。
+- 取消与未处理异常原样传播，宿主保留标准 `asyncio.Task` 管理生命周期和健康监测；业务互斥、幂等及可恢复异常处理不放入通用模块。
+- 接入示例见 `docs/periodic-integration-guide.md`，包含纯 asyncio 和 FastAPI lifespan 的使用方式。
 
 ## 0.12.1
 

@@ -6,6 +6,20 @@
 
 ---
 
+## periodic 固定延迟异步执行
+
+`tests/test_periodic.py`，不依赖 ARQ 或外部服务。
+
+| 用例 | 验证 |
+| --- | --- |
+| test_invalid_interval_does_not_execute_callback | 0、负数、NaN、正负无穷均拒绝且不执行业务 |
+| test_first_execution_and_fixed_delay_order | 启动立即执行/先等待可选；每轮完成后等待原始 600 秒 |
+| test_callback_finishes_before_waiting_or_starting_next_iteration | 业务完成前不等待、不启动下一轮 |
+| test_cancelling_while_waiting_stops_the_loop | 等待期间取消任务，正常传播取消，不继续调用 |
+| test_cancelling_during_callback_runs_its_cleanup | 业务期间取消传播至回调，执行 finally 清理 |
+| test_unexpected_failure_stops_and_remains_available_to_host | 未预期异常停止循环，宿主可从任务句柄取回原异常 |
+| test_base_import_needs_neither_tasks_extra_nor_service_configuration | 无服务配置的独立进程可导入，不加载 ARQ/任务队列模块 |
+
 ## device 模块与独立核心
 
 `tests/test_device.py`：3 项门面测试，验证类型和函数复用同一核心、缺 extra 不影响 eapi 基础导入、无关导入错误不被掩盖。

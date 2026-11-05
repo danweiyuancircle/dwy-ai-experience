@@ -14,6 +14,7 @@ Modules:
     pagination    — 分页参数与 offset/limit 计算
     logger        — 基于 loguru 的全局日志,支持按天与按大小轮转、stdlib 拦截
     tasks         — 异步任务系统(基于 ARQ,需安装 [tasks] extra)
+    periodic      — 固定延迟异步循环(标准库,生命周期与异常由宿主管理)
     masking       — PII 数据脱敏工具
     email         — 邮箱规范化(Gmail plus/点号/googlemail) + 常见个人域名白名单
     health        — 健康检查路由工厂(只探活,不探依赖)
@@ -33,4 +34,4 @@ __all__ = [
     "is_prod",
     "logger",
 ]
-__version__ = "0.12.1"
+__version__ = "0.12.2"

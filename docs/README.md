@@ -12,6 +12,7 @@
 | 中后台设计规范 | [docs/eui-design-guide.md](eui-design-guide.md) |
 | 落地页设计规范 | [docs/eui-landing-design-guide.md](eui-landing-design-guide.md) |
 | 后端 Tasks 接入 | [docs/tasks-integration-guide.md](tasks-integration-guide.md) |
+| 轻量周期执行 | [docs/periodic-integration-guide.md](periodic-integration-guide.md) |
 | Apple 框架与示例 | [ios/README.md](../ios/README.md) |
 | 邮箱密码客户端接入 | [ios/Docs/EMAIL_PASSWORD_AUTH.md](../ios/Docs/EMAIL_PASSWORD_AUTH.md) |
 | Google 客户端接入 | [ios/Docs/GOOGLE_AUTH.md](../ios/Docs/GOOGLE_AUTH.md) |
