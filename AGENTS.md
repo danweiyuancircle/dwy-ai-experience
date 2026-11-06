@@ -312,10 +312,10 @@ Keep the Git source public and publish installable packages to public npm/PyPI t
 
 - No build step (`build:cli` is a no-op).
 - 已实现入口必须出现在 `dwy --help`；禁止把可用命令藏成「隐藏命令」。
-- Commands: `dwy` / `dwy sync`（Skills → Rules → 全局／项目 → 平台 → 确认）；`dwy upgrade`（更新到 npm 正式版 latest）；`dwy --help` / `dwy --version`。CLI 默认读取包内模板，不要求私有源码仓库权限。
-- 项目同步依次选择 Skills / Rules，各步按实际分类显示 Tab，无回退或重选；Hooks 自动同步到支持的平台。Commands 停用并保留本地文件，启动时展示 dwy 品牌。
+- Commands: `dwy` / `dwy sync`（范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 确认）；`dwy refresh`（从最新模板刷新已安装共享 Skills）；`dwy migrate`（迁移老项目入口）；`dwy upgrade`（更新到 npm 正式版 latest）；`dwy --help` / `dwy --version`。
+- Skills / Rules 按分类显示 Tab；通用规范和 Hooks 默认启用，项目已有有效全局提供者时跳过对应选择且不重复写入。CLI 最后选择，Codex 默认选中，并恢复当前范围已同步的其他 CLI。Commands 停用并保留本地文件，启动时展示 dwy 品牌。
 - 不存在 `dwy claude sync` / `dwy codex sync` / `dwy sync md` / `dwy skills install`（平台选择与刷新外部 skill 都在 `dwy` 交互里完成）。
-- Templates are bundled with the `create-dwy` package under `dwy-cli/templates`; `dwy` 运行时不再读取或刷新外部缓存仓库。
+- AI 模板运行时从公开源码仓库的 `master` 分支获取并缓存；分发目录是 `dwy-cli/templates/ai-tools`，新增 Skills 无需发布 CLI。离线优先使用有效缓存，没有有效缓存才回退随包模板；`DWY_TEMPLATE_SOURCE_DIR` 允许开发者显式覆盖。目标配置和所选共享 Skills 仅在确认后修改。详见 `docs/cli-sync.md`。
 
 ## Workflow Conventions
 
@@ -392,4 +392,4 @@ See `CLAUDE.md` for full build/test/release details, design system references, a
 - uv 离线安装失败时，不能根据已有虚拟环境推断缓存齐全；缓存受索引来源、版本和平台产物影响。先固定索引并确认缺失项，再选择联网安装，避免反复重试 `--offline`。
 - npm 发布工作流成功或 `latest` 更新后，包文件仍可能因分发延迟或旧 404 缓存暂不可用。先核对指定版本元数据和 `dist.tarball` 的实际下载状态，再在独立目录按精确版本安装验收；不要重复发布同版本或重打标签。下载耗时较长时使用可续查的任务，避免反复因短超时中断安装。
 - 文件迁移或清理时，软链接别名可能让项目入口与全局提供者实际重合；只比较 `path.resolve` 会误判并删除唯一入口。对已存在的边界用 `realpath` 判断同源，规划和执行共用这一判断，并覆盖主目录本身与其别名的回归。
-- 涉及全局配置或共享缓存的测试必须注入临时用户目录，不能只隔离项目目录；否则测试会读取或登记真实用户的共享副本，且升级刷新后出现与源码无关的断言失败。验证前检查所有同步、迁移及平台适配调用的用户目录来源。
+- 涉及全局配置或共享缓存的测试必须注入临时用户目录，不能只隔离项目目录；否则测试会读取或登记真实用户的共享副本，且升级刷新后出现与源码无关的断言失败。验证前检查所有同步、迁移及平台适配调用的用户目录来源。故障注入不能直接删除解析函数返回的路径，因为失败时可能回退到真实包内模板；写入、删除和清理前先断言目标仍在测试临时目录内，拒绝越界后才能验证故障行为。

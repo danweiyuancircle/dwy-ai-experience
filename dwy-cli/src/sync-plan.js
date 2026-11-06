@@ -1,6 +1,6 @@
 import fs from 'fs-extra'
 import path from 'node:path'
-import { ensureSharedSkills, linkSkill, removeSkillEntry } from './skill-store.js'
+import { ensureSharedSkills, prepareSharedSkills, linkSkill, removeSkillEntry } from './skill-store.js'
 import { findGlobalSkill, globalSkillRoots, resolveGlobalSkillDir, resolveProjectSkillDir } from './sync-global-skills.js'
 import { loadHookManifests, syncClaude } from './sync.js'
 import { hasManagedBaseline, removeLegacyBaseline, syncBaselineDoc, syncCodex, syncProjectAgentsMd } from './sync-codex.js'
@@ -69,12 +69,13 @@ function ownedGlobalRoots(platform, homeDir, codexHome) {
 
 /**
  * 只读计算本次全部操作和下一份状态；run 回调只在确认后执行。
- * Skills 的入口与内容刷新分离；项目去重只删除项目入口，不改写全局提供者。
+ * 主交互可在确认后刷新所选共享内容；显式脚本默认仅补缺，项目去重不改写全局提供者。
  */
 export async function buildSyncPlan({
   scope, platforms, contentTypes, selected, scans, sourceDir, projectDir, homeDir, codexHome,
   projectState, globalState, staleRemovals = {}, staleEntries = {}, baseline,
   contentActions = {},
+  refreshSkills = false,
   skillScope = { destinations: ['project'], globalSkills: [] },
 }) {
   const global = scope === 'global'
@@ -196,9 +197,25 @@ export async function buildSyncPlan({
     }
     if (neededSkills.size) {
       const skills = [...neededSkills.values()]
-      operations.unshift({ kind: 'ensure-skills', label: '准备缺失的共享副本；已有内容不刷新',
+      const preserved = []
+      if (refreshSkills && !global) {
+        for (let i = 0; i < skills.length; i++) {
+          const skill = skills[i], shared = path.join(homeDir, '.dwy', 'skills', skill.name)
+          if (!await validSkill(shared)) continue
+          for (const platform of ['claude', 'codex', 'opencode']) {
+            if (!await findGlobalSkill({ name: skill.name, platform, homeDir, codexHome })) continue
+            // 补项目入口不能间接刷新其他 CLI 正在使用的全局共享副本。
+            skills[i] = { ...skill, sourcePath: shared }
+            preserved.push(skill.name)
+            break
+          }
+        }
+      }
+      const label = refreshSkills ? `更新所选共享 Skills（所有同名链接生效）${preserved.length ? `；保留全局共享内容：${preserved.join('、')}` : ''}`
+        : '准备缺失的共享副本；已有内容不刷新'
+      operations.unshift({ kind: 'ensure-skills', label,
         paths: [...skills.map(skill => path.join(homeDir, '.dwy', 'skills', skill.name)), path.join(homeDir, '.dwy', 'skill-store.json')],
-        run: () => ensureSharedSkills({ skills, homeDir }) })
+        run: () => (refreshSkills ? prepareSharedSkills : ensureSharedSkills)({ skills, homeDir }) })
     }
     if ([...neededSkills.values()].some(skill => skill.category === '产品0到1')) {
       const target = path.join(process.env.DWY_HOME || path.join(homeDir, '.dwy'), 'skills')
@@ -272,7 +289,8 @@ export async function buildSyncPlan({
       const dest = path.join(projectDir, 'AGENTS.md')
       if (remove || inherited) {
         await cleanBaseline(dest, projectDir, inherited ? '全局已启用，清理项目重复基线' : '移除项目通用规范（保留 Rules 和手写内容）')
-        if (inherited) add('inherit', `通用规范使用全局：${providers.map(p => PLATFORM_LABELS[p]).join('、')}；项目禁止重复安装`,
+        const missing = cliPlatforms.filter(platform => !providers.includes(platform))
+        if (inherited) add('inherit', `通用规范使用全局：${providers.map(p => PLATFORM_LABELS[p]).join('、')}；项目禁止重复安装${missing.length ? `；${missing.map(p => PLATFORM_LABELS[p]).join('、')} 缺少全局规范，请另行选择全局范围补齐` : ''}`,
           providers.map(p => globalBaselinePath(p, homeDir, codexHome)), async () => {})
       } else await addConfig('baseline', '启用/更新项目 AGENTS.md 通用规范（保留 Rules 和手写内容）', [dest], projectDir, () => syncBaselineDoc(baseline, dest))
       markProject(!remove && !inherited)

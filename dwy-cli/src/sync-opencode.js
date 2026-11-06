@@ -48,7 +48,7 @@ export async function syncOpenCode({
   sharedSkills,
   staleRemovals = {},
 } = {}) {
-  const sourceDir = sourceDirOverride || await resolveSourceDir()
+  const sourceDir = sourceDirOverride || await resolveSourceDir({ homeDir })
   if (!await fs.pathExists(sourceDir)) {
     throw new Error('ai-tools templates not found in repo')
   }

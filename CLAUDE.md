@@ -108,11 +108,12 @@ FastAPI 基础设施包，Python 3.11+，全异步。扁平模块：
 
 #### 当前入口（与 `dwy --help` 一致）
 
-- **`dwy`** / **`dwy sync`**：依次选择 Skills → Rules → 全局／当前项目 → 平台 → 确认。各类用分类 Tab 逐项勾选，无回退；Hooks 按平台自动同步，Commands 停用并保留本地文件。全局同步整套配置，保留个人规则和设置；Cursor 仅支持项目规则。启动显示 dwy 品牌
+- **`dwy`** / **`dwy sync`**：依次选择范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 确认。Skills / Rules 使用分类 Tab；规范与 Hooks 默认启用，项目已有有效全局配置时跳过对应步骤。CLI 默认 Codex，并恢复当前范围其他已同步 CLI；确认后更新所选共享 Skills 并执行迁移、去重和同步。Commands 保留不处理，Cursor 仅支持项目规则。
+- **`dwy refresh`** / **`dwy migrate`**：从最新模板刷新已安装共享 Skills / 迁移老项目的托管 Skills 入口。
 - **`dwy upgrade`**：将全局安装的 `create-dwy` 更新到公开 npm 的正式版 `latest`；源码仓不自升级。
 - **`dwy --help`** / **`dwy --version`**
 
-模板随 `create-dwy` 发布包内置于 `dwy-cli/templates/ai-tools`。
+AI 模板从公开源码仓库 `master` 分支的 `dwy-cli/templates/ai-tools` 运行时获取；新增 Skills 无需发布 CLI。离线使用有效缓存，无缓存时回退包内模板并提示。使用与继承边界见 `docs/cli-sync.md`。
 
 ### frontend/playground/
 

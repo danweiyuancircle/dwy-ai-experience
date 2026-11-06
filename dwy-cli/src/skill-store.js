@@ -36,7 +36,7 @@ export async function ensureSharedSkills({ skills, homeDir = os.homedir() }) {
 }
 
 /**
- * 将包内 Skills 准备到稳定用户目录，返回指向共享副本的条目。
+ * 将当前模板 Skills 准备到稳定用户目录，返回指向共享副本的条目。
  * 同一用户的刷新互斥；完整副本准备失败时不替换旧内容。外部 Skills 缓存不纳入本模块清单。
  */
 export async function prepareSharedSkills({ skills, homeDir = os.homedir() }) {
@@ -183,15 +183,15 @@ export async function linkSkill({ skill, dest, backupRoot }) {
   }
 }
 
-/** 使用当前 CLI 包内模板刷新已有共享副本；新包移除的条目保留，避免其他项目坏链。 */
+/** 从最新可用模板刷新已有共享副本；模板移除的条目保留，避免其他项目坏链。 */
 export async function refreshSharedSkills({ sourceDir, homeDir = os.homedir() } = {}) {
   const names = await readInstalledNames(homeDir)
-  const scans = await scanSkills(sourceDir || await resolveSourceDir())
+  const scans = await scanSkills(sourceDir || await resolveSourceDir({ homeDir }))
   const available = new Map(scans.map(skill => [skill.name, skill]))
   const updated = names.filter(name => available.has(name))
   const retained = names.filter(name => !available.has(name))
   await prepareSharedSkills({ skills: updated.map(name => available.get(name)), homeDir })
-  for (const name of retained) console.log(chalk.yellow(`当前 CLI 已移除 ${name}，保留共享旧副本以免其他项目链接失效。`))
+  for (const name of retained) console.log(chalk.yellow(`当前模板已移除 ${name}，保留共享旧副本以免其他项目链接失效。`))
   console.log(chalk.green(`已刷新 ${updated.length} 个共享 Skills，保留 ${retained.length} 个旧副本。`))
   return { updated, retained }
 }

@@ -87,7 +87,7 @@ test('buildSelectionDefaultsFromSyncState falls back to existing scan when sync 
   assert.deepEqual([...defaults.hooks], ['existing-hook.sh'])
 })
 
-test('buildPlatformDefaultsFromLocalState selects platforms by existing local config dirs', async t => {
+test('平台默认只选 Codex，空配置目录不能视为已同步', async t => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-platform-defaults-'))
   t.after(() => fs.remove(tempDir))
 
@@ -99,16 +99,39 @@ test('buildPlatformDefaultsFromLocalState selects platforms by existing local co
 
   const defaults = await buildPlatformDefaultsFromLocalState(tempDir)
 
-  assert.deepEqual(defaults.sort(), ['claude', 'codex', 'cursor', 'opencode'])
+  assert.deepEqual(defaults, ['codex'])
 })
 
-test('buildPlatformDefaultsFromLocalState falls back to claude and codex when no local dirs exist', async t => {
+test('首次同步默认只选 Codex', async t => {
   const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-platform-defaults-empty-'))
   t.after(() => fs.remove(tempDir))
 
   const defaults = await buildPlatformDefaultsFromLocalState(tempDir)
 
-  assert.deepEqual(defaults, ['claude', 'codex'])
+  assert.deepEqual(defaults, ['codex'])
+})
+
+test('平台默认恢复当前范围已同步 CLI，保留配置缺失的修复入口', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-platform-history-'))
+  t.after(() => fs.remove(root))
+  const projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.outputJson(path.join(projectDir, '.dwy/sync-state.json'), {
+    platforms: { claude: { skills: ['dwy-shared'] }, cursor: { rules: ['vue.md'] } },
+  })
+  await fs.outputJson(path.join(homeDir, '.dwy/sync-state.json'), {
+    platforms: { opencode: { skills: ['dwy-shared'] } },
+  })
+  assert.deepEqual((await buildPlatformDefaultsFromLocalState(projectDir)).sort(), ['claude', 'codex', 'cursor'])
+  assert.deepEqual((await buildPlatformDefaultsFromLocalState(homeDir, 'global')).sort(), ['codex', 'opencode'])
+})
+
+test('旧同步缺少状态记录时仍通过有效托管入口恢复 CLI', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-platform-entries-'))
+  t.after(() => fs.remove(root))
+  await fs.outputFile(path.join(root, '.claude/skills/dwy-shared/SKILL.md'), '# Shared')
+  await fs.outputFile(path.join(root, '.opencode/skills/personal/SKILL.md'), '# Personal')
+  await fs.outputFile(path.join(root, '.cursor/rules/dwy-vue.mdc'), '# Managed rule')
+  assert.deepEqual((await buildPlatformDefaultsFromLocalState(root)).sort(), ['claude', 'codex', 'cursor'])
 })
 
 test('syncAll mirrors one selected configuration to Claude Code and Codex', async t => {
