@@ -39,7 +39,7 @@ export async function projectSkillChoices(skills, platforms, { homeDir, codexHom
     const disabled = applicable.length > 0 && covered.length === applicable.length
     const missing = applicable.filter(platform => !covered.includes(platform))
     const status = disabled ? '全局已启用' : covered.length ? `${missing.map(p => PLATFORM_LABELS[p]).join('、')} 可安装到项目` : ''
-    return { ...skill, disabled, label: status ? `${skill.name}（${status}）` : skill.name,
+    return { ...skill, disabled, inherited: covered.length > 0, label: status ? `${skill.name}（${status}）` : skill.name,
       description: [covered.length ? `全局已提供：${covered.map(p => PLATFORM_LABELS[p]).join('、')}` : '', skill.description].filter(Boolean).join('；') }
   }))
 }

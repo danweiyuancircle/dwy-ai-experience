@@ -108,10 +108,12 @@ test('内容选项按范围和平台过滤，项目 Skills 覆盖状态由真实
   await fs.outputFile(path.join(opts.homeDir, '.claude/skills/sample/SKILL.md'), '# global')
   const [partial] = await projectSkillChoices(skills, opts.selectedPlatforms, opts)
   assert.equal(partial.disabled, false)
+  assert.equal(partial.inherited, true)
   assert.match(partial.label, /Codex 可安装到项目/)
   await fs.outputFile(path.join(opts.homeDir, '.agents/skills/sample/SKILL.md'), '# global')
   const [covered] = await projectSkillChoices(skills, opts.selectedPlatforms, opts)
   assert.equal(covered.disabled, true)
+  assert.equal(covered.inherited, true)
   assert.match(covered.label, /全局已启用/)
 })
 
