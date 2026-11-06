@@ -34,29 +34,28 @@ test('实际帮助按内容选择后选 CLI，并说明全局继承与确认边�
   assert.match(help, /恢复.*当前范围.*CLI/)
   assert.match(help, /全局.*跳过.*操作页/)
   assert.match(help, /关闭.*当前范围.*不.*全局/)
-  assert.match(help, /确认前.*模板缓存/)
+  assert.match(help, /确认前不改.*项目.*全局.*共享/)
   assert.match(help, /确认后.*共享 Skills/)
   assert.match(help, /全局已启用.*不能重复勾选/)
   assert.match(help, /部分平台.*缺少全局入口/)
   assert.doesNotMatch(help, /选择本次处理内容|范围 \/ 平台 \/ 内容|不勾选整个类型/)
 })
 
-test('实际帮助区分模板更新、共享 Skills 刷新和 CLI 升级', () => {
-  assert.match(help, /dwy refresh.*最新模板.*已安装.*共享 Skills/)
+test('实际帮助说明包内模板分发、共享 Skills 刷新和 CLI 升级', () => {
+  assert.match(help, /dwy refresh.*当前 CLI 包内模板.*已安装.*共享 Skills/)
   assert.match(help, /dwy upgrade.*npm.*正式版/)
-  assert.match(help, /master.*dwy-cli\/templates\/ai-tools/)
+  assert.match(help, /模板随 CLI 包分发/)
+  assert.match(help, /启动不联网检查模板/)
   assert.match(help, /DWY_TEMPLATE_SOURCE_DIR.*优先/)
-  assert.match(help, /~\/\.dwy\/template-source/)
-  assert.match(help, /离线.*缓存.*包内模板.*提示/)
-  assert.match(help, /新增 Skills.*无需.*CLI/)
-  assert.doesNotMatch(help, /当前 CLI 模板|sync.*migrate.*不刷新已有共享内容/)
+  assert.match(help, /Skills.*变更.*CLI.*发版/)
+  assert.doesNotMatch(help, /template-source|远端.*commit|模板缓存|最新模板|分发分支/)
 })
 
 test('dwy 启动展示品牌，取消后退出', async t => {
   const { spawn } = await import('node:child_process')
   const child = spawn(process.execPath, ['dwy-cli/bin/index.js'], {
     cwd: new URL('../../', import.meta.url),
-    // 取消交互不依赖远端认证，也不能更新开发者的共享模板缓存。
+    // 使用仓库模板验证启动和取消，不依赖当前安装包的模板位置。
     env: { ...process.env, FORCE_COLOR: '0', DWY_TEMPLATE_SOURCE_DIR: fileURLToPath(new URL('../templates/ai-tools', import.meta.url)) },
   })
   t.after(() => child.kill())

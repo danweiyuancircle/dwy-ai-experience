@@ -5,7 +5,7 @@
 | 内容 | 文档 |
 | --- | --- |
 | 私有源码与公开包分发 | [docs/private-distribution.md](private-distribution.md) |
-| CLI 同步、全局继承与模板更新 | [docs/cli-sync.md](cli-sync.md) |
+| CLI 同步、全局 Skills 覆盖与包内模板更新 | [docs/cli-sync.md](cli-sync.md) |
 | 跨端认证入口 | [docs/auth.md](auth.md) |
 | 后端认证装配与迁移 | [backend/packages/auth/README.md](../backend/packages/auth/README.md) |
 | 网页认证组件 | [frontend/auth-web/README.md](../frontend/auth-web/README.md) |

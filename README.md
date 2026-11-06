@@ -58,7 +58,7 @@ Apple 验证需要完整 Xcode 环境。本机使用 Node 26 时，如 Vitest/js
 
 ## AI 配置基线
 
-`dwy-cli/templates/ai-tools/AGENTS.md` 是通用基线源文件。`dwy` / `dwy sync` 按「范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 清单确认」执行。通用规范和 Hooks 默认启用；CLI 首次只选 Codex，并恢复当前范围已同步的其他 CLI。确认前只获取模板缓存，不修改目标配置或已安装共享 Skills。项目脚手架统一生成 `AGENTS.md`；Claude Code 的用户级全局入口使用原生的 `CLAUDE.md`。完整说明见 [docs/cli-sync.md](docs/cli-sync.md)。
+`dwy-cli/templates/ai-tools/AGENTS.md` 是通用基线源文件。`dwy` / `dwy sync` 按「范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 清单确认」执行。通用规范和 Hooks 默认启用；CLI 首次只选 Codex，并恢复当前范围已同步的其他 CLI。启动不联网检查模板；确认前不修改项目、全局配置或已安装共享 Skills。项目脚手架统一生成 `AGENTS.md`；Claude Code 的用户级全局入口使用原生的 `CLAUDE.md`。完整说明见 [docs/cli-sync.md](docs/cli-sync.md)。
 
 - 当前项目：可选择 Skills、Hooks、Rules、AGENTS.md 通用规范。
 - 全局：可选择 Skills、Hooks、AGENTS.md 通用规范，不提供 Cursor。
@@ -83,9 +83,9 @@ Claude Code 直接读取项目 `AGENTS.md` 需要 v2.1.277 或更新版本，并
 
 ## Skills 共享副本与老项目迁移
 
-Skills 内容运行时从公开源码仓库 `master` 分支获取，无需因新增 Skill 发布 CLI；无变化时复用已验证缓存，离线且无有效缓存才回退包内模板。用户目录 `.dwy/skills/<name>` 保存共享副本，项目和全局通过整个 Skill 目录的链接引用它。CLI 最后选择，最终计划只给缺少全局入口的平台建立项目链接；脚本提前指定平台时，选择页会标注全局覆盖情况。
+Skills 模板随 CLI 包分发，新增或变更 Skills 需要 CLI 发版；运行时不通过 Git 拉取模板，也不联网检查模板更新。开发时 `DWY_TEMPLATE_SOURCE_DIR` 可优先覆盖模板目录。用户目录 `.dwy/skills/<name>` 保存共享副本，项目和全局通过整个 Skill 目录的链接引用它。项目选择页将被全部适用 CLI 有效全局入口覆盖的 Skills 标注为“全局已启用”并禁选；部分 CLI 已覆盖时仍可选，只补缺少全局入口的项目链接。CLI 最后选择，最终计划重新核算覆盖。
 
-相同平台已有有效全局入口时，项目不保留重复入口，真实目录先备份，清理操作在确认页单独列出。项目同步不改写全局提供者。默认勾选只来自当前范围，不混入另一范围的记录。主交互确认后刷新所选共享内容；`dwy refresh` 从最新模板刷新全部已安装共享 Skills，无需升级 CLI。显式脚本接口与 `dwy migrate` 默认只补缺，不刷新已有内容。
+相同平台已有有效全局入口时，项目不保留重复入口，真实目录先备份，清理操作在确认页单独列出。项目同步不改写全局提供者。默认勾选只来自当前范围，不混入另一范围的记录。主交互确认后刷新所选共享内容；`dwy refresh` 从当前 CLI 包内模板刷新全部已安装共享 Skills。需要新版模板时先升级 CLI；显式脚本接口与 `dwy migrate` 默认只补缺，不刷新已有内容。
 
 选择产品流程 Skills 时，缺失的外部依赖会在确认清单中列出，确认后联网拉取固定版本；已有外部副本保留。
 
