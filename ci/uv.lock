@@ -432,7 +432,7 @@ wheels = [
 
 [[package]]
 name = "dwy-apple-notify"
-version = "0.1.4"
+version = "0.1.5"
 source = { editable = "../backend/packages/apple-notify" }
 dependencies = [
     { name = "dwy-notify" },
@@ -460,6 +460,9 @@ dev = [
 iap = [
     { name = "app-store-server-library", extra = ["async"] },
 ]
+ratings = [
+    { name = "httpx" },
+]
 reviews = [
     { name = "cryptography" },
     { name = "httpx" },
@@ -478,6 +481,7 @@ requires-dist = [
     { name = "httpx", marker = "extra == 'analytics'", specifier = "==0.28.1" },
     { name = "httpx", marker = "extra == 'asc'", specifier = "==0.28.1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = "==0.28.1" },
+    { name = "httpx", marker = "extra == 'ratings'", specifier = "==0.28.1" },
     { name = "httpx", marker = "extra == 'reviews'", specifier = "==0.28.1" },
     { name = "pyjwt", marker = "extra == 'analytics'", specifier = "==2.15.1" },
     { name = "pyjwt", marker = "extra == 'asc'", specifier = "==2.15.1" },
@@ -486,7 +490,7 @@ requires-dist = [
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = "==1.3.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = "==0.15.12" },
 ]
-provides-extras = ["iap", "asc", "reviews", "analytics", "dev"]
+provides-extras = ["iap", "asc", "reviews", "analytics", "ratings", "dev"]
 
 [[package]]
 name = "dwy-auth"
@@ -647,7 +651,7 @@ name = "dwy-shared-ci"
 version = "0.0.0"
 source = { virtual = "." }
 dependencies = [
-    { name = "dwy-apple-notify", extra = ["analytics", "asc", "dev", "iap", "reviews"] },
+    { name = "dwy-apple-notify", extra = ["analytics", "asc", "dev", "iap", "ratings", "reviews"] },
     { name = "dwy-auth", extra = ["dev"] },
     { name = "dwy-email-notify", extra = ["dev", "resend"] },
     { name = "dwy-notify" },
@@ -658,7 +662,7 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dwy-apple-notify", extras = ["iap", "asc", "reviews", "analytics", "dev"], editable = "../backend/packages/apple-notify" },
+    { name = "dwy-apple-notify", extras = ["iap", "asc", "reviews", "analytics", "ratings", "dev"], editable = "../backend/packages/apple-notify" },
     { name = "dwy-auth", extras = ["dev"], editable = "../backend/packages/auth" },
     { name = "dwy-email-notify", extras = ["resend", "dev"], editable = "../backend/packages/email-notify" },
     { name = "dwy-notify", extras = ["dev", "sqlalchemy"], editable = "../backend/packages/notify" },
