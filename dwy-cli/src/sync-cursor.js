@@ -108,10 +108,11 @@ export async function scanExistingCursorRules(projectDir) {
 export async function syncCursor({
   sourceDir: sourceDirOverride,
   projectDir,
+  homeDir,
   selected,
   staleRemovals = {},
 } = {}) {
-  const sourceDir = sourceDirOverride || await resolveSourceDir()
+  const sourceDir = sourceDirOverride || await resolveSourceDir({ homeDir })
   if (!await fs.pathExists(sourceDir)) {
     throw new Error('ai-tools templates not found in repo')
   }

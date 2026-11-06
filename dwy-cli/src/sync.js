@@ -2,8 +2,9 @@ import fs from 'fs-extra'
 import path from 'path'
 import { isCancel } from '@clack/prompts'
 import { tabMultiselect } from './tab-multiselect.js'
-import { chalk, PACKAGE_ROOT } from './utils.js'
+import { chalk } from './utils.js'
 import { linkSkill, ensureSharedSkills, removeSkillEntry } from './skill-store.js'
+import { resolveTemplateSource } from './template-source.js'
 
 const CATEGORIES = [
   { key: 'skills', label: 'Skills' },
@@ -390,17 +391,9 @@ async function syncSettings(sourceDir, targetDir, selectedHookNames, global, sta
   return 1
 }
 
-/** 默认读取随包模板；仅开发者显式设置环境变量时改用外部目录，不要求仓库权限。 */
-export async function resolveSourceDir() {
-  const explicitSourceDir = process.env.DWY_TEMPLATE_SOURCE_DIR
-  if (explicitSourceDir) {
-    if (!await fs.pathExists(explicitSourceDir)) {
-      throw new Error(`DWY_TEMPLATE_SOURCE_DIR not found: ${explicitSourceDir}`)
-    }
-    return explicitSourceDir
-  }
-
-  return path.join(PACKAGE_ROOT, 'templates', 'ai-tools')
+/** 解析模板源并检查公开模板更新；调用方可注入 homeDir 隔离用户缓存。 */
+export async function resolveSourceDir(options) {
+  return resolveTemplateSource(options)
 }
 
 /** 同步 Claude Skills 与 Hooks；基线和项目 Rules 由总同步入口分别处理。 */
@@ -414,7 +407,7 @@ export async function syncClaude({
   syncTypes = ['skills', 'rules', 'hooks'],
   staleRemovals = {},
 } = {}) {
-  const sourceDir = sourceDirOverride || await resolveSourceDir()
+  const sourceDir = sourceDirOverride || await resolveSourceDir({ homeDir })
   if (!await fs.pathExists(sourceDir)) {
     throw new Error('ai-tools templates not found in repo')
   }

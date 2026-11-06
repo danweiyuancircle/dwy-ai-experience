@@ -7,12 +7,12 @@ import { normalizeSkillScope, resolveProjectSkillDir, resolveGlobalSkillDir, cop
 import { ensureSharedSkills } from './skill-store.js'
 import { chalk } from './utils.js'
 import { interactiveSelect, loadHookManifests, readBaselineDoc, resolveSourceDir, scanExisting, scanHooks, scanRules, scanSkills } from './sync.js'
-import { parseManagedRuleNames, scanExistingCodexHooks, scanExistingCodexSkills } from './sync-codex.js'
+import { hasManagedBaseline, parseManagedRuleNames, scanExistingCodexHooks, scanExistingCodexSkills } from './sync-codex.js'
 import { scanExistingCursorRules } from './sync-cursor.js'
 import { installSkills } from './skills-install.js'
 import { selfUpgrade } from './self-upgrade.js'
 import { buildSyncPlan, contentOptions, projectSkillChoices, PLATFORM_LABELS, PLATFORM_SYNC_TYPES } from './sync-plan.js'
-import { assertConfigPath, baselineProviders, globalHookNames } from './sync-inheritance.js'
+import { assertConfigPath, baselineProviders, globalBaselinePath, globalHookNames, hasManagedHookConfig } from './sync-inheritance.js'
 
 const PLATFORM_OPTIONS = [
   { value: 'claude', label: 'Claude Code', description: '支持 Skills、项目 Rules、Hooks 和全局通用规范' },
@@ -59,25 +59,44 @@ export function buildSelectionDefaultsFromSyncState(existing, syncState, platfor
   return Object.values(result).some(names => names.size) ? result : existing
 }
 
-/** 从当前范围的实际入口推导平台默认值；不读取另一个范围的配置。 */
+/** Codex 默认选中；恢复当前范围的同步记录和有效旧托管入口，空目录不算已同步。 */
 export async function buildPlatformDefaultsFromLocalState(projectDir, scope = 'project', codexHome = path.join(projectDir, '.codex')) {
-  const defaults = []
-  if (await fs.pathExists(path.join(projectDir, '.claude'))) defaults.push('claude')
-  if (await fs.pathExists(path.join(projectDir, '.codex'))
-    || (scope === 'global' && await fs.pathExists(codexHome))
-    || await fs.pathExists(path.join(projectDir, '.agents'))
-    || (scope === 'project' && await fs.pathExists(path.join(projectDir, 'AGENTS.md')))) defaults.push('codex')
-  if (scope === 'project' && await fs.pathExists(path.join(projectDir, '.cursor'))) defaults.push('cursor')
-  if (await fs.pathExists(path.join(projectDir, ...(scope === 'global' ? ['.config', 'opencode'] : ['.opencode'])))) defaults.push('opencode')
-  return defaults.length ? defaults : ['claude', 'codex']
+  const defaults = ['codex']
+  const state = await loadSyncState(projectDir)
+  for (const platform of ['claude', 'opencode', ...(scope === 'project' ? ['cursor'] : [])]) {
+    const root = scope === 'global' ? resolveGlobalSkillDir(platform, projectDir)
+      : resolveProjectSkillDir(projectDir, platform)
+    let managed = Boolean(state.platforms[platform])
+    if (root && await fs.pathExists(root)) {
+      for (const name of await fs.readdir(root)) {
+        if (name.startsWith('dwy-') && await fs.pathExists(path.join(root, name, 'SKILL.md'))) managed = true
+      }
+    }
+    if (platform === 'cursor') {
+      if ([...await scanExistingCursorRules(projectDir)].some(name => name.startsWith('dwy-') || name === '00-dwy-global.mdc')) managed = true
+    } else {
+      const baseline = scope === 'global' ? globalBaselinePath(platform, projectDir, codexHome)
+        : path.join(projectDir, platform === 'claude' ? '.claude' : '.opencode', 'AGENTS.md')
+      if (await hasManagedBaseline(baseline)) managed = true
+      if (platform === 'claude') {
+        const configRoot = path.join(projectDir, '.claude')
+        if (await hasManagedBaseline(path.join(configRoot, 'CLAUDE.md'))
+          || await hasManagedHookConfig(platform, configRoot, await scanExisting(configRoot, 'hooks'))) managed = true
+      }
+    }
+    if (managed) defaults.push(platform)
+  }
+  return defaults
 }
 
-async function selectPlatforms(root, scope, codexHome) {
+async function selectPlatforms(root, scope, initialValues) {
+  const state = await loadSyncState(root)
   const result = await searchableMultiselect({
     message: '选择要同步的平台',
     options: PLATFORM_OPTIONS.filter(option => scope === 'project' || option.value !== 'cursor')
-      .map(option => ({ ...option, description: contentOptions(scope, [option.value]).map(item => item.label).join('、') })),
-    initialValues: await buildPlatformDefaultsFromLocalState(root, scope, codexHome),
+      .map(option => ({ ...option, description: [state.platforms[option.value] ? '已有同步记录，将核对并修复本地配置' : '',
+        contentOptions(scope, [option.value]).map(item => item.label).join('、')].filter(Boolean).join('；') })),
+    initialValues,
     required: true, maxItems: 6, placeholder: SEARCH_PLACEHOLDER,
   })
   return isCancel(result) ? null : result
@@ -135,20 +154,12 @@ function staleEntries(scans, state, existing, platforms) {
   return result
 }
 
-/** 全局首次默认管理基线；任一所选平台显式移除后不再整组默认开启。 */
-export function defaultContentTypes(scope, platforms, state) {
-  const allowed = new Set(contentOptions(scope, platforms).map(option => option.value))
-  const result = allowed.has('skills') ? ['skills'] : []
-  if (scope === 'global' && allowed.has('baseline') && platforms.every(platform => state.platforms[platform]?.baseline !== false)) result.push('baseline')
-  return result
-}
-
 function normalizeRemovals(raw) {
   return Object.fromEntries(Object.entries(raw).map(([platform, types]) => [platform,
     Object.fromEntries(Object.entries(types).map(([type, names]) => [type, new Set(names)]))]))
 }
 
-/** `dwy` 和 `dwy sync` 共用范围 → 平台 → 内容 → 逐项选择 → 清单确认。 */
+/** `dwy` 和 `dwy sync` 共用范围 → Skills → 项目 Rules → 规范 → Hooks → CLI → 确认。 */
 export async function runDwy(opts = {}) {
   console.log(chalk.bold.cyan('\ndwy') + chalk.gray(' · AI 开发工具\n'))
   const action = normalizeAction(opts.action)
@@ -174,7 +185,7 @@ export async function migrateSkills({
   if (await fs.pathExists(homeDir) && realProject === await fs.realpath(homeDir)) {
     throw new Error('当前目录是用户主目录，请使用全局同步或进入项目目录迁移')
   }
-  const scans = await scanSkills(sourceDir || await resolveSourceDir())
+  const scans = await scanSkills(sourceDir || await resolveSourceDir({ homeDir }))
   const available = new Map(scans.map(skill => [skill.name, skill]))
   const state = await loadSyncState(projectDir)
   const existingByPlatform = {}
@@ -222,7 +233,7 @@ export async function migrateSkills({
 
 /**
  * 只执行点名范围和内容；测试/脚本可注入选择，确认前只读。
- * contentTypes 未传时，已有脚本按 selected 中明确提供的字段处理；主交互默认只选 Skills。
+ * 主交互按内容顺序收集选择，CLI 后选，执行前重新核算继承；显式脚本仅处理点名的类型。
  */
 export async function syncAll({
   sourceDir: sourceDirOverride, projectDir: projectDirOverride, selected: selectedOverride,
@@ -231,7 +242,7 @@ export async function syncAll({
   codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'), scope: scopeOverride, confirmed,
   contentActions: actionsOverride,
 } = {}) {
-  const sourceDir = sourceDirOverride || await resolveSourceDir()
+  const sourceDir = sourceDirOverride || await resolveSourceDir({ homeDir })
   if (!await fs.pathExists(sourceDir)) throw new Error('ai-tools templates not found in repo')
   const projectDir = projectDirOverride || process.cwd()
   const scope = scopeOverride || (selectedOverride || platformsOverride ? 'project' : await searchableSelect({
@@ -244,33 +255,32 @@ export async function syncAll({
   if (isCancel(scope)) { console.log(chalk.yellow('已取消同步。')); return }
   if (!['project', 'global'].includes(scope)) throw new Error('无效同步范围')
   const global = scope === 'global', targetRoot = global ? homeDir : projectDir
-  const platforms = platformsOverride || await selectPlatforms(targetRoot, scope, codexHome)
-  if (platforms === null) { console.log(chalk.yellow('已取消同步。')); return }
+  let platforms = platformsOverride || await buildPlatformDefaultsFromLocalState(targetRoot, scope, codexHome)
   if (platforms.length === 0 || platforms.some(platform => !PLATFORM_SYNC_TYPES[platform] || (global && platform === 'cursor'))) throw new Error('所选平台不支持此同步范围')
-  const options = contentOptions(scope, platforms)
-  const allowed = new Set(options.map(option => option.value))
   const projectState = await loadSyncState(projectDir), globalState = await loadSyncState(homeDir)
   const targetState = global ? globalState : projectState
+  const scans = { skills: await scanSkills(sourceDir), rules: await scanRules(sourceDir), hooks: await scanHooks(sourceDir), commands: [] }
+  const mainFlow = !typesOverride && !selectedOverride && modeOverride !== SYNC_MODE_SKILLS
+  const availablePlatforms = PLATFORM_OPTIONS.filter(option => !global || option.value !== 'cursor').map(option => option.value)
+  const allowed = new Set(contentOptions(scope, mainFlow ? availablePlatforms : platforms).map(option => option.value))
   let contentTypes = typesOverride
   if (!contentTypes && modeOverride === SYNC_MODE_SKILLS) contentTypes = ['skills']
   if (!contentTypes && selectedOverride) contentTypes = Object.keys(selectedOverride).filter(type => allowed.has(type))
   if (!contentTypes) {
-    const result = await searchableMultiselect({
-      message: '选择本次处理内容（未勾选的类型保持原样）', options,
-      initialValues: defaultContentTypes(scope, platforms, targetState), required: true, maxItems: 5,
-    })
-    if (isCancel(result)) { console.log(chalk.yellow('已取消同步。')); return }
-    contentTypes = result
+    contentTypes = [...allowed]
+    if (!await fs.pathExists(path.join(sourceDir, 'AGENTS.md'))) contentTypes = contentTypes.filter(type => type !== 'baseline')
+    if (!scans.hooks.length) contentTypes = contentTypes.filter(type => type !== 'hooks')
   }
   if (contentTypes.some(type => !allowed.has(type))) throw new Error('所选范围或平台不支持此同步内容')
   if (contentTypes.length === 0) { console.log('未选择处理内容。'); return }
-  const scans = { skills: await scanSkills(sourceDir), rules: await scanRules(sourceDir), hooks: await scanHooks(sourceDir), commands: [] }
   const existing = await managedNames(targetRoot, global, codexHome)
+  const cursorRules = new Set(scans.rules.filter(rule => existing.cursor.rules.has(buildCursorRuleName(rule.name))).map(rule => rule.name))
   const current = Object.fromEntries(['skills', 'rules', 'hooks'].map(type => [type,
-    unionSets(...platforms.map(platform => existing[platform][type]))]))
+    unionSets(...platforms.map(platform => platform === 'cursor' && type === 'rules' ? cursorRules : existing[platform][type]))]))
   const defaults = buildSelectionDefaultsFromSyncState(current, targetState, platforms)
   for (const type of ['skills', 'rules', 'hooks']) defaults[type] = unionSets(defaults[type], current[type])
-  const choices = !global && contentTypes.includes('skills')
+  // CLI 尚未选择时允许勾选所有 Skills；最终计划按实际 CLI 去重，避免提前禁用其他 CLI 所需条目。
+  const choices = platformsOverride && !global && contentTypes.includes('skills')
     ? { ...scans, skills: await projectSkillChoices(scans.skills, platforms, { homeDir, codexHome }) } : scans
   const selected = selectedOverride
     ? { skills: selectedOverride.skills || [], rules: selectedOverride.rules || [], hooks: [], commands: [] }
@@ -278,11 +288,10 @@ export async function syncAll({
   if (selected === null) { console.log(chalk.yellow('已取消同步。')); return }
   const contentActions = { ...actionsOverride }
   if (!selectedOverride) {
-    for (const type of ['hooks', 'baseline'].filter(type => contentTypes.includes(type))) {
+    for (const type of ['baseline', 'hooks'].filter(type => contentTypes.includes(type))) {
       if (contentActions[type]) continue
       const inherited = type === 'baseline' && !global ? await baselineProviders(platforms, { homeDir, codexHome }) : []
       const name = type === 'hooks' ? 'Hooks' : 'AGENTS.md 通用规范'
-      if (inherited.length) console.log(chalk.yellow(`全局已启用通用规范：${inherited.map(p => PLATFORM_LABELS[p]).join('、')}；项目禁止重复安装，其他平台需补齐全局规范。`))
       let inheritedHooks = false
       if (type === 'hooks' && !global) {
         const manifests = await loadHookManifests(sourceDir)
@@ -292,14 +301,17 @@ export async function syncAll({
           const provided = await globalHookNames({ platform, sourceDir, homeDir, codexHome })
           total += available.length
           covered += available.filter(hook => provided.has(hook.name)).length
-          if (provided.size) console.log(`${PLATFORM_LABELS[platform]} Hooks 全局已启用：${[...provided].join('、')}`)
         }
         inheritedHooks = total > 0 && covered === total
+      }
+      if (inherited.length || inheritedHooks) {
+        contentActions[type] = 'sync'
+        continue
       }
       const action = await searchableSelect({
         message: `选择 ${name} 操作`, initialValue: 'sync',
         options: [
-          { value: 'sync', label: inherited.length ? '使用全局，仅清理项目重复基线' : inheritedHooks ? '使用全局，仅清理项目重复 Hooks' : '启用 / 更新',
+          { value: 'sync', label: '启用 / 更新',
             description: type === 'hooks' && !global ? '只为缺少有效全局注册的 Hook 安装项目配置，其他仅去重' : '执行清单会列出实际路径及清理项' },
           { value: 'remove', label: `移除当前范围的${name}`, description: '只移除 dwy 托管内容，保留个人配置和其他类型' },
         ],
@@ -308,6 +320,12 @@ export async function syncAll({
       contentActions[type] = action
     }
   }
+  if (!platformsOverride) {
+    platforms = await selectPlatforms(targetRoot, scope, platforms)
+    if (platforms === null) { console.log(chalk.yellow('已取消同步。')); return }
+  }
+  const options = contentOptions(scope, platforms)
+  if (mainFlow) contentTypes = contentTypes.filter(type => options.some(option => option.value === type))
   const stale = staleEntries(scans, targetState, existing, platforms)
   const removals = normalizeRemovals(removalsOverride || stale)
   const baseline = contentTypes.some(type => type === 'rules' || type === 'baseline') ? await readBaselineDoc(sourceDir) : ''
@@ -315,6 +333,7 @@ export async function syncAll({
     scope, platforms, contentTypes, selected, scans, sourceDir, projectDir, homeDir, codexHome,
     projectState, globalState, staleRemovals: removals, staleEntries: stale, baseline,
     contentActions,
+    refreshSkills: mainFlow,
     skillScope: normalizeSkillScope(skillScopeOverride),
   })
   const nextTarget = global ? plan.nextGlobal : plan.nextProject
@@ -345,7 +364,10 @@ export async function syncAll({
     const answer = confirmed === false ? false : await confirm({ message: '确认同步？' })
     if (isCancel(answer) || !answer) { console.log(chalk.yellow('已取消同步。')); return }
   }
-  for (const operation of plan.operations) await operation.run()
+  for (const operation of plan.operations) {
+    await operation.run()
+    if (!['state', 'inherit'].includes(operation.kind)) console.log(chalk.green(`已完成：${operation.label}`))
+  }
   console.log(chalk.green('同步完成。'))
   return plan.operations.map(({ kind, label, paths }) => ({ kind, label, paths }))
 }

@@ -2,7 +2,7 @@
 
 团队共享基础库与开发工具 monorepo，按 CLI、后端、前端网页和 Apple 客户端四类组织。
 
-[English](README.en.md) · [文档索引](docs/README.md) · [源码与包分发](docs/private-distribution.md)
+[English](README.en.md) · [文档索引](docs/README.md) · [CLI 同步](docs/cli-sync.md) · [源码与包分发](docs/private-distribution.md)
 
 ## 目录与包
 
@@ -58,13 +58,12 @@ Apple 验证需要完整 Xcode 环境。本机使用 Node 26 时，如 Vitest/js
 
 ## AI 配置基线
 
-`dwy-cli/templates/ai-tools/AGENTS.md` 是通用基线源文件，包含新功能开发前的工具发现与风险评估规则。`dwy` / `dwy sync` 按「范围 → 平台 → 本次管理内容 → 启用/移除 → 清单确认」执行。项目默认只选择 Skills；全局首次默认 Skills 和通用规范。未选择的类型及其同步记录保持原样，确认前不写入任何配置。项目脚手架统一生成 `AGENTS.md`；Claude Code 的用户级全局入口使用原生的 `CLAUDE.md`。
+`dwy-cli/templates/ai-tools/AGENTS.md` 是通用基线源文件。`dwy` / `dwy sync` 按「范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 清单确认」执行。通用规范和 Hooks 默认启用；CLI 首次只选 Codex，并恢复当前范围已同步的其他 CLI。确认前只获取模板缓存，不修改目标配置或已安装共享 Skills。项目脚手架统一生成 `AGENTS.md`；Claude Code 的用户级全局入口使用原生的 `CLAUDE.md`。完整说明见 [docs/cli-sync.md](docs/cli-sync.md)。
 
 - 当前项目：可选择 Skills、Hooks、Rules、AGENTS.md 通用规范。
 - 全局：可选择 Skills、Hooks、AGENTS.md 通用规范，不提供 Cursor。
-- 类型按所选平台能力过滤。Skills / Rules 按分类逐项勾选；Hooks 按平台管理整组；Hooks 和通用规范提供明确的启用/更新或移除动作，通用规范展示摘要及实际路径。
-- 取消 Skills / Rules 的已有勾选会移除当前范围的托管入口；未勾选整个类型则不处理。Hooks / 通用规范只有显式选择移除才删除托管内容，确认页列出写入、备份和清理项。
-- 全局通用规范移除后，下次不因默认值自动开启；混合选择新平台时同样尊重已有平台的移除记录。用户仍可显式重新启用。
+- Skills / Rules 按分类逐项勾选；项目已有有效全局通用规范或全部所需 Hooks 时，直接跳过对应操作页，不重复安装。最终选择 CLI 后重新核算继承和实际操作。
+- 取消 Skills / Rules 的已有勾选会移除当前范围的托管入口；Hooks / 通用规范显式选择移除时只删除当前范围的托管内容。确认页列出写入、备份和清理项，执行后输出已完成信息。
 - 用户主目录及其别名不能作为项目范围同步，需选择全局或进入项目目录，避免项目入口与全局入口重合。
 
 | 平台 | 所选 Rules 的项目位置 | 通用基线的全局位置 |
@@ -84,9 +83,9 @@ Claude Code 直接读取项目 `AGENTS.md` 需要 v2.1.277 或更新版本，并
 
 ## Skills 共享副本与老项目迁移
 
-Skills 内容来自 CLI 包内模板，用户目录 `.dwy/skills/<name>` 保存一份共享副本；项目和全局的发现目录通过整个 Skill 目录的软链接引用它。项目选择页根据实际入口判断覆盖：全部适用平台均已全局启用时禁用重复勾选；只有部分平台启用时仍可选，只给缺少全局入口的平台建立项目链接。
+Skills 内容运行时从公开源码仓库 `master` 分支获取，无需因新增 Skill 发布 CLI；无变化时复用已验证缓存，离线且无有效缓存才回退包内模板。用户目录 `.dwy/skills/<name>` 保存共享副本，项目和全局通过整个 Skill 目录的链接引用它。CLI 最后选择，最终计划只给缺少全局入口的平台建立项目链接；脚本提前指定平台时，选择页会标注全局覆盖情况。
 
-相同平台已有有效全局入口时，项目不保留重复入口，真实目录先备份，清理操作在确认页单独列出。项目同步不改写全局提供者。默认勾选只来自所选范围及平台，不混入另一范围的记录。`dwy sync` / `dwy migrate` 仅准备缺失或损坏的共享副本，已有共享内容只由 `dwy refresh` / `dwy upgrade` 更新。
+相同平台已有有效全局入口时，项目不保留重复入口，真实目录先备份，清理操作在确认页单独列出。项目同步不改写全局提供者。默认勾选只来自当前范围，不混入另一范围的记录。主交互确认后刷新所选共享内容；`dwy refresh` 从最新模板刷新全部已安装共享 Skills，无需升级 CLI。显式脚本接口与 `dwy migrate` 默认只补缺，不刷新已有内容。
 
 选择产品流程 Skills 时，缺失的外部依赖会在确认清单中列出，确认后联网拉取固定版本；已有外部副本保留。
 

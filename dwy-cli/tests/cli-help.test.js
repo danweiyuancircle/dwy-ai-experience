@@ -1,10 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
-import { buildHelpText } from '../src/cli-help.js'
+
+const help = execFileSync(process.execPath, [fileURLToPath(new URL('../bin/index.js', import.meta.url)), '--help'], {
+  encoding: 'utf8',
+  env: { ...process.env, FORCE_COLOR: '0' },
+})
 
 test('dwy --help lists sync and upgrade, no hidden commands', () => {
-  const help = buildHelpText('0.0.0')
   assert.match(help, /dwy sync/)
   assert.match(help, /dwy upgrade/)
   assert.match(help, /dwy refresh/)
@@ -22,16 +26,30 @@ test('dwy --help lists sync and upgrade, no hidden commands', () => {
   assert.doesNotMatch(help, /隐藏命令/)
 })
 
-test('帮助说明显式范围、内容选择与共享副本更新边界', () => {
-  const help = buildHelpText('0.0.0')
-  assert.match(help, /1\. 选择同步范围/)
-  assert.match(help, /2\. 选择.*平台/)
-  assert.match(help, /3\. 选择本次处理内容.*默认只选 Skills/)
-  assert.match(help, /未选择的类型保持原样/)
+test('实际帮助按内容选择后选 CLI，并说明全局继承与确认边界', () => {
+  const steps = [...help.matchAll(/^  \d+\. (.+)$/gm)].map(match => match[1])
+  const expected = [/同步范围/, /Skills/, /项目.*Rules/, /AGENTS\.md.*默认启用/, /Hooks.*默认启用/, /CLI.*Codex/, /预览/, /确认/]
+  assert.equal(steps.length, expected.length)
+  expected.forEach((pattern, index) => assert.match(steps[index], pattern))
+  assert.match(help, /恢复.*当前范围.*CLI/)
+  assert.match(help, /全局.*跳过.*操作页/)
+  assert.match(help, /关闭.*当前范围.*不.*全局/)
+  assert.match(help, /确认前.*模板缓存/)
+  assert.match(help, /确认后.*共享 Skills/)
   assert.match(help, /全局已启用.*不能重复勾选/)
   assert.match(help, /部分平台.*缺少全局入口/)
-  assert.match(help, /sync.*migrate.*不刷新已有共享内容/)
-  assert.doesNotMatch(help, /位置选择只影响|Hooks 按平台自动同步，无需选择/)
+  assert.doesNotMatch(help, /选择本次处理内容|范围 \/ 平台 \/ 内容|不勾选整个类型/)
+})
+
+test('实际帮助区分模板更新、共享 Skills 刷新和 CLI 升级', () => {
+  assert.match(help, /dwy refresh.*最新模板.*已安装.*共享 Skills/)
+  assert.match(help, /dwy upgrade.*npm.*正式版/)
+  assert.match(help, /master.*dwy-cli\/templates\/ai-tools/)
+  assert.match(help, /DWY_TEMPLATE_SOURCE_DIR.*优先/)
+  assert.match(help, /~\/\.dwy\/template-source/)
+  assert.match(help, /离线.*缓存.*包内模板.*提示/)
+  assert.match(help, /新增 Skills.*无需.*CLI/)
+  assert.doesNotMatch(help, /当前 CLI 模板|sync.*migrate.*不刷新已有共享内容/)
 })
 
 test('dwy 启动展示品牌，取消后退出', async t => {
