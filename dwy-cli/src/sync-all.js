@@ -279,8 +279,7 @@ export async function syncAll({
     unionSets(...platforms.map(platform => platform === 'cursor' && type === 'rules' ? cursorRules : existing[platform][type]))]))
   const defaults = buildSelectionDefaultsFromSyncState(current, targetState, platforms)
   for (const type of ['skills', 'rules', 'hooks']) defaults[type] = unionSets(defaults[type], current[type])
-  // CLI 尚未选择时允许勾选所有 Skills；最终计划按实际 CLI 去重，避免提前禁用其他 CLI 所需条目。
-  const choices = platformsOverride && !global && contentTypes.includes('skills')
+  const choices = !global && contentTypes.includes('skills')
     ? { ...scans, skills: await projectSkillChoices(scans.skills, platforms, { homeDir, codexHome }) } : scans
   const selected = selectedOverride
     ? { skills: selectedOverride.skills || [], rules: selectedOverride.rules || [], hooks: [], commands: [] }
@@ -324,6 +323,8 @@ export async function syncAll({
     platforms = await selectPlatforms(targetRoot, scope, platforms)
     if (platforms === null) { console.log(chalk.yellow('已取消同步。')); return }
   }
+  // 禁选的全局 Skills 仍处于启用状态；末步新增 CLI 时只补缺失入口，已有全局源保持原样。
+  if (!selectedOverride && !global) selected.skills.push(...choices.skills.filter(skill => skill.disabled))
   const options = contentOptions(scope, platforms)
   if (mainFlow) contentTypes = contentTypes.filter(type => options.some(option => option.value === type))
   const stale = staleEntries(scans, targetState, existing, platforms)

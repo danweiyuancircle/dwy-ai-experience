@@ -457,6 +457,27 @@ test('项目为新 CLI 补入口时不通过共享副本改写另一 CLI 的有�
   assert.equal(await fs.readFile(path.join(projectDir, '.claude/skills/sample/SKILL.md'), 'utf8'), '# Global original')
   assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/sample')), false)
   assert.match(transcript, /保留全局共享内容：sample/)
+  assert.match(transcript, /sample（全局已启用）/)
+})
+
+test('项目主交互中全局 Skill 不可勾选，全选也不刷新或重复安装', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-project-global-disabled-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.ensureDir(projectDir)
+  const globalFile = path.join(sourceDir, 'skills/通用/global/SKILL.md')
+  await fs.outputFile(globalFile, '# Original global')
+  await syncAll({ sourceDir, projectDir, homeDir, scope: 'global', selectedPlatforms: ['codex'], selected: { skills: [{ name: 'global' }] } })
+  await fs.writeFile(globalFile, '# New bundled content')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/local/SKILL.md'), '# Local')
+  const { transcript } = await runProgram(t, `
+    import { runDwy } from './dwy-cli/src/sync-all.js';
+    await runDwy(${JSON.stringify({ sourceDir, projectDir, homeDir, scope: 'project', confirmed: true })}); console.log('RESULT:{}');
+  `, [{ label: 'Skills', keys: 'a\r' }, { message: '选择要同步的平台', keys: '\r' }])
+  assert.match(transcript, /global（全局已启用）/)
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/global')), false)
+  assert.equal(await fs.readFile(path.join(homeDir, '.agents/skills/global/SKILL.md'), 'utf8'), '# Original global')
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/local/SKILL.md')), true)
 })
 
 test('无同步记录的旧 Cursor 托管规则恢复为已选，直接确认不会误删', async t => {
