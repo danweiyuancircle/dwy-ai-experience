@@ -37,10 +37,10 @@ function runSelection(t, scans, defaults, scripts, options = {}) {
   return runProgram(t, code, scripts)
 }
 
-function runProgram(t, code, scripts) {
+function runProgram(t, code, scripts, env = {}) {
   const child = spawn(process.execPath, ['--input-type=module', '-e', code], {
     cwd: new URL('../../', import.meta.url),
-    env: { ...process.env, FORCE_COLOR: '0' },
+    env: { ...process.env, FORCE_COLOR: '0', ...env },
   })
   t.after(() => child.kill())
   let transcript = ''
@@ -90,6 +90,28 @@ const scans = {
   hooks: [{ name: 'hook.sh', category: 'Git' }],
 }
 const defaults = { skills: ['first', 'removed'], rules: [], commands: [], hooks: [] }
+
+test('Tab 区分当前分类、项目已选、全局已启用和未选状态，禁选项保持不可勾选', async t => {
+  const { transcript, result } = await runProgram(t, `
+    import { tabMultiselect } from './dwy-cli/src/tab-multiselect.js';
+    import { buildCategoryTabs } from './dwy-cli/src/sync.js';
+    const tabs = buildCategoryTabs([
+      {name:'global',category:'A全局',disabled:true,inherited:true},
+      {name:'project',category:'B已选'},
+      {name:'current',category:'C当前'},
+      {name:'empty',category:'D未选'},
+    ], 'skills');
+    const result = await tabMultiselect({message:'颜色验收',tabs,initialValues:['project']});
+    console.log('RESULT:'+JSON.stringify(result));
+  `, [{ message: '颜色验收', keys: '\u001b[C\r' }], {
+    FORCE_COLOR: '1', NO_COLOR: undefined, NODE_DISABLE_COLORS: undefined,
+  })
+  assert.deepEqual(result, ['project'])
+  assert.match(transcript, /\x1b\[36mA全局 0\/0\x1b\[39m/)
+  assert.match(transcript, /\x1b\[36mB已选 1\/1\x1b\[39m/)
+  assert.match(transcript, /\x1b\[46m\x1b\[30m C当前 0\/1 /)
+  assert.match(transcript, /\x1b\[2mD未选 0\/1\x1b\[22m/)
+})
 
 test('Skills 后直接选 Rules；按分类勾选，Hooks 自动全选且没有 Commands 交互', async t => {
   const { result, transcript } = await runSelection(t, scans, defaults, [

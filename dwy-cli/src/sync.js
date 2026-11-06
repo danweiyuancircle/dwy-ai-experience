@@ -198,6 +198,7 @@ export function buildCategoryTabs(items, type) {
       label: item.label || item.name,
       description: item.description,
       disabled: item.disabled,
+      inherited: item.inherited,
       type,
     })
   }

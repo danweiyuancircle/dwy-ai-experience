@@ -264,7 +264,7 @@ class TabMultiSelectPrompt extends Prompt {
 }
 
 /**
- * 画 Tab 栏。当前 Tab 反底；有勾选的其它 Tab 用青色，空的变暗。
+ * 当前 Tab 反底；项目已勾选或全局已启用的分类用青色，不把禁选状态当成未启用。
  *
  * @param {string[]} segments
  * @param {number} activeIndex
@@ -284,7 +284,7 @@ function renderTabBar(segments, activeIndex, win, tabs, selectedValues) {
     const { selected } = tabSelectionStats(tabs[i], set)
     if (i === activeIndex) {
       parts.push(styleText(['bgCyan', 'black'], ` ${text} `))
-    } else if (selected > 0) {
+    } else if (selected > 0 || tabs[i].options.some(option => option.inherited)) {
       parts.push(styleText('cyan', text))
     } else {
       parts.push(styleText('dim', text))
