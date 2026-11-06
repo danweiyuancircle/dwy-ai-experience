@@ -1,5 +1,15 @@
 # create-dwy
 
+## [0.26.0] - 2026-11-06
+
+### Changed
+
+- `dwy-publish` 独立判断发版版本，移除 `dwy-semver`；已有安装需改用 `dwy-publish`。
+- `dwy-sdk-spec` 改为 `dwy-commercial-sdk`，依据项目实际商业 SDK 保护要求检查，不再缓存项目配置；已有安装需选择新 skill，旧入口需自行移除。
+- 模板详情见 ai-tools 0.33.0。
+
+---
+
 ## [0.25.3] - 2026-11-06
 
 ### Patch Changes

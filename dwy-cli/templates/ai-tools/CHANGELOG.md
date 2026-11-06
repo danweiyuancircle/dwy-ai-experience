@@ -52,6 +52,16 @@
 
 ---
 
+## 0.33.0 — 2026-11-06
+
+### Changed
+- `skills/发布发版/dwy-publish`：内置发版版本决策，不再依赖 `dwy-semver`。
+- `skills/发布发版/dwy-commercial-sdk`：替代 `dwy-sdk-spec`，按项目商业 SDK 的实际保护要求检查，不再使用项目配置缓存或强制指定编译方案。
+- 迁移：发版版本判断改用 `dwy-publish`；商业 SDK 检查选择 `dwy-commercial-sdk`。已安装的旧 skill 不会自动删除，按需移除旧入口。
+
+### Removed
+- `skills/发布发版/dwy-semver` 和 `skills/发布发版/dwy-sdk-spec` 及其专用脚本和模板。
+
 ## 0.32.0 — 2026-10-29
 
 ### Changed

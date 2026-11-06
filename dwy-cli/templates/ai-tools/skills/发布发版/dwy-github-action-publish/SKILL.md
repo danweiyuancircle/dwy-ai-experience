@@ -7,7 +7,7 @@ description: "GitHub Actions 打包分发避坑指南。先判断场景，再读
 
 定位：使用 GitHub Actions 做跨平台构建、打包、发布时，先判定产物类型，再查对应配置避坑。
 
-本 skill 只处理 CI 打包分发链路。通用发版流程（测试 / bump / changelog / tag）走 `dwy-publish`；SDK 发布前安全审计走 `dwy-sdk-spec`；纯 Python 包不需要 cibuildwheel。
+本 skill 只处理 CI 打包分发链路。通用发版流程（测试 / bump / changelog / tag）走 `dwy-publish`；纯 Python 包不需要 cibuildwheel。
 
 实战来源：
 

@@ -4,7 +4,7 @@
 
 ## 版本（通用步，固化）
 
-- 走 `../dwy-semver` 决策 + bump.py；按 `version-sync.md` 同步工程实际维护的版本来源。
+- 按发布 skill 的版本决策规则确定版本；按 `version-sync.md` 同步工程实际维护的版本来源。
 - 部署新代码必须先完成入口规定的版本、changelog 和 tag 闸门；仅重发或回滚相同已记录产物可复用原版本。
 
 ## build / deploy（项目步，不写死命令）

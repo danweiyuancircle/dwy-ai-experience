@@ -4,7 +4,7 @@
 
 ## 版本（通用步，固化）
 
-- 走 `../dwy-semver` 决策 + bump.py；按 `version-sync.md` 同步工程实际维护的版本来源。
+- 按发布 skill 的版本决策规则确定版本；按 `version-sync.md` 同步工程实际维护的版本来源。
 - 发布新代码必须先完成入口规定的版本、changelog 和 tag 闸门；仅重发或回滚相同已记录产物可复用原版本。
 
 ## build / publish（项目步，不写死命令）
@@ -24,5 +24,5 @@
 
 - changelog → `changelog.md`（使用该工程既有路径和格式）
 - tag → `git-tag.md`（每次 bump 必打；版本串与 changelog 标题一致；monorepo 例：`@dwydev/eui@2.2.3`、`create-dwy@0.16.1`）
-- 安全检查 → `../dwy-sdk-spec`（对外包必查泄露/产物）
+- 按项目要求检查发布产物和敏感信息。
 - 监控 + verify → `monitor-notify.md`（包仓库版本查询 / GitHub Release）

@@ -1,11 +1,11 @@
 ---
 name: dwy-dependency-choice
-description: "新增或升级运行时依赖、选版本、选基础镜像 / SDK、检查开源许可证时必须使用（即使用户没说 skill 名）。只选发布满 7 天的正式版；闭源商用禁止 GPL / AGPL / SSPL / 非商业许可。各栈查发布时间和隐私协议附录模板在本 skill。不负责本包自己的 SemVer（那是 dwy-semver）。已安装的旧版本不用为此升级。"
+description: "新增或升级运行时依赖、选版本、选基础镜像 / SDK、检查开源许可证时必须使用（即使用户没说 skill 名）。只选发布满 7 天的正式版；闭源商用禁止 GPL / AGPL / SSPL / 非商业许可。各栈查发布时间和隐私协议附录模板在本 skill。不负责本包自己的 SemVer。已安装的旧版本不用为此升级。"
 ---
 
 # 依赖选型（版本 + 许可）
 
-新装或新选依赖、base 镜像、SDK、字体、图标、素材、模型权重时读本 skill。已安装的旧版本不用为此升级。本包自己的版本号走 `dwy-semver`。
+新装或新选依赖、base 镜像、SDK、字体、图标、素材、模型权重时读本 skill。已安装的旧版本不用为此升级。本包自己的发版版本号按 `dwy-publish` 决策。
 
 没有 skill 的工具只看这两份短 rule，和本 skill 冲突时以本 skill 为准：`rules/开发流程/dwy-dependency-freshness.md`、`rules/开发流程/dwy-oss-commercial-license.md`。
 
