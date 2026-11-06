@@ -40,4 +40,6 @@ Skills 副本集中在用户目录的 `.dwy/skills`，项目和全局通过目�
 | `dwy upgrade` | 更新到 npm 最新正式版程序，并刷新共享 Skills |
 | `dwy migrate` | 迁移当前项目已有托管 Skills，真实目录先备份，无需重新勾选 |
 
+`dwy upgrade` 默认从 npm 官方源查询并安装同一精确版本，避免本机镜像的 `latest` 滞后；显式设置 `npm_config_registry` 时查询与安装都使用该源，不修改用户的 registry 配置。安装后回读当前 PATH 中的 `dwy --version`，版本一致才刷新并报告成功；刷新失败单独报错。
+
 Rules / Hooks 更新仍需执行 `dwy sync`。已有会话可能缓存 Skill 内容，需要重新加载。个人 Skills、Rules、Hooks 不参与 `dwy migrate`；脚本层的 sync / migrate 接口仍须显式指定范围，不从上一次交互猜测。

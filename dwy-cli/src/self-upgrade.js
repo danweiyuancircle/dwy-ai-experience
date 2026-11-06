@@ -4,15 +4,36 @@
  * 源码目录 / 非全局安装拒绝执行，避免把仓库工作树覆盖成 npm 包。
  */
 
-import { spawn } from 'node:child_process'
+import { execFile, spawn } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
+import { promisify } from 'node:util'
 import { PACKAGE_ROOT, chalk } from './utils.js'
 
 /** npm 包名，bin 是 dwy */
 export const PACKAGE_NAME = 'create-dwy'
 
 const DEFAULT_REGISTRY = 'https://registry.npmjs.org/'
+const execFileAsync = promisify(execFile)
+
+function upgradeRegistry() {
+  const value = process.env.npm_config_registry || DEFAULT_REGISTRY
+  let registry
+  try {
+    registry = new URL(value)
+  } catch {
+    throw new Error('npm_config_registry 必须是有效的 HTTP(S) registry 地址')
+  }
+  if (process.platform === 'win32' && /[&|<>^%!"()\r\n]/.test(value + registry.href)) {
+    throw new Error('npm_config_registry 含 Windows 命令解释器不支持的字符')
+  }
+  if (!['http:', 'https:'].includes(registry.protocol) || registry.search || registry.hash) {
+    throw new Error('npm_config_registry 必须是无查询参数及片段的 HTTP(S) registry 地址')
+  }
+  // 原生 fetch 不支持 URL 凭据，直接传入会在错误消息里泄露原地址。
+  if (registry.username || registry.password) throw new Error('npm_config_registry 不支持 URL 内嵌凭据')
+  return registry.href.replace(/\/?$/, '/')
+}
 
 /**
  * 比较 a、b 两个三段版本号。a>b 返回 1，相等 0，a<b -1。
@@ -49,17 +70,18 @@ export function detectInstaller(pkgRoot) {
 }
 
 /**
- * 构造升级命令。一律钉 @latest，不用 @next/@beta。
+ * 固定本轮查询到的正式版本及 registry，避免安装器的镜像 latest 滞后导致降回旧包。
  *
  * @param {'npm' | 'pnpm' | 'yarn' | 'bun' | 'unknown'} installer
+ * @param {string} version 来自已校验的正式版本查询结果
  * @returns {[string, string[]] | null}
  */
-export function buildUpgradeCommand(installer) {
-  const spec = `${PACKAGE_NAME}@latest`
-  if (installer === 'pnpm') return ['pnpm', ['add', '-g', spec]]
-  if (installer === 'yarn') return ['yarn', ['global', 'add', spec]]
-  if (installer === 'bun') return ['bun', ['add', '-g', spec]]
-  if (installer === 'npm') return ['npm', ['install', '-g', spec]]
+export function buildUpgradeCommand(installer, version) {
+  const spec = `${PACKAGE_NAME}@${version}`, registry = `--registry=${upgradeRegistry()}`
+  if (installer === 'pnpm') return ['pnpm', ['add', '-g', spec, registry]]
+  if (installer === 'yarn') return ['yarn', ['global', 'add', spec, registry]]
+  if (installer === 'bun') return ['bun', ['add', '-g', spec, registry]]
+  if (installer === 'npm') return ['npm', ['install', '-g', spec, registry]]
   return null
 }
 
@@ -79,16 +101,17 @@ function readCurrentVersion(pkgRoot = PACKAGE_ROOT) {
  * @param {typeof fetch} [fetchFn]
  */
 export async function fetchLatestVersion(fetchFn = globalThis.fetch) {
-  const registry = (process.env.npm_config_registry || DEFAULT_REGISTRY).replace(/\/?$/, '/')
+  const registry = upgradeRegistry()
   const url = `${registry}${PACKAGE_NAME}/latest`
   const response = await fetchFn(url, { headers: { Accept: 'application/json', 'User-Agent': 'create-dwy' } })
   if (!response.ok) {
-    throw new Error(`查询最新版本失败：${url} HTTP ${response.status}`)
+    const { origin, pathname } = new URL(url)
+    throw new Error(`查询最新版本失败：${origin}${pathname} HTTP ${response.status}`)
   }
   const body = await response.json()
   const version = body?.version
-  if (!version || typeof version !== 'string') {
-    throw new Error(`npm latest 未返回 version：${url}`)
+  if (typeof version !== 'string' || !/^\d+\.\d+\.\d+$/.test(version)) {
+    throw new Error('npm latest 未返回有效的正式 version')
   }
   return version
 }
@@ -114,6 +137,15 @@ function runSpawn(cmd, args) {
   })
 }
 
+async function readActiveVersion() {
+  const { stdout } = await execFileAsync('dwy', ['--version'], {
+    shell: process.platform === 'win32', timeout: 10000,
+  })
+  const version = stdout.trim()
+  if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error('无法从当前 PATH 中的 dwy 读取有效版本')
+  return version
+}
+
 /**
  * 执行自升级。返回结构化结果供测试断言；失败抛错。
  *
@@ -122,17 +154,18 @@ function runSpawn(cmd, args) {
  * @param {string} [opts.pkgRoot]
  * @param {() => Promise<string>} [opts.fetchLatest]
  * @param {(cmd: string, args: string[]) => Promise<void>} [opts.runCommand]
+ * @param {() => Promise<string>} [opts.readInstalledVersion] 回读 PATH 中实际将用于刷新的 CLI 版本
  */
 export async function selfUpgrade({
   currentVersion,
   pkgRoot = PACKAGE_ROOT,
   fetchLatest = fetchLatestVersion,
   runCommand = runSpawn,
+  readInstalledVersion = readActiveVersion,
 } = {}) {
   const current = currentVersion || readCurrentVersion(pkgRoot)
   const installer = detectInstaller(pkgRoot)
-  const command = buildUpgradeCommand(installer)
-  if (!command) {
+  if (installer === 'unknown') {
     throw new Error(
       `当前不是全局安装的 ${PACKAGE_NAME}（路径 ${pkgRoot}），无法自升级。请先 npm i -g ${PACKAGE_NAME}，或在源码仓 git pull。`,
     )
@@ -140,25 +173,30 @@ export async function selfUpgrade({
 
   const latest = await fetchLatest()
   const cmp = compareVersions(current, latest)
-  if (cmp === 0) {
-    await runCommand('dwy', ['refresh'])
-    console.log(chalk.green(`已是最新正式版 ${current}`))
-    return { status: 'up-to-date', current, latest, installer }
-  }
   if (cmp > 0) {
     console.log(chalk.yellow(`当前 ${current} 新于 npm latest ${latest}，不降级`))
     return { status: 'newer-local', current, latest, installer }
   }
 
-  const [cmd, args] = command
-  console.log(chalk.blue(`升级 ${PACKAGE_NAME} ${current} → ${latest}`))
-  console.log(chalk.gray(`  ${cmd} ${args.join(' ')}`))
-  await runCommand(cmd, args)
+  if (cmp < 0) {
+    const [cmd, args] = buildUpgradeCommand(installer, latest)
+    console.log(chalk.blue(`升级 ${PACKAGE_NAME} ${current} → ${latest}`))
+    console.log(chalk.gray(`  ${cmd} ${args.join(' ')}`))
+    await runCommand(cmd, args)
+  }
+  const installed = await readInstalledVersion()
+  if (installed !== latest) {
+    throw new Error(`升级未生效：目标 ${latest}，当前 PATH 中 dwy --version 为 ${installed}；未刷新共享 Skills。请检查全局安装路径与 registry。`)
+  }
   try {
     // 必须启动新安装的 CLI；pnpm 升级后旧进程的模块路径仍可能指向旧版本。
     await runCommand('dwy', ['refresh'])
   } catch (error) {
-    throw new Error(`CLI 已安装新版本，但共享 Skills 刷新失败：${error.message}`, { cause: error })
+    throw new Error(`CLI ${installed} 已就绪，但共享 Skills 刷新失败：${error.message}`, { cause: error })
+  }
+  if (cmp === 0) {
+    console.log(chalk.green(`已是最新正式版 ${installed}`))
+    return { status: 'up-to-date', current, latest, installer }
   }
   console.log(chalk.green(`已升级到 ${latest}`))
   return { status: 'upgraded', current, latest, installer }
