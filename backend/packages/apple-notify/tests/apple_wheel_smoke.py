@@ -6,6 +6,7 @@ import importlib.util
 import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import httpx
@@ -17,13 +18,35 @@ from dwy_notify import NotificationConfig
 from fastapi import FastAPI
 
 from dwy_apple_notify import AppleNotifyConfig, install_apple_notifications
-from dwy_apple_notify.apple import AppleTransactionDetails, apple_notification_content
+from dwy_apple_notify.apple import (
+    AppleTransactionDetails,
+    VerifiedAppleNotification,
+    apple_notification_content,
+    apple_original_platform,
+)
 from dwy_apple_notify.config import AppleNotificationApp, AppleNotificationsConfig
 
 
 async def main(expected_version: str):
     """仅在官方 SDK 验签方法边界注入离线对象，其余装配、映射和 HTTP JSON 均真实执行。"""
     assert importlib.metadata.version("dwy-apple-notify") == expected_version
+    class Client:
+        async def get_app_transaction_info(self, transaction_id):
+            assert transaction_id == "tx"
+            return SimpleNamespace(signedAppTransactionInfo="signed-app")
+
+    async def verify(signed):
+        assert signed == "signed-app"
+        return SimpleNamespace(originalPlatform="macOS")
+
+    platform = await apple_original_platform(Client(), verify, "tx")
+    from datetime import UTC, datetime
+
+    platform_notice = VerifiedAppleNotification(
+        notification_id="n", bundle_id="com.example.other", environment="Sandbox",
+        notification_type="ONE_TIME_CHARGE", signed_at=datetime.now(UTC), original_platform=platform,
+    )
+    assert "首次获取 App 平台：macOS" in apple_notification_content(platform_notice)
     assert Path(sys.modules[AppleTransactionDetails.__module__].__file__).resolve().is_relative_to(
         Path(sys.prefix).resolve()
     )

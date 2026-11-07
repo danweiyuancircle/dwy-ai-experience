@@ -59,6 +59,7 @@ class VerifiedAppleNotification:
     transaction_details: AppleTransactionDetails | None = None
     renewal_details: AppleRenewalDetails | None = None
     consumption_request_reason: str | None = None
+    original_platform: str | None = None
 
     def public_data(self) -> dict[str, str | None]:
         """保持原回调八字段白名单；详情显式从对象读取，不扩大旧事件数据合同。"""

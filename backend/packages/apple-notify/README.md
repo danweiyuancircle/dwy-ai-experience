@@ -5,7 +5,7 @@ Apple 通知集成：购买通知验签与文案、App Store Connect 审核事�
 ## 按需安装
 
 ```bash
-pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.5'
+pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.6'
 ```
 
 `iap` 安装 Apple Server SDK；`asc`、`reviews`、`analytics` 分别安装现有 ASC HTTP/JWT/加密依赖。只使用审核、评论或报表时不需要 Apple Server SDK，也不需要 Resend。
@@ -20,6 +20,8 @@ pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.5'
 - `dwy_apple_notify.ratings`：公开 Lookup 评分采集、独立每日调度、日周月变化与持久日报（当前源码新增，尚未发布）。
 
 配置由宿主显式注入，本包不读取环境变量、不建数据库、不执行迁移。数据库会话、表和生命周期由宿主管理，已有队列表名、来源标识与目标指纹保持兼容。
+
+`apple_original_platform(client, verify, transaction_id)` 使用 Apple 官方客户端查询 App 交易，并通过宿主提供的异步验签函数验证签名后返回平台。调用方负责超时和错误处理；可将结果传入 `VerifiedAppleNotification.original_platform` 显示。该平台表示首次获取 App 的平台，不能用于判断本次内购的设备，iOS 也不区分 iPhone 与 iPad。
 
 ## 经营统计日期
 

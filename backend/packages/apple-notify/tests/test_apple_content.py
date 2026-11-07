@@ -18,6 +18,15 @@ def notification(kind="ONE_TIME_CHARGE", **changes):
     )
 
 
+def test_original_app_platform_is_labeled_and_absence_preserves_existing_output():
+    from dwy_apple_notify.apple import apple_notification_content
+
+    assert "首次获取 App 平台：iOS" in apple_notification_content(notification(original_platform="iOS"))
+    assert "首次获取 App 平台" not in apple_notification_content(notification())
+    invalid = apple_notification_content(notification(original_platform="new\nvalue"))
+    assert "首次获取 App 平台：未知" in invalid
+
+
 @pytest.mark.parametrize("price,currency,expected", [
     (4990, "USD", "4.99 USD"), (0, "CNY", "0 CNY"), (1, "USD", "0.001 USD"),
     (3300000, "KRW", "3300 KRW"), (4990, None, "Apple 未提供（金额或币种缺失）"),

@@ -79,6 +79,11 @@ def apple_notification_content(notice: VerifiedAppleNotification, *, app_name: s
         }.get(notice.notification_type, label)
     event = notice.notification_type + (f" / {notice.subtype}" if notice.subtype else "")
     lines = [f"{app_name} · {label}", f"环境：{notice.environment}", f"事件：{event}"]
+    if notice.original_platform is not None:
+        platform = notice.original_platform
+        if platform not in {"iOS", "macOS", "tvOS", "visionOS"}:
+            platform = "未知"
+        lines.append(f"首次获取 App 平台：{platform}")
     if notice.notification_type == "CONSUMPTION_REQUEST":
         reason = _category(notice.consumption_request_reason, _REQUEST_REASONS)
         lines.append("申请原因（用户选择分类）：" + reason)
