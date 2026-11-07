@@ -74,6 +74,7 @@ function ownedGlobalRoots(platform, homeDir, codexHome) {
 export async function buildSyncPlan({
   scope, platforms, contentTypes, selected, scans, sourceDir, projectDir, homeDir, codexHome,
   projectState, globalState, staleRemovals = {}, staleEntries = {}, baseline,
+  migratedRuleSources = {},
   contentActions = {},
   refreshSkills = false,
   skillScope = { destinations: ['project'], globalSkills: [] },
@@ -229,8 +230,9 @@ export async function buildSyncPlan({
     const selectedNames = new Set(selected.rules.map(item => item.name))
     const rules = scans.rules.filter(rule => selectedNames.has(rule.name))
     const preserved = new Set(cliPlatforms.flatMap(platform => retained(platform, 'rules')))
+    const removed = [...new Set(cliPlatforms.flatMap(platform => approved(platform, 'rules')))]
     if (cliPlatforms.length) {
-      await addConfig('rules', '更新项目 Rules（保留通用规范和手写内容）', [path.join(projectDir, 'AGENTS.md')], projectDir,
+      await addConfig('rules', `更新项目 Rules（保留通用规范和手写内容）${removed.length ? `；移除旧托管项：${removed.join('、')}` : ''}`, [path.join(projectDir, 'AGENTS.md')], projectDir,
         () => syncProjectAgentsMd(projectDir, rules, { preservedRuleNames: preserved }))
       const names = [...new Set([...rules.map(rule => rule.name), ...preserved])].sort()
       for (const platform of ['claude', 'codex', 'opencode']) {
@@ -251,7 +253,13 @@ export async function buildSyncPlan({
     if (platforms.includes('claude')) {
       const names = new Set([...scans.rules.map(rule => rule.name), ...approved('claude', 'rules')])
       for (const name of names) {
+        if (!scans.rules.some(rule => rule.name === name) && !(projectState.platforms.claude?.rules || []).includes(name)) continue
         const dest = path.join(projectDir, '.claude', 'rules', name)
+        if (migratedRuleSources[name] && await existsEntry(dest)) {
+          const reference = migratedRuleSources[name]
+          if (!(await fs.lstat(dest)).isFile()) continue
+          if (!await fs.pathExists(reference) || await fs.readFile(dest, 'utf8') !== await fs.readFile(reference, 'utf8')) continue
+        }
         if (safeName(name) && await existsEntry(dest)) add('legacy-rule', '清理旧项目规则入口', [dest], () => fs.remove(dest))
       }
     }

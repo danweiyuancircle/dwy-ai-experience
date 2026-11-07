@@ -1,12 +1,12 @@
 ---
-description: 团队内部 dwyeapi 基础框架库强制复用规范（配置 / 异常 / 响应 / 分页 / ORM / 安全 / 缓存 / 时间 / 脱敏 / 日志：禁重复造轮子）
+description: 已使用 dwyeapi 的项目如何查找和复用基础能力
 paths:
   - "**/*.py"
 ---
 
-# Python 后端 dwyeapi 基础库强制复用规范
+# Python 后端 dwyeapi 基础能力
 
-`dwy-python-backend` rule 的团队内补充。通用 FastAPI / SQLAlchemy / 安全编码规范见 `dwy-python-backend`；本文件只管「凡 dwyeapi 已提供的能力，禁止自行实现，也禁止引入其他库重复造轮子」。
+本资料适用于已采用 dwyeapi 的项目；版本及公开接口以实际安装包和 dwy-eapi Skill 为准。项目未采用时此处仅用于了解能力，不要求引入或替换现有实现。
 
 `dwyeapi` 是团队内部 PyPI 基础设施包，已封装后端项目所需的通用能力。
 

@@ -134,11 +134,36 @@ async function managedNames(root, global, codexHome) {
     for (const name of await fs.readdir(path.join(codexHome, 'skills'))) codexSkills.add(name)
   }
   return {
+    projectRules,
     claude: { skills: await scanExisting(claude, 'skills'), rules: unionSets(projectRules, await scanExisting(claude, 'rules')), hooks: await scanExisting(claude, 'hooks') },
     codex: { skills: codexSkills, rules: projectRules, hooks: await scanExistingCodexHooks(root, global ? codexHome : path.join(root, '.codex')) },
     opencode: { skills: await scanExisting(opencode, 'skills'), rules: projectRules, hooks: new Set() },
     cursor: { rules: await scanExistingCursorRules(root), skills: new Set(), hooks: new Set() },
   }
+}
+
+const RULE_SKILL_MIGRATIONS = {
+  'dwy-python-core.md': ['dwy-python-development'],
+  'dwy-python-testing.md': ['dwy-python-development'],
+  'dwy-python-pitfalls.md': ['dwy-python-development'],
+  'dwy-python-base-lib.md': ['dwy-python-development', 'dwy-eapi'],
+  'dwy-python-backend.md': ['dwy-python-api'],
+  'dwy-python-layering.md': ['dwy-python-architecture'],
+  'dwy-vue-core.md': ['dwy-vue-development'],
+  'dwy-vue-testing.md': ['dwy-vue-development'],
+  'dwy-vue-pitfalls.md': ['dwy-vue-development'],
+  'dwy-vue-pinia.md': ['dwy-vue-development'],
+  'dwy-vue-base-lib.md': ['dwy-vue-development', 'dwy-eui', 'dwy-ekit'],
+  'dwy-vue-layering.md': ['dwy-vue-architecture'],
+  'dwy-swift-core.md': ['dwy-swift-development'],
+  'dwy-apple-layering.md': ['dwy-apple-architecture'],
+  'dwy-ios-layout-adaptation.md': ['dwy-ios-development'],
+  'dwy-ios-pitfalls.md': ['dwy-ios-development'],
+}
+
+/** 将旧托管规则映射为可选的对应技能，保留用户最终选择。 */
+export function migratedRuleSkills(names) {
+  return new Set([...names].flatMap(name => RULE_SKILL_MIGRATIONS[name] || []))
 }
 
 function staleEntries(scans, state, existing, platforms) {
@@ -147,7 +172,9 @@ function staleEntries(scans, state, existing, platforms) {
   for (const platform of platforms) {
     result[platform] = {}
     for (const type of PLATFORM_SYNC_TYPES[platform].filter(type => current[type])) {
-      result[platform][type] = (state.platforms[platform]?.[type] || []).filter(name =>
+      const historical = state.platforms[platform]?.[type] || []
+      const knownRules = type === 'rules' && platform !== 'cursor' ? [...existing.projectRules].filter(name => RULE_SKILL_MIGRATIONS[name]) : []
+      result[platform][type] = [...new Set([...historical, ...knownRules])].filter(name =>
         !current[type].has(name) && existing[platform][type].has(platform === 'cursor' && type === 'rules' ? buildCursorRuleName(name) : name))
     }
   }
@@ -274,11 +301,16 @@ export async function syncAll({
   if (contentTypes.some(type => !allowed.has(type))) throw new Error('所选范围或平台不支持此同步内容')
   if (contentTypes.length === 0) { console.log('未选择处理内容。'); return }
   const existing = await managedNames(targetRoot, global, codexHome)
-  const cursorRules = new Set(scans.rules.filter(rule => existing.cursor.rules.has(buildCursorRuleName(rule.name))).map(rule => rule.name))
+  const cursorRules = new Set([...scans.rules.map(rule => rule.name), ...Object.keys(RULE_SKILL_MIGRATIONS)]
+    .filter(name => existing.cursor.rules.has(buildCursorRuleName(name))))
   const current = Object.fromEntries(['skills', 'rules', 'hooks'].map(type => [type,
     unionSets(...platforms.map(platform => platform === 'cursor' && type === 'rules' ? cursorRules : existing[platform][type]))]))
   const defaults = buildSelectionDefaultsFromSyncState(current, targetState, platforms)
   for (const type of ['skills', 'rules', 'hooks']) defaults[type] = unionSets(defaults[type], current[type])
+  if (!global && contentTypes.includes('skills')) {
+    const oldRules = unionSets(current.rules, ...platforms.map(platform => new Set(targetState.platforms[platform]?.rules || [])))
+    defaults.skills = unionSets(defaults.skills, migratedRuleSkills(oldRules))
+  }
   const choices = !global && contentTypes.includes('skills')
     ? { ...scans, skills: await projectSkillChoices(scans.skills, platforms, { homeDir, codexHome }) } : scans
   const selected = selectedOverride
@@ -329,10 +361,22 @@ export async function syncAll({
   if (mainFlow) contentTypes = contentTypes.filter(type => options.some(option => option.value === type))
   const stale = staleEntries(scans, targetState, existing, platforms)
   const removals = normalizeRemovals(removalsOverride || stale)
+  if (!removalsOverride) {
+    const availableSkills = new Set(scans.skills.map(skill => skill.name))
+    const selectedSkills = new Set(selected.skills.map(skill => skill.name).filter(name => availableSkills.has(name)))
+    for (const platform of platforms) for (const name of removals[platform]?.rules || []) {
+      const required = RULE_SKILL_MIGRATIONS[name]
+      if (required && (platform === 'cursor' || !contentTypes.includes('skills') || required.some(skill => !selectedSkills.has(skill)))) {
+        removals[platform].rules.delete(name)
+      }
+    }
+  }
   const baseline = contentTypes.some(type => type === 'rules' || type === 'baseline') ? await readBaselineDoc(sourceDir) : ''
   const plan = await buildSyncPlan({
     scope, platforms, contentTypes, selected, scans, sourceDir, projectDir, homeDir, codexHome,
     projectState, globalState, staleRemovals: removals, staleEntries: stale, baseline,
+    migratedRuleSources: Object.fromEntries(Object.entries(RULE_SKILL_MIGRATIONS).map(([name, skills]) => [name,
+      path.join(sourceDir, 'skills', name.startsWith('dwy-python-') ? 'Python' : name.startsWith('dwy-vue-') ? 'Vue' : 'Apple', skills[0], 'references', name)])),
     contentActions,
     refreshSkills: mainFlow,
     skillScope: normalizeSkillScope(skillScopeOverride),

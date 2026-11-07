@@ -39,19 +39,19 @@ description: "【dwy·技术架构】产品 0 到 1 设计与架构阶段。触�
 
 ### 四层架构
 
-层名、依赖边、分包树以对应栈的 layering rule 为准，本 skill **不另定义目录**：
+层名、依赖边、分包树以对应技术栈的架构指引为准，本 skill **不另定义目录**：
 
-- Python → `dwy-python-layering`
-- Vue → `dwy-vue-layering`
+- Python → `dwy-python-architecture`
+- Vue → `dwy-vue-architecture`
 - Android → `dwy-android-layering`
-- iOS / macOS → `dwy-apple-layering`
+- iOS / macOS → `dwy-apple-architecture`
 
-铁律（细节与正反例见上列 rule）：依赖只许向下；`features/*` 互不依赖；具体实现只在 Assembly 注入；第三方版本只写在仓库根 catalog。
+团队新项目参考对应架构指引；既有项目先核实当前依赖边和模块组织，避免擅自重构。
 
 ## 实现
 [自写型]
 1. 读项目 `.claude/rules/`，结合上方架构约束产出架构（项目 rules 优先，本约束兜底）
-2. 技术架构：**先读对应栈 `dwy-*-layering` 按四层归位模块、按业务域聚目录**，再写分层/模块边界/选型理由；选型不确定处走 `AskUserQuestion`
+2. 技术架构：先读可用的对应栈架构 Skill 或 Android layering 规则，再写分层、模块边界和选型理由；选型不确定处走 `AskUserQuestion`
 3. **判有无后端**（读选型/PRD：有 API / 持久化 / 账户体系 → 有后端）：
    - **有后端** → 必出数据库设计，且**建模到位**：库表清单 / 字段(类型·约束·默认·可空) / 主外键关系 / 索引 / 必要的范式或反范式说明，与接口契约 schema 对齐
    - **纯前端**（无后端）→ 跳过数据库设计，在 `技术架构.md` 注明「无后端，不涉及库表」

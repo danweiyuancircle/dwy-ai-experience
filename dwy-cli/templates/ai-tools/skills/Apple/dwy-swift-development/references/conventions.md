@@ -1,14 +1,8 @@
----
-description: iOS 17+ SwiftUI 开发基线规则（全局适配、动画、国际化、注释）
-paths:
-  - "**/*.swift"
----
-
-分层、双壳依赖、Package.swift 版本锁定见 `dwy-apple-layering`。本文件只管写法与体验基线。
+以下是迁移自原 Swift 基线的团队约定；先遵循用户要求和现有项目约定，平台专属内容仅在相应平台使用。架构和依赖方向使用 `dwy-apple-architecture`。
 
 ## iOS 目标与写法
 
-- iOS 最低版本 17.0+，不为 16 及以下做兼容分支。
+- 新项目默认 iOS 17+、macOS 15+；既有项目以实际 deployment target 为准，不擅自抬高。
 - 统一 Observation + `@MainActor`，状态对象默认 `final class`。
 
 ```swift

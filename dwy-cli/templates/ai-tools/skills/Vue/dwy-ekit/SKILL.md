@@ -1,7 +1,6 @@
 ---
 name: dwy-ekit
-description: "@dwydev/ekit 工具库使用指南。涉及以下任何主题，**必须**使用此 skill（即使用户没有说 'ekit'）：HTTP 请求 / axios 封装 / token 刷新 / dwyeapi 响应契约对接 / localStorage / Cookie / useStorage / useCookie / 日期格式化 / 时区处理 / dayjs / 表单校验 / zod schema / vee-validate / PII 脱敏 / 剪贴板 / useClipboard / 文件下载 / Blob / 查询字符串 / qs / Vue composables（debounce / throttle / click-outside / event-listener / window-size / media-query / intersection-observer / resize-observer / useFormPersist）。本 skill 是 @dwydev/ekit 的唯一权威导航来源，禁止绕过 ekit 直接手写底层 API。"
-ekit_baseline_version: "0.8.0"
+description: 使用或排查 @dwydev/ekit 的请求、存储、日期、校验、文件和 Vue 工具时使用；按项目实际版本查证能力。
 ---
 
 # @dwydev/ekit 工具库使用指南
@@ -20,7 +19,7 @@ ekit 共 82 个对外导出。**本文档不再镜像函数签名** —— 因�
 
 ### 第一步：定位 ekit 真实版本
 
-读消费方项目 `package.json`，找 `dependencies["@dwydev/ekit"]` 或 `peerDependencies["@dwydev/ekit"]`。这才是写代码的依据。
+先读消费方项目的实际安装包和锁文件确定版本，再核对 `package.json` 的依赖范围；范围不等于实际安装版本。未安装时不要假设该库已可用或自行增加依赖。
 
 ### 第二步：读 module-manifest.json（一次拿导出索引）
 

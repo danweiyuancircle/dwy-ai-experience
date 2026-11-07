@@ -5,9 +5,9 @@ tag_prefix: "dwyeapi@"
 sparse:
   - backend/src/dwyeapi
 lines:
-  - match: ">=2.0.0"
+  - match: ">=2.0.0 <3.0.0"
     dir: v2
-  - match: ">=1.0.0"
+  - match: ">=1.0.0 <2.0.0"
     dir: v1
-  - match: ">=0.0.0"
+  - match: ">=0.0.0 <1.0.0"
     dir: v0

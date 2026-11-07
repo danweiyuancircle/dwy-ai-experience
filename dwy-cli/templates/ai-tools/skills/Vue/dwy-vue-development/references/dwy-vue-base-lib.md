@@ -1,13 +1,13 @@
 ---
-description: 团队内部基础库强制复用规范（eui UI 组件 + ekit 工具：禁重复造轮子、HTTP/存储/日期/校验/脱敏走 ekit、UI 走 eui）
+description: 已使用 eui 和 ekit 的项目如何查找和复用基础能力
 paths:
   - "**/*.vue"
   - "**/*.ts"
 ---
 
-# Vue 团队基础库强制复用规范
+# Vue 团队基础能力
 
-`dwy-vue-core` rule 的团队内补充。通用 Vue 工程规范见 `dwy-vue-core`；本文件只管「凡 eui / ekit 已提供的能力，禁止自行实现，也禁止引入其他库重复造轮子」。
+本资料适用于已采用 eui 或 ekit 的项目；版本及公开接口以实际安装包和对应 Skill 为准。项目未采用时此处仅用于了解能力，不要求引入或替换现有实现。
 
 `@dwydev/eui` 与 `@dwydev/ekit` 是团队内部 npm 基础库，分别覆盖 UI 组件层与通用工具层。
 

@@ -16,7 +16,7 @@ Vue 3 组件库（Reka-ui + shadcn 视觉 + Element Plus 式 API + Tailwind 4）
    node -p "require('@dwydev/eui/package.json').version"
    ```
    失败则读 `pnpm-workspace.yaml` catalog `'@dwydev/eui'`，再读 `package.json` 的 `dependencies` / `peerDependencies`。
-   仍失败：按 `v2` 给脚手架，并声明「未探测到安装版本」。
+   声明的依赖范围不代表实际安装版本。仍无法确定时说明缺口，不按任一版本猜测 API。
 
 2. **选线**：读同目录 `versions.yml`。`2.y.z` → `v2/`，`1.y.z` → `v1/`。目录不存在（例如装了 3.x 但还没有 `v3/`）→ 不要用 `v2` 冒充；按下面「读源码」拿该版本代码，并说明文档线未建。
 

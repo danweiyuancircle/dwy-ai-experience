@@ -1,14 +1,6 @@
----
-description: iOS / macOS 四层分包与依赖方向（双壳 Assembly + Features / BizFoundation / Foundation）；根 Package.swift 锁定第三方版本
-paths:
-  - "**/*.swift"
-  - "**/Package.swift"
-  - "**/project.yml"
----
-
 # Apple 四层架构与依赖
 
-适用于 iOS 17+ / macOS 14+ 的 SwiftUI 双端或单端应用。风格 / 安全区 / 国际化见 `dwy-swift-core`。本文件只管**层、引用边、版本写在哪**。
+团队新项目默认 iOS 17+ / macOS 15+；既有项目以实际 deployment target 和现有架构为准，不为套用层名而擅自重构或抬高版本。风格与国际化见 `dwy-swift-development`。本文件只管**层、引用边、版本写在哪**；以下目录和分层适用于采用该架构的项目。
 
 单壳（只有 iPhone 或只有 Mac）**不建** PlatformFoundation。双壳且某端领域字节级不同时才加 `DesktopKit`。
 
@@ -31,7 +23,7 @@ paths:
 
 | **PlatformFoundation** | 同一业务多个壳，且某端领域字节级不同 | 被其他壳 import；塞回 BizFoundation |
 
-升层：第二个 Feature 或第二个产品**真在用**，才升到 BizFoundation / Foundation。禁止「可能复用」提前抽。禁止为了共用而抽 `AppShared` 把壳状态（Store / Session）塞进 BizFoundation。
+升层：第二个 Feature 或第二个产品**真在用**，或用户明确授权本次抽取时，才考虑升到 BizFoundation / Foundation；仍需评估依赖方向和迁移成本。禁止因「可能复用」提前抽。禁止为了共用而抽 `AppShared` 把壳状态（Store / Session）塞进 BizFoundation。
 
 业务内聚：一个业务域 = 壳内 `Features/<Name>/`。禁止按 `Views/` `ViewModels/` 横切。目录不等于层：Features 若与壳同一 target，仍遵守互不 import 的源码边界。
 

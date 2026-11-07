@@ -1,5 +1,15 @@
 # create-dwy
 
+## [0.27.0] - 2026-11-07
+
+### Changed
+
+- 新增 Python、Vue 和 Apple 按需开发、架构与基础库 Skills；按版本查找公开接口和接入说明。
+- 迁移 Python、Vue 旧托管 Rules，推荐对应 Skills；未选择替代项时保留旧内容，预览并保护个人配置。其他技术栈 Rules 保持可用。
+- 修正 EUI、EAPI 版本线匹配范围和 Ekit Skill 元数据；模板详情见 ai-tools 0.34.0。
+
+---
+
 ## [0.26.0] - 2026-11-06
 
 ### Changed

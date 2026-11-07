@@ -1,5 +1,12 @@
 # ai-tools 内部版本
 
+## 0.34.0 - 2026-11-07
+
+- 新增 `skills/Python/dwy-python-*`、Python 基础包 Skills、`skills/Vue/dwy-vue-*`、管理与认证包 Skills，以及 `skills/Apple/dwy-apple-appkit`；按能力和实际版本导航，保留已发布版本接入资料。
+- 将 `rules/Python/` 和 `rules/Vue/` 的技术规范迁入对应 Skills 的参考资料；Apple 开发规范使用 Swift、iOS、macOS 和架构 Skills。
+- 修复 `skills/Vue/dwy-ekit/SKILL.md` 的非标准元数据，收紧 EUI 和 EAPI 版本线；无法确定安装版本时不再假定版本。
+
+
 本目录（`dwy-cli/templates/ai-tools`）rules / skills / hooks / commands / CLAUDE.md 等模板资产的**内部版本**，与 `create-dwy` npm 版本**解耦**。
 
 - 当前版本：见同目录 `VERSION`（单一事实源）

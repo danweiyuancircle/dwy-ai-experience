@@ -6,7 +6,7 @@ sparse:
   - frontend/eui/src
   - frontend/eui/package.json
 lines:
-  - match: ">=2.0.0"
+  - match: ">=2.0.0 <3.0.0"
     dir: v2
-  - match: ">=1.0.0"
+  - match: ">=1.0.0 <2.0.0"
     dir: v1
