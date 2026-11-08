@@ -43,7 +43,7 @@ description: "【dwy·技术架构】产品 0 到 1 设计与架构阶段。触�
 
 - Python → `dwy-python-architecture`
 - Vue → `dwy-vue-architecture`
-- Android → `dwy-android-layering`
+- Android → `dwy-android-architecture`
 - iOS / macOS → `dwy-apple-architecture`
 
 团队新项目参考对应架构指引；既有项目先核实当前依赖边和模块组织，避免擅自重构。
@@ -51,7 +51,7 @@ description: "【dwy·技术架构】产品 0 到 1 设计与架构阶段。触�
 ## 实现
 [自写型]
 1. 读项目 `.claude/rules/`，结合上方架构约束产出架构（项目 rules 优先，本约束兜底）
-2. 技术架构：先读可用的对应栈架构 Skill 或 Android layering 规则，再写分层、模块边界和选型理由；选型不确定处走 `AskUserQuestion`
+2. 技术架构：先读可用的对应栈架构 Skill，再写分层、模块边界和选型理由；选型不确定处走 `AskUserQuestion`
 3. **判有无后端**（读选型/PRD：有 API / 持久化 / 账户体系 → 有后端）：
    - **有后端** → 必出数据库设计，且**建模到位**：库表清单 / 字段(类型·约束·默认·可空) / 主外键关系 / 索引 / 必要的范式或反范式说明，与接口契约 schema 对齐
    - **纯前端**（无后端）→ 跳过数据库设计，在 `技术架构.md` 注明「无后端，不涉及库表」

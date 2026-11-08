@@ -7,6 +7,8 @@ description: "Docker 工程规范检查与镜像版本管理。触发场景：�
 
 涵盖镜像版本选择 + Dockerfile / docker-compose / k8s manifest 工程结构。
 
+按需阅读 [镜像、容器资源和配置变更](references/dwy-docker.md)，核实项目实际容器运行方式；已有项目遵循用户要求和现有约定，不为套用示例擅自修改运行环境。
+
 **脚本目录：** `./scripts/`（以下简称 `{scripts}`）
 
 **参考文件：** `./references/`

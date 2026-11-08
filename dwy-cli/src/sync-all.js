@@ -15,10 +15,9 @@ import { buildSyncPlan, contentOptions, projectSkillChoices, PLATFORM_LABELS, PL
 import { assertConfigPath, baselineProviders, globalBaselinePath, globalHookNames, hasManagedHookConfig } from './sync-inheritance.js'
 
 const PLATFORM_OPTIONS = [
-  { value: 'claude', label: 'Claude Code', description: '支持 Skills、项目 Rules、Hooks 和全局通用规范' },
-  { value: 'codex', label: 'Codex', description: '支持 Skills、项目 Rules、Hooks 和全局通用规范' },
-  { value: 'opencode', label: 'OpenCode', description: '支持 Skills、项目 Rules 和全局通用规范；不支持 Hooks' },
-  { value: 'cursor', label: 'Cursor', description: '只支持项目 Rules' },
+  { value: 'claude', label: 'Claude Code', description: '支持 Skills、Hooks 和全局通用规范' },
+  { value: 'codex', label: 'Codex', description: '支持 Skills、Hooks 和全局通用规范' },
+  { value: 'opencode', label: 'OpenCode', description: '支持 Skills 和全局通用规范；不支持 Hooks' },
 ]
 const SYNC_STATE_PATH = ['.dwy', 'sync-state.json']
 /** 按显式选中的内容同步；保留已有脚本的模式标识。 */
@@ -96,7 +95,7 @@ async function selectPlatforms(root, scope, initialValues) {
     options: PLATFORM_OPTIONS.filter(option => scope === 'project' || option.value !== 'cursor')
       .map(option => ({ ...option, description: [state.platforms[option.value] ? '已有同步记录，将核对并修复本地配置' : '',
         contentOptions(scope, [option.value]).map(item => item.label).join('、')].filter(Boolean).join('；') })),
-    initialValues,
+    initialValues: initialValues.filter(platform => PLATFORM_OPTIONS.some(option => option.value === platform)),
     required: true, maxItems: 6, placeholder: SEARCH_PLACEHOLDER,
   })
   return isCancel(result) ? null : result
@@ -159,6 +158,28 @@ const RULE_SKILL_MIGRATIONS = {
   'dwy-apple-layering.md': ['dwy-apple-architecture'],
   'dwy-ios-layout-adaptation.md': ['dwy-ios-development'],
   'dwy-ios-pitfalls.md': ['dwy-ios-development'],
+  'dwy-android-core.md': ['dwy-android-development'],
+  'dwy-android-pitfalls.md': ['dwy-android-development'],
+  'dwy-android-support-only.md': ['dwy-android-development'],
+  'dwy-android-layering.md': ['dwy-android-architecture'],
+  'dwy-android-mvp.md': ['dwy-android-architecture'],
+  'dwy-flutter-core.md': ['dwy-flutter-development'],
+  'dwy-flutter-network.md': ['dwy-flutter-development'],
+  'dwy-flutter-router.md': ['dwy-flutter-development'],
+  'dwy-flutter-testing.md': ['dwy-flutter-development'],
+  'dwy-arkts-strict.md': ['dwy-harmony-development'],
+  'dwy-arkts-ui-build.md': ['dwy-harmony-development'],
+  'dwy-arkts-ui-design.md': ['dwy-harmony-development'],
+  'dwy-harmony-pitfalls.md': ['dwy-harmony-development'],
+  'dwy-postgres.md': ['dwy-postgres'],
+  'dwy-redis.md': ['dwy-redis'],
+  'dwy-db-migration.md': ['dwy-alembic'],
+  'dwy-docker.md': ['dwy-docker'],
+  'dwy-code-craft.md': ['dwy-development-review'],
+  'dwy-dependency-freshness.md': ['dwy-dependency-choice'],
+  'dwy-oss-commercial-license.md': ['dwy-dependency-choice'],
+  'dwy-git-commit.md': ['dwy-git-commit'],
+  'dwy-prod-branch.md': ['dwy-publish'],
 }
 
 /** 将旧托管规则映射为可选的对应技能，保留用户最终选择。 */
@@ -173,7 +194,8 @@ function staleEntries(scans, state, existing, platforms) {
     result[platform] = {}
     for (const type of PLATFORM_SYNC_TYPES[platform].filter(type => current[type])) {
       const historical = state.platforms[platform]?.[type] || []
-      const knownRules = type === 'rules' && platform !== 'cursor' ? [...existing.projectRules].filter(name => RULE_SKILL_MIGRATIONS[name]) : []
+      const knownRules = type === 'rules' && platform !== 'cursor'
+        ? [...existing.projectRules].filter(name => !scans.rules.length || RULE_SKILL_MIGRATIONS[name]) : []
       result[platform][type] = [...new Set([...historical, ...knownRules])].filter(name =>
         !current[type].has(name) && existing[platform][type].has(platform === 'cursor' && type === 'rules' ? buildCursorRuleName(name) : name))
     }
@@ -186,7 +208,7 @@ function normalizeRemovals(raw) {
     Object.fromEntries(Object.entries(types).map(([type, names]) => [type, new Set(names)]))]))
 }
 
-/** `dwy` 和 `dwy sync` 共用范围 → Skills → 项目 Rules → 规范 → Hooks → CLI → 确认。 */
+/** `dwy` 和 `dwy sync` 共用范围 → Skills → 规范 → Hooks → CLI → 确认。 */
 export async function runDwy(opts = {}) {
   console.log(chalk.bold.cyan('\ndwy') + chalk.gray(' · AI 开发工具\n'))
   const action = normalizeAction(opts.action)
@@ -275,7 +297,7 @@ export async function syncAll({
   const scope = scopeOverride || (selectedOverride || platformsOverride ? 'project' : await searchableSelect({
     message: '选择同步范围',
     options: [
-      { value: 'project', label: '当前项目', description: '管理 Skills、Hooks、Rules 和通用规范；继承有效全局配置' },
+      { value: 'project', label: '当前项目', description: '管理 Skills、Hooks 和通用规范；继承有效全局配置' },
       { value: 'global', label: '全局', description: '管理 Skills、Hooks 和通用规范；清理当前项目重复入口' },
     ], initialValue: 'project',
   }))
@@ -283,6 +305,7 @@ export async function syncAll({
   if (!['project', 'global'].includes(scope)) throw new Error('无效同步范围')
   const global = scope === 'global', targetRoot = global ? homeDir : projectDir
   let platforms = platformsOverride || await buildPlatformDefaultsFromLocalState(targetRoot, scope, codexHome)
+  if (!platformsOverride) platforms = platforms.filter(platform => PLATFORM_OPTIONS.some(option => option.value === platform))
   if (platforms.length === 0 || platforms.some(platform => !PLATFORM_SYNC_TYPES[platform] || (global && platform === 'cursor'))) throw new Error('所选平台不支持此同步范围')
   const projectState = await loadSyncState(projectDir), globalState = await loadSyncState(homeDir)
   const targetState = global ? globalState : projectState
@@ -366,6 +389,10 @@ export async function syncAll({
     const selectedSkills = new Set(selected.skills.map(skill => skill.name).filter(name => availableSkills.has(name)))
     for (const platform of platforms) for (const name of removals[platform]?.rules || []) {
       const required = RULE_SKILL_MIGRATIONS[name]
+      if (!required && !scans.rules.length) {
+        removals[platform].rules.delete(name)
+        continue
+      }
       if (required && (platform === 'cursor' || !contentTypes.includes('skills') || required.some(skill => !selectedSkills.has(skill)))) {
         removals[platform].rules.delete(name)
       }
@@ -375,8 +402,10 @@ export async function syncAll({
   const plan = await buildSyncPlan({
     scope, platforms, contentTypes, selected, scans, sourceDir, projectDir, homeDir, codexHome,
     projectState, globalState, staleRemovals: removals, staleEntries: stale, baseline,
-    migratedRuleSources: Object.fromEntries(Object.entries(RULE_SKILL_MIGRATIONS).map(([name, skills]) => [name,
-      path.join(sourceDir, 'skills', name.startsWith('dwy-python-') ? 'Python' : name.startsWith('dwy-vue-') ? 'Vue' : 'Apple', skills[0], 'references', name)])),
+    migratedRuleSources: Object.fromEntries(Object.entries(RULE_SKILL_MIGRATIONS).flatMap(([name, skills]) => {
+      const skill = scans.skills.find(item => item.name === skills[0])
+      return skill ? [[name, path.join(skill.sourcePath, 'references', name)]] : []
+    })),
     contentActions,
     refreshSkills: mainFlow,
     skillScope: normalizeSkillScope(skillScopeOverride),
@@ -397,9 +426,11 @@ export async function syncAll({
   })
   if (global && plan.projectChanged) await assertConfigPath(path.join(projectDir, ...SYNC_STATE_PATH), projectDir)
   console.log(`\n同步范围：${global ? '全局' : '当前项目'}；平台：${platforms.map(p => PLATFORM_LABELS[p]).join('、')}`)
-  console.log(`处理内容：${contentTypes.map(type => options.find(option => option.value === type).label).join('、')}`)
+  console.log(`处理内容：${contentTypes.map(type => type === 'rules' && !scans.rules.length ? '旧规则迁移' : options.find(option => option.value === type).label).join('、')}`)
   if (contentTypes.includes('skills')) console.log(`Skills：${selected.skills.map(item => item.name).join('、') || '无项目安装选择；已有全局入口仅去重'}`)
-  if (contentTypes.includes('rules')) console.log(`Rules：${selected.rules.map(item => item.name).join('、') || '移除当前项目托管规则'}`)
+  if (contentTypes.includes('rules')) console.log(scans.rules.length
+    ? `Rules：${selected.rules.map(item => item.name).join('、') || '移除当前项目托管规则'}`
+    : '旧 Rules：仅迁移已选择替代 Skill 的托管项，其他内容保留')
   if (contentTypes.includes('baseline')) console.log(`通用规范：${contentActions.baseline === 'remove' ? '显式移除' : baseline.split('\n').filter(line => /^#/.test(line)).slice(0,3).join('；')}`)
   for (const operation of plan.operations) {
     console.log(operation.label)

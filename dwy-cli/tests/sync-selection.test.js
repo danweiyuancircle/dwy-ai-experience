@@ -91,6 +91,40 @@ const scans = {
 }
 const defaults = { skills: ['first', 'removed'], rules: [], commands: [], hooks: [] }
 
+test('无 Rules 模板的主交互只选择 Skills 和受支持 CLI', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-skills-only-ui-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.ensureDir(projectDir)
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '---\nname: sample\ndescription: test\n---\n# Sample')
+  const { transcript } = await runProgram(t, `
+    import { runDwy } from './dwy-cli/src/sync-all.js';
+    await runDwy(${JSON.stringify({ sourceDir, projectDir, homeDir, scope: 'project', confirmed: true })}); console.log('RESULT:{}');
+  `, [{ label: 'Skills', keys: ' \r' }, { message: '选择要同步的平台', keys: '\r' }])
+  assert.doesNotMatch(transcript, /选择 Rules|Cursor/)
+  assert.match(transcript, /OpenCode/)
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/sample/SKILL.md')), true)
+})
+
+test('旧托管规则在主交互预选对应 Skill 并确认后迁移', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-legacy-rule-ui-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.outputFile(path.join(sourceDir, 'skills/Android/dwy-android-development/SKILL.md'), '---\nname: dwy-android-development\ndescription: test\n---\n# Android')
+  const agents = path.join(projectDir, 'AGENTS.md')
+  await fs.outputFile(agents, '# 用户内容\n\n<!-- DWY-RULES:START 由 dwy 交互式同步生成，请勿手动编辑此区块 -->\n\n<!-- dwy-rule: dwy-android-core.md -->\n\n# 原有规范\n\n<!-- DWY-RULES:END -->\n')
+  const { transcript } = await runProgram(t, `
+    import { runDwy } from './dwy-cli/src/sync-all.js';
+    await runDwy(${JSON.stringify({ sourceDir, projectDir, homeDir, scope: 'project', confirmed: true })}); console.log('RESULT:{}');
+  `, [{ label: 'Skills', keys: '\r' }, { message: '选择要同步的平台', keys: '\r' }])
+  assert.doesNotMatch(transcript, /选择 Rules/)
+  assert.match(transcript, /dwy-android-development/)
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/dwy-android-development/SKILL.md')), true)
+  const content = await fs.readFile(agents, 'utf8')
+  assert.match(content, /用户内容/)
+  assert.doesNotMatch(content, /原有规范/)
+})
+
 test('Tab 区分当前分类、项目已选、全局已启用和未选状态，禁选项保持不可勾选', async t => {
   const { transcript, result } = await runProgram(t, `
     import { tabMultiselect } from './dwy-cli/src/tab-multiselect.js';
@@ -502,7 +536,7 @@ test('项目主交互中全局 Skill 不可勾选，全选也不刷新或重复�
   assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/local/SKILL.md')), true)
 })
 
-test('无同步记录的旧 Cursor 托管规则恢复为已选，直接确认不会误删', async t => {
+test('旧 Cursor 配置不再作为交互平台且不会被同步改写', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-cursor-rule-default-'))
   t.after(() => fs.remove(root))
   const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
@@ -512,7 +546,6 @@ test('无同步记录的旧 Cursor 托管规则恢复为已选，直接确认不
     import { runDwy } from './dwy-cli/src/sync-all.js';
     await runDwy(${JSON.stringify({ sourceDir, projectDir, homeDir, scope: 'project', confirmed: true })}); console.log('RESULT:{}');
   `, [{ label: 'Rules', keys: '\r' }, { message: '选择要同步的平台', keys: '\r' }])
-  assert.equal(await fs.pathExists(path.join(projectDir, '.cursor/rules/dwy-sample.mdc')), true)
-  assert.match(await fs.readFile(path.join(projectDir, 'AGENTS.md'), 'utf8'), /Latest rule/)
-  assert.deepEqual((await fs.readJson(path.join(projectDir, '.dwy/sync-state.json'))).platforms.cursor.rules, ['sample.md'])
+  assert.equal(await fs.readFile(path.join(projectDir, '.cursor/rules/dwy-sample.mdc'), 'utf8'), '# Old rule')
+  assert.equal((await fs.readJson(path.join(projectDir, '.dwy/sync-state.json'))).platforms.cursor, undefined)
 })

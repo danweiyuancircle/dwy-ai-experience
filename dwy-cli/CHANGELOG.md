@@ -1,5 +1,15 @@
 # create-dwy
 
+## [0.28.0] - 2026-11-08
+
+### Changed
+
+- 将 Android、Flutter、HarmonyOS、数据库、Docker 和开发流程的剩余 Rules 迁移到按需安装的 Skills；补充旧项目的安全迁移与选择。
+- 同步交互不再分发或选择 Rules；Claude Code、Codex 和 OpenCode 保持支持，原 Cursor 配置保留且不再提供同步入口。
+- 模板详情见 ai-tools 0.35.0。
+
+---
+
 ## [0.27.0] - 2026-11-07
 
 ### Changed

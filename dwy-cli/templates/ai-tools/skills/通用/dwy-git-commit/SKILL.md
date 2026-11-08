@@ -7,7 +7,7 @@ description: "准备 git commit、写 commit message、处理 git pull / rebase 
 
 本次任务包含提交、commit message、`git pull` / rebase 冲突、提交前检查时读本 skill。只改代码、不提交时不用。
 
-没有 skill 的工具只看 `rules/开发流程/dwy-git-commit.md`。和那份短 rule 冲突时以本 skill 为准。
+旧模板摘要仅供识别迁移时的历史托管文件，不作为独立 Rules 分发；提交流程以本 Skill 和当前项目要求为准。
 
 任一步不通过：中止提交。项目按多人协作处理，本地未基于最新远程提交前，禁止产生新 commit。
 

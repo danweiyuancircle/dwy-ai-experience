@@ -1,5 +1,11 @@
 # ai-tools 内部版本
 
+## 0.35.0 - 2026-11-08
+
+- 新增 Android 开发与架构、Flutter、HarmonyOS、PostgreSQL、Redis 和 Alembic Skills，按任务加载迁移后的规范和踩坑。
+- Docker、Git 提交、依赖选型、开发审查和发布 Skills 吸收原有流程资料，不再分发项目 Rules。
+- 更新技术架构的 Android Skill 引用；历史项目规则仅在替代 Skills 已选中并确认后迁移，无法确认归属的旧文件保留。
+
 ## 0.34.0 - 2026-11-07
 
 - 新增 `skills/Python/dwy-python-*`、Python 基础包 Skills、`skills/Vue/dwy-vue-*`、管理与认证包 Skills，以及 `skills/Apple/dwy-apple-appkit`；按能力和实际版本导航，保留已发布版本接入资料。

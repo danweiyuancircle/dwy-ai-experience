@@ -7,7 +7,7 @@ description: "新增或升级运行时依赖、选版本、选基础镜像 / SDK
 
 新装或新选依赖、base 镜像、SDK、字体、图标、素材、模型权重时读本 skill。已安装的旧版本不用为此升级。本包自己的发版版本号按 `dwy-publish` 决策。
 
-没有 skill 的工具只看这两份短 rule，和本 skill 冲突时以本 skill 为准：`rules/开发流程/dwy-dependency-freshness.md`、`rules/开发流程/dwy-oss-commercial-license.md`。
+旧模板摘要仅供识别迁移时的历史托管文件，不作为独立 Rules 分发；依赖版本和许可判断以本 Skill 及当前项目要求为准。
 
 ## 一、版本
 

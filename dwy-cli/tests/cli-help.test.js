@@ -28,7 +28,7 @@ test('dwy --help lists sync and upgrade, no hidden commands', () => {
 
 test('实际帮助按内容选择后选 CLI，并说明全局继承与确认边界', () => {
   const steps = [...help.matchAll(/^  \d+\. (.+)$/gm)].map(match => match[1])
-  const expected = [/同步范围/, /Skills/, /项目.*Rules/, /AGENTS\.md.*默认启用/, /Hooks.*默认启用/, /CLI.*Codex/, /预览/, /确认/]
+  const expected = [/同步范围/, /Skills/, /AGENTS\.md.*默认启用/, /Hooks.*默认启用/, /CLI.*Codex/, /预览/, /确认/]
   assert.equal(steps.length, expected.length)
   expected.forEach((pattern, index) => assert.match(steps[index], pattern))
   assert.match(help, /恢复.*当前范围.*CLI/)
@@ -39,6 +39,7 @@ test('实际帮助按内容选择后选 CLI，并说明全局继承与确认边�
   assert.match(help, /全局已启用.*不能重复勾选/)
   assert.match(help, /部分平台.*缺少全局入口/)
   assert.doesNotMatch(help, /选择本次处理内容|范围 \/ 平台 \/ 内容|不勾选整个类型/)
+  assert.doesNotMatch(help, /选择 Rules|Cursor：/)
 })
 
 test('实际帮助说明包内模板分发、共享 Skills 刷新和 CLI 升级', () => {

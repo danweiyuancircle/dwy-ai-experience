@@ -9,6 +9,8 @@ description: Use when starting or completing code development, implementing feat
 
 本 Skill 只定义通用流程，不依赖特定 CLI、模型、语言、框架或其他 Skill。自动加载取决于宿主的技能发现能力；本文件本身不是强制执行器，也不授予额外权限。
 
+需要检查代码简约、行为变更及测试位置时，按需阅读 [代码质量](references/dwy-code-craft.md)。项目和用户明确要求优先。
+
 ## 入口与决策
 
 - **开发任务**：从第 1 步走完整闭环，不把计划、候选方案或测试通过当作最终交付。
