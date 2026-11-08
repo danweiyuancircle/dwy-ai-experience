@@ -1,6 +1,6 @@
 # @dwydev/eui 测试用例清单
 
-> 回测基准：815 个测试用例，89 个测试文件。版本变更后必须全部通过。
+> 回测基准：816 个测试用例，89 个测试文件。版本变更后必须全部通过。
 >
 > 运行命令：`cd frontend/eui && pnpm vitest run`
 
@@ -471,6 +471,19 @@ EDialog 从 2.1.0 起是 `bg-black/30 backdrop-blur-sm`。确认框和命令式 
 
 ---
 
+## EMenu 菜单（10 个）
+
+`tests/components/menu.test.ts`
+
+| 用例 | 数量 | 测试要点 |
+|---|---:|---|
+| 容器、菜单项和宽度 | 3 | 渲染导航、菜单项及容器宽度 |
+| 禁用、选择和高亮 | 3 | 禁用状态、选择事件和当前项样式 |
+| 子项激活展开与手动折叠 | 1 | 选中子项时展开父级；允许折叠，后续选中变化再展开 |
+| 折叠与嵌套交互 | 3 | 折叠时隐藏文案、嵌套项展示和父子点击行为 |
+
+---
+
 ## 回测检查清单
 
 ```bash
@@ -478,8 +491,8 @@ EDialog 从 2.1.0 起是 `bg-black/30 backdrop-blur-sm`。确认框和命令式 
 cd frontend/eui && pnpm vitest run
 
 # 2. 期望结果
-# Test Files  88 passed (88)
-# Tests       793 passed (793)
+# Test Files  89 passed (89)
+# Tests       816 passed (816)
 
 # 3. 单模块测试（调试用）
 pnpm vitest run tests/utils/cn.test.ts

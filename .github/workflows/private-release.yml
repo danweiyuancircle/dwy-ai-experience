@@ -114,6 +114,10 @@ jobs:
           swift package dump-package > /tmp/ios-package.json
           python3 -m unittest discover -s ios/Tests -p 'test_*.py'
           swift test
+      - name: Build Apple package for Intel and Apple Silicon
+        run: |
+          swift build --triple x86_64-apple-macosx15.0
+          swift build --triple arm64-apple-macosx15.0
       - name: Build all products against real iOS simulator SDK
         run: |
           ios_sdk_path="$(xcrun --sdk iphonesimulator --show-sdk-path)"

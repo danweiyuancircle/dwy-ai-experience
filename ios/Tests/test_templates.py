@@ -1,5 +1,6 @@
 """生成真实 iOS/macOS 模板，防止新项目继续绑定旧仓库或本机来源路径。"""
 import subprocess
+import plistlib
 import tempfile
 import unittest
 from pathlib import Path
@@ -31,6 +32,15 @@ class TemplateSmokeTests(unittest.TestCase):
             self.assertIn('from: "0.4.1"', manifest)
             self.assertIn("from: 0.4.1", project)
             self.assertIn('package: "dwy-ai-experience"', manifest)
+            self.assertIn(".macOS(.v15)", manifest)
+            if platform == "macos":
+                self.assertIn('macOS: "15.0"', project)
+                self.assertIn('MACOSX_DEPLOYMENT_TARGET: "15.0"', project)
+                self.assertIn('LSMinimumSystemVersion: "15.0"', project)
+                with (output / "App/Info.plist").open("rb") as plist:
+                    self.assertEqual(plistlib.load(plist)["LSMinimumSystemVersion"], "15.0")
+                self.assertNotIn("EXCLUDED_ARCHS", project)
+                self.assertNotIn("ONLY_ACTIVE_ARCH", project)
             self.assertTrue((output / (name + "Tests") / "SmokeTests.swift").is_file())
             for path in output.rglob("*"):
                 if not path.is_file():

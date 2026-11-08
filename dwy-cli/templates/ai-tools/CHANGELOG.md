@@ -1,5 +1,10 @@
 # ai-tools 内部版本
 
+## 0.35.1 - 2026-11-08
+
+- 更新通用开发基线，强调功能闭环、稳定性和必要验证。
+- Apple 开发资料补充模拟器 Keychain 签名排查，并明确 macOS Intel 和 Apple Silicon 构建验证。
+
 ## 0.35.0 - 2026-11-08
 
 - 新增 Android 开发与架构、Flutter、HarmonyOS、PostgreSQL、Redis 和 Alembic Skills，按任务加载迁移后的规范和踩坑。

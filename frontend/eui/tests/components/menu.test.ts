@@ -72,6 +72,18 @@ describe('EMenu', () => {
     expect(aboutBtn.classes().join(' ')).toContain('bg-primary')
   })
 
+  it('路由选中子项时展开父级，允许用户手动折叠', async () => {
+    const wrapper = mount(EMenu, { props: { items: nestedItems, modelValue: 'nav-1' } })
+    const parent = wrapper.findAll('button').find(button => button.text().includes('Navigation'))!
+    expect(parent.attributes('aria-expanded')).toBe('true')
+    expect(wrapper.findAll('button').find(button => button.text().includes('Sub Item 1'))?.classes()).toContain('bg-primary/10')
+    await parent.trigger('click')
+    expect(parent.attributes('aria-expanded')).toBe('false')
+    await wrapper.setProps({ modelValue: 'home' })
+    await wrapper.setProps({ modelValue: 'nav-2' })
+    expect(parent.attributes('aria-expanded')).toBe('true')
+  })
+
   it('hides labels in collapsed mode', () => {
     const wrapper = mount(EMenu, {
       props: { items: baseItems, collapsed: true },

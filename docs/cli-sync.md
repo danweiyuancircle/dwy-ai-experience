@@ -14,7 +14,7 @@
 
 不再单独选择内容类型。Skills 用左右键切分类、上下键移动、Space 勾选、`a` 全选或清空当前分类；Enter 确认当前步骤，Esc 或 Ctrl+C 取消。
 
-启动不联网检查模板。确认前不改项目配置、全局配置或已安装共享 Skills；写入、迁移、刷新和清理均在确认后执行，取消不改同步目标。
+同步前检查 GitHub `develop` 模板，首次获取可能需要等待。确认前只更新本地模板缓存，不改项目配置、全局配置或已安装共享 Skills；写入目标、迁移、刷新和清理均在确认后执行。
 
 ## 全局覆盖与移除
 
@@ -30,16 +30,18 @@ Skills 副本集中在用户目录的 `.dwy/skills`，项目和全局通过目�
 
 推荐按项目选择语言开发、架构、平台或 API Skill，再选择实际使用的基础库 Skill。版本索引只适用于标明的包版本；依赖范围不代表已安装版本，具体接口以项目安装源码及匹配版本为准。
 
-## 包内模板与共享 Skills 更新
+## 远端模板与共享 Skills 更新
 
-模板随 CLI 包分发，默认读取 `dwy-cli/templates/ai-tools`，运行时不通过 Git 拉取模板，也不联网检查模板更新。开发时设置 `DWY_TEMPLATE_SOURCE_DIR` 可优先使用本地模板目录。
+默认从公开仓库 `https://github.com/danweiyuancircle/dwy-ai-experience.git` 的 `develop` 分支获取 `dwy-cli/templates/ai-tools`。已获取的 Git 对象和验证后的模板缓存保存在用户目录 `.dwy`，更新时复用；网络失败时优先使用有效缓存，无有效缓存才回退当前 CLI 随包模板，并显示提示。开发时设置 `DWY_TEMPLATE_SOURCE_DIR` 可优先使用本地模板目录。
 
-Skills 新增或变更需要发布新版 CLI。升级 CLI 才能取得新版包内模板；`dwy refresh` 使用当前 CLI 包内模板刷新已安装共享 Skills，不单独下载模板。
+远端更新需要本机 Git 和可访问 GitHub 的网络；首次获取较慢时会显示进度。无法获取最新版本时，提示中的缓存或随包版本可能落后，不应当成已同步到最新。
+
+Skills 新增或变更推送到 `develop` 后，无需为内容变更单独发布 CLI；下次运行同步或 `dwy refresh` 会检查最新模板。CLI 程序自身改变仍需通过 CLI 更新交付。
 
 | 入口 | 用途 |
 | --- | --- |
-| `dwy` / `dwy sync` | 使用当前 CLI 包内模板，确认后同步所选配置，并刷新本次所选、需由当前范围提供的共享 Skills |
-| `dwy refresh` | 从当前 CLI 包内模板刷新已安装共享 Skills；已有链接同时生效 |
+| `dwy` / `dwy sync` | 获取最新模板，确认后同步所选配置，并刷新本次所选、需由当前范围提供的共享 Skills |
+| `dwy refresh` | 获取最新模板并刷新已安装共享 Skills；已有链接同时生效 |
 | `dwy upgrade` | 更新到 npm 最新正式版程序，并刷新共享 Skills |
 | `dwy migrate` | 迁移当前项目已有托管 Skills，真实目录先备份，无需重新勾选 |
 

@@ -42,14 +42,13 @@ test('实际帮助按内容选择后选 CLI，并说明全局继承与确认边�
   assert.doesNotMatch(help, /选择 Rules|Cursor：/)
 })
 
-test('实际帮助说明包内模板分发、共享 Skills 刷新和 CLI 升级', () => {
-  assert.match(help, /dwy refresh.*当前 CLI 包内模板.*已安装.*共享 Skills/)
+test('实际帮助说明远端模板、离线缓存和 CLI 升级', () => {
+  assert.match(help, /dwy refresh.*最新模板.*已安装.*共享 Skills/)
   assert.match(help, /dwy upgrade.*npm.*正式版/)
-  assert.match(help, /模板随 CLI 包分发/)
-  assert.match(help, /启动不联网检查模板/)
+  assert.match(help, /GitHub.*develop/)
+  assert.match(help, /离线.*缓存.*随包/)
   assert.match(help, /DWY_TEMPLATE_SOURCE_DIR.*优先/)
-  assert.match(help, /Skills.*变更.*CLI.*发版/)
-  assert.doesNotMatch(help, /template-source|远端.*commit|模板缓存|最新模板|分发分支/)
+  assert.match(help, /Skills.*变更.*不.*CLI.*发版/)
 })
 
 test('dwy 启动展示品牌，取消后退出', async t => {

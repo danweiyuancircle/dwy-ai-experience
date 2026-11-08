@@ -4,7 +4,7 @@
 
 ## 模块与信任边界
 
-- `AuthCore`：后端 HTTP、可信用户、内存 access token、Keychain refresh token、设备 UUID、会话状态机。支持 iOS 17 / macOS 14，不依赖 UIKit 或 Google SDK。
+- `AuthCore`：后端 HTTP、可信用户、内存 access token、Keychain refresh token、设备 UUID、会话状态机。支持 iOS 17 / macOS 15 及以上，不依赖 UIKit 或 Google SDK。
 - `AuthGoogleIOS`：官方 GoogleSignIn-iOS 9.1.0 的 iOS 呈现与 URL 回调适配。macOS 不提供此适配类型。
 - 宿主 App：AppConfig、登录按钮与页面、当前 scene 的 presenting UIViewController、Info.plist URL scheme、账户路由、错误提示与本地化。
 - 后端：验证 Google ID token 的签名、issuer、audience、有效期，建立应用账户，签发并撤销 opaque 应用令牌。客户端不从 SDK profile 判断授权或用户身份。

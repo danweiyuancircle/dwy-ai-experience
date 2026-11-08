@@ -6,14 +6,14 @@
 #   BizFoundation/    ③ 业务基础层（package）
 #   Foundation/       ④ 业务无关基础层（层锚点；kits 来自统一私有包版本）
 #
-# 部署底线：macOS 14.0+
+# 部署底线：macOS 15.0+
 # 规约：Docs/ARCHITECTURE.md
 # =============================================================================
 name: __APP_NAME__
 options:
   bundleIdPrefix: com.example
   deploymentTarget:
-    macOS: "14.0"
+    macOS: "15.0"
 packages:
   # ③
   BizFoundation:
@@ -58,7 +58,7 @@ targets:
         PRODUCT_MODULE_NAME: __APP_NAME__
         GENERATE_INFOPLIST_FILE: "NO"
         SWIFT_VERSION: "6.0"
-        MACOSX_DEPLOYMENT_TARGET: "14.0"
+        MACOSX_DEPLOYMENT_TARGET: "15.0"
         CODE_SIGNING_ALLOWED: "YES"
         DEVELOPMENT_TEAM: "__TEAM_ID__"
         CODE_SIGN_STYLE: Automatic
@@ -74,7 +74,7 @@ targets:
         CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         CFBundleDisplayName: __APP_NAME__
         CFBundleName: __APP_NAME__
-        LSMinimumSystemVersion: "14.0"
+        LSMinimumSystemVersion: "15.0"
         LSApplicationCategoryType: public.app-category.productivity
         CFBundleLocalizations:
           - zh-Hans

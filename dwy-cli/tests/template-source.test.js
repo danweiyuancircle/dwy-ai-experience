@@ -46,7 +46,7 @@ test('无 Git、无缓存时可从消费目录读取随包模板', t => {
   assert.equal(resolveInConsumer(t), path.join(cliRoot, 'templates', 'ai-tools'))
 })
 
-test('启动直接使用随包模板，不联网、不读取历史模板缓存或锁', t => {
+test('未确认归属的历史缓存与存活锁保留，回退随包模板', t => {
   const directory = mkdtempSync(path.join(tmpdir(), 'dwy-bundled-source-'))
   t.after(() => removeTemporaryPath(directory, directory))
   const cache = path.join(directory, '.dwy', 'template-source')
@@ -57,11 +57,13 @@ test('启动直接使用随包模板，不联网、不读取历史模板缓存�
     import { resolveSourceDir } from ${JSON.stringify(syncURL)};
     globalThis.fetch = () => { throw new Error('Unexpected network'); };
     console.log(await resolveSourceDir({ homeDir: ${JSON.stringify(directory)} }));
-  `], { cwd: directory, env: { ...process.env, DWY_HOME: directory, DWY_TEMPLATE_SOURCE_DIR: '', PATH: directory },
+  `], { cwd: directory, env: { ...process.env, DWY_HOME: path.join(directory, '.dwy'), DWY_TEMPLATE_SOURCE_DIR: '', PATH: directory },
     encoding: 'utf8', timeout: 5000 })
   assert.equal(result.status, 0, result.stderr)
   assert.equal(result.stdout.trim(), path.join(cliRoot, 'templates', 'ai-tools'))
-  assert.equal(result.stderr, '')
+  assert.match(result.stderr, /回退随包模板/)
+  assert.equal(readFileSync(path.join(cache, 'AGENTS.md'), 'utf8'), '# Obsolete cache')
+  assert.equal(readFileSync(path.join(directory, '.dwy/template-source.lock'), 'utf8'), String(process.pid))
 })
 
 test('显式模板目录覆盖随包模板', t => {

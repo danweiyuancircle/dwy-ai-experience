@@ -17,7 +17,7 @@ export function buildHelpText(version) {
     '  dwy            选择范围、配置和 CLI，预览清单后同步',
     '  dwy sync       同上',
     '  dwy upgrade    升级到 npm 最新正式版，并刷新共享 Skills',
-    '  dwy refresh    用当前 CLI 包内模板刷新已安装的共享 Skills',
+    '  dwy refresh    用最新模板刷新已安装的共享 Skills',
     '  dwy migrate    一键迁移老项目已有的托管 Skills，原目录先备份',
     '  dwy --help     显示本说明',
     '  dwy --version  显示版本',
@@ -75,9 +75,9 @@ export function buildHelpText(version) {
     'Hooks 的模板更新仍需执行 dwy sync；已有会话缓存的 Skill 可能需要重新加载。',
     '',
     '模板更新：',
-    '  模板随 CLI 包分发，启动不联网检查模板。',
-    '  DWY_TEMPLATE_SOURCE_DIR 开发覆盖优先；未设置时读取当前 CLI 的 dwy-cli/templates/ai-tools。',
-    '  Skills 新增或变更需要 CLI 发版；dwy upgrade 更新程序与包内模板。',
+    '  同步从 GitHub develop 获取模板；离线优先使用缓存，无有效缓存时使用随包模板。',
+    '  DWY_TEMPLATE_SOURCE_DIR 开发覆盖优先；设置后直接使用指定本地模板。',
+    '  Skills 新增或变更不需要 CLI 发版；dwy upgrade 更新 CLI 程序。',
     '',
   ].join('\n')
 }

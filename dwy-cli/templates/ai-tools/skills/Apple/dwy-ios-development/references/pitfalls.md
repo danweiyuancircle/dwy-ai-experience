@@ -31,9 +31,9 @@
 
 ### Package.swift 的 .macOS 平台声明，别为「只支持手机」删掉
 
-- **现象**：想让 app 只支持 iPhone，看到 `Package.swift` 里 `platforms: [.iOS(.v17), .macOS(.v14)]` 就想删掉 `.macOS`。
+- **现象**：想让 app 只支持 iPhone，看到 `Package.swift` 里 `platforms: [.iOS(.v17), .macOS(.v15)]` 就想删掉 `.macOS`。
 - **根因**：这是**纯逻辑库**的平台声明，作用是让命令行 `swift test` 能在 mac（host）上跑核心逻辑测试，和 iOS app 支持哪些设备**无关**。app 的设备类型由 app target 的 `TARGETED_DEVICE_FAMILY` 控制。删掉 `.macOS` 会让 `swift test` 在 mac 上跑不起来。
-- **正确做法**：保留 `.macOS(.v14)`。要 app 只支持手机，设 app target `TARGETED_DEVICE_FAMILY: "1"`（1=iPhone，2=iPad）。库的 platforms 是「最低支持平台」，不影响 app。
+- **正确做法**：按项目实际支持范围保留 macOS 声明；新项目基线为 `.macOS(.v15)`。要 app 只支持手机，设 app target `TARGETED_DEVICE_FAMILY: "1"`（1=iPhone，2=iPad）。库的 platforms 是「最低支持平台」，不影响 app。
 - **适用**：两层结构（SPM 纯逻辑库 + iOS app）、靠命令行 `swift test` 验证核心逻辑的工程。
 
 ### XcodeGen 加 String Catalog，要靠 CFBundleLocalizations 才生成多语言 .lproj
@@ -103,6 +103,13 @@
 ---
 
 ## 证书 / Keychain / mTLS
+
+### 模拟器能启动但 Keychain 返回 -34018
+
+- **现象**：模拟器可以启动、发现局域网设备，读取或创建 Keychain 项却返回 `-34018`（`errSecMissingEntitlement`）；依赖密钥的配对和连接随之失败，真机正常。
+- **范围与根因**：本次 iOS 17.5 模拟器使用 `CODE_SIGNING_ALLOWED=NO` 构建，应用缺少模拟器运行时的应用标识权限；编译成功和界面可见不能证明 Keychain 可用。`-34018` 也可能来自其他访问组配置错误，应以实际构建产物、查询参数和日志判断，不把所有场景归为未签名。
+- **正确做法**：检查实际构建及安装产物的签名、模拟器模拟权限和 `application-identifier`，核对 Keychain 查询使用的访问组。需要验证 Keychain 时启用模拟器签名构建，再覆盖安装并重试真实的密钥读写；不要为了排错清除 Keychain、删除应用数据或复制真机私钥。参见 [Apple 对 -34018 的说明](https://developer.apple.com/forums/thread/114456)。
+- **验证状态**：本次启用签名后，模拟器已成功生成密钥并向局域网电视发送 ADB 公钥，未再出现 `-34018`；电视未显示授权提示，端到端连接仍待验证。模拟器与真机的密钥独立，不能用真机已授权推断模拟器也已获授权。
 
 ### SecIdentityCreateWithCertificate 在 iOS 不存在，组装 SecIdentity 要走 keychain 查询
 

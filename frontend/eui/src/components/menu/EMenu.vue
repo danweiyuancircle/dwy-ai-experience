@@ -4,7 +4,7 @@
   router=true 时从全局 $router 读取实例做跳转，避免硬依赖 vue-router
 -->
 <script setup lang="ts">
-import { ref, getCurrentInstance } from 'vue'
+import { ref, getCurrentInstance, watch } from 'vue'
 import { ChevronDown } from 'lucide-vue-next'
 import {
   CollapsibleRoot,
@@ -26,6 +26,14 @@ const props = withDefaults(defineProps<EMenuProps>(), {
 const emit = defineEmits<EMenuEmits>()
 
 const expandedKeys = ref<Set<string>>(new Set(props.defaultOpeneds))
+
+// 路由选中变化时展开所属分组；用户手动折叠后不持续强制展开。
+watch(() => [props.modelValue, props.items] as const, ([active, items]) => {
+  const parent = items.find(item => item.children?.some(child => child.key === active))
+  if (parent && !expandedKeys.value.has(parent.key)) {
+    expandedKeys.value = props.uniqueOpened ? new Set([parent.key]) : new Set([...expandedKeys.value, parent.key])
+  }
+}, { immediate: true })
 
 /**
  * 从 app globalProperties 读取 vue-router 实例

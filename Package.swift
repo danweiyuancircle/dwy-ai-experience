@@ -5,7 +5,7 @@ import PackageDescription
 ///
 /// 部署底线（模板与库一致）：
 /// - iOS 17.0+
-/// - macOS 14.0+
+/// - macOS 15.0+
 ///
 /// SwiftPM 远程依赖要求保留仓库根入口；所有实现、模板和测试统一位于 ios/。
 /// App 壳不在此包；用 `ios/scripts/new-app.sh` 从 Templates 生成。
@@ -14,7 +14,7 @@ let package = Package(
     defaultLocalization: "en",
     platforms: [
         .iOS(.v17),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         .library(name: "SyncCore", targets: ["SyncCore"]),

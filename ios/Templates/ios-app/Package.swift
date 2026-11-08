@@ -9,14 +9,14 @@ import PackageDescription
 ///   BizFoundation/    ③ 业务基础层 ← 本 Package 定义
 ///   Foundation/       ④ 业务无关基础层（层锚点；实现由统一私有包版本 提供）
 ///
-/// 部署：iOS 17.0+（含 macOS 14 以便 host 上 swift test）
+/// 部署：iOS 17.0+（含 macOS 15 以便 host 上 swift test）
 /// 规约：Docs/ARCHITECTURE.md
 /// =============================================================================
 let package = Package(
     name: "BizFoundation",
     platforms: [
         .iOS(.v17),
-        .macOS(.v14),
+        .macOS(.v15),
     ],
     products: [
         /// ③ 业务基础层

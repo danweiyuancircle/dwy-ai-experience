@@ -2,7 +2,7 @@
 
 与 TVRemote 一致：**工程根下并列四个目录**，一眼能分清层级。
 
-部署：iOS **17.0+** · macOS **14.0+** · Swift **6.0**。
+部署：iOS **17.0+** · macOS **15.0+** · Swift **6.0**。macOS 目标支持 Intel x86_64 和 Apple Silicon arm64。
 
 ---
 

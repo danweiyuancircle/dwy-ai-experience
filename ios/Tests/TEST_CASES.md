@@ -14,7 +14,7 @@
 
 ## 平台编译回归
 
-`.github/workflows/private-release.yml` 执行完整 `swift test`，并使用真实 iPhoneSimulator SDK 对全部产品执行 `swift build --triple arm64-apple-ios17.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios`。全产品构建覆盖 macOS 主题监听的平台隔离，避免只编译 AuthGoogleIOS 时漏掉 `DistributedNotificationCenter` 的 iOS 编译错误。
+`.github/workflows/private-release.yml` 执行完整 `swift test`，分别编译 macOS Intel 和 Apple Silicon 目标，并使用真实 iPhoneSimulator SDK 对全部产品执行 `swift build --triple arm64-apple-ios17.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios`。全产品构建覆盖 macOS 主题监听的平台隔离，避免只编译 AuthGoogleIOS 时漏掉 `DistributedNotificationCenter` 的 iOS 编译错误。交叉编译不代表 Intel 真机运行通过。
 
 ## 邮箱密码组件
 

@@ -1,6 +1,6 @@
 # SyncCore：iOS/macOS 本地优先同步
 
-支持 iOS 17+、macOS 14+。通过根 SwiftPM 包的 `SyncCore` 产品使用，内部使用 GRDB 7.11.1。公开 API 不暴露 GRDB，不依赖 UI 框架或特定认证 SDK。
+支持 iOS 17+、macOS 15+。通过根 SwiftPM 包的 `SyncCore` 产品使用，内部使用 GRDB 7.11.1。公开 API 不暴露 GRDB，不依赖 UI 框架或特定认证 SDK。
 
 ## 应用接入合同
 

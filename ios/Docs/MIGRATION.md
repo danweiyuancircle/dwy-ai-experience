@@ -10,7 +10,7 @@ AppleAppKit 已合入开发套件仓库 `dwy-shared`，统一 Git 来源为 `htt
 - `ios/Tests/`：框架、认证与模板生成测试。
 - `ios/Templates/`、`ios/scripts/`、`ios/Docs/`：模板、生成器和接入文档。
 
-仓库根 `Package.swift` 保留为远程 SwiftPM 入口，`Package.resolved` 记录开发依赖版本，所有 target 指向 `ios/`。原有 product 名、公开 API、iOS 17 / macOS 14 部署底线保持不变；新增邮箱密码 UI 见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`。
+仓库根 `Package.swift` 保留为远程 SwiftPM 入口，`Package.resolved` 记录开发依赖版本，所有 target 指向 `ios/`。原有 product 名和公开 API 保持不变；当前部署底线为 iOS 17 / macOS 15，历史版本支持 macOS 14；新增邮箱密码 UI 见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`。
 
 ## 历史版本
 
