@@ -34,6 +34,45 @@ async function validateTemplates(directory) {
   }
 }
 
+async function localTemplateDirectory(localPath) {
+  const repositoryTemplates = path.join(localPath, ...TEMPLATE_PATH)
+  const directory = await fs.pathExists(repositoryTemplates) ? repositoryTemplates : localPath
+  await validateTemplates(directory)
+  return directory
+}
+
+/** 查看或设置本机模板来源；无参数查看，--clear 恢复远端来源。 */
+export async function manageTemplateSource(value, { homeDir = os.homedir() } = {}) {
+  const root = process.env.DWY_HOME || path.join(homeDir, '.dwy')
+  const file = path.join(root, 'template-source.json')
+  const config = await fs.readJson(file).catch(error => {
+    if (error.code === 'ENOENT') return {}
+    throw error
+  })
+  if (!config || typeof config !== 'object' || Array.isArray(config)) throw new Error('模板来源配置不是有效对象')
+  if (value === undefined) {
+    console.log(config.localPath ? `本地模板路径：${config.localPath}` : '未配置本地模板路径，将使用 GitHub。')
+  } else {
+    if (value === '--clear') {
+      delete config.localPath
+    } else {
+      const localPath = path.resolve(value)
+      await localTemplateDirectory(localPath)
+      config.localPath = localPath
+    }
+    await fs.ensureDir(root)
+    const temporary = path.join(root, `.template-source-config-${randomUUID()}`)
+    try {
+      await fs.writeJson(temporary, config, { spaces: 2, flag: 'wx' })
+      await fs.rename(temporary, file)
+    } finally {
+      await fs.remove(temporary)
+    }
+    console.log(config.localPath ? `已设置本地模板路径：${config.localPath}` : '已清除本地模板路径，将使用 GitHub。')
+  }
+  if (process.env.DWY_TEMPLATE_SOURCE_DIR) console.warn('当前 DWY_TEMPLATE_SOURCE_DIR 优先于本地模板配置。')
+}
+
 async function validateTree(directory) {
   for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
     if (entry.isSymbolicLink()) throw new Error(`模板不能包含软链接：${entry.name}`)
@@ -199,7 +238,7 @@ async function refreshTemplates(root, cache, repositoryUrl) {
 
 /**
  * 从固定公开仓库更新用户模板缓存；只读取已验证的目录，不执行模板脚本。
- * 显式目录优先；DWY_HOME 优先于注入 homeDir，更新失败保留缓存，无有效缓存才用随包模板。
+ * 显式目录优先，其次用户配置的本地模板；更新失败保留缓存，无有效缓存才用随包模板。
  */
 export async function resolveTemplateSource({ homeDir = os.homedir(), repository = REMOTE } = {}) {
   const explicitSourceDir = process.env.DWY_TEMPLATE_SOURCE_DIR
@@ -210,6 +249,22 @@ export async function resolveTemplateSource({ homeDir = os.homedir(), repository
     return explicitSourceDir
   }
   const root = process.env.DWY_HOME || path.join(homeDir, '.dwy')
+  try {
+    const config = await fs.readJson(path.join(root, 'template-source.json'))
+    if (typeof config?.localPath !== 'string' || !path.isAbsolute(config.localPath)) {
+      throw new Error('localPath 必须是绝对路径')
+    }
+    const localTemplates = await localTemplateDirectory(config.localPath)
+    console.log(`使用本地模板：${localTemplates}（会读取本地未提交的修改）`)
+    const date = await git(['show', '-s', '--format=%cI', 'HEAD'], localTemplates).catch(() => '未知')
+    console.log(`本地仓库最近提交时间：${date}`)
+    return localTemplates
+  } catch (error) {
+    if (error.code !== 'ENOENT') console.warn(`本地模板配置或目录不可用（${error.message}）；回退 GitHub。`)
+    else if (error.path !== path.join(root, 'template-source.json')) {
+      console.warn('本地模板目录不存在；回退 GitHub。')
+    }
+  }
   const cache = path.join(root, 'template-source')
   const progress = process.stdout.isTTY ? spinner() : null
   progress?.start('正在检查 AI 模板更新，首次获取可能较慢')

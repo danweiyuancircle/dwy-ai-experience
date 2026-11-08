@@ -65,6 +65,43 @@ test('从 develop 获取最新 Skills，更新后无需升级 CLI', t => {
   assert.equal(fs.statSync(repository).ino, inode)
 })
 
+test('配置本地仓库优先，修改路径后生效，本地不存在时回退远端', t => {
+  const f = fixture(t)
+  const local = path.join(f.root, 'local')
+  fs.cpSync(f.repo, local, { recursive: true })
+  const config = path.join(f.home, '.dwy/template-source.json')
+  fs.mkdirSync(path.dirname(config), { recursive: true })
+  fs.writeFileSync(config, JSON.stringify({ localPath: local }))
+  const first = f.resolve()
+  assert.equal(first.directory, path.join(local, 'dwy-cli/templates/ai-tools'))
+  assert.match(first.stdout, /本地模板/)
+  assert.equal(fs.existsSync(path.join(f.home, '.dwy/template-repository-v2')), false)
+
+  const other = path.join(f.root, 'other')
+  fs.cpSync(local, other, { recursive: true })
+  fs.writeFileSync(config, JSON.stringify({ localPath: other }))
+  assert.equal(f.resolve().directory, path.join(other, 'dwy-cli/templates/ai-tools'))
+  const direct = path.join(other, 'dwy-cli/templates/ai-tools')
+  fs.writeFileSync(config, JSON.stringify({ localPath: direct }))
+  assert.equal(f.resolve().directory, direct)
+  assert.equal(f.resolve({ DWY_TEMPLATE_SOURCE_DIR: local }).directory, local)
+
+  fs.writeFileSync(config, JSON.stringify({ localPath: path.join(f.root, 'missing') }))
+  const fallback = f.resolve()
+  assert.equal(fallback.directory, path.join(f.home, '.dwy/template-source'))
+  assert.match(fallback.stderr, /本地模板.*GitHub/)
+})
+
+test('损坏配置和无效本地模板不会阻止远端回退', t => {
+  const f = fixture(t)
+  const config = path.join(f.home, '.dwy/template-source.json')
+  fs.mkdirSync(path.dirname(config), { recursive: true })
+  fs.writeFileSync(config, '{')
+  assert.match(f.resolve().stderr, /本地模板.*GitHub/)
+  fs.writeFileSync(config, JSON.stringify({ localPath: f.root }))
+  assert.match(f.resolve().stderr, /本地模板.*GitHub/)
+})
+
 test('远端不可用时保留有效缓存，首次离线回退随包模板', t => {
   const f = fixture(t)
   const first = f.resolve()

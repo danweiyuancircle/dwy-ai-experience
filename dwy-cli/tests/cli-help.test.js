@@ -13,6 +13,7 @@ test('dwy --help lists sync and upgrade, no hidden commands', () => {
   assert.match(help, /dwy upgrade/)
   assert.match(help, /dwy refresh/)
   assert.match(help, /dwy migrate/)
+  assert.match(help, /dwy source/)
   assert.match(help, /同步步骤/)
   assert.match(help, /交互按键/)
   assert.match(help, /常见用法/)

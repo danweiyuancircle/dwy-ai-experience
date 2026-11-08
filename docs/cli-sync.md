@@ -32,7 +32,23 @@ Skills 副本集中在用户目录的 `.dwy/skills`，项目和全局通过目�
 
 ## 远端模板与共享 Skills 更新
 
-默认从公开仓库 `https://github.com/danweiyuancircle/dwy-ai-experience.git` 的 `develop` 分支获取 `dwy-cli/templates/ai-tools`。已获取的 Git 对象和验证后的模板缓存保存在用户目录 `.dwy`，更新时复用；网络失败时优先使用有效缓存，无有效缓存才回退当前 CLI 随包模板，并显示提示。开发时设置 `DWY_TEMPLATE_SOURCE_DIR` 可优先使用本地模板目录。
+使用以下命令查看、设置或清除本地来源；路径可以是源码仓库或模板目录，含空格时加引号：
+
+```bash
+dwy source
+dwy source /path/to/dwy-shared
+dwy source --clear
+```
+
+设置保存在用户目录 `~/.dwy/template-source.json`，也可以直接编辑：
+
+```json
+{ "localPath": "/path/to/dwy-shared" }
+```
+
+同步优先读取本地模板，包括尚未提交的修改；它不会自动拉取本地仓库的 Git 更新，也不保证本地内容与远端一致。配置不可用时提示并回退到 GitHub；`DWY_HOME` 指定时配置位于该目录。
+
+没有有效本地配置时，从公开仓库 `https://github.com/danweiyuancircle/dwy-ai-experience.git` 的 `develop` 分支获取 `dwy-cli/templates/ai-tools`。已获取的 Git 对象和验证后的模板缓存保存在用户目录 `.dwy`，更新时复用；网络失败时优先使用有效缓存，无有效缓存才回退当前 CLI 随包模板，并显示提示。环境变量 `DWY_TEMPLATE_SOURCE_DIR` 仍有最高优先级，指定的目录不存在时直接报错。
 
 远端更新需要本机 Git 和可访问 GitHub 的网络；首次获取较慢时会显示进度。成功检查后显示当前模板对应的仓库提交时间（含时区）；无法读取提交时间时显示未知。无法获取最新版本时，提示中的缓存或随包版本可能落后，不应当成已同步到最新。
 
