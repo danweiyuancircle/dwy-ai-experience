@@ -106,7 +106,7 @@ test('无 Rules 模板的主交互只选择 Skills 和受支持 CLI', async t =>
   assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/sample/SKILL.md')), true)
 })
 
-test('旧托管规则在主交互预选对应 Skill 并确认后迁移', async t => {
+test('旧托管规则在确认后清理，不自动选择替代 Skill', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-legacy-rule-ui-'))
   t.after(() => fs.remove(root))
   const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
@@ -119,7 +119,7 @@ test('旧托管规则在主交互预选对应 Skill 并确认后迁移', async t
   `, [{ label: 'Skills', keys: '\r' }, { message: '选择要同步的平台', keys: '\r' }])
   assert.doesNotMatch(transcript, /选择 Rules/)
   assert.match(transcript, /dwy-android-development/)
-  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/dwy-android-development/SKILL.md')), true)
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/dwy-android-development/SKILL.md')), false)
   const content = await fs.readFile(agents, 'utf8')
   assert.match(content, /用户内容/)
   assert.doesNotMatch(content, /原有规范/)

@@ -5,7 +5,7 @@ import os from 'node:os'
 import fs from 'node:fs/promises'
 import { fileURLToPath } from 'node:url'
 import { interactiveSelect, scanRules, scanSkills } from '../src/sync.js'
-import { migratedRuleSkills, syncAll } from '../src/sync-all.js'
+import { syncAll } from '../src/sync-all.js'
 
 const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../templates/ai-tools')
 const expected = ['dwy-python-development', 'dwy-python-architecture', 'dwy-python-api', 'dwy-vue-development', 'dwy-vue-architecture', 'dwy-apple-appkit', 'dwy-auth', 'dwy-payment', 'dwy-notify', 'dwy-webhooks', 'dwy-apple-notify', 'dwy-email-notify', 'dwy-wechatpay-notify', 'dwy-device-fingerprint', 'dwy-admin-kit', 'dwy-auth-web', 'dwy-android-development', 'dwy-android-architecture', 'dwy-flutter-development', 'dwy-harmony-development', 'dwy-postgres', 'dwy-redis', 'dwy-alembic']
@@ -25,20 +25,7 @@ test('语言与基础库技能可发现，引用资料存在，Python 和 Vue �
   assert.deepEqual(rules, [])
 })
 
-test('旧规则映射到对应技能，重复规则只推荐一次', () => {
-  assert.deepEqual([...migratedRuleSkills(new Set(['dwy-python-core.md', 'dwy-python-testing.md', 'dwy-vue-layering.md', 'dwy-android-core.md']))].sort(),
-    ['dwy-android-development', 'dwy-python-development', 'dwy-vue-architecture'])
-})
-
 test('剩余技术栈和流程规则均有技能替代，模板不再分发 Rules', async () => {
-  const names = ['dwy-android-core.md', 'dwy-android-layering.md', 'dwy-android-mvp.md', 'dwy-android-pitfalls.md', 'dwy-android-support-only.md', 'dwy-flutter-core.md', 'dwy-flutter-network.md', 'dwy-flutter-router.md', 'dwy-flutter-testing.md', 'dwy-arkts-strict.md', 'dwy-arkts-ui-build.md', 'dwy-arkts-ui-design.md', 'dwy-harmony-pitfalls.md', 'dwy-docker.md', 'dwy-db-migration.md', 'dwy-postgres.md', 'dwy-redis.md', 'dwy-code-craft.md', 'dwy-dependency-freshness.md', 'dwy-git-commit.md', 'dwy-oss-commercial-license.md', 'dwy-prod-branch.md']
-  const skills = await scanSkills(source)
-  for (const name of names) {
-    const mapped = [...migratedRuleSkills(new Set([name]))]
-    assert.ok(mapped.length, `旧规则缺少替代技能: ${name}`)
-    for (const skill of mapped) assert.ok(skills.some(item => item.name === skill), `缺少技能: ${skill}`)
-    await fs.access(path.join(skills.find(item => item.name === mapped[0]).sourcePath, 'references', name))
-  }
   assert.deepEqual(await scanRules(source), [])
 })
 
@@ -47,7 +34,7 @@ test('没有可选规则时跳过 Rules 交互', async () => {
   assert.deepEqual(selected.rules, [])
 })
 
-test('迁移无状态旧规则时，未选替代技能则保留，选中后移除且保留手写内容', async t => {
+test('无状态旧规则在确认后清理，不依赖选择技能，保留手写内容', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-rule-migration-'))
   t.after(() => fs.rm(root, { recursive: true, force: true }))
   const projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
@@ -63,14 +50,31 @@ test('迁移无状态旧规则时，未选替代技能则保留，选中后移�
   assert.match(await fs.readFile(agents, 'utf8'), /旧规则/)
   assert.equal(await fs.readFile(personalRule, 'utf8'), '# 个人内容')
   await syncAll({ ...opts, selected: { skills: [], rules: [] } })
-  assert.match(await fs.readFile(agents, 'utf8'), /旧规则/)
-  await syncAll({ ...opts, selected: { skills: [{ name: 'dwy-python-development' }], rules: [] } })
   const result = await fs.readFile(agents, 'utf8')
   assert.match(result, /手写内容/)
   assert.doesNotMatch(result, /旧规则/)
   assert.match(result, /未知规则/)
   assert.equal(await fs.readFile(personalRule, 'utf8'), '# 个人内容')
-  await fs.access(path.join(projectDir, '.agents/skills/dwy-python-development/SKILL.md'))
+  await assert.rejects(fs.access(path.join(projectDir, '.agents/skills/dwy-python-development/SKILL.md')))
+})
+
+test('多条旧托管规则清理后保留项目手写内容和未知规则', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-multi-rule-migration-'))
+  t.after(() => fs.rm(root, { recursive: true, force: true }))
+  const projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  await fs.mkdir(projectDir, { recursive: true })
+  const names = ['dwy-android-core.md', 'dwy-android-support-only.md', 'dwy-code-craft.md', 'dwy-git-commit.md']
+  const sections = [...names, 'custom.md'].map(name => `<!-- dwy-rule: ${name} -->\n\n# ${name}`)
+  const agents = path.join(projectDir, 'AGENTS.md')
+  await fs.writeFile(agents, `# 项目手写内容\n\n<!-- DWY-RULES:START 由 dwy 交互式同步生成，请勿手动编辑此区块 -->\n\n${sections.join('\n\n')}\n\n<!-- DWY-RULES:END -->\n`)
+  await syncAll({ sourceDir: source, projectDir, homeDir, codexHome: path.join(homeDir, '.codex'),
+    scope: 'project', selectedPlatforms: ['codex'], contentTypes: ['skills', 'rules'], confirmed: true,
+    selected: { skills: [], rules: [] } })
+  const content = await fs.readFile(agents, 'utf8')
+  assert.match(content, /项目手写内容/)
+  assert.match(content, /custom\.md/)
+  for (const name of names) assert.ok(!content.includes(`dwy-rule: ${name}`), name)
+  await assert.rejects(fs.access(path.join(projectDir, '.agents/skills/dwy-android-development/SKILL.md')))
 })
 
 test('Cursor 不支持 Skills，迁移时保留历史 Cursor 规则', async t => {

@@ -182,11 +182,6 @@ const RULE_SKILL_MIGRATIONS = {
   'dwy-prod-branch.md': ['dwy-publish'],
 }
 
-/** 将旧托管规则映射为可选的对应技能，保留用户最终选择。 */
-export function migratedRuleSkills(names) {
-  return new Set([...names].flatMap(name => RULE_SKILL_MIGRATIONS[name] || []))
-}
-
 function staleEntries(scans, state, existing, platforms) {
   const current = Object.fromEntries(['skills', 'rules', 'hooks'].map(type => [type, new Set(scans[type].map(item => item.name))]))
   const result = {}
@@ -330,10 +325,6 @@ export async function syncAll({
     unionSets(...platforms.map(platform => platform === 'cursor' && type === 'rules' ? cursorRules : existing[platform][type]))]))
   const defaults = buildSelectionDefaultsFromSyncState(current, targetState, platforms)
   for (const type of ['skills', 'rules', 'hooks']) defaults[type] = unionSets(defaults[type], current[type])
-  if (!global && contentTypes.includes('skills')) {
-    const oldRules = unionSets(current.rules, ...platforms.map(platform => new Set(targetState.platforms[platform]?.rules || [])))
-    defaults.skills = unionSets(defaults.skills, migratedRuleSkills(oldRules))
-  }
   const choices = !global && contentTypes.includes('skills')
     ? { ...scans, skills: await projectSkillChoices(scans.skills, platforms, { homeDir, codexHome }) } : scans
   const selected = selectedOverride
@@ -385,15 +376,13 @@ export async function syncAll({
   const stale = staleEntries(scans, targetState, existing, platforms)
   const removals = normalizeRemovals(removalsOverride || stale)
   if (!removalsOverride) {
-    const availableSkills = new Set(scans.skills.map(skill => skill.name))
-    const selectedSkills = new Set(selected.skills.map(skill => skill.name).filter(name => availableSkills.has(name)))
     for (const platform of platforms) for (const name of removals[platform]?.rules || []) {
-      const required = RULE_SKILL_MIGRATIONS[name]
-      if (!required && !scans.rules.length) {
+      const knownRule = RULE_SKILL_MIGRATIONS[name]
+      if (!knownRule && !scans.rules.length) {
         removals[platform].rules.delete(name)
         continue
       }
-      if (required && (platform === 'cursor' || !contentTypes.includes('skills') || required.some(skill => !selectedSkills.has(skill)))) {
+      if (knownRule && platform === 'cursor') {
         removals[platform].rules.delete(name)
       }
     }
@@ -430,7 +419,7 @@ export async function syncAll({
   if (contentTypes.includes('skills')) console.log(`Skills：${selected.skills.map(item => item.name).join('、') || '无项目安装选择；已有全局入口仅去重'}`)
   if (contentTypes.includes('rules')) console.log(scans.rules.length
     ? `Rules：${selected.rules.map(item => item.name).join('、') || '移除当前项目托管规则'}`
-    : '旧 Rules：仅迁移已选择替代 Skill 的托管项，其他内容保留')
+    : '旧 Rules：清理可识别的托管项，其他内容保留；Skills 自行选择')
   if (contentTypes.includes('baseline')) console.log(`通用规范：${contentActions.baseline === 'remove' ? '显式移除' : baseline.split('\n').filter(line => /^#/.test(line)).slice(0,3).join('；')}`)
   for (const operation of plan.operations) {
     console.log(operation.label)
