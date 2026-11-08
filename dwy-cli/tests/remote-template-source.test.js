@@ -41,7 +41,7 @@ function fixture(t) {
       console.log(await resolveSourceDir({ homeDir: ${JSON.stringify(home)}, repository: ${JSON.stringify(repo)} }));
     `], { env, encoding: 'utf8', timeout: 20000 })
     assert.equal(result.status, 0, result.stderr)
-    return { directory: result.stdout.trim().split('\n').at(-1), stderr: result.stderr }
+    return { directory: result.stdout.trim().split('\n').at(-1), stdout: result.stdout, stderr: result.stderr }
   }
   return { root, repo, home, write, commit, resolve }
 }
@@ -49,12 +49,17 @@ function fixture(t) {
 test('从 develop 获取最新 Skills，更新后无需升级 CLI', t => {
   const f = fixture(t)
   const first = f.resolve()
+  const firstDate = execFileSync('git', ['-C', f.repo, 'show', '-s', '--format=%cI', 'HEAD'], { encoding: 'utf8' }).trim()
+  assert.ok(first.stdout.includes(`模板仓库提交时间：${firstDate}`))
+  assert.ok(f.resolve().stdout.includes(`模板仓库提交时间：${firstDate}`))
   assert.equal(fs.readFileSync(path.join(first.directory, 'skills/General/first/SKILL.md'), 'utf8'), '# first\n')
   const repository = path.join(f.home, '.dwy/template-repository-v2/.git')
   const inode = fs.statSync(repository).ino
   f.write('skills/General/second/SKILL.md', '# second\n')
   f.commit()
   const second = f.resolve()
+  const secondDate = execFileSync('git', ['-C', f.repo, 'show', '-s', '--format=%cI', 'HEAD'], { encoding: 'utf8' }).trim()
+  assert.ok(second.stdout.includes(`模板仓库提交时间：${secondDate}`))
   assert.equal(second.directory, first.directory)
   assert.equal(fs.readFileSync(path.join(second.directory, 'skills/General/second/SKILL.md'), 'utf8'), '# second\n')
   assert.equal(fs.statSync(repository).ino, inode)
@@ -67,6 +72,7 @@ test('远端不可用时保留有效缓存，首次离线回退随包模板', t 
   const cached = f.resolve()
   assert.equal(cached.directory, first.directory)
   assert.match(cached.stderr, /缓存/)
+  assert.doesNotMatch(cached.stdout, /模板仓库提交时间：/)
   assert.equal(path.relative(f.root, path.join(f.home, '.dwy')), path.join('home', '.dwy'))
   fs.rmSync(path.join(f.home, '.dwy'), { recursive: true, force: true })
   const bundled = f.resolve()

@@ -34,7 +34,7 @@ Skills 副本集中在用户目录的 `.dwy/skills`，项目和全局通过目�
 
 默认从公开仓库 `https://github.com/danweiyuancircle/dwy-ai-experience.git` 的 `develop` 分支获取 `dwy-cli/templates/ai-tools`。已获取的 Git 对象和验证后的模板缓存保存在用户目录 `.dwy`，更新时复用；网络失败时优先使用有效缓存，无有效缓存才回退当前 CLI 随包模板，并显示提示。开发时设置 `DWY_TEMPLATE_SOURCE_DIR` 可优先使用本地模板目录。
 
-远端更新需要本机 Git 和可访问 GitHub 的网络；首次获取较慢时会显示进度。无法获取最新版本时，提示中的缓存或随包版本可能落后，不应当成已同步到最新。
+远端更新需要本机 Git 和可访问 GitHub 的网络；首次获取较慢时会显示进度。成功检查后显示当前模板对应的仓库提交时间（含时区）；无法读取提交时间时显示未知。无法获取最新版本时，提示中的缓存或随包版本可能落后，不应当成已同步到最新。
 
 Skills 新增或变更推送到 `develop` 后，无需为内容变更单独发布 CLI；下次运行同步或 `dwy refresh` 会检查最新模板。CLI 程序自身改变仍需通过 CLI 更新交付。
 

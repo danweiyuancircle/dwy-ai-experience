@@ -216,6 +216,10 @@ export async function resolveTemplateSource({ homeDir = os.homedir(), repository
   try {
     await refreshTemplates(root, cache, repository)
     progress?.stop('AI 模板已就绪')
+    const revision = (await fs.readFile(path.join(cache, REVISION_FILE), 'utf8')).trim()
+    const date = await git(['show', '-s', '--format=%cI', revision], path.join(root, 'template-repository-v2'))
+      .catch(() => '未知')
+    console.log(`模板仓库提交时间：${date}`)
     return cache
   } catch (error) {
     progress?.stop('模板更新未完成，正在检查本地来源')
