@@ -2,6 +2,7 @@
 
 from .providers.app_transaction import apple_original_platform
 from .providers.apple import AppleNotificationVerifier
+from .providers.apple_appearance import apple_notification_appearance
 from .providers.apple_content import apple_notification_content
 from .providers.apple_models import (
     AppleRenewalDetails,
@@ -15,6 +16,7 @@ from .providers.apple_models import (
 
 __all__ = [
     "AppleNotificationVerifier", "AppleRenewalDetails", "AppleTransactionDetails", "RefundRequestReason",
-    "VerifiedAppleNotification", "apple_notification_content", "apple_refund_request_reason",
+    "VerifiedAppleNotification", "apple_notification_content", "apple_notification_appearance",
+    "apple_refund_request_reason",
     "apple_renewal_details", "apple_transaction_details", "apple_original_platform",
 ]

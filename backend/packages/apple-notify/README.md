@@ -5,7 +5,7 @@ Apple 通知集成：购买通知验签与文案、App Store Connect 审核事�
 ## 按需安装
 
 ```bash
-pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.6'
+pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.7'
 ```
 
 `iap` 安装 Apple Server SDK；`asc`、`reviews`、`analytics` 分别安装现有 ASC HTTP/JWT/加密依赖。只使用审核、评论或报表时不需要 Apple Server SDK，也不需要 Resend。
@@ -22,6 +22,16 @@ pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.6'
 配置由宿主显式注入，本包不读取环境变量、不建数据库、不执行迁移。数据库会话、表和生命周期由宿主管理，已有队列表名、来源标识与目标指纹保持兼容。
 
 `apple_original_platform(client, verify, transaction_id)` 使用 Apple 官方客户端查询 App 交易，并通过宿主提供的异步验签函数验证签名后返回平台。调用方负责超时和错误处理；可将结果传入 `VerifiedAppleNotification.original_platform` 显示。该平台表示首次获取 App 的平台，不能用于判断本次内购的设备，iOS 也不区分 iPhone 与 iPad。
+
+## 购买通知图标（0.1.7）
+
+`dwy_apple_notify.apple.apple_notification_appearance(notice)` 接收已验签通知，返回四类默认展示：订阅购买、买断购买、退款通知、内购动态。商品类型来自 `AppleTransactionDetails.product_type`（官方 Apple `type`）；不按商品名或有效期猜测。
+
+购买要求生产环境、本人购买、金额大于零、交易编号／购买时间／币种齐全且未撤销，并且通知确实表达购买、续费或立即升级。非消耗型 `ONE_TIME_CHARGE` 才作为买断；共享、免费、Sandbox、缺字段、未知类型和普通状态更新使用通用图标。生产 `REFUND` 使用退款图标，申请／驳回／撤销退款仍为动态。购买不代表银行到账，退款保留正文中的原交易金额与归属。
+
+默认 router 已将展示放进 `NotificationEvent.appearance`，配合 `dwy-notify 0.3.3` 的 relay 或 SQLAlchemy 队列传递并保存快照。宿主自有队列可直接调用该函数，把结果传给 `deliver_notifications(..., appearance=...)`；显式应用／URL 展示仍优先，重试沿用已有快照。
+
+订阅和退款 SVG／256px PNG／Lucide 许可随 wheel 放在 `dwy_apple_notify/assets`。公网头像固定到 `dwy-apple-notify@0.1.7` 标签，正式发布时必须先公开该标签与资源；源码开发完成不代表头像地址已经可访问。买断购物袋与通用铃铛保留原固定提交地址。
 
 ## 经营统计日期
 

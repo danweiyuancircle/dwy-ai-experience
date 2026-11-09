@@ -1,10 +1,10 @@
 [project]
 name = "dwy-apple-notify"
-version = "0.1.6"
+version = "0.1.7"
 description = "Apple 购买、审核、评论与经营报表通知集成"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
-dependencies = ["dwyeapi==0.12.1", "dwy-notify==0.2.1"]
+dependencies = ["dwyeapi==0.12.1", "dwy-notify==0.3.3"]
 
 [project.optional-dependencies]
 iap = ["app-store-server-library[async]==3.1.2"]

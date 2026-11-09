@@ -432,7 +432,7 @@ wheels = [
 
 [[package]]
 name = "dwy-apple-notify"
-version = "0.1.5"
+version = "0.1.7"
 source = { editable = "../backend/packages/apple-notify" }
 dependencies = [
     { name = "dwy-notify" },
@@ -476,7 +476,7 @@ requires-dist = [
     { name = "cryptography", marker = "extra == 'analytics'", specifier = "==50.0.2" },
     { name = "cryptography", marker = "extra == 'asc'", specifier = "==50.0.2" },
     { name = "cryptography", marker = "extra == 'reviews'", specifier = "==50.0.2" },
-    { name = "dwy-notify", specifier = "==0.2.1" },
+    { name = "dwy-notify", specifier = "==0.3.3" },
     { name = "dwyeapi", specifier = "==0.12.1" },
     { name = "httpx", marker = "extra == 'analytics'", specifier = "==0.28.1" },
     { name = "httpx", marker = "extra == 'asc'", specifier = "==0.28.1" },
@@ -578,7 +578,7 @@ provides-extras = ["resend", "dev"]
 
 [[package]]
 name = "dwy-notify"
-version = "0.3.2"
+version = "0.3.3"
 source = { editable = "../backend/packages/notify" }
 dependencies = [
     { name = "apprise" },

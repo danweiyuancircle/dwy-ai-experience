@@ -83,15 +83,19 @@ class SQLAlchemyDeliveryQueue:
         """接收器可直接作为 sink 注入；错误来源必须在持久化前拒绝。"""
         if event.source != self.source:
             raise ValueError("Webhook source does not match the delivery queue")
-        return await self.enqueue(event.scope, event.event_id, event.event_type, event.content)
+        return await self.enqueue(event.scope, event.event_id, event.event_type, event.content,
+                                  appearance=event.appearance)
 
-    async def enqueue(self, app_id: str, event_id: str, event_type: str, content: str) -> bool:
+    async def enqueue(self, app_id: str, event_id: str, event_type: str, content: str, *,
+                      appearance: NotificationAppearance | None = None) -> bool:
         """原子去重和入队；返回后接收端才能向提供方确认成功。"""
         async with self.sessions.begin() as db:
-            return await self.enqueue_in_session(db, app_id, event_id, event_type, content)
+            return await self.enqueue_in_session(db, app_id, event_id, event_type, content,
+                                                 appearance=appearance)
 
     async def enqueue_in_session(
         self, db: AsyncSession, app_id: str, event_id: str, event_type: str, content: str,
+        *, appearance: NotificationAppearance | None = None,
     ) -> bool:
         """加入宿主事务，True 为新增、False 为重复；不提交、回滚或关闭外部会话。
 
@@ -104,9 +108,12 @@ class SQLAlchemyDeliveryQueue:
         factory = {"sqlite": sqlite_insert, "postgresql": pg_insert}.get(db.get_bind().dialect.name)
         if factory is None:
             raise ValueError("Webhook queue requires PostgreSQL or SQLite")
+        payload = {"content": content}
+        if appearance is not None:
+            payload["appearance"] = appearance.model_dump(exclude_unset=True)
         result = await db.execute(factory(table).values(
             app_id=app_id, id=event_id, event_type=event_type,
-            payload={"content": content}, status="pending",
+            payload=payload, status="pending",
         ).on_conflict_do_nothing(index_elements=["app_id", "id"]))
         return bool(result.rowcount)
 

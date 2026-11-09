@@ -54,6 +54,54 @@ async def test_injected_queue_deduplicates_and_isolates_applications(storage):
         await queue(event(source="resend"))
 
 
+async def test_event_appearance_is_snapshotted_at_enqueue_and_reused_on_retry(storage):
+    from types import SimpleNamespace
+
+    from dwy_notify import NotificationAppearance
+
+    calls = []
+    async def send(body, *, targets, default_appearance=None):
+        calls.append(default_appearance)
+        return SimpleNamespace(deliveries=(SimpleNamespace(
+            target=targets[0], success=len(calls) > 1, message_id=None,
+            error_code="network_error", retry_after=None, permanent=False,
+        ),))
+
+    notifier = SimpleNamespace(targets=("primary",), target_fingerprint=lambda name: name, send=send)
+    preset = NotificationAppearance(username="订阅购买", avatar_url="https://example.com/subscription.png")
+    consumer = SQLAlchemyDeliveryQueue(*storage, notifier=notifier, source="app_store_connect",
+                                      clock=lambda: 100)
+    incoming = WebhookEvent("app_store_connect", "app", "event", "paid", "content", appearance=preset)
+    assert await consumer(incoming)
+    assert (await read(storage))[0]["payload"]["appearance"] == preset.model_dump(exclude_unset=True)
+    assert await consumer.process_pending() == 0
+    restarted = SQLAlchemyDeliveryQueue(
+        *storage, notifier=notifier, source="app_store_connect", clock=lambda: 1000,
+        appearance=NotificationAppearance(username="changed"),
+    )
+    assert await restarted.process_pending() == 1
+    assert calls == [preset, preset]
+
+
+async def test_relay_uses_event_appearance_over_its_module_default():
+    from types import SimpleNamespace
+
+    from dwy_notify import NotificationAppearance
+    from dwy_notify.relay import NotificationRelay
+
+    calls = []
+    async def send(body, *, targets, default_appearance=None):
+        calls.append(default_appearance)
+        return SimpleNamespace(deliveries=(SimpleNamespace(success=True),))
+
+    notifier = SimpleNamespace(targets=("primary",), target_fingerprint=lambda name: name, send=send)
+    preset = NotificationAppearance(username="退款通知")
+    relay = NotificationRelay(notifier, appearance=NotificationAppearance(username="内购动态"))
+    incoming = WebhookEvent("apple", "app", "refund", "REFUND", "content", appearance=preset)
+    assert await relay(incoming)
+    assert calls == [preset]
+
+
 async def test_retry_after_and_safe_failure_survive_a_new_consumer(storage):
     async def failed(content):
         raise WebhookDeliveryError("discord_rate_limited", retry_after=15.5)

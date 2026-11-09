@@ -20,7 +20,7 @@ class Notifier:
     """
 
     def __init__(self, config: NotificationConfig, *, url_appearance_is_default: bool = False):
-        """固定目标；兼容层生成的隐式 URL 展示可降为默认值，不改变旧目标指纹。"""
+        """仅将兼容层的隐式 URL 名称降为默认，显式头像不降级，目标指纹保持不变。"""
         self._plugins = {
             name: create_plugin(url.get_secret_value(), config.timeout_seconds)
             for name, url in config.targets.items()
@@ -72,8 +72,10 @@ class Notifier:
                 display.update(url_display)
             if default_appearance is not None:
                 display.update(default_appearance.model_dump(exclude_unset=True))
-            if not self._url_appearance_is_default:
-                display.update(url_display)
+            display.update({
+                key: value for key, value in url_display.items()
+                if key != "username" or not self._url_appearance_is_default
+            })
             display.update(self._appearance.model_dump(exclude_unset=True))
             if appearance is not None:
                 display.update(appearance.model_dump(exclude_unset=True))

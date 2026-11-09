@@ -72,6 +72,21 @@ async def test_explicit_target_url_is_preserved_below_application_override(post)
     assert post.call_args.kwargs["json"]["avatar_url"] == ICON
 
 
+@pytest.mark.parametrize("avatar", ["no", "yes"])
+async def test_legacy_implicit_name_does_not_demote_explicit_url_avatar(post, avatar):
+    notifier = Notifier(NotificationConfig(targets={
+        "ops": DISCORD.replace("discord://", "discord://LegacyName@") + "?avatar=" + avatar,
+    }), url_appearance_is_default=True)
+    preset = NotificationAppearance(username="订阅购买", avatar_url=ICON)
+    assert (await notifier.send("消息", default_appearance=preset)).success
+    payload = post.call_args.kwargs["json"]
+    assert payload["username"] == "订阅购买"
+    if avatar == "no":
+        assert "avatar_url" not in payload
+    else:
+        assert "caronc/apprise" in payload["avatar_url"]
+
+
 async def test_explicit_apprise_avatar_is_preserved_below_application_override(post):
     notifier = Notifier(NotificationConfig(
         targets={"ops": DISCORD + "?avatar=yes"}, appearance=NotificationAppearance(username="系统通知"),

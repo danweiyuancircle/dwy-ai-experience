@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Request
 from ..config import AppleNotificationApp, AppleNotificationsConfig
 from ..errors import WebhookVerificationError
 from . import accept_event, read_payload
+from .apple_appearance import apple_notification_appearance
 from .apple_content import apple_notification_content
 from .apple_models import (
     VerifiedAppleNotification,
@@ -196,6 +197,7 @@ def create_apple_router(
             source="apple_notifications", scope=app_id, event_id=notice.notification_id,
             event_type=notice.notification_type, content=_content(application.name, notice),
             data=notice.public_data(),
+            appearance=apple_notification_appearance(notice),
         )
         return await accept_event(sink, event)
 

@@ -70,7 +70,7 @@ class NotificationRelay:
                     continue
                 result = await self.notifier.send(
                     event.content, targets=(target,),
-                    default_appearance=self.appearance,
+                    default_appearance=event.appearance if event.appearance is not None else self.appearance,
                 )
                 delivery = result.deliveries[0]
                 if delivery.success:

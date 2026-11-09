@@ -27,6 +27,7 @@ class AppleTransactionDetails(BaseModel):
     currency: CurrencyCode | None = None
     storefront: str | None = Field(default=None, min_length=3, max_length=3, pattern=r"^[A-Z]{3}$")
     revocation_reason: int | None = Field(default=None, ge=0, le=2**31 - 1, strict=True)
+    product_type: str | None = Field(default=None, min_length=1, max_length=64)
 
 
 class AppleRenewalDetails(BaseModel):
@@ -101,6 +102,7 @@ def apple_transaction_details(decoded) -> AppleTransactionDetails:
         ownership_type=_enum_value(decoded, "inAppOwnershipType"), price_milliunits=decoded.price,
         currency=decoded.currency, storefront=decoded.storefront,
         revocation_reason=_enum_value(decoded, "revocationReason"),
+        product_type=_enum_value(decoded, "type"),
     )
 
 

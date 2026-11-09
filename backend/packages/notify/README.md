@@ -12,10 +12,12 @@
 
 基础发送器不依赖 Apple、邮件或 Webhook 业务包。新模块使用自己的展示预设；历史兼容字段的旧名称仅为保证已有队列目标指纹稳定，不作为新业务的默认名称。
 
+0.3.3 新增 `NotificationEvent.appearance` 可选默认展示；relay 优先使用逐事件预设，未传时沿用模块预设。`SQLAlchemyDeliveryQueue` 在入队时将事件展示写入现有 JSON，重启和失败重试保留快照；`enqueue` 与 `enqueue_in_session` 同样接受可选关键字 `appearance`。它只传递展示，不识别 Apple 或其它业务事件。应用配置与目标 URL 的显式展示覆盖优先级不变。
+
 实际 wheel 的发布验收在仓库外执行 `tests/delivery_wheel_smoke.py EXPECTED_VERSION`；需安装 `sqlalchemy` extra 与测试 SQLite 驱动。它核对安装版本、基础导入不加载 ORM/FastAPI/旧业务包，以及队列持久化显式预设和重启去重；不向外部服务发消息。
 
 ```bash
-pip install dwy-notify==0.3.0
+pip install dwy-notify==0.3.3
 ```
 
 ```python
