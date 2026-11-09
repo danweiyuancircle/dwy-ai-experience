@@ -77,7 +77,6 @@ cmd_set() {
   mv "$tmp" "$file"
 
   echo "OK: cached $rel -> $platform/$method"
-  echo "Remember to add /.dwy/publish/ to the project root .gitignore (本机判断缓存，不入版本库)"
 }
 
 cmd_reset() {
