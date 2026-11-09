@@ -106,7 +106,7 @@ export async function planMissingExternalSkills(targetDir) {
 async function installSkillSources(sources, targetDir, missingOnly) {
   if (sources.length === 0) return
   const versionsFile = path.join(targetDir, 'VERSIONS.json')
-  const previous = missingOnly && await fs.pathExists(versionsFile) ? await fs.readJson(versionsFile) : {}
+  const previous = await fs.pathExists(versionsFile) ? await fs.readJson(versionsFile) : {}
   const versions = { ...previous.versions }
   await fs.ensureDir(targetDir)
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-skills-'))
@@ -130,8 +130,24 @@ async function installSkillSources(sources, targetDir, missingOnly) {
         if (!await fs.pathExists(from)) {
           throw new Error(`${sourceName} @ ${src.tag} 内未找到 ${repoPath}（仓库结构可能变了）`)
         }
-        await fs.remove(to)
-        await fs.copy(from, to, { overwrite: true })
+        const staging = await fs.mkdtemp(path.join(targetDir, '.refresh-'))
+        const staged = path.join(staging, skillName)
+        try {
+          await fs.copy(from, staged)
+          const backup = `${to}.dwy-backup`
+          if (await fs.pathExists(backup)) throw new Error(`外部 Skill 备份已存在，请先检查并恢复：${backup}`)
+          const exists = await fs.pathExists(to)
+          if (exists) await fs.rename(to, backup)
+          try {
+            await fs.rename(staged, to)
+          } catch (error) {
+            if (exists) await fs.rename(backup, to)
+            throw error
+          }
+          if (exists) await fs.remove(backup)
+        } finally {
+          await fs.remove(staging)
+        }
         logAction(`skills/${skillName}`)
         versions[skillName] = { repo: src.repo, tag: src.tag }
       }
@@ -153,6 +169,19 @@ async function installSkillSources(sources, targetDir, missingOnly) {
 /** 兼容显式安装调用：更新固定清单中的全部外部 Skills。 */
 export async function installSkills() {
   return installSkillSources(Object.entries(SKILL_SOURCES), getGlobalSkillsDir(), false)
+}
+
+/** 仅刷新已安装的外部 Skills 到 CLI 固定版本，不补装未选择的依赖。 */
+export async function refreshExternalSkills(targetDir) {
+  const sources = []
+  for (const [name, source] of Object.entries(SKILL_SOURCES)) {
+    const skills = {}
+    for (const [skill, repoPath] of Object.entries(source.skills)) {
+      if (await validExternalSkill(path.join(targetDir, skill))) skills[skill] = repoPath
+    }
+    if (Object.keys(skills).length) sources.push([name, { ...source, skills }])
+  }
+  await installSkillSources(sources, targetDir, false)
 }
 
 // 全局 skill 是否已就绪（VERSIONS.json 存在）。

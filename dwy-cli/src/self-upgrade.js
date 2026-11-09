@@ -192,7 +192,7 @@ export async function selfUpgrade({
     // 必须启动新安装的 CLI；pnpm 升级后旧进程的模块路径仍可能指向旧版本。
     await runCommand('dwy', ['refresh'])
   } catch (error) {
-    throw new Error(`CLI ${installed} 已就绪，但共享 Skills 刷新失败：${error.message}`, { cause: error })
+    throw new Error(`CLI ${installed} 已就绪，但配置刷新失败：${error.message}`, { cause: error })
   }
   if (cmp === 0) {
     console.log(chalk.green(`已是最新正式版 ${installed}`))

@@ -4,12 +4,12 @@ import os from 'node:os'
 import { confirm, isCancel } from '@clack/prompts'
 import { SEARCH_PLACEHOLDER, searchableMultiselect, searchableSelect } from './searchable-select.js'
 import { normalizeSkillScope, resolveProjectSkillDir, resolveGlobalSkillDir, copySkillsToProjectPlatforms, deduplicateProjectSkills } from './sync-global-skills.js'
-import { ensureSharedSkills } from './skill-store.js'
+import { ensureSharedSkills, refreshSharedSkills } from './skill-store.js'
 import { chalk } from './utils.js'
 import { interactiveSelect, loadHookManifests, readBaselineDoc, resolveSourceDir, scanExisting, scanHooks, scanRules, scanSkills } from './sync.js'
 import { hasManagedBaseline, parseManagedRuleNames, scanExistingCodexHooks, scanExistingCodexSkills } from './sync-codex.js'
 import { scanExistingCursorRules } from './sync-cursor.js'
-import { installSkills } from './skills-install.js'
+import { installSkills, refreshExternalSkills } from './skills-install.js'
 import { selfUpgrade } from './self-upgrade.js'
 import { buildSyncPlan, contentOptions, projectSkillChoices, PLATFORM_LABELS, PLATFORM_SYNC_TYPES } from './sync-plan.js'
 import { assertConfigPath, baselineProviders, globalBaselinePath, globalHookNames, hasManagedHookConfig } from './sync-inheritance.js'
@@ -139,6 +139,55 @@ async function managedNames(root, global, codexHome) {
     opencode: { skills: await scanExisting(opencode, 'skills'), rules: projectRules, hooks: new Set() },
     cursor: { rules: await scanExistingCursorRules(root), skills: new Set(), hooks: new Set() },
   }
+}
+
+/** 刷新全局和当前项目已启用的托管内容；其他项目通过共享 Skills 链接生效，不扫描磁盘。 */
+export async function refreshAll({
+  sourceDir, projectDir = process.cwd(), homeDir = os.homedir(),
+  codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'),
+} = {}) {
+  sourceDir ||= await resolveSourceDir({ homeDir })
+  const scans = { skills: await scanSkills(sourceDir), rules: await scanRules(sourceDir), hooks: await scanHooks(sourceDir), commands: [] }
+  const baseline = await readBaselineDoc(sourceDir)
+  let projectState = await loadSyncState(projectDir), globalState = await loadSyncState(homeDir)
+  const isHome = await fs.realpath(projectDir) === await fs.realpath(homeDir)
+  for (const scope of isHome ? ['global'] : ['global', 'project']) {
+    const global = scope === 'global', root = global ? homeDir : projectDir
+    const existing = await managedNames(root, global, codexHome)
+    for (const platform of Object.keys(PLATFORM_SYNC_TYPES).filter(p => !global || p !== 'cursor')) {
+      const state = (global ? globalState : projectState).platforms[platform]
+      const names = type => new Set([...(state?.[type] || []), ...existing[platform][type]])
+      const selected = { skills: scans.skills.filter(item => names('skills').has(item.name)),
+        rules: scans.rules.filter(item => names('rules').has(platform === 'cursor' ? buildCursorRuleName(item.name) : item.name)
+          || (state?.rules || []).includes(item.name)) }
+      const hooks = scans.hooks.filter(item => names('hooks').has(item.name))
+      const baselinePath = global ? globalBaselinePath(platform, homeDir, codexHome) : path.join(projectDir, 'AGENTS.md')
+      const managedBaseline = platform !== 'cursor' && await hasManagedBaseline(baselinePath)
+      const contentTypes = PLATFORM_SYNC_TYPES[platform].filter(type => type === 'baseline'
+        ? baseline.trim() && (state?.baseline || managedBaseline)
+        : type === 'hooks' ? hooks.length : selected[type]?.length)
+      if (!contentTypes.length) continue
+      const plan = await buildSyncPlan({ scope, platforms: [platform], contentTypes, selected,
+        scans: { ...scans, hooks }, sourceDir, projectDir, homeDir, codexHome, projectState, globalState, baseline,
+        installExternalDependencies: false,
+        staleEntries: staleEntries(scans, global ? globalState : projectState, existing, [platform]),
+      })
+      for (const operation of plan.operations) await operation.run()
+      projectState = plan.nextProject
+      globalState = plan.nextGlobal
+      if (plan.projectChanged) {
+        await assertConfigPath(path.join(projectDir, ...SYNC_STATE_PATH), projectDir)
+        await saveSyncState(projectDir, projectState)
+      }
+      if (plan.globalChanged) {
+        await assertConfigPath(path.join(homeDir, ...SYNC_STATE_PATH), homeDir)
+        await saveSyncState(homeDir, globalState)
+      }
+      console.log(chalk.green(`已刷新${global ? '全局' : '当前项目'} ${PLATFORM_LABELS[platform]}：${contentTypes.join('、')}`))
+    }
+  }
+  await refreshSharedSkills({ sourceDir, homeDir })
+  await refreshExternalSkills(path.join(process.env.DWY_HOME || path.join(homeDir, '.dwy'), 'skills'))
 }
 
 const RULE_SKILL_MIGRATIONS = {

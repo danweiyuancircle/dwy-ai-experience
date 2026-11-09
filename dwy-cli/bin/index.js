@@ -3,8 +3,7 @@
 import { readFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
-import { runDwy, migrateSkills } from '../src/sync-all.js'
-import { refreshSharedSkills } from '../src/skill-store.js'
+import { runDwy, migrateSkills, refreshAll } from '../src/sync-all.js'
 import { selfUpgrade } from '../src/self-upgrade.js'
 import { buildHelpText } from '../src/cli-help.js'
 import { manageTemplateSource } from '../src/template-source.js'
@@ -34,7 +33,7 @@ if (wantsHelp(argv)) {
   } else {
     try {
       if (argv[0] === 'upgrade') await selfUpgrade()
-      if (argv[0] === 'refresh') await refreshSharedSkills()
+      if (argv[0] === 'refresh') await refreshAll()
       if (argv[0] === 'migrate') await migrateSkills()
       if (argv[0] === 'source') await manageTemplateSource(argv[1])
     } catch (error) {

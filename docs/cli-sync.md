@@ -57,10 +57,14 @@ Skills 新增或变更推送到 `develop` 后，无需为内容变更单独发�
 | 入口 | 用途 |
 | --- | --- |
 | `dwy` / `dwy sync` | 获取最新模板，确认后同步所选配置，并刷新本次所选、需由当前范围提供的共享 Skills |
-| `dwy refresh` | 获取最新模板并刷新已安装共享 Skills；已有链接同时生效 |
-| `dwy upgrade` | 更新到 npm 最新正式版程序，并刷新共享 Skills |
+| `dwy refresh` | 获取最新模板，刷新全局和当前项目已启用的共享 Skills、通用规范、Hooks 和仍可用的 Rules，以及已安装的外部 Skills |
+| `dwy upgrade` | 更新到 npm 最新正式版程序，并执行 `dwy refresh` |
 | `dwy migrate` | 迁移当前项目已有托管 Skills，真实目录先备份，无需重新勾选 |
 
 `dwy upgrade` 默认从 npm 官方源查询并安装同一精确版本，避免本机镜像的 `latest` 滞后；显式设置 `npm_config_registry` 时查询与安装都使用该源，不修改用户的 registry 配置。安装后回读当前 PATH 中的 `dwy --version`，版本一致才刷新并报告成功；刷新失败单独报错。
 
-Hooks 更新仍需执行 `dwy sync`。已有会话可能缓存 Skill 内容，需要重新加载。个人 Skills、Rules、Hooks 不参与 `dwy migrate`；脚本层的 sync / migrate 接口仍须显式指定范围，不从上一次交互猜测。
+`dwy refresh` 不重新勾选、不启用未安装内容；保留手写配置、已从模板移除的历史条目及个人 Skills。旧真实 Skill 目录转为共享链接前先备份。外部 Skills 只更新已安装项到 CLI 内固定的正式版本，需联网，不追踪上游浮动分支；失败时命令报错，已完成的其他更新保留。离线模板仍遵循缓存回退规则。
+
+在项目目录执行可同时更新当前项目和全局。其他项目的共享 Skills 链接自动生效；项目独立规范、Hooks 和 Rules 需进入对应项目执行，不扫描其他目录。在用户主目录执行只刷新全局。新增选择或清理历史内容仍使用 `dwy sync`。
+
+已有会话可能缓存 Skill 内容，需要重新加载。个人 Skills、Rules、Hooks 不参与 `dwy migrate`；脚本层的 sync / migrate 接口仍须显式指定范围，不从上一次交互猜测。

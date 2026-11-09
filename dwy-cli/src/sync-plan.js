@@ -77,6 +77,7 @@ export async function buildSyncPlan({
   migratedRuleSources = {},
   contentActions = {},
   refreshSkills = false,
+  installExternalDependencies = true,
   skillScope = { destinations: ['project'], globalSkills: [] },
 }) {
   const global = scope === 'global'
@@ -218,7 +219,7 @@ export async function buildSyncPlan({
         paths: [...skills.map(skill => path.join(homeDir, '.dwy', 'skills', skill.name)), path.join(homeDir, '.dwy', 'skill-store.json')],
         run: () => (refreshSkills ? prepareSharedSkills : ensureSharedSkills)({ skills, homeDir }) })
     }
-    if ([...neededSkills.values()].some(skill => skill.category === '产品0到1')) {
+    if (installExternalDependencies && [...neededSkills.values()].some(skill => skill.category === '产品0到1')) {
       const target = path.join(process.env.DWY_HOME || path.join(homeDir, '.dwy'), 'skills')
       const external = await planMissingExternalSkills(target)
       if (external.paths.length) add('external-skills', '补齐产品流程外部 Skills（联网拉取固定版本，保留已有内容）', external.paths, external.run)

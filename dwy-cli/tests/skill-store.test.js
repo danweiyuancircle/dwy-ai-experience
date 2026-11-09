@@ -16,12 +16,13 @@ async function fixture(t) {
   return { root, homeDir, sourceDir, skill: { name: 'sample', sourcePath } }
 }
 
-test('两个项目链接到稳定共享目录，刷新后正文、引用和删除文件同时生效', async t => {
+test('项目和全局链接到稳定共享目录，刷新后正文、引用和删除文件同时生效', async t => {
   const { root, homeDir, sourceDir, skill } = await fixture(t)
   await fs.outputFile(path.join(skill.sourcePath, 'old.md'), 'remove me')
   const [shared] = await prepareSharedSkills({ skills: [skill], homeDir })
   assert.equal(shared.sourcePath, path.join(homeDir, '.dwy', 'skills', 'sample'))
   const entries = ['one', 'two'].map(name => path.join(root, name, '.agents', 'skills', skill.name))
+  entries.push(path.join(homeDir, '.agents', 'skills', skill.name))
   for (const dest of entries) {
     await linkSkill({ skill: shared, dest, backupRoot: path.join(root, 'backups') })
     assert.equal((await fs.lstat(dest)).isSymbolicLink(), true)
