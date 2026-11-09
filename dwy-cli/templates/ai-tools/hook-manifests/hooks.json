@@ -4,6 +4,7 @@
     "event": "PreToolUse",
     "matcher": "Bash",
     "platforms": ["claude", "codex"],
+    "statusMessage": "dwy：检查提交中的敏感信息",
     "timeout": 30
   },
   {
@@ -11,6 +12,7 @@
     "event": "PreToolUse",
     "matcher": "Bash",
     "platforms": ["claude", "codex"],
+    "statusMessage": "dwy：检查提交命令中的反引号",
     "timeout": 30
   },
   {
@@ -18,6 +20,7 @@
     "event": "PreToolUse",
     "matcher": "Bash",
     "platforms": ["claude", "codex"],
+    "statusMessage": "dwy：检查提交信息中的 AI 签名",
     "timeout": 30
   }
 ]

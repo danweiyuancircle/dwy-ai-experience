@@ -282,6 +282,7 @@ export function buildCodexHooksJson(manifests, selectedHookNames, global, config
       command: global
         ? globalHookCommand(configDir, manifest.name)
         : `bash "$(git rev-parse --show-toplevel)/.codex/hooks/${manifest.name}"`,
+      ...(manifest.statusMessage ? { statusMessage: manifest.statusMessage } : {}),
       ...(manifest.timeout ? { timeout: manifest.timeout } : {}),
     })
     grouped.set(key, hooks)

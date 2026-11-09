@@ -8,6 +8,7 @@ import { syncAll, migrateSkills } from '../src/sync-all.js'
 import { refreshSharedSkills } from '../src/skill-store.js'
 import { buildSyncPlan, contentOptions, projectSkillChoices } from '../src/sync-plan.js'
 import { planMissingExternalSkills } from '../src/skills-install.js'
+import { buildCodexHooksJson } from '../src/sync-codex.js'
 
 async function fixture(t) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-explicit-sync-'))
@@ -144,6 +145,7 @@ test('只选择 Hooks 按支持平台自动同步，预览路径与实际脚本�
 
 test('全局 Codex Hooks 遵循配置目录，命令可执行且重复同步保留个人项', async t => {
   const opts = await fixture(t)
+  await fs.outputJson(path.join(opts.sourceDir, 'hook-manifests/hooks.json'), [{ name: 'check.sh', event: 'PreToolUse', platforms: ['codex'], statusMessage: 'dwy：检查提交' }])
   const codexHome = path.join(opts.homeDir, "custom profile's codex")
   const personalCommand = "bash '/somewhere/hooks/check.sh'"
   await fs.outputJson(path.join(codexHome, 'hooks.json'), { hooks: { PreToolUse: [
@@ -157,9 +159,23 @@ test('全局 Codex Hooks 遵循配置目录，命令可执行且重复同步保�
   assert.equal(commands.length, 2)
   assert.ok(commands.includes(personalCommand))
   const generated = commands.find(command => command !== personalCommand)
+  assert.equal(config.hooks.PreToolUse.flatMap(item => item.hooks).find(hook => hook.command === generated).statusMessage, 'dwy：检查提交')
   assert.equal(execFileSync('bash', ['-c', generated], { encoding: 'utf8' }).trim(), 'hook')
   assert.equal(await fs.pathExists(path.join(opts.homeDir, '.codex')), false)
   assert.ok(operations.some(operation => operation.paths.includes(path.join(codexHome, 'hooks.json'))))
+})
+
+test('内置 Codex Hooks 在全局和项目注册中显示 dwy 功能描述', async () => {
+  const manifests = await fs.readJson(new URL('../templates/ai-tools/hook-manifests/hooks.json', import.meta.url))
+  const names = new Set(manifests.map(item => item.name))
+  for (const global of [true, false]) {
+    const config = buildCodexHooksJson(manifests, names, global, '/test/.codex')
+    assert.deepEqual(config.hooks.PreToolUse.flatMap(group => group.hooks.map(hook => hook.statusMessage)), [
+      'dwy：检查提交中的敏感信息',
+      'dwy：检查提交命令中的反引号',
+      'dwy：检查提交信息中的 AI 签名',
+    ])
+  }
 })
 
 test('产品流程外部依赖进入只读清单，已有副本不列入下载或覆盖', async t => {

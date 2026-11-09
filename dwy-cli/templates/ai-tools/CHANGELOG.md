@@ -1,5 +1,11 @@
 # ai-tools 内部版本
 
+## 0.36.1 - 2026-11-09
+
+### Changed
+
+- `hook-manifests/hooks.json` 为三个 Codex Hook 添加带 dwy 前缀的执行状态说明。
+
 ## 0.36.0 - 2026-11-08
 
 ### Changed
