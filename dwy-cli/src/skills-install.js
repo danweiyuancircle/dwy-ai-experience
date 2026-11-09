@@ -68,7 +68,11 @@ function getGlobalSkillsDir() {
 
 // 浅克隆指定 tag 到临时目录（--depth 1 + --branch <tag> 只取定版，省带宽）。
 async function shallowCloneTag(repoUrl, tag, destDir) {
-  await runGit(['clone', '--depth', '1', '--branch', tag, repoUrl, destDir])
+  await runGit(['clone', '--depth', '1', '--branch', tag, repoUrl, destDir], {
+    timeout: 15000,
+    killSignal: 'SIGKILL',
+    env: { ...process.env, GIT_TERMINAL_PROMPT: '0' },
+  })
 }
 
 async function validExternalSkill(dest) {
@@ -103,18 +107,27 @@ export async function planMissingExternalSkills(targetDir) {
   return { paths, run: () => installSkillSources(sources, targetDir, true) }
 }
 
-async function installSkillSources(sources, targetDir, missingOnly) {
+async function installSkillSources(sources, targetDir, missingOnly, skipUnavailable = false) {
   if (sources.length === 0) return
   const versionsFile = path.join(targetDir, 'VERSIONS.json')
   const previous = await fs.pathExists(versionsFile) ? await fs.readJson(versionsFile) : {}
   const versions = { ...previous.versions }
+  let installed = 0, skipped = false
   await fs.ensureDir(targetDir)
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-skills-'))
   try {
     for (const [sourceName, src] of sources) {
       console.log(chalk.gray(`拉取 ${sourceName} @ ${src.tag} ...`))
       const repoDir = path.join(tmpRoot, sourceName)
-      await shallowCloneTag(src.repo, src.tag, repoDir)
+      try {
+        await shallowCloneTag(src.repo, src.tag, repoDir)
+      } catch (error) {
+        if (!skipUnavailable) throw error
+        skipped = true
+        console.log(chalk.yellow(`${sourceName} 拉取失败或超时（上限 15 秒），保留旧副本并跳过：${error.message}`))
+        continue
+      }
+      installed++
 
       // 搬 LICENSE（MIT 要求保留原版权声明）
       const licenseSrc = path.join(repoDir, src.licenseFile)
@@ -153,14 +166,15 @@ async function installSkillSources(sources, targetDir, missingOnly) {
       }
     }
 
-    // 写版本清单 + 清单指纹，供查看与后续更新比对。
+    if (!installed) return
+    // 写版本清单 + 清单指纹，供查看与后续更新比对；部分拉取失败时不标记清单已更新。
     // manifest_hash 变化（cli 加了 skill / 改了 tag）→ 下次 ensureSkillsInstalled 触发重装。
     await fs.writeJson(
       versionsFile,
-      { manifest_hash: missingOnly ? previous.manifest_hash : computeManifestHash(), versions },
+      { manifest_hash: missingOnly || skipped ? previous.manifest_hash : computeManifestHash(), versions },
       { spaces: 2 },
     )
-    console.log(chalk.green(`\n✓ 外部 skill 已安装到 ${targetDir}`))
+    console.log(chalk.green(`\n✓ ${skipped ? '可用的' : ''}外部 skill 已安装到 ${targetDir}`))
   } finally {
     await fs.remove(tmpRoot)
   }
@@ -171,7 +185,7 @@ export async function installSkills() {
   return installSkillSources(Object.entries(SKILL_SOURCES), getGlobalSkillsDir(), false)
 }
 
-/** 仅刷新已安装的外部 Skills 到 CLI 固定版本，不补装未选择的依赖。 */
+/** 仅刷新已安装项到 CLI 固定版本；拉取失败跳过该来源，文件替换失败仍报错。 */
 export async function refreshExternalSkills(targetDir) {
   const sources = []
   for (const [name, source] of Object.entries(SKILL_SOURCES)) {
@@ -181,7 +195,7 @@ export async function refreshExternalSkills(targetDir) {
     }
     if (Object.keys(skills).length) sources.push([name, { ...source, skills }])
   }
-  await installSkillSources(sources, targetDir, false)
+  await installSkillSources(sources, targetDir, false, true)
 }
 
 // 全局 skill 是否已就绪（VERSIONS.json 存在）。
