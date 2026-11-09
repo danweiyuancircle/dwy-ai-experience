@@ -546,7 +546,7 @@ provides-extras = ["dev"]
 
 [[package]]
 name = "dwy-email-notify"
-version = "0.1.0"
+version = "0.1.1"
 source = { editable = "../backend/packages/email-notify" }
 dependencies = [
     { name = "dwy-notify" },
@@ -566,7 +566,7 @@ resend = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dwy-notify", specifier = "==0.2.1" },
+    { name = "dwy-notify", specifier = "==0.3.3" },
     { name = "dwyeapi", specifier = "==0.12.1" },
     { name = "httpx", marker = "extra == 'dev'", specifier = "==0.28.1" },
     { name = "pytest", marker = "extra == 'dev'", specifier = "==9.0.3" },

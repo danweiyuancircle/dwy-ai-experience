@@ -6,8 +6,8 @@ import sys
 from dwy_email_notify import EmailNotifyConfig, EmailNotifyRuntime, ResendWebhookConfig
 from dwy_email_notify.providers.resend.appearance import DEFAULT_APPEARANCE
 
-assert importlib.metadata.version("dwy-email-notify") == "0.1.0"
-assert importlib.metadata.version("dwy-notify") == "0.2.1"
+assert importlib.metadata.version("dwy-email-notify") == "0.1.1"
+assert importlib.metadata.version("dwy-notify") == "0.3.3"
 assert EmailNotifyConfig().resend is None
 assert EmailNotifyRuntime.__name__ == "EmailNotifyRuntime"
 assert ResendWebhookConfig.model_fields["path"].default == "/webhooks/resend"

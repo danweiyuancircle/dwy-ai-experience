@@ -3,7 +3,7 @@
 邮件平台官方 Webhook 事件接入与通知转发。当前提供 Resend，未来平台各自添加 provider 和 extra；本包不提供业务发信、验证码或邮件正文读取功能。
 
 ```bash
-pip install 'dwy-email-notify[resend]==0.1.0'
+pip install 'dwy-email-notify[resend]==0.1.1'
 ```
 
 ```python

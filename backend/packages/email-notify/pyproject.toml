@@ -1,10 +1,10 @@
 [project]
 name = "dwy-email-notify"
-version = "0.1.0"
+version = "0.1.1"
 description = "邮件平台官方 Webhook 事件接入与通知转发"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
-dependencies = ["dwyeapi==0.12.1", "dwy-notify==0.2.1"]
+dependencies = ["dwyeapi==0.12.1", "dwy-notify==0.3.3"]
 
 [project.optional-dependencies]
 resend = ["resend==2.49.1"]
