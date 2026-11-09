@@ -6,7 +6,7 @@
 
 - 缓存文件：`<project_root>/.dwy/publish/config.json`，读写走 `scripts/release_config.sh`。
 - key = **相对项目根的相对目录**（如 `ios`、`apps/electron`，根用 `.`）。
-- `.dwy/` 是本机判断缓存，**提醒用户加进 `.gitignore`**，不入版本库。
+- 发布缓存是本机判断数据，提醒用户在项目根 `.gitignore` 中只忽略 `/.dwy/publish/`，不要忽略整个 `.dwy/`，以免隐藏其他项目资料。
 
 ## 读写流程
 
@@ -20,7 +20,7 @@
    - 按项目现有配置判断发布方式；无法确定时询问
    - 检查对应配置就绪（GA workflow 是否存在 / TestFlight 凭据线索 / maven·pod publish 配置）
    - `release_config.sh set <root> <rel_dir> <platform> <method> <channel> <configured> [build_cmd] [publish_cmd] [verify_cmd] [cmd_source]`
-   - 提醒把 `.dwy/` 加进 `.gitignore`
+   - 提醒在项目根 `.gitignore` 中只添加 `/.dwy/publish/`
 4. 目录与缓存对不上（仓库结构变了）：先 AI 自助判断目录是否仍正确，判不准再问用户，必要时 `reset` 重建。
 
 全程 AI 自动跑，仅探测不到 / 命令歧义 / 配置缺失时才问用户。

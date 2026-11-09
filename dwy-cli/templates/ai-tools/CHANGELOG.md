@@ -1,5 +1,16 @@
 # ai-tools 内部版本
 
+## 0.37.0 - 2026-11-09
+
+### Added
+
+- 新增 `skills/通用/dwy-project-learning`，按项目保存、查阅和迁移可复用的踩坑经验。
+
+### Changed
+
+- `AGENTS.md` 的自成长规则改为精简入口，经验存入项目 `.dwy/dwy-project-learning/`。
+- `skills/发布发版/dwy-publish` 只提示忽略发布缓存目录，避免隐藏其他项目资料。
+
 ## 0.36.1 - 2026-11-09
 
 ### Changed
