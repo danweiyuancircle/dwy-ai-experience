@@ -23,6 +23,9 @@ class AnalyticsApp(BaseModel):
 
     model_config = ConfigDict(extra="forbid", frozen=True)
     name: str = Field(min_length=1, max_length=128)
+    daily_report_enabled: bool = Field(
+        default=True, strict=True, description="关闭时保留每日采集，仅周一发送经营周报",
+    )
 
 
 class AppleAnalyticsConfig(NotificationSettings):

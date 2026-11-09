@@ -8,7 +8,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from dwy_apple_notify.analytics.models import AnalyticsCollectionError, AppleBusinessSnapshot
+from dwy_apple_notify.analytics.models import AnalyticsApp, AnalyticsCollectionError, AppleBusinessSnapshot
 from dwy_apple_notify.analytics.service import AnalyticsMonitor
 
 
@@ -29,7 +29,7 @@ def monitor(day="2026-10-26T08:30:00"):
         )
     )
     config = SimpleNamespace(
-        apps={"123": SimpleNamespace(name="工具")},
+        apps={"123": AnalyticsApp(name="工具")},
         issuer_id="issuer",
         timezone="Asia/Shanghai",
         send_hour=8,
@@ -191,7 +191,10 @@ async def test_daily_week_comparison_reads_persisted_history_without_extra_reque
     assert "较上周同日 +50.0%" in rendered
 
 
-async def test_real_store_restart_refreshes_corrections_without_historical_send_flood(tmp_path):
+@pytest.mark.parametrize("daily_report_enabled", [True, False])
+async def test_real_store_restart_refreshes_corrections_without_historical_send_flood(
+    tmp_path, daily_report_enabled,
+):
     from dwyeapi.database import create_async_engine_factory, create_session_factory
     from sqlalchemy import MetaData, select
 
@@ -207,6 +210,7 @@ async def test_real_store_restart_refreshes_corrections_without_historical_send_
         await connection.run_sync(metadata.create_all)
     sessions = create_session_factory(engine)
     worker, fake_store, client = monitor()
+    worker.config.apps["123"] = AnalyticsApp(name="工具", daily_report_enabled=daily_report_enabled)
     worker.store = AnalyticsStore(sessions, tables, clock=lambda: clock[0])
     try:
         assert await worker.run_once() == 1
@@ -220,10 +224,13 @@ async def test_real_store_restart_refreshes_corrections_without_historical_send_
             stored = (await db.execute(select(tables.snapshots))).all()
             queued = (await db.execute(select(tables.deliveries))).mappings().all()
         assert len(stored) == 8  # Seven-day replacement window, one new day.
-        assert sorted(row["event_type"] for row in queued) == [
+        expected = [
             "analytics.daily",
             "analytics.daily",
             "analytics.weekly",
         ]
+        assert sorted(row["event_type"] for row in queued) == (
+            expected if daily_report_enabled else ["analytics.weekly"]
+        )
     finally:
         await engine.dispose()

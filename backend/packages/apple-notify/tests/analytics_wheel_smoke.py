@@ -44,12 +44,13 @@ async def main(expected_version: str) -> None:
         assert importlib.util.find_spec(name) is None, name
     key = ec.generate_private_key(ec.SECP256R1())
     config = AppleAnalyticsConfig(
-        apps={"1234567890": {"name": "Wheel Test"}},
+        apps={"1234567890": {"name": "Wheel Test", "daily_report_enabled": False}},
         issuer_id="12345678-1234-1234-1234-123456789012", key_id="ABCDEFGHIJ",
         private_key=key.private_bytes(serialization.Encoding.PEM, serialization.PrivateFormat.PKCS8,
                                       serialization.NoEncryption()).decode(),
     )
     assert (config.timezone, config.send_hour, config.send_minute) == ("Asia/Shanghai", 8, 30)
+    assert config.apps["1234567890"].daily_report_enabled is False
     client = AppleAnalyticsClient(config)
     await client.aclose()
     rows = {

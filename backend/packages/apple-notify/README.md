@@ -5,7 +5,7 @@ Apple 通知集成：购买通知验签与文案、App Store Connect 审核事�
 ## 按需安装
 
 ```bash
-pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.7'
+pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.8'
 ```
 
 `iap` 安装 Apple Server SDK；`asc`、`reviews`、`analytics` 分别安装现有 ASC HTTP/JWT/加密依赖。只使用审核、评论或报表时不需要 Apple Server SDK，也不需要 Resend。
@@ -34,6 +34,8 @@ pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.7'
 订阅和退款 SVG／256px PNG／Lucide 许可随 wheel 放在 `dwy_apple_notify/assets`。公网头像固定到 `dwy-apple-notify@0.1.7` 标签，正式发布时必须先公开该标签与资源；源码开发完成不代表头像地址已经可访问。买断购物袋与通用铃铛保留原固定提交地址。
 
 ## 经营统计日期
+
+每个 `AppleAnalyticsConfig.apps` 条目可设置 `daily_report_enabled: false`：该应用仍按原计划静默采集并保存快照，只在指定时区的周一发送经营周报，不发送日报。默认 `true` 保持日报加周报，评分日报是独立配置，不受此开关影响。
 
 默认北京时间 `Asia/Shanghai` 每天 08:30，内部固定查询统计时区日期的前两天，例如 30 日查询 28 日、31 日查询 29 日。Apple 报表生成存在延迟，因此不暴露 `lag_days` 配置。周一附加截至前两天的连续七天周报。日报和周报固定展示全部指标与地区、来源 Top 3：有值显示实际数值，获取不到显示“无数据”，真实零值保留为零。快照仍保留原始可用性状态，不把缺失数据写成零，不自动重复补发历史日报。
 

@@ -97,7 +97,7 @@ class AnalyticsMonitor:
                                 ],
                             ),
                         )
-                    ]
+                    ] if application.daily_report_enabled else []
                     if now.weekday() == 0:
                         messages.append(
                             (
