@@ -224,8 +224,10 @@ def test_configuration_rejects_invalid_external_boundaries(settings):
 
 def test_default_preset_is_a_public_immutable_value():
     assert DEFAULT_APPEARANCE.username == "邮件通知"
-    assert DEFAULT_APPEARANCE.avatar_url.endswith("/email.png")
-    assert "/091ad4fea18ed3840fec83dc833f18b759256ca7/" in DEFAULT_APPEARANCE.avatar_url
+    assert DEFAULT_APPEARANCE.avatar_url == (
+        "https://raw.githubusercontent.com/danweiyuancircle/dwy-ai-experience/"
+        "8c86735ec6bcfeee24f101fdccbc900b9d7bc2dd/assets/notification-icons/email.png"
+    )
 
 
 def test_root_import_does_not_load_any_supplier_sdk_or_old_package(tmp_path):

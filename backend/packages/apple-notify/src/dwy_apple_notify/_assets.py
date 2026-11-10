@@ -1,6 +1,6 @@
-"""业务头像固定到独立资产提交；不随分支移动，也不在发送进程下载图片。"""
+"""所有 Apple 通知共用公开静态素材；固定提交避免分支更新改变历史展示。"""
 
 ASSET_BASE_URL = (
     "https://raw.githubusercontent.com/danweiyuancircle/dwy-ai-experience/"
-    "091ad4fea18ed3840fec83dc833f18b759256ca7/backend/packages/webhooks/assets"
+    "8c86735ec6bcfeee24f101fdccbc900b9d7bc2dd/assets/notification-icons"
 )

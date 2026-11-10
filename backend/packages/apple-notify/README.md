@@ -5,7 +5,7 @@ Apple 通知集成：购买通知验签与文案、App Store Connect 审核事�
 ## 按需安装
 
 ```bash
-pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.8'
+pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.9'
 ```
 
 `iap` 安装 Apple Server SDK；`asc`、`reviews`、`analytics` 分别安装现有 ASC HTTP/JWT/加密依赖。只使用审核、评论或报表时不需要 Apple Server SDK，也不需要 Resend。
@@ -31,7 +31,7 @@ pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.8'
 
 默认 router 已将展示放进 `NotificationEvent.appearance`，配合 `dwy-notify 0.3.3` 的 relay 或 SQLAlchemy 队列传递并保存快照。宿主自有队列可直接调用该函数，把结果传给 `deliver_notifications(..., appearance=...)`；显式应用／URL 展示仍优先，重试沿用已有快照。
 
-订阅和退款 SVG／256px PNG／Lucide 许可随 wheel 放在 `dwy_apple_notify/assets`。公网头像固定到 `dwy-apple-notify@0.1.7` 标签，正式发布时必须先公开该标签与资源；源码开发完成不代表头像地址已经可访问。买断购物袋与通用铃铛保留原固定提交地址。
+订阅和退款 SVG／256px PNG／Lucide 许可继续随 wheel 放在 `dwy_apple_notify/assets`，作为历史兼容快照。自 `0.1.9` 起，全部默认头像统一引用仓库根 `assets/notification-icons/` 的固定公开提交；分类规则和应用显式覆盖保持不变。
 
 ## 经营统计日期
 
@@ -43,7 +43,7 @@ pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.8'
 
 购买默认“购买通知”，审核默认“应用审核通知”，日报周报默认“经营报表”，评论默认“系统通知”。各模块 `appearance.py` 公开 `DEFAULT_APPEARANCE`；应用与单次发送可逐字段覆盖，最终名称必填，头像可省略或显式清除以使用平台默认。
 
-Logo 沿用 GitHub 固定资产提交 `091ad4fea18ed3840fec83dc833f18b759256ca7`，无需应用部署图片服务。资产与 Lucide 许可维护于 `backend/packages/webhooks/assets/`，固定历史引用不受本次 Python 包迁移影响。
+Logo 使用 GitHub 固定资产提交 `8c86735ec6bcfeee24f101fdccbc900b9d7bc2dd` 下的 `assets/notification-icons/`，无需应用部署图片服务。素材规格、用途和 Lucide 许可见仓库根 `assets/notification-icons/README.md`。升级只影响新通知的默认头像，已持久化的投递快照继续使用原地址。
 
 ## 每日评分日报
 

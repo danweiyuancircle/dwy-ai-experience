@@ -6,12 +6,16 @@ import sys
 from dwy_email_notify import EmailNotifyConfig, EmailNotifyRuntime, ResendWebhookConfig
 from dwy_email_notify.providers.resend.appearance import DEFAULT_APPEARANCE
 
-assert importlib.metadata.version("dwy-email-notify") == "0.1.1"
+assert importlib.metadata.version("dwy-email-notify") == "0.1.2"
 assert importlib.metadata.version("dwy-notify") == "0.3.3"
 assert EmailNotifyConfig().resend is None
 assert EmailNotifyRuntime.__name__ == "EmailNotifyRuntime"
 assert ResendWebhookConfig.model_fields["path"].default == "/webhooks/resend"
 assert DEFAULT_APPEARANCE.username == "邮件通知"
+assert DEFAULT_APPEARANCE.avatar_url == (
+    "https://raw.githubusercontent.com/danweiyuancircle/dwy-ai-experience/"
+    "8c86735ec6bcfeee24f101fdccbc900b9d7bc2dd/assets/notification-icons/email.png"
+)
 assert not any(name == "resend" or name.startswith(("appstoreserverlibrary", "dwy_webhooks"))
                for name in sys.modules)
 print("Email notify wheel base imports and optional provider boundary passed.")

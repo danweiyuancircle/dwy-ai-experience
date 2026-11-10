@@ -1,6 +1,6 @@
 [project]
 name = "dwy-email-notify"
-version = "0.1.1"
+version = "0.1.2"
 description = "邮件平台官方 Webhook 事件接入与通知转发"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"

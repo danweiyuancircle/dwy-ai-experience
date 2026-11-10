@@ -7,17 +7,12 @@ from .apple_models import VerifiedAppleNotification
 
 DEFAULT_APPEARANCE = NotificationAppearance(username="购买通知", avatar_url=f"{ASSET_BASE_URL}/purchase.png")
 
-# 新资源随下一版 Apple 包的不可变标签公开，旧资源地址保持不变。
-_IAP_ASSET_BASE_URL = (
-    "https://raw.githubusercontent.com/danweiyuancircle/dwy-ai-experience/"
-    "dwy-apple-notify@0.1.7/backend/packages/apple-notify/src/dwy_apple_notify/assets"
-)
 SUBSCRIPTION_APPEARANCE = NotificationAppearance(
-    username="订阅购买", avatar_url=f"{_IAP_ASSET_BASE_URL}/subscription.png",
+    username="订阅购买", avatar_url=f"{ASSET_BASE_URL}/subscription.png",
 )
 BUYOUT_APPEARANCE = NotificationAppearance(username="买断购买", avatar_url=f"{ASSET_BASE_URL}/purchase.png")
 REFUND_APPEARANCE = NotificationAppearance(
-    username="退款通知", avatar_url=f"{_IAP_ASSET_BASE_URL}/refund.png",
+    username="退款通知", avatar_url=f"{ASSET_BASE_URL}/refund.png",
 )
 ACTIVITY_APPEARANCE = NotificationAppearance(username="内购动态", avatar_url=f"{ASSET_BASE_URL}/general.png")
 

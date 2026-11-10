@@ -3,7 +3,7 @@
 邮件平台官方 Webhook 事件接入与通知转发。当前提供 Resend，未来平台各自添加 provider 和 extra；本包不提供业务发信、验证码或邮件正文读取功能。
 
 ```bash
-pip install 'dwy-email-notify[resend]==0.1.1'
+pip install 'dwy-email-notify[resend]==0.1.2'
 ```
 
 ```python
@@ -26,4 +26,4 @@ def configure(app: FastAPI, signing_secret: str, notification_url: str) -> None:
 
 安装器返回 `EmailNotifyRuntime`，只持有去重状态，不接管宿主数据库、异常处理器或 lifespan。同一 FastAPI 应用只安装一次。`providers.resend.webhooks.create_resend_router` 可用于自行组合路由。
 
-通知头像保持已有固定公开资产引用，不打包图片或拉取浮动分支：`https://raw.githubusercontent.com/danweiyuancircle/dwy-ai-experience/091ad4fea18ed3840fec83dc833f18b759256ca7/backend/packages/webhooks/assets/email.png`。
+通知头像与 Apple 通知共用固定公开素材，不打包图片或拉取浮动分支：`https://raw.githubusercontent.com/danweiyuancircle/dwy-ai-experience/8c86735ec6bcfeee24f101fdccbc900b9d7bc2dd/assets/notification-icons/email.png`。统一规格与许可见仓库根 `assets/notification-icons/README.md`。
