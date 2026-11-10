@@ -1,5 +1,7 @@
 # Apple IAP 通知新增头像
 
+本目录保留随 Apple 包分发的兼容快照；后续新增项目统一从仓库根 `assets/notification-icons/` 复用，见[共享图标说明](../../../../../../assets/notification-icons/README.md)。现有包标签和头像地址不改动。
+
 - `subscription.svg`／`subscription.png`：订阅购买，Lucide repeat-2，底色 #0f766e。
 - `refund.svg`／`refund.png`：已退款，Lucide undo-2，底色 #b91c1c。
 

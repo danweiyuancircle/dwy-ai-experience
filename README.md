@@ -11,6 +11,7 @@
 | `dwy-cli/` | `create-dwy`：CLI、项目脚手架和 AI 配置同步 |
 | `dwy-cli/templates/ai-tools/` | 分发用 skills、rules、hooks 与 hook 清单 |
 | `dwy-cli/templates/project/` | 项目脚手架模板 |
+| [`assets/notification-icons/`](assets/notification-icons/README.md) | 共享通知图标：购买、订阅、退款、告警、审核、报表、邮件与普通通知，提供 SVG / PNG |
 | `backend/src/dwyeapi/` | `dwyeapi`：FastAPI 基础设施 |
 | `backend/packages/device-fingerprint/` | `dwy-device-fingerprint`：独立设备指纹包 |
 | `backend/packages/auth/` | `dwy-auth`：应用认证与独立管理员会话 |
