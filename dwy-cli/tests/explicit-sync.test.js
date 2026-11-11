@@ -7,8 +7,41 @@ import { execFileSync } from 'node:child_process'
 import { syncAll, migrateSkills } from '../src/sync-all.js'
 import { refreshSharedSkills } from '../src/skill-store.js'
 import { buildSyncPlan, contentOptions, projectSkillChoices } from '../src/sync-plan.js'
-import { planMissingExternalSkills } from '../src/skills-install.js'
 import { buildCodexHooksJson } from '../src/sync-codex.js'
+
+for (const scope of ['project', 'global']) {
+  test(`${scope} 产品0到1 Skills 计划不包含外部安装，执行不调用 Git 或补装依赖`, async t => {
+    const opts = await fixture(t)
+    const dwyHome = path.join(opts.homeDir, '.dwy'), targetDir = path.join(dwyHome, 'skills')
+    const binDir = path.join(opts.homeDir, 'bin'), calls = path.join(opts.homeDir, 'git-calls')
+    await fs.move(path.join(opts.sourceDir, 'skills/通用/sample'), path.join(opts.sourceDir, 'skills/产品0到1/sample'))
+    await fs.outputFile(path.join(binDir, 'git'), `#!${process.execPath}\nrequire('node:fs').appendFileSync(${JSON.stringify(calls)}, 'git called\\n'); process.exit(1)\n`, { mode: 0o755 })
+    const previous = { PATH: process.env.PATH, DWY_HOME: process.env.DWY_HOME }
+    process.env.PATH = `${binDir}${path.delimiter}${previous.PATH}`
+    process.env.DWY_HOME = dwyHome
+    t.after(() => {
+      for (const [key, value] of Object.entries(previous)) {
+        if (value === undefined) delete process.env[key]
+        else process.env[key] = value
+      }
+    })
+    const skill = { name: 'sample', category: '产品0到1', sourcePath: path.join(opts.sourceDir, 'skills/产品0到1/sample') }
+    const plan = await buildSyncPlan({ ...opts, scope, platforms: ['codex'], contentTypes: ['skills'],
+      selected: { skills: [skill], rules: [] }, scans: { skills: [skill], rules: [], hooks: [] },
+      projectState: { platforms: {} }, globalState: { platforms: {} } })
+    await t.test('只读计划没有外部安装操作', () => {
+      assert.equal(plan.operations.some(operation => operation.kind === 'external-skills'), false)
+    })
+    await t.test('实际同步只安装所选共享 Skill', async () => {
+      const operations = await syncAll({ ...opts, scope, selectedPlatforms: ['codex'], contentTypes: ['skills'] })
+      assert.equal(await fs.pathExists(calls), false, '同步不得调用 Git 或下载外部依赖')
+      assert.equal(operations.some(operation => operation.kind === 'external-skills'), false)
+      assert.deepEqual(await fs.readdir(targetDir), ['sample'])
+      const entry = path.join(scope === 'global' ? opts.homeDir : opts.projectDir, '.agents/skills/sample/SKILL.md')
+      assert.equal(await fs.readFile(entry, 'utf8'), '# v1')
+    })
+  })
+}
 
 async function fixture(t) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-explicit-sync-'))
@@ -178,23 +211,6 @@ test('内置 Codex Hooks 在全局和项目注册中显示 dwy 功能描述', as
   }
 })
 
-test('产品流程外部依赖进入只读清单，已有副本不列入下载或覆盖', async t => {
-  const opts = await fixture(t)
-  const targetDir = path.join(opts.homeDir, '.dwy/skills')
-  await fs.outputFile(path.join(targetDir, 'brainstorming/SKILL.md'), '# keep external')
-  const dependency = await planMissingExternalSkills(targetDir)
-  assert.equal(dependency.paths.includes(path.join(targetDir, 'brainstorming')), false)
-  assert.ok(dependency.paths.includes(path.join(targetDir, 'writing-plans')))
-  assert.deepEqual(await fs.readdir(targetDir), ['brainstorming'])
-  const skill = { name: 'sample', category: '产品0到1', sourcePath: path.join(opts.sourceDir, 'skills/通用/sample') }
-  const plan = await buildSyncPlan({ ...opts, scope: 'project', platforms: ['codex'], contentTypes: ['skills'],
-    selected: { skills: [skill], rules: [] }, scans: { skills: [skill], rules: [], hooks: [] },
-    projectState: { platforms: {} }, globalState: { platforms: {} } })
-  assert.equal(plan.operations.filter(operation => operation.kind === 'external-skills').length, 1)
-  assert.equal(await fs.readFile(path.join(targetDir, 'brainstorming/SKILL.md'), 'utf8'), '# keep external')
-  assert.deepEqual(await fs.readdir(opts.projectDir), [])
-})
-
 test('Hooks 清单包含平台不再支持的旧脚本，缺省 platforms 的脚本仍通用', async t => {
   const opts = await fixture(t)
   await fs.outputFile(path.join(opts.sourceDir, 'hooks/通用/claude-only.sh'), '#!/bin/sh\necho claude')
@@ -233,27 +249,4 @@ test('从用户主目录别名执行全局同步，不把全局入口当作项�
   assert.equal(operations.some(operation => operation.kind === 'remove-skill'), false)
   assert.equal(await fs.readFile(path.join(opts.homeDir, '.claude/skills/sample/SKILL.md'), 'utf8'), '# v1')
   await assert.rejects(migrateSkills({ ...opts, projectDir: alias }), /主目录.*全局/)
-})
-
-test('外部依赖按已确认集合执行，不刷新已有内容或补装清单外新缺失项', async t => {
-  const opts = await fixture(t)
-  const targetDir = path.join(opts.homeDir, '.dwy/skills')
-  const initial = await planMissingExternalSkills(targetDir)
-  for (const dest of initial.paths.filter(dest => !path.basename(dest).startsWith('LICENSE') && !dest.endsWith('.json'))) {
-    await fs.outputFile(path.join(dest, 'SKILL.md'), '# existing external')
-  }
-  await fs.outputJson(path.join(targetDir, 'VERSIONS.json'), { manifest_hash: 'old', versions: { brainstorming: { tag: 'old' } } })
-  await fs.remove(path.join(targetDir, 'writing-plans'))
-  const plan = await planMissingExternalSkills(targetDir)
-  await fs.remove(path.join(targetDir, 'brainstorming'))
-  const binDir = path.join(opts.projectDir, 'bin')
-  const git = `#!${process.execPath}\nconst fs=require('fs'), path=require('path');\nconst dest=process.argv.at(-1);\nfs.mkdirSync(path.join(dest,'skills/writing-plans'),{recursive:true});\nfs.writeFileSync(path.join(dest,'skills/writing-plans/SKILL.md'),'# installed external');\nfs.writeFileSync(path.join(dest,'LICENSE'),'MIT fixture');\n`
-  await fs.outputFile(path.join(binDir, 'git'), git, { mode: 0o755 })
-  const previousPath = process.env.PATH
-  process.env.PATH = binDir + path.delimiter + previousPath
-  try { await plan.run() } finally { process.env.PATH = previousPath }
-  assert.equal(await fs.pathExists(path.join(targetDir, 'brainstorming')), false)
-  assert.equal(await fs.readFile(path.join(targetDir, 'writing-plans/SKILL.md'), 'utf8'), '# installed external')
-  assert.equal(await fs.readFile(path.join(targetDir, 'create-prd/SKILL.md'), 'utf8'), '# existing external')
-  assert.deepEqual((await fs.readJson(path.join(targetDir, 'VERSIONS.json'))).versions.brainstorming, { tag: 'old' })
 })

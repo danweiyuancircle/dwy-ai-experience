@@ -5,7 +5,6 @@ import { findGlobalSkill, globalSkillRoots, resolveGlobalSkillDir, resolveProjec
 import { loadHookManifests, syncClaude } from './sync.js'
 import { hasManagedBaseline, removeLegacyBaseline, syncBaselineDoc, syncCodex, syncProjectAgentsMd } from './sync-codex.js'
 import { syncCursor } from './sync-cursor.js'
-import { planMissingExternalSkills } from './skills-install.js'
 import { assertConfigPath, assertHooksEnabled, baselineProviders, globalBaselinePath, globalHookNames, hasManagedHookConfig, hookConfigFile, removeManagedHooks } from './sync-inheritance.js'
 
 /** 平台显示名，交互和变更清单共用。 */
@@ -77,7 +76,6 @@ export async function buildSyncPlan({
   migratedRuleSources = {},
   contentActions = {},
   refreshSkills = false,
-  installExternalDependencies = true,
   skillScope = { destinations: ['project'], globalSkills: [] },
 }) {
   const global = scope === 'global'
@@ -218,11 +216,6 @@ export async function buildSyncPlan({
       operations.unshift({ kind: 'ensure-skills', label,
         paths: [...skills.map(skill => path.join(homeDir, '.dwy', 'skills', skill.name)), path.join(homeDir, '.dwy', 'skill-store.json')],
         run: () => (refreshSkills ? prepareSharedSkills : ensureSharedSkills)({ skills, homeDir }) })
-    }
-    if (installExternalDependencies && [...neededSkills.values()].some(skill => skill.category === '产品0到1')) {
-      const target = path.join(process.env.DWY_HOME || path.join(homeDir, '.dwy'), 'skills')
-      const external = await planMissingExternalSkills(target)
-      if (external.paths.length) add('external-skills', '补齐产品流程外部 Skills（联网拉取固定版本，保留已有内容）', external.paths, external.run)
     }
   }
 

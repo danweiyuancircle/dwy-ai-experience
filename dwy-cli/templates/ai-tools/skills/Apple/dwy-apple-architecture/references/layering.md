@@ -1,6 +1,6 @@
 # Apple 四层架构与依赖
 
-团队新项目默认 iOS 17+ / macOS 15+；既有项目以实际 deployment target 和现有架构为准，不为套用层名而擅自重构或抬高版本。风格与国际化见 `dwy-swift-development`。本文件只管**层、引用边、版本写在哪**；以下目录和分层适用于采用该架构的项目。
+团队最低支持 iOS 18+ / macOS 15+；既有项目先核对实际 deployment target 和现有架构，低于基线时说明迁移范围，不为套用层名而擅自重构或修改工程配置。iOS 系统回归范围见 `dwy-ios-development`，不再纳入 iOS 17。风格与国际化见 `dwy-swift-development`。本文件只管**层、引用边、版本写在哪**；以下目录和分层适用于采用该架构的项目。
 
 单壳（只有 iPhone 或只有 Mac）**不建** PlatformFoundation。双壳且某端领域字节级不同时才加 `DesktopKit`。
 

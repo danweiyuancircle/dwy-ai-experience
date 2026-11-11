@@ -37,11 +37,11 @@
     state.json              # 进度 + 已确认结论，入库
 ```
 
-**外部 skill 不在项目内**：pm-skills / superpowers 的副本装在**全局** `~/.dwy/skills/<name>/`（一台机一份、全项目共享），由 `dwy` 选「刷新全局外部 skill」维护，日常同步自检缺失时自动装。包装型原子 skill 运行时直接读这个全局路径，不在项目里缓存。
+**外部 Skill 只声明依赖**：dwy 不捆绑下载 pm-skills / superpowers。包装型原子 Skill 按名称查找宿主已安装的 Skill/插件，读取其 `SKILL.md` 和任务所需配套文件；依赖处理见第四节。
 
 ## 二、.gitignore 规则（总控初始化项目时写入）
 
-产品产出 `.dwy/prod/[项目]/` **入库**（git 跟踪），无需任何忽略——外部 skill 在全局 `~/.dwy/skills/`，不落项目，没有要忽略的缓存。
+产品产出 `.dwy/prod/[项目]/` **入库**（git 跟踪），不应忽略。
 
 注意：**不要**写整行 `.dwy/`（那会把产品文档也忽略）。本流程不需要在项目 `.gitignore` 加任何条目。
 
@@ -100,15 +100,14 @@
 | dwy-acceptance | confirmed.acceptance | dwy-release |
 | dwy-release | confirmed.release | 迭代回到阶段二 |
 
-## 四、外部 skill 全局安装 `~/.dwy/skills/`
+## 四、外部 Skill 依赖声明
 
-包装型原子 skill（dwy-competitor / dwy-validate / dwy-commercial / dwy-mvp / dwy-prd / dwy-version / dwy-tasks / dwy-tdd-dev / dwy-acceptance / dwy-release）依赖 pm-skills / superpowers 的外部 skill，装在**全局** `~/.dwy/skills/<name>/`：
+包装型原子 Skill（dwy-competitor / dwy-validate / dwy-commercial / dwy-mvp / dwy-prd / dwy-version / dwy-tasks / dwy-tdd-dev / dwy-acceptance / dwy-release）保留各自声明的依赖：
 
-- 每个外部 skill 是**整个目录**（含 scripts/ 与配套 .md，不止 SKILL.md）
-- 由 `dwy` 选「刷新全局外部 skill」安装/更新（clone 两仓库的指定 stable tag → 搬整目录 + LICENSE → 写 `VERSIONS.json`）
-- `dwy` 日常同步自检：`~/.dwy/skills/` 缺失时自动装一次
-- 当前 stable：pm-skills **v2.0.0** | superpowers **v6.0.3**（升级改 cli 的 `skills-install.js` 清单 tag）
-- 原子 skill 运行时**只读** `~/.dwy/skills/<name>/`，缺失则提示用户先跑 `dwy`，选「刷新全局外部 skill」，不自己拉、不降级
+- 产品方法论来源：[pm-skills](https://github.com/phuryn/pm-skills)；writing-plans、test-driven-development、systematic-debugging 来源：[superpowers](https://github.com/obra/superpowers)。不锁定版本或安装目录。
+- AI 按名称查找宿主已安装的 Skill/插件，读取其 `SKILL.md` 和任务所需的 scripts/、配套文件，并核实当前版本与宿主适配；已有 `~/.dwy/skills/` 副本也可读取，但该目录不是前提。
+- 缺失时由 AI 根据来源和适配信息，按已有授权及项目工具安装规则处理；依赖声明不等于安装授权，dwy 不负责下载或更新，不要求用户运行 `dwy`。
+- 仍无法取得时说明缺失依赖和受阻步骤，不自行降级、替代或删除依赖，不假称已执行；业务流程和产出契约保持不变。
 
 ## 五、运行模式与流转（run_mode）
 

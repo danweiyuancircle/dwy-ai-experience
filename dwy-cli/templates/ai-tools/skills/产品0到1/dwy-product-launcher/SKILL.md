@@ -46,9 +46,9 @@ description: "【dwy·全流程总控】从模糊想法到上线产品的唯一�
 - 建项目根目录 `.dwy/prod/[项目]/`（不建 01~05 任何阶段子目录）
 - 初始化 `state.json`（写 `schema_version = "3"`）
 
-产品产出 `.dwy/prod/[项目]/` 入库，无需改 `.gitignore`（外部 skill 在全局 `~/.dwy/skills/`，不落项目）。若包装型原子 skill 触发时 `~/.dwy/skills/<name>/` 不存在，提示用户先跑 `dwy`，选「刷新全局外部 skill」。
+产品产出 `.dwy/prod/[项目]/` 入库，本流程无需改 `.gitignore`。外部 Skill 只声明依赖，由 AI 按各原子 Skill 的名称和来源检查宿主已安装的 Skill/插件；缺失时按已有授权和项目工具安装规则处理，声明本身不授权安装，无法取得时说明缺口，不要求用户运行 `dwy`。
 
-**阶段目录渐进式按需建**：`01-立项/` 进立项时才建，`02-需求规划/` 进需求阶段才建……不要一次把五个阶段目录全建出来（那不是渐进式）。state schema、各 skill 的 `confirmed.*` 字段契约、外部 skill 全局安装见 `references/state-and-contract.md`。
+**阶段目录渐进式按需建**：`01-立项/` 进立项时才建，`02-需求规划/` 进需求阶段才建……不要一次把五个阶段目录全建出来（那不是渐进式）。state schema、各 skill 的 `confirmed.*` 字段契约、外部 Skill 依赖处理见 `references/state-and-contract.md`。
 
 ## state.json（进度 + 结论）
 落 `.dwy/prod/[项目]/state.json`，含：

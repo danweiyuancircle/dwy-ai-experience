@@ -11,11 +11,11 @@ description: "【dwy·任务拆解】产品 0 到 1 需求规划阶段。触发�
 - `.dwy/prod/[项目]/02-需求规划/版本路线图.md`、`PRD.md`
 
 ## 实现
-[包装型] 用全局本地 skill（位于 `~/.dwy/skills/<外部skill名>/`）：
-读其 `SKILL.md`（及同目录 scripts/、配套 .md），按它的方法论产出，落到下方「产出契约」。
+[包装型] 依赖 [superpowers](https://github.com/obra/superpowers) 的下列 Skill；dwy 只声明依赖，不捆绑下载。
+按名称查找宿主已安装的 Skill/插件，不固定目录或版本；读取其 `SKILL.md` 及任务所需的 scripts/、配套文件，按它的方法论产出，落到下方「产出契约」。
 - **AI 自主拆解**：架构阶段文档（`技术架构.md`/`数据库设计.md`/`接口契约.md` + `PRD.md`/`版本路线图.md`）已建好，AI 据此**自行判断**模块怎么切、方案怎么选，按 writing-plans 方法论直接产出，不再逐点弹 `AskUserQuestion` 找用户拍板。仅当文档间出现**实质冲突或硬缺口**（无法据现有文档推断）时才向用户确认。
-- 本 skill 依赖的外部 skill：`writing-plans`（对应 `~/.dwy/skills/writing-plans/`）
-- 若 `~/.dwy/skills/writing-plans/` 不存在：提示用户先跑 `dwy`，选「刷新全局外部 skill」（日常同步也会自检安装），不要自己用内置能力顶替。
+- 本 skill 依赖的外部 skill：`writing-plans`
+- 缺失时由 AI 核实来源与宿主适配信息，按已有授权和项目工具安装规则处理；依赖声明不等于安装授权。仍无法取得时说明缺口，暂停依赖步骤，不降级、替代或假称已执行，不要求用户运行 `dwy`。
 
 ## 产出契约（硬约束）
 - 落到：`.dwy/prod/[项目]/02-需求规划/开发任务拆解.md`

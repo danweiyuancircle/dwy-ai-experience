@@ -2,7 +2,7 @@
 
 ## iOS 目标与写法
 
-- 新项目默认 iOS 17+、macOS 15+；既有项目以实际 deployment target 为准，不擅自抬高。
+- 最低支持 iOS 18+、macOS 15+；不再为 iOS 17 及以下版本编写兼容实现或安排测试。既有项目先核对实际 deployment target，低于基线时说明差异及迁移范围，不因启用 Skill 自动修改工程配置。
 - 统一 Observation + `@MainActor`，状态对象默认 `final class`。
 
 ```swift

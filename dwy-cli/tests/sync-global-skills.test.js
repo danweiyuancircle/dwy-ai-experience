@@ -12,7 +12,6 @@ import {
   copySkillsToGlobalDirs,
 } from '../src/sync-global-skills.js'
 import {
-  ACTION_INSTALL_SKILLS,
   ACTION_SYNC,
   ACTION_UPGRADE,
   DEFAULT_SYNC_MODE,
@@ -184,7 +183,7 @@ test('normalizeSyncMode defaults to all and rejects unknown values', () => {
 
 test('normalizeAction defaults to sync', () => {
   assert.equal(normalizeAction(undefined), ACTION_SYNC)
-  assert.equal(normalizeAction(ACTION_INSTALL_SKILLS), ACTION_INSTALL_SKILLS)
+  assert.equal(normalizeAction('install-skills'), ACTION_SYNC)
   assert.equal(normalizeAction(ACTION_UPGRADE), ACTION_UPGRADE)
   assert.equal(normalizeAction('nope'), ACTION_SYNC)
 })

@@ -9,7 +9,6 @@ import { chalk } from './utils.js'
 import { interactiveSelect, loadHookManifests, readBaselineDoc, resolveSourceDir, scanExisting, scanHooks, scanRules, scanSkills } from './sync.js'
 import { hasManagedBaseline, parseManagedRuleNames, scanExistingCodexHooks, scanExistingCodexSkills } from './sync-codex.js'
 import { scanExistingCursorRules } from './sync-cursor.js'
-import { installSkills, refreshExternalSkills } from './skills-install.js'
 import { selfUpgrade } from './self-upgrade.js'
 import { buildSyncPlan, contentOptions, projectSkillChoices, PLATFORM_LABELS, PLATFORM_SYNC_TYPES } from './sync-plan.js'
 import { assertConfigPath, baselineProviders, globalBaselinePath, globalHookNames, hasManagedHookConfig } from './sync-inheritance.js'
@@ -27,8 +26,6 @@ export const SYNC_MODE_SKILLS = 'skills'
 export const DEFAULT_SYNC_MODE = SYNC_MODE_ALL
 /** 交互式配置同步。 */
 export const ACTION_SYNC = 'sync'
-/** 安装产品流程依赖的外部 Skills；仅供已有脚本调用。 */
-export const ACTION_INSTALL_SKILLS = 'install-skills'
 /** 升级全局 CLI。 */
 export const ACTION_UPGRADE = 'upgrade'
 
@@ -39,7 +36,6 @@ export function normalizeSyncMode(raw) {
 
 /** 兼容已有脚本的入口动作；未知动作进入正常交互。 */
 export function normalizeAction(raw) {
-  if (raw === ACTION_INSTALL_SKILLS) return ACTION_INSTALL_SKILLS
   if (raw === ACTION_UPGRADE) return ACTION_UPGRADE
   return ACTION_SYNC
 }
@@ -169,7 +165,6 @@ export async function refreshAll({
       if (!contentTypes.length) continue
       const plan = await buildSyncPlan({ scope, platforms: [platform], contentTypes, selected,
         scans: { ...scans, hooks }, sourceDir, projectDir, homeDir, codexHome, projectState, globalState, baseline,
-        installExternalDependencies: false,
         staleEntries: staleEntries(scans, global ? globalState : projectState, existing, [platform]),
       })
       for (const operation of plan.operations) await operation.run()
@@ -187,7 +182,6 @@ export async function refreshAll({
     }
   }
   await refreshSharedSkills({ sourceDir, homeDir })
-  await refreshExternalSkills(path.join(process.env.DWY_HOME || path.join(homeDir, '.dwy'), 'skills'))
 }
 
 const RULE_SKILL_MIGRATIONS = {
@@ -256,7 +250,6 @@ function normalizeRemovals(raw) {
 export async function runDwy(opts = {}) {
   console.log(chalk.bold.cyan('\ndwy') + chalk.gray(' · AI 开发工具\n'))
   const action = normalizeAction(opts.action)
-  if (action === ACTION_INSTALL_SKILLS) { await installSkills(); return }
   if (action === ACTION_UPGRADE) {
     try { await selfUpgrade() } catch (error) { console.error(error.message); process.exitCode = 1 }
     return

@@ -6,48 +6,34 @@ import path from 'node:path'
 import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { syncAll, refreshAll } from '../src/sync-all.js'
-import { refreshExternalSkills } from '../src/skills-install.js'
 
-for (const { stalled, allFailed } of [{ stalled: false, allFailed: false }, { stalled: true, allFailed: false }, { stalled: false, allFailed: true }]) {
-  test(`外部 Skills ${allFailed ? '全部拉取失败时不改版本清单' : `拉取${stalled ? '超时' : '失败'}时保留旧副本并继续刷新其他来源`}`, { timeout: 25000 }, async t => {
-    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-network-'))
+for (const installed of [true, false]) {
+  test(`refresh 不下载外部 Skills，${installed ? '完整保留旧文件' : '空安装目录保持为空'}`, async t => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-no-external-'))
     t.after(() => fs.remove(root))
-    const target = path.join(root, 'skills'), bin = path.join(root, 'bin')
-    await fs.outputFile(path.join(target, 'create-prd/SKILL.md'), '# Old PRD')
-    await fs.outputFile(path.join(target, 'brainstorming/SKILL.md'), '# Old brainstorming')
-    const oldVersion = { repo: 'https://github.com/phuryn/pm-skills.git', tag: 'v1.0.0' }
-    await fs.outputJson(path.join(target, 'VERSIONS.json'), { manifest_hash: 'old', versions: { 'create-prd': oldVersion } })
-    await fs.outputFile(path.join(bin, 'git'), `#!${process.execPath}
-const fs = require('node:fs'), path = require('node:path')
-if (${allFailed} || process.argv.includes('https://github.com/phuryn/pm-skills.git')) {
-  setTimeout(() => process.exit(1), ${stalled ? 18000 : 0})
-} else {
-  const dest = process.argv.at(-1)
-  fs.mkdirSync(path.join(dest, 'skills/brainstorming'), { recursive: true })
-  fs.writeFileSync(path.join(dest, 'skills/brainstorming/SKILL.md'), '# New brainstorming')
-  fs.writeFileSync(path.join(dest, 'LICENSE'), 'MIT')
-}
-`)
-    await fs.chmod(path.join(bin, 'git'), 0o755)
-    const previousPath = process.env.PATH
-    process.env.PATH = `${bin}${path.delimiter}${previousPath}`
-    t.after(() => { process.env.PATH = previousPath })
-    const messages = []
-    t.mock.method(console, 'log', message => messages.push(message))
-    const started = Date.now()
-    await refreshExternalSkills(target)
-    assert.ok(Date.now() - started < 17000, '拉取必须在 15 秒超时后及时结束')
-    assert.equal(await fs.readFile(path.join(target, 'create-prd/SKILL.md'), 'utf8'), '# Old PRD')
-    assert.equal(await fs.readFile(path.join(target, 'brainstorming/SKILL.md'), 'utf8'), allFailed ? '# Old brainstorming' : '# New brainstorming')
-    const versions = await fs.readJson(path.join(target, 'VERSIONS.json'))
-    assert.deepEqual(versions.versions['create-prd'], oldVersion)
-    assert.equal(versions.manifest_hash, 'old')
-    if (allFailed) {
-      assert.deepEqual(versions.versions, { 'create-prd': oldVersion })
-      assert.ok(!messages.some(message => message.includes('已安装到')))
+    const homeDir = path.join(root, 'home'), projectDir = path.join(root, 'project')
+    const sourceDir = path.join(root, 'templates'), dwyHome = path.join(homeDir, '.dwy')
+    const targetDir = path.join(dwyHome, 'skills'), binDir = path.join(root, 'bin'), calls = path.join(root, 'git-calls')
+    for (const dir of [homeDir, projectDir, sourceDir, targetDir]) await fs.ensureDir(dir)
+    const files = {
+      'create-prd/SKILL.md': '# Old PRD',
+      'brainstorming/SKILL.md': '# Old brainstorming',
+      'LICENSE-pm-skills': 'Old PM license',
+      'LICENSE-superpowers': 'Old superpowers license',
+      'VERSIONS.json': '{"versions":{"brainstorming":{"tag":"old"}}}\n',
     }
-    assert.ok(messages.some(message => message.includes('pm-skills') && message.includes('跳过')))
-    assert.equal(await fs.pathExists(path.join(target, 'market-sizing')), false)
+    if (installed) for (const [name, content] of Object.entries(files)) await fs.outputFile(path.join(targetDir, name), content)
+    await fs.outputFile(path.join(binDir, 'git'), `#!${process.execPath}\nrequire('node:fs').appendFileSync(${JSON.stringify(calls)}, 'git called\\n'); process.exit(1)\n`, { mode: 0o755 })
+    execFileSync(process.execPath, [fileURLToPath(new URL('../bin/index.js', import.meta.url)), 'refresh'], {
+      cwd: projectDir, encoding: 'utf8',
+      env: { ...process.env, HOME: homeDir, USERPROFILE: homeDir, CODEX_HOME: path.join(homeDir, '.codex'),
+        DWY_HOME: dwyHome, DWY_TEMPLATE_SOURCE_DIR: sourceDir, PATH: `${binDir}${path.delimiter}${process.env.PATH}` },
+    })
+    assert.equal(await fs.pathExists(calls), false, '本地模板刷新不得调用 Git 或下载外部依赖')
+    if (installed) {
+      assert.deepEqual((await fs.readdir(targetDir)).sort(), ['LICENSE-pm-skills', 'LICENSE-superpowers', 'VERSIONS.json', 'brainstorming', 'create-prd'])
+      for (const [name, content] of Object.entries(files)) assert.equal(await fs.readFile(path.join(targetDir, name), 'utf8'), content)
+    } else assert.deepEqual(await fs.readdir(targetDir), [])
   })
 }
 
@@ -94,45 +80,6 @@ test('未初始化目录执行 refresh 不创建项目或全局配置；主目�
   await fs.ensureDir(sourceDir)
   await refreshAll({ sourceDir, homeDir, projectDir: homeDir, codexHome: path.join(homeDir, '.codex') })
   assert.deepEqual(await fs.readdir(homeDir), [])
-})
-
-test('外部 Skills 只刷新已有项；复制失败保留旧内容并报告错误', async t => {
-  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-external-'))
-  t.after(() => fs.remove(root))
-  const repo = path.join(root, 'repo'), target = path.join(root, 'skills')
-  await fs.outputFile(path.join(repo, 'skills/brainstorming/SKILL.md'), '# New external')
-  await fs.outputFile(path.join(repo, 'LICENSE'), 'MIT')
-  const git = args => execFileSync('git', args, { cwd: repo, stdio: 'pipe' })
-  git(['init', '-q'])
-  git(['add', '.'])
-  git(['-c', 'user.name=Test', '-c', 'user.email=test@example.com', 'commit', '-qm', 'fixture'])
-  git(['tag', 'v6.0.3'])
-  const env = { GIT_CONFIG_COUNT: '1', GIT_CONFIG_KEY_0: `url.file://${repo}.insteadOf`, GIT_CONFIG_VALUE_0: 'https://github.com/obra/superpowers.git' }
-  const previous = Object.fromEntries(Object.keys(env).map(key => [key, process.env[key]]))
-  Object.assign(process.env, env)
-  t.after(() => { for (const [key, value] of Object.entries(previous)) { if (value === undefined) delete process.env[key]; else process.env[key] = value } })
-  await fs.outputFile(path.join(target, 'brainstorming/SKILL.md'), '# Old external')
-  await fs.outputFile(path.join(target, 'personal/SKILL.md'), '# Personal')
-  const copy = fs.copy
-  const failing = t.mock.method(fs, 'copy', async (from, ...args) => {
-    if (from.endsWith('skills/brainstorming')) throw new Error('copy failed')
-    return copy(from, ...args)
-  })
-  await assert.rejects(refreshExternalSkills(target), /copy failed/)
-  assert.equal(await fs.readFile(path.join(target, 'brainstorming/SKILL.md'), 'utf8'), '# Old external')
-  failing.mock.restore()
-  const rename = fs.rename
-  const replacing = t.mock.method(fs, 'rename', async (from, to) => {
-    if (from.includes('.refresh-') && to === path.join(target, 'brainstorming')) throw new Error('replace failed')
-    return rename(from, to)
-  })
-  await assert.rejects(refreshExternalSkills(target), /replace failed/)
-  assert.equal(await fs.readFile(path.join(target, 'brainstorming/SKILL.md'), 'utf8'), '# Old external')
-  replacing.mock.restore()
-  await refreshExternalSkills(target)
-  assert.equal(await fs.readFile(path.join(target, 'brainstorming/SKILL.md'), 'utf8'), '# New external')
-  assert.equal(await fs.readFile(path.join(target, 'personal/SKILL.md'), 'utf8'), '# Personal')
-  assert.equal(await fs.pathExists(path.join(target, 'writing-plans')), false)
 })
 
 test('旧项目 Skill 刷新时先备份，不补装产品流程外部依赖，移除的模板保留', async t => {
