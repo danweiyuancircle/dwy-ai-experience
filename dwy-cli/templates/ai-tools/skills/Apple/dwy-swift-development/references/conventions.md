@@ -1,8 +1,8 @@
 以下是迁移自原 Swift 基线的团队约定；先遵循用户要求和现有项目约定，平台专属内容仅在相应平台使用。架构和依赖方向使用 `dwy-apple-architecture`。
 
-## iOS 目标与写法
+## 平台约束与写法
 
-- 最低支持 iOS 18+；不再为 iOS 17 及以下版本编写兼容实现或安排测试。新 macOS 应用默认最低 macOS 26，以 Apple Silicon `arm64` 为主要目标；代码和依赖不涉及芯片兼容差异、无需额外适配时，可以同时支持 Intel；需要额外兼容工作时，先说明差异、成本和验证范围，与用户确认后再实施。具体范围按实际项目上下文决定，共享库按调用方要求决定。既有项目先核对实际 deployment target、架构和项目约定，说明与默认值的差异，不因启用 Skill 自动修改工程配置。
+- 系统版本、支持架构和回归范围分别使用 `dwy-ios-development`、`dwy-macos-development`，此处不重复定义。具体范围按项目上下文、共享库调用方要求决定；既有项目不因启用 Skill 自动修改工程配置。
 - 统一 Observation + `@MainActor`，状态对象默认 `final class`。
 
 ```swift

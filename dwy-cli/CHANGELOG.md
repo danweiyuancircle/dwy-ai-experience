@@ -1,5 +1,14 @@
 # create-dwy
 
+## [0.35.2] - 2026-11-11
+
+### Changed
+
+- iOS / macOS 的默认版本和架构约束分别集中到对应平台 Skill，通用 Swift 与架构 Skills 只引用平台规则，避免重复维护。
+- 新应用默认最低 iOS 18+ / iPadOS 18+、macOS 26+；macOS 仅支持 Apple Silicon，不支持 Intel。具体范围按项目上下文决定，不自动修改既有工程配置。模板详情见 ai-tools 0.39.1。
+
+---
+
 ## [0.35.1] - 2026-11-11
 
 ### Fixed
