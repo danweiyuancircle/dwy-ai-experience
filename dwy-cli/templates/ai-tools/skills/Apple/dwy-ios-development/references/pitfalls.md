@@ -33,7 +33,7 @@
 
 - **现象**：想让 app 只支持 iPhone，看到 `Package.swift` 里 `platforms: [.iOS(.v18), .macOS(.v15)]` 就想删掉 `.macOS`。
 - **根因**：这是**纯逻辑库**的平台声明，作用是让命令行 `swift test` 能在 mac（host）上跑核心逻辑测试，和 iOS app 支持哪些设备**无关**。app 的设备类型由 app target 的 `TARGETED_DEVICE_FAMILY` 控制。删掉 `.macOS` 会让 `swift test` 在 mac 上跑不起来。
-- **正确做法**：按项目实际支持范围保留 macOS 声明；新项目基线为 `.macOS(.v15)`。要 app 只支持手机，设 app target `TARGETED_DEVICE_FAMILY: "1"`（1=iPhone，2=iPad）。库的 platforms 是「最低支持平台」，不影响 app。
+- **正确做法**：按项目实际支持范围及测试宿主要求保留 macOS 声明；新 macOS 应用默认最低 macOS 26，以 Apple Silicon 为主要目标，无芯片兼容差异且无需额外适配时可同时支持 Intel，需要额外兼容工作时先与用户确认。纯逻辑库的平台下限按调用方和测试宿主决定，不直接套用应用默认值。要 app 只支持手机，设 app target `TARGETED_DEVICE_FAMILY: "1"`（1=iPhone，2=iPad）。库的 platforms 是「最低支持平台」，不影响 app。
 - **适用**：两层结构（SPM 纯逻辑库 + iOS app）、靠命令行 `swift test` 验证核心逻辑的工程。
 
 ### XcodeGen 加 String Catalog，要靠 CFBundleLocalizations 才生成多语言 .lproj

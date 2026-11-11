@@ -9,4 +9,4 @@ description: 设计、开发、排查或评审 iOS、macOS 的模块架构、依
 
 需要分层与依赖判断时读 [分层与依赖](references/layering.md)，需要共用或抽取时读 [共享与抽取](references/extraction.md)，遇到架构问题读 [架构踩坑](references/pitfalls.md)。新项目遵循团队分层；既有项目先尊重实际架构，若与团队规范冲突，说明影响并在授权范围内处理。
 
-团队最低支持 iOS 18+、macOS 15+，不再为 iOS 17 及以下版本设计兼容实现或测试。现有项目先核对实际 deployment target，低于基线时说明差异及迁移范围，不因启用 Skill 自动修改工程配置。针对当前任务查找适用的 Apple 官方 Skill；缺失时使用官方文档。目标平台和 SDK 版本决定 API 可用性。
+团队最低支持 iOS 18+，不再为 iOS 17 及以下版本设计兼容实现或测试。新 macOS 应用默认最低 macOS 26，以 Apple Silicon `arm64` 为主要目标；代码和依赖不涉及芯片兼容差异、无需额外适配时，可以同时支持 Intel；需要额外兼容工作时，先说明差异、成本和验证范围，与用户确认后再实施。具体范围按实际项目上下文决定，共享库按调用方要求决定。现有项目先核对实际 deployment target、架构和项目约定，说明与默认值的差异，不因启用 Skill 自动修改工程配置。针对当前任务查找适用的 Apple 官方 Skill；缺失时使用官方文档。目标平台和 SDK 版本决定 API 可用性。
