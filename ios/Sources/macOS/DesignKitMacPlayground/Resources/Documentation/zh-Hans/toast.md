@@ -3,7 +3,7 @@
 ID: designkit.mac.toast
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 通过外部消息 Binding 展示简短非关键成功提示。

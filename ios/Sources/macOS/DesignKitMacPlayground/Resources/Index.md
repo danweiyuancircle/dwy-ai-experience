@@ -1,4 +1,4 @@
-# DesignKitMac Playground · 0.8.0-beta.4
+# DesignKitMac Playground · 0.8.0-beta.5
 
 Platform: macOS 26.0+ · Module: DesignKitMac · Product: DesignKitMacPlayground
 
@@ -13,7 +13,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/ButtonExample.swift`
 ID: designkit.mac.button
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Trigger an explicit action with native primary, secondary, plain, destructive, busy and disabled semantics.
@@ -31,7 +31,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.button
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 触发明确操作，保留原生主次、危险、忙碌和禁用语义。
@@ -88,7 +88,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/IconActionExample.swi
 ID: designkit.mac.icon-action
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Use a named icon action when surrounding context makes its purpose clear.
@@ -106,7 +106,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.icon-action
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 上下文明确时使用有可访问名称的图标操作。
@@ -160,13 +160,17 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/MenuExample.swift`
 ID: designkit.mac.menu
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Present actions, grouped items and native toggle semantics.
 
 ## Parameters, state and constraints
 Opening or cancelling a menu must not execute actions. Do not nest a Button inside the trigger label or use this as a replacement for Picker.
+
+Icons are optional and owned by the caller: use a native Button with a Label and SF Symbol for an icon, or Text for a text-only item. EMenu applies titleAndIcon to the native Menu as its default label strategy so supplied Label icons, including grouped and submenu items, remain visible on macOS 27; it does not invent icons for Text. Trigger labels follow the caller's Label or Text and can use a more local labelStyle override, such as iconOnly. Trigger and item labels remain independent: a text trigger can open icon items, and an icon-and-text trigger can open text items. Native selection marks, Toggle state, submenu arrows, disabled items and destructive roles stay with the system.
+
+The fixture offers three triggers: text-only, icon items with a text trigger, and mixed grouped content with an icon-and-text trigger. The mixed menu also includes Toggle, a submenu, disabled and destructive actions. Stable trigger IDs end in menu.text-only, menu.with-icons and menu.trigger; actions update only the visible local count or Boolean Binding.
 
 The fixture owns only local @State and resets on component changes or reset. Its bundle parameter defaults to .main; the catalog explicitly injects its own resource bundle. Copy into an app or resource-bearing SwiftPM consumer. Preview settings live in one window-level popover and persist while switching components, affecting only the preview subtree. System information and full documentation/code start collapsed.
 
@@ -178,13 +182,17 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.menu
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 展示动作、分组条目和原生菜单勾选。
 
 ## 参数、状态与约束
 打开或取消菜单不执行动作。触发标签内不嵌套 Button，不把动作菜单替代 Picker。
+
+图标由调用方按需提供：带图标的原生 Button 使用 Label 与 SF Symbol，纯文字项使用 Text。EMenu 在原生 Menu 上应用 titleAndIcon 作为默认标签策略，使 macOS 27 中调用方提供的 Label 图标（含分组和子菜单条目）保持显示；不会给 Text 凭空补图标。触发器按调用方的 Label 或 Text 展示，也可用更局部的 labelStyle（如 iconOnly）覆盖。触发器和条目标签互相独立：纯文字触发器可以打开图文条目，图文触发器也可以打开纯文字条目。系统勾选、Toggle 状态、子菜单箭头、禁用与危险角色均保留原生行为。
+
+示例有三个触发器：纯文字菜单、纯文字触发但选项带图标的菜单，以及图文触发的分组混合菜单。混合菜单还包含 Toggle、子菜单、禁用和危险操作。稳定触发 ID 分别以 menu.text-only、menu.with-icons、menu.trigger 结尾；动作只更新可见局部计数或布尔 Binding。
 
 示例只持局部 @State，切换组件或重置后恢复。bundle 参数默认 .main；目录显式注入所属资源 bundle，可复制到应用或带资源的 SwiftPM 消费方。预览设置集中在 Playground 顶部弹出层，当前窗口切换组件时保留，仅作用预览子树；系统信息与完整说明/代码默认折叠。
 
@@ -208,14 +216,47 @@ struct MenuExample: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            EMenu(resource("More actions")) {
+            EMenu(resource("Text-only menu")) {
                 Button { count += 1 } label: { Text("Run action", bundle: bundle) }
                 Button {} label: { Text("Disabled action", bundle: bundle) }.disabled(true)
+            }.accessibilityIdentifier("playground.designkit.mac.menu.text-only")
+            EMenu(resource("Icon menu")) {
+                Button { count += 1 } label: {
+                    Label { Text("Run action", bundle: bundle) } icon: { Image(systemName: "play.fill") }
+                }
+                Button {} label: {
+                    Label { Text("Disabled action", bundle: bundle) } icon: { Image(systemName: "eye.slash") }
+                }.disabled(true)
+                Button(role: .destructive) { count += 1 } label: {
+                    Label { Text("Destructive action", bundle: bundle) } icon: { Image(systemName: "trash") }
+                }
+            }.accessibilityIdentifier("playground.designkit.mac.menu.with-icons")
+            EMenu {
+                Section {
+                    Button { count += 1 } label: { Text("Run action", bundle: bundle) }
+                    Button { count += 1 } label: {
+                        Label { Text("Save", bundle: bundle) } icon: { Image(systemName: "square.and.arrow.down") }
+                    }
+                    Button {} label: { Text("Disabled action", bundle: bundle) }.disabled(true)
+                } header: { Text("Actions", bundle: bundle) }
+                Toggle(isOn: $enabled) {
+                    Label { Text("Enabled", bundle: bundle) } icon: { Image(systemName: "bell") }
+                }
+                Menu {
+                    Button { count += 1 } label: {
+                        Label { Text("Retry", bundle: bundle) } icon: { Image(systemName: "arrow.clockwise") }
+                    }
+                    Button { count += 1 } label: { Text("Cancel", bundle: bundle) }
+                } label: {
+                    Label { Text("More actions", bundle: bundle) } icon: { Image(systemName: "folder") }
+                }
                 Divider()
-                Toggle(isOn: $enabled) { Text("Enabled", bundle: bundle) }
                 Button(role: .destructive) { count += 1 } label: { Text("Destructive action", bundle: bundle) }
+            } label: {
+                Label { Text("Mixed menu", bundle: bundle) } icon: { Image(systemName: "ellipsis.circle") }
             }.accessibilityIdentifier("playground.designkit.mac.menu.trigger")
-            Text("Action count: \(count)", bundle: bundle)
+            Text("Action count: \(count)", bundle: bundle).accessibilityIdentifier("playground.designkit.mac.menu.result")
+            Text(enabled ? LocalizedStringKey("On") : LocalizedStringKey("Off"), bundle: bundle)
         }
     }
 
@@ -235,7 +276,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/ActionGroupExample.sw
 ID: designkit.mac.action-group
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Group related actions in content, toolbar or floating placement.
@@ -253,7 +294,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.action-group
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 组合内容区、工具栏或浮动区域中的相关操作。
@@ -308,13 +349,17 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/PickerExample.swift`
 ID: designkit.mac.picker
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Choose a strongly typed or Optional value through a native menu or segments.
 
 ## Parameters, state and constraints
 Tags must match the Binding type. A removed candidate does not select the first item; provide nil or an identifiable unmatched state. The fixture exposes raw selection.
+
+Menu option icons are optional: Label with an SF Symbol supplies an icon, while Text remains text-only. EPicker applies titleAndIcon only in its menu branch, including on macOS 27, without changing the native checkmark, menu arrow, tag or Binding semantics. The trigger title does not determine whether options have icons. Segmented presentation keeps its existing native styling and is not given the menu-only label-style override.
+
+The fixture combines a text-only nil option, icon options, a disabled icon option and a dynamic text option, all with stable Optional String tags. Its segmented example remains text-only, and both actual selections are visible below the controls.
 
 The fixture owns only local @State and resets on component changes or reset. Its bundle parameter defaults to .main; the catalog explicitly injects its own resource bundle. Copy into an app or resource-bearing SwiftPM consumer. Preview settings live in one window-level popover and persist while switching components, affecting only the preview subtree. System information and full documentation/code start collapsed.
 
@@ -326,13 +371,17 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.picker
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 通过原生菜单或分段选择强类型或 Optional 值。
 
 ## 参数、状态与约束
 tag 必须与 Binding 类型匹配。候选移除不自动改选第一项；提供 nil 或明确未匹配状态。示例显示实际选值。
+
+菜单选项图标可选：Label 与 SF Symbol 提供图标，Text 继续显示纯文字。EPicker 仅在 menu 分支应用 titleAndIcon，使 macOS 27 也显式显示所提供的图标，不改变原生勾选、菜单箭头、tag 或 Binding 语义。触发器标题不决定选项是否带图标。分段呈现保留原样，不套用菜单专属的标签样式覆盖。
+
+示例把纯文字 nil 选项、图文选项、带图标的禁用项和动态纯文字项放在同一菜单，均使用稳定 Optional String tag。分段示例保持纯文字；两个控件的实际选值均在下方可见。
 
 示例只持局部 @State，切换组件或重置后恢复。bundle 参数默认 .main；目录显式注入所属资源 bundle，可复制到应用或带资源的 SwiftPM 消费方。预览设置集中在 Playground 顶部弹出层，当前窗口切换组件时保留，仅作用预览子树；系统信息与完整说明/代码默认折叠。
 
@@ -362,8 +411,10 @@ struct PickerExample: View {
             EPicker(resource("Choose an option"), selection: $selected) {
                 Text("No selection", bundle: bundle).tag(nil as String?)
                 if !isEmpty {
-                    Text("First option", bundle: bundle).tag("first" as String?)
-                    Text("Disabled option", bundle: bundle).tag("disabled" as String?).disabled(true)
+                    Label { Text("First option", bundle: bundle) } icon: { Image(systemName: "star") }
+                        .tag("first" as String?)
+                    Label { Text("Disabled option", bundle: bundle) } icon: { Image(systemName: "lock") }
+                        .tag("disabled" as String?).disabled(true)
                     if includeOption { Text("Dynamic option", bundle: bundle).tag("dynamic" as String?) }
                 }
             }.accessibilityIdentifier("playground.designkit.mac.picker.menu")
@@ -372,7 +423,7 @@ struct PickerExample: View {
                 Text("First", bundle: bundle).tag(0)
                 Text("Second", bundle: bundle).tag(1)
             }.accessibilityIdentifier("playground.designkit.mac.picker.segment")
-            Text(verbatim: selected ?? "nil")
+            Text(verbatim: selected ?? "nil").accessibilityIdentifier("playground.designkit.mac.picker.selection")
             Text("Selected segment: \(segment)", bundle: bundle).accessibilityIdentifier("playground.designkit.mac.picker.result")
         }
     }
@@ -393,7 +444,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/SwitchExample.swift`
 ID: designkit.mac.switch
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Express an immediate Boolean preference using a native switch.
@@ -411,7 +462,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.switch
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 用原生开关表达即时布尔选择。
@@ -462,7 +513,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/CheckboxExample.swift
 ID: designkit.mac.checkbox
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Express a desktop Boolean choice using a native checkbox.
@@ -480,7 +531,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.checkbox
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 用原生桌面复选框表达布尔选择。
@@ -531,7 +582,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/TextFieldExample.swif
 ID: designkit.mac.text-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Edit a single line while preserving native input, submit and focus behavior.
@@ -549,7 +600,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.text-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 编辑单行文本，保留原生输入、提交与焦点行为。
@@ -602,7 +653,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/SecureFieldExample.sw
 ID: designkit.mac.secure-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Edit a password using the native secure editor.
@@ -620,7 +671,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.secure-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 使用原生安全编辑器输入密码。
@@ -673,7 +724,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/SearchFieldExample.sw
 ID: designkit.mac.search-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Edit and clear the current search Binding.
@@ -691,7 +742,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.search-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 编辑并清空当前搜索 Binding。
@@ -742,7 +793,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/ComboBoxExample.swift
 ID: designkit.mac.combo-box
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Edit raw text with native NSComboBox suggestions and explicit submission.
@@ -762,7 +813,7 @@ The native ComboBox uses EControlTheme.typography.nativeBodySize. The local larg
 ID: designkit.mac.combo-box
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 用原生 NSComboBox 建议编辑原文并明确提交。
@@ -828,7 +879,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/FieldExample.swift`
 ID: designkit.mac.field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Combine a label, editor, hint and validation error.
@@ -846,7 +897,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 组合标签、编辑器、说明与校验错误。
@@ -901,7 +952,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/FieldShellExample.swi
 ID: designkit.mac.field-shell
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Apply the field appearance to a native editor that requires direct focus or input configuration.
@@ -919,7 +970,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.field-shell
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 为需要直接配置焦点或输入行为的原生编辑器复用字段外观。
@@ -970,7 +1021,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/CardExample.swift`
 ID: designkit.mac.card
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Group content on a semantic opaque surface.
@@ -988,7 +1039,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.card
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 在语义实色背景上组织内容。
@@ -1042,7 +1093,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/SettingsRowExample.sw
 ID: designkit.mac.settings-row
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Pair a label and explanation with a native setting control.
@@ -1060,7 +1111,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.settings-row
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 把标签、说明和原生设置控件放在同一行。
@@ -1110,7 +1161,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/LabelValueExample.swi
 ID: designkit.mac.label-value
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Display a readable, selectable static value next to its meaning.
@@ -1128,7 +1179,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.label-value
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 展示可读可选择的标签值。
@@ -1179,7 +1230,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/StatusBadgeExample.sw
 ID: designkit.mac.status-badge
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Present neutral, success, warning and failure with text plus an icon.
@@ -1197,7 +1248,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.status-badge
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 通过文字和图标展示普通、成功、警告与失败状态。
@@ -1248,7 +1299,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/ContentStateExample.s
 ID: designkit.mac.content-state
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Present an explicit idle, loading, empty, failure or success result.
@@ -1266,7 +1317,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.content-state
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 展示明确的空闲、加载、空内容、失败或成功结果。
@@ -1336,7 +1387,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/NoticeExample.swift`
 ID: designkit.mac.notice
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Keep important information or failure readable until replaced by the caller.
@@ -1354,7 +1405,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.notice
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 保留重要信息或错误，直到宿主主动更新。
@@ -1406,7 +1457,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/ToastExample.swift`
 ID: designkit.mac.toast
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Show brief non-critical success feedback from an external message Binding.
@@ -1424,7 +1475,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.toast
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 通过外部消息 Binding 展示简短非关键成功提示。
@@ -1480,7 +1531,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/TaskProgressExample.s
 ID: designkit.mac.task-progress
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Display determinate or indeterminate external task progress and explicit actions.
@@ -1498,7 +1549,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.task-progress
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 展示外部任务的定量或不定量进度与明确操作。
@@ -1561,7 +1612,7 @@ Source: `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/FormExample.swift`
 ID: designkit.mac.form
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Keep form content scrollable while its action area remains reachable.
@@ -1579,7 +1630,7 @@ Available: compiled fixtures use public APIs. Requires host capabilities: window
 ID: designkit.mac.form
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 表单正文可滚动，动作区始终可达。

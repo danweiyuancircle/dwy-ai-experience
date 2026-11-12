@@ -21,6 +21,21 @@ Apple App Kit（统一私有仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.8.0-beta.5 - 2026-11-12
+
+- Mac EMenu 在原生 Menu 上默认使用 `titleAndIcon`，保留调用方 Label 图标；纯 Text 不制造图标，触发器 label 闭包内仍可用 `iconOnly` 覆盖。EPicker 只调整 menu 分支，segmented、tag、Binding、禁用与原生动作语义保留，公开构造签名不变。
+- 更新菜单与选择器真实 fixture、复制源码、双语说明及目录版本；新增统一平台兼容记录，区分最低支持、SDK 编译、自动化与实际交互。
+- 本机 macOS 27.2.1 arm64、Xcode 27.2（27B52）/ macOS SDK 27.2，最终 Mac 19 项与 Playground 7 项定向测试通过，Gallery 构建与签名验证通过，22 份 fixture / 44 份双语说明同源检查通过。候选实现曾核对普通 SF 图标、纯 Text 菜单 AX 与动作计数；最终 Menu 整体策略后的分组、子菜单和 Picker 完整 GUI 复核因 CUA 超时未完成。macOS 26 运行、完整 IME / VoiceOver 与本版 iOS 新增运行回归未验，不能将局部证据泛化为系统 27 全量适配。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.8.0-beta.4 能否不改 App 继续编 | 可以，公开签名未变；Mac 菜单中的 Label 默认保留图文，原生 Text 选项不补图标。 |
+| 不升会怎样 | beta.4 继续可用，但 macOS 27 的菜单可能按系统默认隐藏调用方提供的图标。 |
+| 升上来可选/必改项 | 显式锁定 0.8.0-beta.5 并核对 revision；需要图文的选项传 Label，纯文字传 Text，纯图标触发器在 label 闭包内声明 iconOnly，并验收实际菜单。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0；适配 macOS 27 不提高最低版本，第三方运行时依赖未变。 |
+
 ## 0.8.0-beta.4 - 2026-11-12
 
 - Mac 的 EToast 改为紧凑的图标与文字提示，不再使用持久通知的宽卡片或显示关闭按钮；保留两秒自动消失、消息替换取消、悬停与焦点暂停、VoiceOver 公告和可访问关闭动作。重要通知仍使用 ENotice。

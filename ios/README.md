@@ -34,6 +34,8 @@ MyApp/
 | iOS | **18.0+** |
 | macOS | **26.0+**（Apple Silicon arm64） |
 
+统一最低支持与逐版本适配、SDK 编译 / 自动化 / 实际交互边界见 [ios/Docs/PLATFORM_COMPATIBILITY.md](Docs/PLATFORM_COMPATIBILITY.md)；适配系统 27 不表示提高最低版本或全量验收通过。
+
 ## 生成
 
 以下命令从统一仓库根目录执行；0.4.1 tag 发布后，生成项目才能远端解析该版本。私有仓库访问通过开发者现有 Git 认证完成，模板不含凭据。

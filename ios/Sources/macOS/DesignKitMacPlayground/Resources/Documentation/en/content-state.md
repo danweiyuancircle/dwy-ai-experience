@@ -3,7 +3,7 @@
 ID: designkit.mac.content-state
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Present an explicit idle, loading, empty, failure or success result.

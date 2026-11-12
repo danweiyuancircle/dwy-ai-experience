@@ -1,7 +1,7 @@
 #if os(macOS)
 import SwiftUI
 
-/// 原生动作菜单。Content 保留 Button、Toggle、Section 与子菜单，不能用字符串数组替代动作语义。
+/// 原生动作菜单。选项传 Label 时保留其图标，纯 Text 不补图标；原生角色、分组与子菜单语义不变。
 public struct EMenu<Label: View, Content: View>: View {
     private let label: Label
     private let content: Content
@@ -18,7 +18,9 @@ public struct EMenu<Label: View, Content: View>: View {
     }
 
     public var body: some View {
+        // macOS 27 默认减少符号图标；在原生 Menu 上明确保留调用方提供的图文标签。
         Menu(content: { content }, label: { label })
+            .labelStyle(.titleAndIcon)
             .modifier(EButtonChrome(emphasis: .secondary))
     }
 }
@@ -36,7 +38,7 @@ public struct EPicker<Selection: Hashable, Content: View>: View {
     private let presentation: EPickerPresentation
     private let content: Content
 
-    /// 可用原生 ForEach/Section/disabled 描述选项；保留 Optional 选择所需的原生 tag 语义。
+    /// 菜单选项可用 Label 提供图标或 Text 只显示文字；保留 ForEach、禁用与强类型 tag 语义。
     public init(
         _ title: LocalizedStringResource,
         selection: Binding<Selection>,
@@ -58,7 +60,7 @@ public struct EPicker<Selection: Hashable, Content: View>: View {
     public var body: some View {
         let picker = Picker(selection: $selection) { content } label: { title }
         switch presentation {
-        case .menu: picker.pickerStyle(.menu)
+        case .menu: picker.pickerStyle(.menu).labelStyle(.titleAndIcon)
         case .segmented: picker.pickerStyle(.segmented)
         }
     }

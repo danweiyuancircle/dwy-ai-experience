@@ -77,17 +77,37 @@ final class MacControlHostTests: XCTestCase {
     }
 
     func testPublicNativeSelectionAndMenuCompositionBuildInAHost() {
-        enum Choice: Hashable { case first, second }
+        enum Choice: Hashable { case first, second, disabled }
         let size = measure(VStack {
             EPicker("Choice", selection: .constant(Choice.first)) {
+                Label("First", systemImage: "star").tag(Choice.first)
+                Text("Second").tag(Choice.second)
+                Label("Disabled", systemImage: "lock").tag(Choice.disabled).disabled(true)
+            }
+            EPicker("Optional choice", selection: .constant(nil as Choice?)) {
+                Text("None").tag(nil as Choice?)
+                Label("First", systemImage: "star").tag(Choice.first as Choice?)
+                Text("Second").tag(Choice.second as Choice?)
+            }
+            EPicker("Segments", selection: .constant(Choice.first), presentation: .segmented) {
                 Text("First").tag(Choice.first)
                 Text("Second").tag(Choice.second)
             }
             EMenu("Actions") {
                 Section("Group") {
                     Button("Action") {}
-                    Toggle("Enabled", isOn: .constant(true))
+                    Button {} label: { Label("Icon action", systemImage: "play.fill") }
+                    Button("Disabled") {}.disabled(true)
+                    Toggle(isOn: .constant(true)) { Label("Enabled", systemImage: "bell") }
+                    Menu {
+                        Button {} label: { Label("Retry", systemImage: "arrow.clockwise") }
+                        Button("Cancel") {}
+                    } label: { Label("More", systemImage: "folder") }
+                    Button(role: .destructive) {} label: { Label("Delete", systemImage: "trash") }
                 }
+            }
+            EMenu { Button("Text option") {} } label: {
+                Label("Icon trigger", systemImage: "ellipsis.circle").labelStyle(.titleAndIcon)
             }
             ESwitch("Enabled", isOn: .constant(true))
             EActionGroup {

@@ -3,7 +3,7 @@
 ID: designkit.mac.action-group
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## 用途
 组合内容区、工具栏或浮动区域中的相关操作。

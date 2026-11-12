@@ -14,14 +14,47 @@ struct MenuExample: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            EMenu(resource("More actions")) {
+            EMenu(resource("Text-only menu")) {
                 Button { count += 1 } label: { Text("Run action", bundle: bundle) }
                 Button {} label: { Text("Disabled action", bundle: bundle) }.disabled(true)
+            }.accessibilityIdentifier("playground.designkit.mac.menu.text-only")
+            EMenu(resource("Icon menu")) {
+                Button { count += 1 } label: {
+                    Label { Text("Run action", bundle: bundle) } icon: { Image(systemName: "play.fill") }
+                }
+                Button {} label: {
+                    Label { Text("Disabled action", bundle: bundle) } icon: { Image(systemName: "eye.slash") }
+                }.disabled(true)
+                Button(role: .destructive) { count += 1 } label: {
+                    Label { Text("Destructive action", bundle: bundle) } icon: { Image(systemName: "trash") }
+                }
+            }.accessibilityIdentifier("playground.designkit.mac.menu.with-icons")
+            EMenu {
+                Section {
+                    Button { count += 1 } label: { Text("Run action", bundle: bundle) }
+                    Button { count += 1 } label: {
+                        Label { Text("Save", bundle: bundle) } icon: { Image(systemName: "square.and.arrow.down") }
+                    }
+                    Button {} label: { Text("Disabled action", bundle: bundle) }.disabled(true)
+                } header: { Text("Actions", bundle: bundle) }
+                Toggle(isOn: $enabled) {
+                    Label { Text("Enabled", bundle: bundle) } icon: { Image(systemName: "bell") }
+                }
+                Menu {
+                    Button { count += 1 } label: {
+                        Label { Text("Retry", bundle: bundle) } icon: { Image(systemName: "arrow.clockwise") }
+                    }
+                    Button { count += 1 } label: { Text("Cancel", bundle: bundle) }
+                } label: {
+                    Label { Text("More actions", bundle: bundle) } icon: { Image(systemName: "folder") }
+                }
                 Divider()
-                Toggle(isOn: $enabled) { Text("Enabled", bundle: bundle) }
                 Button(role: .destructive) { count += 1 } label: { Text("Destructive action", bundle: bundle) }
+            } label: {
+                Label { Text("Mixed menu", bundle: bundle) } icon: { Image(systemName: "ellipsis.circle") }
             }.accessibilityIdentifier("playground.designkit.mac.menu.trigger")
-            Text("Action count: \(count)", bundle: bundle)
+            Text("Action count: \(count)", bundle: bundle).accessibilityIdentifier("playground.designkit.mac.menu.result")
+            Text(enabled ? LocalizedStringKey("On") : LocalizedStringKey("Off"), bundle: bundle)
         }
     }
 

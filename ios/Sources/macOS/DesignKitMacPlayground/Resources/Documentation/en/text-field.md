@@ -3,7 +3,7 @@
 ID: designkit.mac.text-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.4
+Package: 0.8.0-beta.5
 
 ## Purpose
 Edit a single line while preserving native input, submit and focus behavior.

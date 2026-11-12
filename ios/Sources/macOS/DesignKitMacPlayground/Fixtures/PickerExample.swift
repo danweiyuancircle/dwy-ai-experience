@@ -20,8 +20,10 @@ struct PickerExample: View {
             EPicker(resource("Choose an option"), selection: $selected) {
                 Text("No selection", bundle: bundle).tag(nil as String?)
                 if !isEmpty {
-                    Text("First option", bundle: bundle).tag("first" as String?)
-                    Text("Disabled option", bundle: bundle).tag("disabled" as String?).disabled(true)
+                    Label { Text("First option", bundle: bundle) } icon: { Image(systemName: "star") }
+                        .tag("first" as String?)
+                    Label { Text("Disabled option", bundle: bundle) } icon: { Image(systemName: "lock") }
+                        .tag("disabled" as String?).disabled(true)
                     if includeOption { Text("Dynamic option", bundle: bundle).tag("dynamic" as String?) }
                 }
             }.accessibilityIdentifier("playground.designkit.mac.picker.menu")
@@ -30,7 +32,7 @@ struct PickerExample: View {
                 Text("First", bundle: bundle).tag(0)
                 Text("Second", bundle: bundle).tag(1)
             }.accessibilityIdentifier("playground.designkit.mac.picker.segment")
-            Text(verbatim: selected ?? "nil")
+            Text(verbatim: selected ?? "nil").accessibilityIdentifier("playground.designkit.mac.picker.selection")
             Text("Selected segment: \(segment)", bundle: bundle).accessibilityIdentifier("playground.designkit.mac.picker.result")
         }
     }

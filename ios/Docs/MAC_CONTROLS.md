@@ -8,6 +8,14 @@
 
 ## 当前接口示例
 
+### 可选菜单图标（0.8.0-beta.5）
+
+EMenu 继续接受原生 Button / Toggle / Section / Menu：选项用 Text 表示纯文字，用 Label 表示图文。组件在原生 Menu 上设置 titleAndIcon 默认策略，兼容 macOS 27 的菜单图标默认隐藏行为；不为纯文字补默认图标。触发器的 Label / Text 由调用方独立提供，需要纯图标触发器时在 label 闭包内对 Label 使用 iconOnly。
+
+EPicker 仅在 menu 分支使用图文策略，原生 tag、选中勾号、禁用与 Binding 保留；带图标选项的闭合选中值也遵循原生展示。segmented 分支不变。实际示例位于 `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/MenuExample.swift` 与 `ios/Sources/macOS/DesignKitMacPlayground/Fixtures/PickerExample.swift`。
+
+最低支持及各版本的编译、运行与未验范围统一记录在 `ios/Docs/PLATFORM_COMPATIBILITY.md`。锁定 0.8.0-beta.4 的消费项目须显式升级至 0.8.0-beta.5 才获得此改动。
+
 以下代码可放在已链接当前源码 DesignKitMac 的 Mac target 中；部署最低 macOS 26。独立完整应用位于 `ios/Examples/MacControls/Sources/MacControlsGallery/MacControlsGallery.swift`。
 
 ```swift
