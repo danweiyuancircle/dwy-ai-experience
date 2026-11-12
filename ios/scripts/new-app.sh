@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 从骨架 Templates 生成 iOS / macOS 空业务工程。
-# 部署底线写死在模板：iOS 17.0+、macOS 15.0+。
+# 部署底线写死在模板：iOS 18.0+、macOS 26.0+（Apple Silicon）。
 set -euo pipefail
 
 usage() {
@@ -129,7 +129,7 @@ echo "  platform : $PLATFORM"
 echo "  name     : $APP_NAME"
 echo "  bundle   : $BUNDLE_ID"
 echo "  skeleton : $SKELETON_ROOT"
-echo "  deploy   : iOS 17.0+ / macOS 15.0+ (template)"
+echo "  deploy   : iOS 18.0+ / macOS 26.0+ (Apple Silicon, template)"
 echo
 echo "Next:"
 echo "  cd \"$DEST\""

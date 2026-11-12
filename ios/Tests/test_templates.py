@@ -29,18 +29,23 @@ class TemplateSmokeTests(unittest.TestCase):
             project = (output / "project.yml").read_text()
             self.assertIn(REPOSITORY_URL, manifest)
             self.assertIn(REPOSITORY_URL, project)
-            self.assertIn('from: "0.4.1"', manifest)
-            self.assertIn("from: 0.4.1", project)
+            self.assertIn('exact: "0.4.1"', manifest)
+            self.assertIn("exactVersion: 0.4.1", project)
             self.assertIn('package: "dwy-ai-experience"', manifest)
-            self.assertIn(".macOS(.v15)", manifest)
+            self.assertIn('.macOS("26.0")', manifest)
             if platform == "macos":
-                self.assertIn('macOS: "15.0"', project)
-                self.assertIn('MACOSX_DEPLOYMENT_TARGET: "15.0"', project)
-                self.assertIn('LSMinimumSystemVersion: "15.0"', project)
+                self.assertIn('macOS: "26.0"', project)
+                self.assertIn('MACOSX_DEPLOYMENT_TARGET: "26.0"', project)
+                self.assertIn('LSMinimumSystemVersion: "26.0"', project)
+                self.assertEqual(project.count('ARCHS: arm64'), 2)
                 with (output / "App/Info.plist").open("rb") as plist:
-                    self.assertEqual(plistlib.load(plist)["LSMinimumSystemVersion"], "15.0")
+                    self.assertEqual(plistlib.load(plist)["LSMinimumSystemVersion"], "26.0")
                 self.assertNotIn("EXCLUDED_ARCHS", project)
                 self.assertNotIn("ONLY_ACTIVE_ARCH", project)
+            else:
+                self.assertIn('.iOS(.v18)', manifest)
+                self.assertIn('iOS: "18.0"', project)
+                self.assertIn('IPHONEOS_DEPLOYMENT_TARGET: "18.0"', project)
             self.assertTrue((output / (name + "Tests") / "SmokeTests.swift").is_file())
             for path in output.rglob("*"):
                 if not path.is_file():

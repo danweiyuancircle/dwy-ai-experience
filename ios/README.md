@@ -25,12 +25,14 @@ MyApp/
 
 规约：[Docs/ARCHITECTURE.md](Docs/ARCHITECTURE.md)
 
+双端 UI 组件、独立示例与当前验收状态：[ios/Docs/UI_FOUNDATION_IMPLEMENTATION.md](Docs/UI_FOUNDATION_IMPLEMENTATION.md)。规范与 tokens 入口：[ios/Docs/UI_FOUNDATION_PLAN.md](Docs/UI_FOUNDATION_PLAN.md)。
+
 ## 部署
 
 | 平台 | 最低版本 |
 |------|----------|
-| iOS | **17.0+** |
-| macOS | **15.0+**（Intel x86_64 与 Apple Silicon arm64） |
+| iOS | **18.0+** |
+| macOS | **26.0+**（Apple Silicon arm64） |
 
 ## 生成
 
@@ -62,6 +64,14 @@ ios/scripts/new-app.sh
 ```
 
 所有 iOS/macOS 实现与配套文件统一在 `ios/`；认证代码不再分散在 `modules/auth/`。仓库根 `Package.swift` / `Package.resolved` 保留为远程 SwiftPM 的包入口与依赖锁文件，所有 target 均指向 `ios/`，产品名和调用方式不变。
+
+iOS 与 macOS 分别维护设计规范及平台组件，双端抽取方案见 [ios/Docs/DESIGN_SYSTEMS.md](Docs/DESIGN_SYSTEMS.md)、[ios/Docs/IOS_DESIGN_SYSTEM.md](Docs/IOS_DESIGN_SYSTEM.md) 和 [ios/Docs/MACOS_DESIGN_SYSTEM.md](Docs/MACOS_DESIGN_SYSTEM.md)。iOS 方案目标为 18+，根清单与模板当前仍为 17，待方案实施时同步；上表反映当前源码基线。
+
+专业 UI 基础库的完整范围见 [ios/Docs/UI_FOUNDATION_PLAN.md](Docs/UI_FOUNDATION_PLAN.md)，包含 [全局设计 tokens](Docs/DESIGN_TOKENS.md)、[配置与使用规则](Docs/DESIGN_CONFIGURATION.md)、通用组合、可选业务组件及新项目接入验收；这些方案内容尚未全部实现或发布。
+
+第二版方案已补齐 Skill 对照细则和 [首批组件规格](Docs/COMPONENT_SPECIFICATIONS.md)，默认值、状态与事件可作为实施基线。文档复审不代替组件实现、目标系统或消费工程验收。
+
+macOS 26 原型已加入 `DesignKitMac`，包括按钮、菜单、选择、输入与表单。接入及限制见 [ios/Docs/MAC_CONTROLS.md](Docs/MAC_CONTROLS.md)，独立展示源代码位于 `ios/Examples/MacControls/`。原型未发布、ADBox 尚未迁移；窗口边缘下拉、完整辅助功能和 macOS 26 实机验收仍是发布门槛。
 
 邮箱密码登录注册组件选择 `AuthCore` 和 `AuthUI`。接入说明见 `ios/Docs/EMAIL_PASSWORD_AUTH.md`，可运行示例见 `ios/Examples/EmailPasswordAuth/`。
 

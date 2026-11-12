@@ -1,6 +1,6 @@
 ---
 name: dwy-macos-development
-description: 开发、排查、评审或适配 macOS 应用时使用，涵盖窗口、菜单、键鼠、系统版本、Liquid Glass 和目标系统验证。
+description: 开发、排查、评审或适配 macOS 应用时使用，涵盖设计规范、组件复用、窗口、菜单、键鼠、系统版本、Liquid Glass 和目标系统验证。
 ---
 
 # macOS 开发
@@ -14,5 +14,7 @@ description: 开发、排查、评审或适配 macOS 应用时使用，涵盖窗
 检查源码、二进制依赖、构建设置和发布产物与项目支持架构一致；默认只构建、发布和验证 `arm64`，不生成 Intel 或 Universal 产物。实际运行和界面验收分别报告，未完成的验证明确标注，不能以交叉编译代替目标设备验证。共享库的支持范围按调用方要求决定，不直接套用新应用默认值。
 
 按需阅读 [窗口与系统外观](references/ui-adaptation.md)、[弹窗差异](references/presentations.md) 和 [macOS 踩坑](references/pitfalls.md)。界面变更先确定目标系统、窗口尺寸、键鼠和辅助功能验证；签名或启动通过不等于目标系统交互与视觉验收。
+
+涉及设计规范、全局 token、主题或组件抽取时，先读取项目现有规范，再读 [设计规范与组件复用](references/design-system.md)；不得把某个产品的品牌或几何规格直接变成所有 Mac 项目的要求。
 
 发现可复用新坑先查重：只在 macOS 证实的放本 Skill；双端均有证据时将共通部分放 Swift Skill，保留平台差异。记录现象、范围、根因及证据、处理方法、验证状态和未验证项；未确认标记待验证，项目专属问题留项目内。修改共享 Skill 必须已有来源仓库授权。

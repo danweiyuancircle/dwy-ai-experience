@@ -6,21 +6,21 @@
 #   BizFoundation/    ③ 业务基础层（package）
 #   Foundation/       ④ 业务无关基础层（层锚点；kits 来自统一私有包版本）
 #
-# 部署底线：iOS 17.0+
+# 部署底线：iOS 18.0+
 # 规约：Docs/ARCHITECTURE.md
 # =============================================================================
 name: __APP_NAME__
 options:
   bundleIdPrefix: com.example
   deploymentTarget:
-    iOS: "17.0"
+    iOS: "18.0"
 packages:
   # ③
   BizFoundation:
     path: .
   AppleAppKit:
     url: __PACKAGE_URL__
-    from: __PACKAGE_VERSION__
+    exactVersion: __PACKAGE_VERSION__
 targets:
   __APP_NAME__:
     type: application
@@ -60,7 +60,7 @@ targets:
         GENERATE_INFOPLIST_FILE: "NO"
         TARGETED_DEVICE_FAMILY: "1"
         SWIFT_VERSION: "6.0"
-        IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "18.0"
         CODE_SIGNING_ALLOWED: "YES"
         DEVELOPMENT_TEAM: "__TEAM_ID__"
         CODE_SIGN_STYLE: Automatic

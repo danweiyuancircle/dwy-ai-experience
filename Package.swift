@@ -4,8 +4,8 @@ import PackageDescription
 /// 苹果应用骨架：Shared 横切 + iOS / macOS 平台 UI 基建。
 ///
 /// 部署底线（模板与库一致）：
-/// - iOS 17.0+
-/// - macOS 15.0+
+/// - iOS 18.0+
+/// - macOS 26.0+（Apple Silicon）
 ///
 /// SwiftPM 远程依赖要求保留仓库根入口；所有实现、模板和测试统一位于 ios/。
 /// App 壳不在此包；用 `ios/scripts/new-app.sh` 从 Templates 生成。
@@ -13,8 +13,8 @@ let package = Package(
     name: "AppleAppKit",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v17),
-        .macOS(.v15),
+        .iOS(.v18),
+        .macOS("26.0"),
     ],
     products: [
         .library(name: "SyncCore", targets: ["SyncCore"]),
@@ -97,10 +97,20 @@ let package = Package(
             dependencies: ["DesignCore", "L10nKit"],
             path: "ios/Sources/iOS/DesignKit"
         ),
+        .testTarget(
+            name: "DesignKitIOSTests",
+            dependencies: ["DesignKitIOS"],
+            path: "ios/Tests/DesignKitIOSTests"
+        ),
         .target(
             name: "DesignKitMac",
             dependencies: ["DesignCore", "L10nKit"],
             path: "ios/Sources/macOS/DesignKit"
+        ),
+        .testTarget(
+            name: "DesignKitMacTests",
+            dependencies: ["DesignKitMac"],
+            path: "ios/Tests/DesignKitMacTests"
         ),
         // iOS 呈现适配只在 iOS 链接 SDK；纯认证核心不依赖 SDK。
         .target(
@@ -183,3 +193,13 @@ let package = Package(
         ),
     ]
 )
+
+#if os(macOS)
+// 示例只作为开发工具构建，应用仍只链接 DesignKitMac library product。
+package.products.append(.executable(name: "MacControlsGallery", targets: ["MacControlsGallery"]))
+package.targets.append(.executableTarget(
+    name: "MacControlsGallery",
+    dependencies: ["DesignKitMac"],
+    path: "ios/Examples/MacControls/Sources/MacControlsGallery"
+))
+#endif

@@ -9,20 +9,20 @@ import PackageDescription
 ///   BizFoundation/    ③ 业务基础层 ← 本 Package 定义
 ///   Foundation/       ④ 业务无关基础层（层锚点；实现由统一私有包版本 提供）
 ///
-/// 部署：macOS 15.0+
+/// 部署：macOS 26.0+（Apple Silicon）
 /// 规约：Docs/ARCHITECTURE.md
 /// =============================================================================
 let package = Package(
     name: "BizFoundation",
     platforms: [
-        .macOS(.v15),
+        .macOS("26.0"),
     ],
     products: [
         /// ③ 业务基础层
         .library(name: "BizFoundation", targets: ["BizFoundation"]),
     ],
     dependencies: [
-        .package(url: "__PACKAGE_URL__", from: "__PACKAGE_VERSION__"),
+        .package(url: "__PACKAGE_URL__", exact: "__PACKAGE_VERSION__"),
     ],
     targets: [
         .target(

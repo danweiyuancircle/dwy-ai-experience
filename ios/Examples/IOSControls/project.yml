@@ -1,0 +1,62 @@
+name: IOSControls
+options:
+  deploymentTarget:
+    iOS: '18.0'
+packages:
+  AppleAppKit:
+    path: ../../..
+settings:
+  base:
+    SWIFT_VERSION: '5.9'
+    DEVELOPMENT_TEAM: ''
+    CODE_SIGN_STYLE: Automatic
+targets:
+  IOSControls:
+    type: application
+    platform: iOS
+    sources:
+      - path: IOSControlsApp.swift
+      - path: Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dwy.examples.ios-controls
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        TARGETED_DEVICE_FAMILY: '1,2'
+    dependencies:
+      - package: AppleAppKit
+        product: DesignKitIOS
+  IOSControlsTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: ../../Tests/DesignKitIOSTests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dwy.examples.ios-controls.tests
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: IOSControls
+      - package: AppleAppKit
+        product: DesignKitIOS
+  IOSControlsUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: UITests
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dwy.examples.ios-controls.uitests
+        GENERATE_INFOPLIST_FILE: YES
+    dependencies:
+      - target: IOSControls
+schemes:
+  IOSControls:
+    build:
+      targets:
+        IOSControls: all
+    test:
+      targets:
+        - IOSControlsTests
+        - IOSControlsUITests

@@ -30,6 +30,6 @@ App / Features → Foundation(kits) 直接使用日志/主题/多语言
 
 ## 底线
 
-- iOS **17.0+**
+- iOS **18.0+**
 - `BizFoundation` 无 SwiftUI / StoreKit / PurchaseCore
 - 语言 / 外观本页下拉；有付费则 DEBUG 解锁

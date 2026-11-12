@@ -30,6 +30,6 @@ App / Features → Foundation(kits) 直接使用日志/主题/多语言
 
 ## 底线
 
-- macOS **15.0+**，支持 Intel x86_64 和 Apple Silicon arm64
+- macOS **26.0+**，仅支持 Apple Silicon arm64
 - `BizFoundation` 无 SwiftUI / StoreKit / PurchaseCore
 - 语言 / 外观本页下拉；有付费则 DEBUG 解锁
