@@ -21,6 +21,23 @@ Apple App Kit（统一私有仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.8.0-beta.2
+
+发布日期：2026-11-12。补齐 Mac 组件组合入口与可选的内置组件 Playground，仍为显式锁定的预发布版本。
+
+DesignKitMac 新增 EFieldShell，供原生或复合编辑器复用字段外观；EToast 支持明确的原文标题和提示级别；EComboBox 新增可选双向焦点绑定，并通过 ETypography.nativeBodySize 跟随原生字体配置。新增独立产品 DesignKitMacPlayground，包含全部 22 个 Mac 可视组件的真实示例、双语说明、可复制代码与稳定目录标识。预览的主题、语言和字号只作用于局部宿主，不写应用偏好；正式应用可完全不链接该产品。示例源码与复制资源由同源校验脚本核对。
+
+本机 macOS 27.2.1 的完整 SwiftPM 测试通过 227 项，包含 Playground 7 项和新增字段、焦点与原文提示覆盖；22 份示例同源检查通过。实际窗口核对了按钮动作、代码复制、Combo 输入回车单次提交，以及统一预览设置跨组件保留。外观、语言、字号和材质统一收进窗口顶部，完整说明与代码默认折叠；不再在每个组件前重复环境长表。macOS 26 前台交互、真实 IME / VoiceOver 与完整下拉鼠标、屏幕边缘矩阵仍未验收；本机 CUA 在下拉后超时，不能据此报告交互通过。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.8.0-beta.1 能否不改 App 继续编 | EToastMessage 的 title 从 LocalizedStringResource 改为 EToastTitle（localized / verbatim）；直接读取该公开属性的代码须按类型处理，原资源构造入口保留。其他新增入口按需采用。 |
+| 不升会怎样 | beta.1 继续可用，但没有字段组合外壳、原文 Toast 和可选 Mac Playground。 |
+| 升上来可选/必改项 | 显式锁定 0.8.0-beta.2 并核对 revision；Playground 仅供开发构建单独链接，项目组合通过公开插槽接入，不把业务模型放入基础库。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0；第三方运行时依赖未变。 |
+
 ## 0.8.0-beta.1
 
 发布日期：2026-11-12。双端 UI 基础组件预发布，供项目显式锁定并试接入，不表示稳定版或全部目标系统验收通过。

@@ -19,6 +19,23 @@ final class MacFoundationComponentsTests: XCTestCase {
         XCTAssertNotEqual(EToastMessage("Done").id, EToastMessage("Done").id)
     }
 
+    func testVerbatimToastDoesNotTranslateTextThatMatchesAResourceKeyAndPreservesWarningTone() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("bundle")
+        let language = root.appendingPathComponent("zh-Hans.lproj")
+        try FileManager.default.createDirectory(at: language, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try "\"Saved\" = \"已保存\";".write(to: language.appendingPathComponent("Localizable.strings"),
+                                                     atomically: true, encoding: .utf8)
+        let resource = LocalizedStringResource("Saved", bundle: .atURL(root))
+        let localized = EToastMessage(resource, tone: .success)
+        let verbatim = EToastMessage(verbatim: "Saved", tone: .warning)
+        XCTAssertEqual(localized.announcement(locale: Locale(identifier: "zh-Hans")), "已保存")
+        XCTAssertEqual(verbatim.announcement(locale: Locale(identifier: "zh-Hans")), "Saved")
+        XCTAssertEqual(verbatim.title, .verbatim("Saved"))
+        XCTAssertEqual(verbatim.tone, .warning)
+        XCTAssertEqual(verbatim.tone.symbol, "exclamationmark.triangle")
+    }
+
     func testToastAnnouncementPreservesBundleInterpolationAndInjectedLocale() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathExtension("bundle")
         let language = root.appendingPathComponent("zh-Hans.lproj")

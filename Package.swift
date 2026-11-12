@@ -25,6 +25,7 @@ let package = Package(
         .library(name: "DesignCore", targets: ["DesignCore"]),
         .library(name: "DesignKitIOS", targets: ["DesignKitIOS"]),
         .library(name: "DesignKitMac", targets: ["DesignKitMac"]),
+        .library(name: "DesignKitMacPlayground", targets: ["DesignKitMacPlayground"]),
         .library(name: "PurchaseCore", targets: ["PurchaseCore"]),
         .library(name: "AuthCore", targets: ["AuthCore"]),
         .library(name: "AuthUI", targets: ["AuthUI"]),
@@ -111,6 +112,18 @@ let package = Package(
             name: "DesignKitMacTests",
             dependencies: ["DesignKitMac"],
             path: "ios/Tests/DesignKitMacTests"
+        ),
+        .target(
+            name: "DesignKitMacPlayground",
+            dependencies: ["DesignKitMac"],
+            path: "ios/Sources/macOS/DesignKitMacPlayground",
+            exclude: ["Scripts", "README.md"],
+            resources: [.process("Resources/en.lproj"), .process("Resources/zh-Hans.lproj"), .copy("Resources/Documentation"), .copy("Resources/Examples"), .copy("Resources/Index.md")]
+        ),
+        .testTarget(
+            name: "DesignKitMacPlaygroundTests",
+            dependencies: ["DesignKitMacPlayground"],
+            path: "ios/Tests/DesignKitMacPlaygroundTests"
         ),
         // iOS 呈现适配只在 iOS 链接 SDK；纯认证核心不依赖 SDK。
         .target(
@@ -199,7 +212,7 @@ let package = Package(
 package.products.append(.executable(name: "MacControlsGallery", targets: ["MacControlsGallery"]))
 package.targets.append(.executableTarget(
     name: "MacControlsGallery",
-    dependencies: ["DesignKitMac"],
+    dependencies: ["DesignKitMacPlayground"],
     path: "ios/Examples/MacControls/Sources/MacControlsGallery"
 ))
 #endif

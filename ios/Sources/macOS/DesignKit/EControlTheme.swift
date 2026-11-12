@@ -42,6 +42,8 @@ public struct ESemanticColors: Sendable {
 
 /// 语义字体保留系统缩放和语言字形布局，不复制系统字号表。
 public struct ETypography: Sendable {
+    /// AppKit 编辑器的原生正文字号；SwiftUI Font 不可反向转换，产品字号根映射须同步设置此值。
+    public var nativeBodySize: CGFloat = NSFont.preferredFont(forTextStyle: .body).pointSize
     public var title: Font = .title3
     public var sectionTitle: Font = .headline
     public var body: Font = .body

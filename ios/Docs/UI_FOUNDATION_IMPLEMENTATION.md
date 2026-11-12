@@ -1,6 +1,6 @@
 # Apple UI 首批组件实现与验证
 
-日期：2026-11-12。状态：源码可本地消费；尚未发布、迁移 ADBox 或完成 macOS 26 目标系统验收。总方案见 `ios/Docs/UI_FOUNDATION_PLAN.md`。
+日期：2026-11-12。0.8.0-beta.1 已发布，Apple CI 的 macOS 26 arm64 测试与 iOS 18 平台构建通过；本地 macOS 26 真实交互验收仍未完成。本文首批验证记录保留当时边界，后续接入以文末增量记录为准。总方案见 `ios/Docs/UI_FOUNDATION_PLAN.md`。
 
 ## 产品与实现
 
@@ -86,8 +86,20 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodegen generate
 
 ## 发布前剩余门槛
 
+以下为首批实现时的历史门槛；其中“尚未发布/未执行”不表示当前发布状态。
+
 - 当前没有可用 macOS 26 实机环境；本机 27 的构建/测试/窗口不代替 26 验收。
 - Mac GUI 工具在读取窗口与下拉后，后续动作返回 `noWindowsAvailable`；未确认鼠标选择提交、循环导航、Esc 原文、IME 和屏幕边缘行为通过。不能用离屏 AXUnknown 推断产品角色错误，也不能靠手动设置 AXRole 伪造通过。
 - VoiceOver 实际朗读顺序、输入法组合、AutoFill、减少透明度/动态效果、高对比、iPad 呈现与完整窄窗/独立窗口仍需现场验收；纯状态和布局测试不代替这些检查。
 - 模板仍依赖已发布 0.4.1，未调用本轮新 API。组件发布后同步两套精确版本和默认接入示例，再验证远端消费；不能把本地示例通过解释为旧标签已提供新 API。
 - ADBox 依赖边界与逐页迁移、领域组件抽取、稳定版本发布属于总方案后续阶段，尚未执行。本轮未提交、推送、发布或更新已安装 Skills。
+
+## 0.8.0-beta.2 增量
+
+新增公开字段壳 EFieldShell、支持原文和提示级别的 EToastMessage，以及 EComboBox 的可选双向焦点绑定与原生语义字号。EToastTitle 明确区分本地化资源和用户原文；直接读取旧 title 属性的消费者须适配枚举。
+
+可选产品 DesignKitMacPlayground 单向依赖 DesignKitMac，覆盖全部 22 个可视组件；每项含直接编译的 fixture、双语约束说明与可复制源码。脚本检查源码和复制资源逐字一致，目录使用稳定 ID 和辅助功能标识。统一预览设置位于窗口顶部，切换组件保留；详情默认显示预览与用途摘要，完整说明和代码折叠。预览通过独立 NSHostingView 局部覆盖环境，不修改 ThemeManager、NSApp.appearance 或用户偏好。接入与维护见 `ios/Sources/macOS/DesignKitMacPlayground/README.md`。
+
+本机完整 SwiftPM 227 项通过；实际窗口验证了统一外观设置在切换组件后保留，深色只改变预览子树，具体操作与结果的辅助功能标识不再被祖先覆盖。基础库现场下拉验收仍有 CUA 超时边界，不宣称完整鼠标/IME/VoiceOver 矩阵通过。
+
+ADBox 在自己的 MacUI 模块组合 Pro 动作、代理表单等项目展示；权益、设备操作、持久化与任务归属留在应用。开发工程单独链接 Playground 产品，正式基准工程不链接；iOS 不新增 Playground。应用集成验证及数据保护证据由 ADBox 项目记录，基础库测试不代表业务页面已验收。

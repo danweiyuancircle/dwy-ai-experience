@@ -15,6 +15,30 @@ final class MacSuggestionListTests: XCTestCase {
         XCTAssertFalse(ESuggestionList.isComposing(editor))
     }
 
+    func testOptionalFocusBindingTracksNativeBeginAndEndWithoutSubmitting() async {
+        var focused = false
+        let ended = expectation(description: "Native focus ended")
+        var endings: [String] = []
+        var commits: [String] = []
+        let parent = ENativeComboBox(title: "History", text: .constant("raw"), suggestions: [],
+                                    isFocused: Binding(get: { focused }, set: {
+                                        focused = $0
+                                        if !$0 { ended.fulfill() }
+                                    }),
+                                    onEditingEnded: { endings.append($0) }, onCommit: { commits.append($0) })
+        let coordinator = ENativeComboBox.Coordinator(parent)
+        let combo = coordinator.makeControl()
+        combo.stringValue = "raw"
+        coordinator.controlTextDidBeginEditing(Notification(name: NSControl.textDidBeginEditingNotification, object: combo))
+        XCTAssertTrue(focused)
+        coordinator.controlTextDidEndEditing(Notification(name: NSControl.textDidEndEditingNotification, object: combo))
+        let completion = await XCTWaiter.fulfillment(of: [ended], timeout: 1)
+        XCTAssertEqual(completion, .completed)
+        XCTAssertFalse(focused)
+        XCTAssertEqual(endings, ["raw"])
+        XCTAssertTrue(commits.isEmpty)
+    }
+
     func testFilteringPreservesOrderAndDeduplicatesWithoutChangingInput() {
         XCTAssertEqual(ESuggestionList.values(["Android", "ADBox", "Android", "Safari"], query: "ad"), ["ADBox"])
         XCTAssertEqual(ESuggestionList.values(["a", "a", "b"], query: ""), ["a", "b"])

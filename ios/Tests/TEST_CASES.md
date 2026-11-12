@@ -14,7 +14,13 @@
 
 ## 平台编译回归
 
-`.github/workflows/private-release.yml` 执行完整 `swift test`，分别编译 macOS Intel 和 Apple Silicon 目标，并使用真实 iPhoneSimulator SDK 对全部产品执行 `swift build --triple arm64-apple-ios17.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios`。全产品构建覆盖 macOS 主题监听的平台隔离，避免只编译 AuthGoogleIOS 时漏掉 `DistributedNotificationCenter` 的 iOS 编译错误。交叉编译不代表 Intel 真机运行通过。
+`.github/workflows/private-release.yml` 在 macOS 26 runner 执行完整 `swift test`，编译 `arm64-apple-macosx26.0`，并使用真实 iPhoneSimulator SDK 对列出的 iOS 目标执行 `swift build --target "$target" --triple arm64-apple-ios18.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios`。iOS 目标清单不包含 Mac 展示 executable；交叉编译不代表目标设备交互通过。
+
+## Mac 基础组件与 Playground
+
+根 `swift test` 覆盖 `DesignKitMacTests` 与 `DesignKitMacPlaygroundTests`。前者验证主题/布局、公开字段壳与便利字段等价、原生 Combo 字号、可选焦点绑定、候选/标记文本与提交边界、Toast 原文/资源及生命周期；后者验证全部 22 个可视组件目录、双语资源、复制源码与 fixture 逐字一致、检索、两种宽度与状态宿主布局、公开独立和项目入口。
+
+修改示例后运行 `python3 ios/Sources/macOS/DesignKitMacPlayground/Scripts/sync-examples.py --check`。测试不连接设备、不写应用偏好；离屏宿主与回调测试不能替代真实 IME、VoiceOver、下拉鼠标和屏幕边缘验收。
 
 ## 邮箱密码组件
 

@@ -1,6 +1,23 @@
 #if os(macOS)
 import SwiftUI
 
+/// 原生编辑器与附属操作的字段外壳。内容可增长，焦点、输入法和编辑器配置仍由调用方拥有。
+/// 已经使用 ETextField/ESecureField 的内容不要再套此壳，以免重复内边距。
+public struct EFieldShell<Content: View>: View {
+    private let isSearch: Bool
+    private let content: Content
+
+    /// 搜索场景使用主题 searchHeight；普通单行字段使用 fieldHeight，不固定裁剪内容。
+    public init(isSearch: Bool = false, @ViewBuilder content: () -> Content) {
+        self.isSearch = isSearch
+        self.content = content()
+    }
+
+    public var body: some View {
+        content.modifier(EFieldChrome(isSearch: isSearch))
+    }
+}
+
 /// 单行原生输入，不转换、截断或持久化业务输入；焦点和 onSubmit 仍由宿主控制。
 public struct ETextField: View {
     private let title: Text
@@ -17,7 +34,7 @@ public struct ETextField: View {
     }
 
     public var body: some View {
-        TextField(text: $text) { title }.textFieldStyle(.plain).modifier(EFieldChrome())
+        EFieldShell { TextField(text: $text) { title }.textFieldStyle(.plain) }
     }
 }
 
@@ -36,7 +53,7 @@ public struct ESecureField: View {
     }
 
     public var body: some View {
-        SecureField(text: $text) { title }.textFieldStyle(.plain).modifier(EFieldChrome())
+        EFieldShell { SecureField(text: $text) { title }.textFieldStyle(.plain) }
     }
 }
 
@@ -95,19 +112,20 @@ public struct ESearchField: View {
     }
 
     public var body: some View {
-        HStack(spacing: theme.spacing.fieldLabel) {
-            Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
-            TextField(text: $text) { title }.textFieldStyle(.plain)
-            if !text.isEmpty {
-                Button { text = "" } label: {
-                    Image(systemName: "xmark.circle.fill")
+        EFieldShell(isSearch: true) {
+            HStack(spacing: theme.spacing.fieldLabel) {
+                Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+                TextField(text: $text) { title }.textFieldStyle(.plain)
+                if !text.isEmpty {
+                    Button { text = "" } label: {
+                        Image(systemName: "xmark.circle.fill")
+                    }
+                    .accessibilityLabel(clearTitle)
+                    .help(clearTitle)
+                    .buttonStyle(.borderless)
                 }
-                .accessibilityLabel(clearTitle)
-                .help(clearTitle)
-                .buttonStyle(.borderless)
             }
         }
-        .modifier(EFieldChrome(isSearch: true))
     }
 }
 

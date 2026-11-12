@@ -85,21 +85,51 @@ extension ENotice where Actions == EmptyView {
     }
 }
 
-/// 简短非关键成功信息；相同文字的再次通知也使用新的 id，重新计算展示时长。
+/// 提示内容明确区分资源和原文；原文即使恰好等于翻译 key 也不经过资源解析。
+public enum EToastTitle: Equatable {
+    case localized(LocalizedStringResource)
+    case verbatim(String)
+
+    func text(locale: Locale) -> Text {
+        switch self {
+        case .localized(var resource):
+            resource.locale = locale
+            return Text(resource)
+        case .verbatim(let value): return Text(verbatim: value)
+        }
+    }
+
+    func resolve(locale: Locale) -> String {
+        switch self {
+        case .localized(var resource):
+            resource.locale = locale
+            return String(localized: resource)
+        case .verbatim(let value): return value
+        }
+    }
+}
+
+/// 简短非关键提示；同文案再次通知使用新 id。需要持续阅读或操作的失败应使用 ENotice。
 public struct EToastMessage: Identifiable, Equatable {
     public let id: UUID
-    public let title: LocalizedStringResource
+    public let title: EToastTitle
+    public let tone: EStatusTone
 
-    public init(_ title: LocalizedStringResource, id: UUID = UUID()) {
+    /// 资源在渲染和公告时使用宿主 locale，保留消费方 bundle。
+    public init(_ title: LocalizedStringResource, tone: EStatusTone = .success, id: UUID = UUID()) {
         self.id = id
-        self.title = title
+        self.title = .localized(title)
+        self.tone = tone
     }
 
-    func announcement(locale: Locale) -> String {
-        var resource = title
-        resource.locale = locale
-        return String(localized: resource)
+    /// 已解析文案、用户原文或外部短消息不再作为本地化 key。
+    public init(verbatim title: String, tone: EStatusTone = .success, id: UUID = UUID()) {
+        self.id = id
+        self.title = .verbatim(title)
+        self.tone = tone
     }
+
+    func announcement(locale: Locale) -> String { title.resolve(locale: locale) }
 }
 
 struct EToastLifetime: Equatable {
@@ -111,17 +141,22 @@ struct EToastLifetime: Equatable {
     var expiresAutomatically: Bool { id != nil && !hovering && !focused && !voiceOver }
 }
 
-/// 非模态成功提示。悬停、VoiceOver 或可访问焦点期间保留；重要错误请用 ENotice。
+/// 非模态轻提示。悬停、VoiceOver、键盘或可访问焦点期间保留；重要错误请用 ENotice。
 public struct EToast: View {
     @Binding private var message: EToastMessage?
     @State private var hovering = false
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @Environment(\.locale) private var locale
-    private let dismissTitle: LocalizedStringResource
+    private let dismissTitle: Text
     @AccessibilityFocusState private var accessibilityFocused: Bool
     @FocusState private var keyboardFocused: Bool
 
     public init(message: Binding<EToastMessage?>, dismissTitle: LocalizedStringResource) {
+        self.init(message: message, dismissTitle: Text(dismissTitle))
+    }
+
+    /// 已解析关闭文案可显式使用 Text(verbatim:)，不丢失原文语义。
+    public init(message: Binding<EToastMessage?>, dismissTitle: Text) {
         self._message = message
         self.dismissTitle = dismissTitle
     }
@@ -129,8 +164,8 @@ public struct EToast: View {
     public var body: some View {
         Group {
             if let message {
-                ENotice(message.title, tone: .success) {
-                    EButton(dismissTitle) { self.message = nil }.focused($keyboardFocused)
+                ENotice(message.title.text(locale: locale), tone: message.tone) {
+                    EButton(action: { self.message = nil }) { dismissTitle }.focused($keyboardFocused)
                 }
                     .accessibilityFocused($accessibilityFocused)
                     .onHover { hovering = $0 }
@@ -153,7 +188,8 @@ public struct EToast: View {
                 // Task.sleep 的取消表示消息替换或宿主退出，不应清掉新消息。
                 return
             }
-            guard message?.id == current.id else { return }
+            guard !Task.isCancelled, message?.id == current.id,
+                  !hovering, !accessibilityFocused, !keyboardFocused, !voiceOverEnabled else { return }
             message = nil
         }
     }

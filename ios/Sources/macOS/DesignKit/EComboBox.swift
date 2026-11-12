@@ -24,32 +24,36 @@ public struct EComboBox: View {
     private let title: EComboTitle
     @Binding private var text: String
     private let suggestions: [String]
+    private let isFocused: Binding<Bool>?
     private let onEditingEnded: (String) -> Void
     private let onCommit: (String) -> Void
 
     /// title 携带调用方 bundle；suggestions 为原文。取消、关闭和失焦不会调用 onCommit。
-    public init(_ title: LocalizedStringResource, text: Binding<String>, suggestions: [String],
+    public init(_ title: LocalizedStringResource, text: Binding<String>, suggestions: [String], isFocused: Binding<Bool>? = nil,
                 onEditingEnded: @escaping (String) -> Void = { _ in }, onCommit: @escaping (String) -> Void) {
         self.title = .localized(title)
         self._text = text
         self.suggestions = suggestions
+        self.isFocused = isFocused
         self.onEditingEnded = onEditingEnded
         self.onCommit = onCommit
     }
 
     /// 动态原文标题显式退出本地化，不把用户内容当资源 key。
-    public init(verbatim title: String, text: Binding<String>, suggestions: [String],
+    public init(verbatim title: String, text: Binding<String>, suggestions: [String], isFocused: Binding<Bool>? = nil,
                 onEditingEnded: @escaping (String) -> Void = { _ in }, onCommit: @escaping (String) -> Void) {
         self.title = .verbatim(title)
         self._text = text
         self.suggestions = suggestions
+        self.isFocused = isFocused
         self.onEditingEnded = onEditingEnded
         self.onCommit = onCommit
     }
 
     public var body: some View {
         ENativeComboBox(title: title.resolve(locale: locale), text: $text,
-                                 suggestions: suggestions, onEditingEnded: onEditingEnded, onCommit: onCommit)
+                                 suggestions: suggestions, isFocused: isFocused, nativeBodySize: theme.typography.nativeBodySize,
+                                 onEditingEnded: onEditingEnded, onCommit: onCommit)
             .frame(minHeight: theme.searchHeight)
     }
 }
@@ -74,6 +78,8 @@ struct ENativeComboBox: NSViewRepresentable {
     let title: String
     @Binding var text: String
     let suggestions: [String]
+    var isFocused: Binding<Bool>? = nil
+    var nativeBodySize: CGFloat = NSFont.preferredFont(forTextStyle: .body).pointSize
     let onEditingEnded: (String) -> Void
     let onCommit: (String) -> Void
 
@@ -92,9 +98,10 @@ struct ENativeComboBox: NSViewRepresentable {
         case .large, .extraLarge: combo.controlSize = .large
         default: combo.controlSize = .regular
         }
-        combo.font = NSFont.preferredFont(forTextStyle: .body)
+        combo.font = NSFont.systemFont(ofSize: nativeBodySize)
         combo.placeholderString = title
         combo.setAccessibilityLabel(title)
+        context.coordinator.updateFocus(combo)
         let editor = combo.currentEditor() as? NSTextView
         // 标记文本属于输入法；SwiftUI 的回流与候选刷新不能中断正在组合的原文。
         guard !ESuggestionList.isComposing(editor) else { return }
@@ -110,7 +117,7 @@ struct ENativeComboBox: NSViewRepresentable {
         init(_ parent: ENativeComboBox) { self.parent = parent }
 
         func makeControl() -> NSComboBox {
-            let combo = NSComboBox()
+            let combo = FocusComboBox()
             combo.completes = false
             combo.usesDataSource = true
             combo.hasVerticalScroller = true
@@ -120,9 +127,31 @@ struct ENativeComboBox: NSViewRepresentable {
             combo.target = self
             combo.action = #selector(activate(_:))
             combo.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            combo.didAttach = { [weak self, weak combo] in
+                guard let self, let combo else { return }
+                self.updateFocus(combo)
+            }
             return combo
         }
 
+
+        func updateFocus(_ combo: NSComboBox) {
+            guard let focus = parent.isFocused, combo.window != nil,
+                  focus.wrappedValue != (combo.currentEditor() != nil) else { return }
+            // SwiftUI 更新期间只安排焦点请求，避免原生编辑回调同步修改正在更新的绑定。
+            Task { @MainActor [weak self, weak combo] in
+                guard let self, let combo, let window = combo.window, let focus = self.parent.isFocused else { return }
+                if focus.wrappedValue {
+                    if combo.currentEditor() == nil { window.makeFirstResponder(combo) }
+                } else if combo.currentEditor() != nil {
+                    window.makeFirstResponder(nil)
+                }
+            }
+        }
+
+        func controlTextDidBeginEditing(_ notification: Notification) {
+            if let focus = parent.isFocused, !focus.wrappedValue { focus.wrappedValue = true }
+        }
 
         func updateCandidates(_ combo: NSComboBox) {
             let values = ESuggestionList.values(parent.suggestions, query: combo.stringValue)
@@ -151,6 +180,12 @@ struct ENativeComboBox: NSViewRepresentable {
             guard let combo = notification.object as? NSComboBox else { return }
             parent.text = combo.stringValue
             parent.onEditingEnded(combo.stringValue)
+            // Return 的 editing-ended 不一定失焦；等原生事件结束后再读取真实编辑器归属。
+            Task { @MainActor [weak self, weak combo] in
+                guard let self, let combo, let focus = self.parent.isFocused else { return }
+                let focused = combo.currentEditor() != nil
+                if focus.wrappedValue != focused { focus.wrappedValue = focused }
+            }
         }
 
         @objc func activate(_ combo: NSComboBox) {
@@ -158,6 +193,15 @@ struct ENativeComboBox: NSViewRepresentable {
             parent.text = combo.stringValue
             parent.onCommit(combo.stringValue)
         }
+    }
+}
+
+private final class FocusComboBox: NSComboBox {
+    var didAttach: (() -> Void)?
+
+    override func viewDidMoveToWindow() {
+        super.viewDidMoveToWindow()
+        if window != nil { didAttach?() }
     }
 }
 #endif

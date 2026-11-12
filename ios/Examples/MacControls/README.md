@@ -1,8 +1,8 @@
 # DesignKitMac 独立展示
 
-最低 macOS 26、Apple Silicon；仅依赖公开 `DesignKitMac`，不引用 ADBox。由根 `Package.swift` 的 `MacControlsGallery` executable target 构建。
+最低 macOS 26、Apple Silicon；通过可选公开产品 `DesignKitMacPlayground` 展示 `DesignKitMac`，不引用 ADBox。由根 `Package.swift` 的 `MacControlsGallery` executable target 构建。
 
-默认展示标准中性蓝主题；「品牌覆盖」切换为紫色，验证一次注入影响全部组件。展示包含原生动作、菜单、强类型与 Optional 选择、输入/密码/搜索/建议、开关与复选框、表单/卡片/设置行、标签值、状态、加载/空/失败、可取消进度、持久通知与轻提示。
+入口仅装配 `EPlayground()`。目录逐项展示全部 22 个可视组件，支持检索、状态预览、局部明暗/语言/字号覆盖，提供双语用途、调用约束与可复制 Swift。局部覆盖不写应用偏好。维护入口与同源校验见 `ios/Sources/macOS/DesignKitMacPlayground/README.md`。
 
 可本地化文字传 `LocalizedStringResource`；原文传 `Text(verbatim:)`，组合框动态原文标题使用 `EComboBox(verbatim:text:suggestions:onEditingEnded:onCommit:)`。资源属于消费项目时在资源上明确 bundle；库不读取 ADBox 本地化单例。
 
