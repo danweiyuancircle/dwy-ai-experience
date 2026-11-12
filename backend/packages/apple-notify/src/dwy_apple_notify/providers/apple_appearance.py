@@ -10,6 +10,13 @@ DEFAULT_APPEARANCE = NotificationAppearance(username="购买通知", avatar_url=
 SUBSCRIPTION_APPEARANCE = NotificationAppearance(
     username="订阅购买", avatar_url=f"{ASSET_BASE_URL}/subscription.png",
 )
+RENEWAL_APPEARANCE = NotificationAppearance(
+    username="订阅续订",
+    avatar_url=(
+        "https://raw.githubusercontent.com/danweiyuancircle/dwy-ai-experience/"
+        "d6c1b5145ee0a3a13e0a919463d56a0a1469100d/assets/notification-icons/renewal.png"
+    ),
+)
 BUYOUT_APPEARANCE = NotificationAppearance(username="买断购买", avatar_url=f"{ASSET_BASE_URL}/purchase.png")
 REFUND_APPEARANCE = NotificationAppearance(
     username="退款通知", avatar_url=f"{ASSET_BASE_URL}/refund.png",
@@ -30,8 +37,11 @@ def apple_notification_appearance(notice: VerifiedAppleNotification) -> Notifica
         return ACTIVITY_APPEARANCE
     event = (notice.notification_type, notice.subtype)
     if tx.product_type == "Auto-Renewable Subscription" and event in {
-        ("SUBSCRIBED", "INITIAL_BUY"), ("SUBSCRIBED", "RESUBSCRIBE"),
         ("DID_RENEW", None), ("DID_RENEW", "BILLING_RECOVERY"),
+    }:
+        return RENEWAL_APPEARANCE
+    if tx.product_type == "Auto-Renewable Subscription" and event in {
+        ("SUBSCRIBED", "INITIAL_BUY"), ("SUBSCRIBED", "RESUBSCRIBE"),
         ("DID_CHANGE_RENEWAL_PREF", "UPGRADE"), ("OFFER_REDEEMED", "UPGRADE"),
     }:
         return SUBSCRIPTION_APPEARANCE

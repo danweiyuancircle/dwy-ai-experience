@@ -25,7 +25,9 @@ pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.9'
 
 ## 购买通知图标（0.1.7）
 
-`dwy_apple_notify.apple.apple_notification_appearance(notice)` 接收已验签通知，返回四类默认展示：订阅购买、买断购买、退款通知、内购动态。商品类型来自 `AppleTransactionDetails.product_type`（官方 Apple `type`）；不按商品名或有效期猜测。
+`dwy_apple_notify.apple.apple_notification_appearance(notice)` 接收已验签通知，返回五类默认展示：订阅购买、订阅续订、买断购买、退款通知、内购动态。商品类型来自 `AppleTransactionDetails.product_type`（官方 Apple `type`）；不按商品名或有效期猜测。
+
+`DID_RENEW`（无 subtype 或 `BILLING_RECOVERY`）在满足下述生产付费交易条件时显示“订阅续订”，使用独立的 Lucide `refresh-cw` 图标，沿用订阅购买的绿色底、白色线框和尺寸规格。首次订阅、重新订阅和立即升级继续显示“订阅购买”。续订图标固定引用素材提交 `d6c1b5145ee0a3a13e0a919463d56a0a1469100d` 下的 `assets/notification-icons/renewal.png`。
 
 购买要求生产环境、本人购买、金额大于零、交易编号／购买时间／币种齐全且未撤销，并且通知确实表达购买、续费或立即升级。非消耗型 `ONE_TIME_CHARGE` 才作为买断；共享、免费、Sandbox、缺字段、未知类型和普通状态更新使用通用图标。生产 `REFUND` 使用退款图标，申请／驳回／撤销退款仍为动态。购买不代表银行到账，退款保留正文中的原交易金额与归属。
 
@@ -43,7 +45,7 @@ pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.9'
 
 购买默认“购买通知”，审核默认“应用审核通知”，日报周报默认“经营报表”，评论默认“系统通知”。各模块 `appearance.py` 公开 `DEFAULT_APPEARANCE`；应用与单次发送可逐字段覆盖，最终名称必填，头像可省略或显式清除以使用平台默认。
 
-Logo 使用 GitHub 固定资产提交 `8c86735ec6bcfeee24f101fdccbc900b9d7bc2dd` 下的 `assets/notification-icons/`，无需应用部署图片服务。素材规格、用途和 Lucide 许可见仓库根 `assets/notification-icons/README.md`。升级只影响新通知的默认头像，已持久化的投递快照继续使用原地址。
+Logo 使用 GitHub 固定资产提交 `8c86735ec6bcfeee24f101fdccbc900b9d7bc2dd` 下的 `assets/notification-icons/`，续订图标使用上述独立固定提交，无需应用部署图片服务。素材规格、用途和 Lucide 许可见仓库根 `assets/notification-icons/README.md`。升级只影响新通知的默认头像，已持久化的投递快照继续使用原地址。
 
 ## 每日评分日报
 

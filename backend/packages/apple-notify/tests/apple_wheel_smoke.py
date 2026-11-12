@@ -142,6 +142,8 @@ async def main(expected_version: str):
         ) as client:
             for index, (event, subtype, kind, username, icon) in enumerate((
                 ("SUBSCRIBED", "INITIAL_BUY", "Auto-Renewable Subscription", "订阅购买", "subscription"),
+                ("DID_RENEW", None, "Auto-Renewable Subscription", "订阅续订", "renewal"),
+                ("DID_RENEW", "BILLING_RECOVERY", "Auto-Renewable Subscription", "订阅续订", "renewal"),
                 ("ONE_TIME_CHARGE", None, "Non-Consumable", "买断购买", "purchase"),
                 ("REFUND", None, "Non-Consumable", "退款通知", "refund"),
                 ("DID_CHANGE_RENEWAL_STATUS", "AUTO_RENEW_DISABLED",
@@ -164,7 +166,7 @@ async def main(expected_version: str):
                 assert messages[-1]["username"] == username
                 assert messages[-1]["avatar_url"].endswith(f"/{icon}.png")
     assert callable(apple_notification_content)
-    print("Apple wheel: independent project, four appearances, assets and actual Discord JSON passed.")
+    print("Apple wheel: independent project, five appearances, assets and actual Discord JSON passed.")
 
 
 if __name__ == "__main__":

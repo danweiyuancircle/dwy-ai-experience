@@ -25,8 +25,10 @@ def notice(event="SUBSCRIBED", subtype="INITIAL_BUY", *, environment="Production
 @pytest.mark.parametrize("event,subtype,product_type,name,icon", [
     ("SUBSCRIBED", "INITIAL_BUY", "Auto-Renewable Subscription", "订阅购买", "subscription.png"),
     ("SUBSCRIBED", "RESUBSCRIBE", "Auto-Renewable Subscription", "订阅购买", "subscription.png"),
-    ("DID_RENEW", None, "Auto-Renewable Subscription", "订阅购买", "subscription.png"),
-    ("DID_RENEW", "BILLING_RECOVERY", "Auto-Renewable Subscription", "订阅购买", "subscription.png"),
+    ("DID_RENEW", None, "Auto-Renewable Subscription", "订阅续订", "renewal.png"),
+    ("DID_RENEW", "BILLING_RECOVERY", "Auto-Renewable Subscription", "订阅续订", "renewal.png"),
+    ("DID_RENEW", "FUTURE_SUBTYPE", "Auto-Renewable Subscription", "内购动态", "general.png"),
+    ("DID_RENEW", None, "Non-Consumable", "内购动态", "general.png"),
     ("DID_CHANGE_RENEWAL_PREF", "UPGRADE", "Auto-Renewable Subscription", "订阅购买", "subscription.png"),
     ("OFFER_REDEEMED", "UPGRADE", "Auto-Renewable Subscription", "订阅购买", "subscription.png"),
     ("ONE_TIME_CHARGE", None, "Non-Consumable", "买断购买", "purchase.png"),
@@ -44,7 +46,7 @@ def notice(event="SUBSCRIBED", subtype="INITIAL_BUY", *, environment="Production
     ("ONE_TIME_CHARGE", None, "Consumable", "内购动态", "general.png"),
     ("FUTURE_EVENT", None, "Non-Consumable", "内购动态", "general.png"),
 ])
-def test_four_appearances_follow_event_and_product_type(event, subtype, product_type, name, icon):
+def test_appearances_follow_event_and_product_type(event, subtype, product_type, name, icon):
     from dwy_apple_notify.apple import apple_notification_appearance
 
     result = apple_notification_appearance(notice(event, subtype, product_type=product_type))
@@ -59,13 +61,14 @@ def test_four_appearances_follow_event_and_product_type(event, subtype, product_
     {"transaction_id": None}, {"purchase_date": None},
     {"revocation_date": datetime(2026, 11, 9, tzinfo=UTC)},
 ])
-def test_shared_free_missing_or_revoked_facts_are_not_payment(changes):
+@pytest.mark.parametrize("event,subtype", [("SUBSCRIBED", "INITIAL_BUY"), ("DID_RENEW", None)])
+def test_shared_free_missing_or_revoked_facts_are_not_payment(changes, event, subtype):
     from dwy_apple_notify.apple import apple_notification_appearance
 
-    assert apple_notification_appearance(notice(**changes)).username == "内购动态"
+    assert apple_notification_appearance(notice(event, subtype, **changes)).username == "内购动态"
 
 
-@pytest.mark.parametrize("event", ["SUBSCRIBED", "REFUND", "TEST"])
+@pytest.mark.parametrize("event", ["SUBSCRIBED", "DID_RENEW", "REFUND", "TEST"])
 def test_sandbox_never_uses_payment_or_refund_appearance(event):
     from dwy_apple_notify.apple import apple_notification_appearance
 
@@ -80,13 +83,18 @@ def test_refund_does_not_require_price_and_missing_transaction_is_neutral():
     assert apple_notification_appearance(unknown).username == "内购动态"
 
 
-async def test_router_attaches_event_appearance_without_expanding_public_data():
+@pytest.mark.parametrize("event,subtype,name", [
+    ("SUBSCRIBED", "INITIAL_BUY", "订阅购买"),
+    ("DID_RENEW", None, "订阅续订"),
+    ("DID_RENEW", "BILLING_RECOVERY", "订阅续订"),
+])
+async def test_router_attaches_event_appearance_without_expanding_public_data(event, subtype, name):
     from dwy_apple_notify.config import AppleNotificationApp, AppleNotificationsConfig
     from dwy_apple_notify.providers.apple import create_apple_router
 
     events = []
     async def verified(signed):
-        return notice()
+        return notice(event, subtype)
     async def sink(event):
         events.append(event)
         return True
@@ -101,7 +109,7 @@ async def test_router_attaches_event_appearance_without_expanding_public_data():
     async with httpx.AsyncClient(transport=httpx.ASGITransport(app=app), base_url="https://test") as client:
         response = await client.post("/webhooks/apple/app", json={"signedPayload": "verified-boundary"})
     assert response.status_code == 200
-    assert events[0].appearance.username == "订阅购买"
+    assert events[0].appearance.username == name
     assert len(events[0].data) == 8
     assert "product_type" not in events[0].data
 
