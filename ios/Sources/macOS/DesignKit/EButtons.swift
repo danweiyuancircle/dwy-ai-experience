@@ -11,6 +11,7 @@ public enum EButtonEmphasis: Sendable {
 /// 通用 Mac 操作按钮。业务方负责动作和状态；原生 Button 保留键盘、角色及辅助功能行为。
 public struct EButton<Label: View>: View {
     @Environment(\.eControlTheme) private var theme
+    @Environment(\.eControlPlacement) private var placement
     private let emphasis: EButtonEmphasis
     private let role: ButtonRole?
     private let isBusy: Bool
@@ -53,8 +54,14 @@ public struct EButton<Label: View>: View {
             }
         }
         .modifier(EButtonChrome(emphasis: emphasis))
-        .tint(role == .destructive ? theme.colors.danger : theme.accent)
+        .tint(tint)
         .disabled(isBusy)
+    }
+
+    private var tint: Color? {
+        if role == .destructive { return theme.colors.danger }
+        // 次要玻璃不染品牌色，避免调用方语义图标色落在饱和底色上。
+        return placement == .floating && emphasis == .secondary ? nil : theme.accent
     }
 }
 

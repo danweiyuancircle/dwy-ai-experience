@@ -1,6 +1,10 @@
 # DesignKitMac 原型接入与状态
 
-本轮已转为 iOS / macOS 分别设计、抽取的方案。总览见 `ios/Docs/DESIGN_SYSTEMS.md`，Mac 规范见 `ios/Docs/MACOS_DESIGN_SYSTEM.md`。当前原型没有发布，不能通过旧标签消费。
+本轮已转为 iOS / macOS 分别设计、抽取的方案。总览见 `ios/Docs/DESIGN_SYSTEMS.md`，Mac 规范见 `ios/Docs/MACOS_DESIGN_SYSTEM.md`。0.8.0-beta.3 包含下述中性玻璃着色修正；锁定旧标签的应用须显式升级后才会生效。
+
+## 按钮着色
+
+浮动区域的次要 EButton / EIconAction 使用原生中性玻璃，清除显式品牌 tint；帮助、关闭不与主要操作争夺视觉强调。主要操作仍使用品牌色的 glassProminent，危险角色仍保留 danger 语义色。自定义图标前景由调用方负责，在实际主题与材质下核对对比度；不能将灰色图标配饱和品牌色背景。
 
 ## 当前接口示例
 
