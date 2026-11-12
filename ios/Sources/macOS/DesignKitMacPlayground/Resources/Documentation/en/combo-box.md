@@ -3,7 +3,7 @@
 ID: designkit.mac.combo-box
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.2
+Package: 0.8.0-beta.4
 
 ## Purpose
 Edit raw text with native NSComboBox suggestions and explicit submission.

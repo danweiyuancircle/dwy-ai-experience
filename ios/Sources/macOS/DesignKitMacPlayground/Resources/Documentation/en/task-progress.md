@@ -3,7 +3,7 @@
 ID: designkit.mac.task-progress
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.2
+Package: 0.8.0-beta.4
 
 ## Purpose
 Display determinate or indeterminate external task progress and explicit actions.

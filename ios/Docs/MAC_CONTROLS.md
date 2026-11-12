@@ -58,3 +58,11 @@ python3 -m unittest ios/Tests/test_templates.py
 - 应用继续负责业务动作、验证、持久化、Pro 门控、资源和本地化。
 - 基础材质变更集中修改组件；消费项目更新版本后仍验证实际宿主布局和业务路径。
 - 当前展示只验证部分交互；完整键盘、VoiceOver、窗口边缘下拉和 macOS 26 实机验收未完成，参见 Mac 规范的发布门槛。
+
+## 简短提示与持久通知
+
+`EToast` 使用图标加文字的紧凑圆角提示，短文案按内容自然收窄，长文案在宿主可用宽度内换行；不显示关闭按钮，不复用 `ENotice` 的全宽通知卡。普通情况下两秒后自动清除消息；消息替换、取消与宿主销毁不清除后续消息，悬停、键盘/辅助焦点和 VoiceOver 阅读时保留既有暂停策略。
+
+既有 `dismissTitle` 仍为辅助功能清除动作命名，不增加配置参数。提示获得键盘焦点后可用 Esc、Return 或空格清除；无需点击可见按钮。重要错误及需要用户操作的信息继续使用持久 `ENotice`，不改为短暂提示。
+
+`MacControlHostTests.testToastIsCompactForShortFeedbackAndWrapsLongMessages` 检查短提示宽度、相对旧通知卡的高度及长文换行；布局测试不能代替前台键盘、VoiceOver 和真实显示效果验收。

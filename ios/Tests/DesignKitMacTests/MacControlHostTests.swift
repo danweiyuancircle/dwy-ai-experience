@@ -6,6 +6,18 @@ import DesignKitMac
 
 @MainActor
 final class MacControlHostTests: XCTestCase {
+    func testToastIsCompactForShortFeedbackAndWrapsLongMessages() {
+        let short = measure(EToast(message: .constant(EToastMessage("Copied")), dismissTitle: "Close")
+            .fixedSize(horizontal: true, vertical: true), width: nil)
+        let previousCard = measure(ENotice("Copied", tone: .success) { EButton("Close") {} }, width: nil)
+        XCTAssertLessThan(short.width, 200)
+        XCTAssertLessThan(short.height, previousCard.height)
+        let long = measure(EToast(message: .constant(EToastMessage(verbatim: String(repeating: "Long feedback message. ", count: 8))),
+                                  dismissTitle: "Close"), width: 180)
+        XCTAssertLessThanOrEqual(long.width, 181)
+        XCTAssertGreaterThan(long.height, short.height)
+    }
+
     func testPublicFieldShellMatchesConvenienceFieldAndSupportsNativeAccessory() {
         let direct = measure(EFieldShell { TextField("Name", text: .constant("Text")).textFieldStyle(.plain) })
         let convenience = measure(ETextField("Name", text: .constant("Text")))
@@ -89,10 +101,10 @@ final class MacControlHostTests: XCTestCase {
         XCTAssertGreaterThan(size.height, 100)
     }
 
-    private func measure<V: View>(_ view: V) -> NSSize {
+    private func measure<V: View>(_ view: V, width: CGFloat? = 320) -> NSSize {
         _ = NSApplication.shared
-        let host = NSHostingView(rootView: view.frame(width: 320))
-        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 800),
+        let host = NSHostingView(rootView: view.frame(width: width))
+        let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: width ?? 320, height: 800),
                               styleMask: [.titled], backing: .buffered, defer: false)
         window.contentView = host
         host.layoutSubtreeIfNeeded()

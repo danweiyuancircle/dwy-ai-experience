@@ -3,7 +3,7 @@
 ID: designkit.mac.icon-action
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.2
+Package: 0.8.0-beta.4
 
 ## Purpose
 Use a named icon action when surrounding context makes its purpose clear.

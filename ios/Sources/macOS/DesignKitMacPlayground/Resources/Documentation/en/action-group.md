@@ -3,7 +3,7 @@
 ID: designkit.mac.action-group
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.2
+Package: 0.8.0-beta.4
 
 ## Purpose
 Group related actions in content, toolbar or floating placement.

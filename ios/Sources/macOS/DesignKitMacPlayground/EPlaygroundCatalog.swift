@@ -112,7 +112,7 @@ enum EPlaygroundCategory: String, CaseIterable, Identifiable {
 
 /// 包资源与展示/复制共用，缺失时抛错，不静默跳到其他组件。
 public enum EPlaygroundCatalog {
-    public static let version = "0.8.0-beta.2"
+    public static let version = "0.8.0-beta.4"
 
     public struct Documentation: Sendable {
         public let markdown: String

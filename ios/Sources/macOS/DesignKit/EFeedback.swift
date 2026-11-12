@@ -141,12 +141,14 @@ struct EToastLifetime: Equatable {
     var expiresAutomatically: Bool { id != nil && !hovering && !focused && !voiceOver }
 }
 
-/// 非模态轻提示。悬停、VoiceOver、键盘或可访问焦点期间保留；重要错误请用 ENotice。
+/// 紧凑非模态轻提示，无可见关闭按钮；悬停、读屏或焦点期间保留，重要错误请用 ENotice。
 public struct EToast: View {
     @Binding private var message: EToastMessage?
     @State private var hovering = false
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @Environment(\.locale) private var locale
+    @Environment(\.eControlTheme) private var theme
+    @Environment(\.displayScale) private var displayScale
     private let dismissTitle: Text
     @AccessibilityFocusState private var accessibilityFocused: Bool
     @FocusState private var keyboardFocused: Bool
@@ -155,7 +157,7 @@ public struct EToast: View {
         self.init(message: message, dismissTitle: Text(dismissTitle))
     }
 
-    /// 已解析关闭文案可显式使用 Text(verbatim:)，不丢失原文语义。
+    /// dismissTitle 为辅助功能清除动作命名，不显示按钮；原文显式使用 Text(verbatim:)。
     public init(message: Binding<EToastMessage?>, dismissTitle: Text) {
         self._message = message
         self.dismissTitle = dismissTitle
@@ -164,11 +166,30 @@ public struct EToast: View {
     public var body: some View {
         Group {
             if let message {
-                ENotice(message.title.text(locale: locale), tone: message.tone) {
-                    EButton(action: { self.message = nil }) { dismissTitle }.focused($keyboardFocused)
+                Label {
+                    message.title.text(locale: locale).fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: message.tone.symbol)
+                        .foregroundStyle(message.tone.color(theme.colors)).accessibilityHidden(true)
                 }
-                    .accessibilityFocused($accessibilityFocused)
-                    .onHover { hovering = $0 }
+                .font(theme.typography.secondary)
+                .padding(.horizontal, theme.spacing.group)
+                .padding(.vertical, theme.spacing.controlGroup)
+                .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: theme.cardRadius))
+                .overlay {
+                    RoundedRectangle(cornerRadius: theme.cardRadius)
+                        .strokeBorder(theme.colors.separator, lineWidth: 1 / displayScale)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityAction(named: dismissTitle) { self.message = nil }
+                .accessibilityFocused($accessibilityFocused)
+                .focusable()
+                .focused($keyboardFocused)
+                .onKeyPress(keys: [.escape, .return, .space]) { _ in
+                    self.message = nil
+                    return .handled
+                }
+                .onHover { hovering = $0 }
             }
         }
         .task(id: EToastLifetime(id: message?.id, hovering: hovering, focused: accessibilityFocused || keyboardFocused, voiceOver: voiceOverEnabled)) {

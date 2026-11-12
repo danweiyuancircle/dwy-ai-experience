@@ -3,7 +3,7 @@
 ID: designkit.mac.settings-row
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.2
+Package: 0.8.0-beta.4
 
 ## 用途
 把标签、说明和原生设置控件放在同一行。

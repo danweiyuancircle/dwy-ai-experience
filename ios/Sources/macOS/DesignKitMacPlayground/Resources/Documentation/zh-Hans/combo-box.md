@@ -3,7 +3,7 @@
 ID: designkit.mac.combo-box
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.2
+Package: 0.8.0-beta.4
 
 ## 用途
 用原生 NSComboBox 建议编辑原文并明确提交。

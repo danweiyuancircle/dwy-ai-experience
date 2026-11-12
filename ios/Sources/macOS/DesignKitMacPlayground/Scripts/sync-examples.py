@@ -38,7 +38,10 @@ for case, fixture in fixtures:
         if not documentation.exists():
             failures.append(str(documentation.relative_to(root)))
             continue
-        index.append(documentation.read_text())
+        markdown = documentation.read_text()
+        if re.findall(r"^Package: (.+)$", markdown, re.MULTILINE) != [version]:
+            failures.append(f"{documentation.relative_to(root)}: Package version must match {version}")
+        index.append(markdown)
     index.append("```swift\n" + source + "```\n")
 output(root / "Resources" / "Index.md", "\n".join(index))
 if failures:
