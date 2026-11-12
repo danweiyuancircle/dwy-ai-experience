@@ -5,7 +5,8 @@
 | 名称 | 图形 | 用途 | 底色 | 预览 |
 | --- | --- | --- | --- | --- |
 | purchase | shopping-bag | 付款成功、买断购买 | `#0f766e` | ![购买](purchase.png) |
-| subscription | repeat-2 | 订阅购买、续订 | `#0f766e` | ![订阅](subscription.png) |
+| subscription | repeat-2 | 首次订阅、重新订阅、立即升级 | `#0f766e` | ![订阅](subscription.png) |
+| renewal | refresh-cw | 自动续订成功、扣款恢复后续订成功 | `#0f766e` | ![续订](renewal.png) |
 | refund | undo-2 | 已确认退款 | `#b91c1c` | ![退款](refund.png) |
 | alert | triangle-alert | 监控告警、退款待人工核对 | `#b45309` | ![告警](alert.png) |
 | review | clipboard-check | 应用审核、版本状态 | `#2563eb` | ![审核](review.png) |
