@@ -82,6 +82,17 @@ test('新包移除的共享 Skill 保留，外部缓存不纳入刷新', async t
   assert.equal(await fs.readFile(path.join(homeDir, '.dwy', 'skills', 'external', 'SKILL.md'), 'utf8'), '# external')
 })
 
+test('首次刷新准备全部模板 Skills，后续刷新纳入新增项但不自动启用全局入口', async t => {
+  const { homeDir, sourceDir } = await fixture(t)
+  assert.deepEqual((await refreshSharedSkills({ sourceDir, homeDir })).updated, ['sample'])
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/new-skill/SKILL.md'), '# New')
+  const result = await refreshSharedSkills({ sourceDir, homeDir })
+  assert.deepEqual(new Set(result.updated), new Set(['sample', 'new-skill']))
+  assert.equal(await fs.readFile(path.join(homeDir, '.dwy/skills/new-skill/SKILL.md'), 'utf8'), '# New')
+  assert.deepEqual(new Set(await fs.readJson(path.join(homeDir, '.dwy/skill-store.json'))), new Set(['sample', 'new-skill']))
+  assert.equal(await fs.pathExists(path.join(homeDir, '.agents')), false)
+})
+
 test('无效来源不能覆盖已安装共享副本', async t => {
   const { homeDir, skill } = await fixture(t)
   const [shared] = await prepareSharedSkills({ skills: [skill], homeDir })

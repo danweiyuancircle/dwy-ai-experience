@@ -118,10 +118,10 @@ Keep the Git source public and publish installable packages to public npm/PyPI t
 
 - No build step (`build:cli` is a no-op).
 - 已实现入口必须出现在 `dwy --help`；禁止把可用命令藏成「隐藏命令」。
-- Commands: `dwy` / `dwy sync`（范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 确认）；`dwy refresh`（从当前 CLI 包内模板刷新已安装共享 Skills）；`dwy migrate`（迁移老项目入口）；`dwy upgrade`（更新到 npm 正式版 latest）；`dwy --help` / `dwy --version`。
+- Commands: `dwy` / `dwy sync`（范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 确认）；`dwy refresh`（更新全部模板共享 Skills；项目交互终端可选择并确认增删项目 Skills，非交互环境只刷新已有配置）；`dwy migrate`（迁移老项目入口）；`dwy upgrade`（更新到 npm 正式版 latest）；`dwy --help` / `dwy --version`。
 - Skills / Rules 按分类显示 Tab；通用规范和 Hooks 默认启用，项目已有有效全局提供者时跳过对应选择且不重复写入。CLI 最后选择，Codex 默认选中，并恢复当前范围已同步的其他 CLI。Commands 停用并保留本地文件，启动时展示 dwy 品牌。
 - 不存在 `dwy claude sync` / `dwy codex sync` / `dwy sync md` / `dwy skills install`（平台选择与刷新外部 skill 都在 `dwy` 交互里完成）。
-- AI 模板随 CLI 包分发，目录为 `dwy-cli/templates/ai-tools`；启动不联网检查或下载模板，新增 Skills 需发布 CLI。`DWY_TEMPLATE_SOURCE_DIR` 仅供开发者显式覆盖。目标配置和所选共享 Skills 仅在确认后修改；项目已被有效全局入口完整覆盖的 Skills 禁止重复勾选。详见 `docs/cli-sync.md`。
+- AI 模板目录为 `dwy-cli/templates/ai-tools`；优先使用显式开发覆盖或本地来源，否则检查远端 `develop`，离线使用有效缓存或随包模板。模板内容变更不必单独发布 CLI。`dwy sync` 确认后修改目标配置和所选共享内容；`dwy refresh` 先更新全部共享内容，项目入口增删仍须确认。项目已被有效全局入口完整覆盖的 Skills 禁止重复勾选。详见 `docs/cli-sync.md`。
 
 ## Workflow Conventions
 

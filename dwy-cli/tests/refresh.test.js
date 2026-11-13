@@ -68,7 +68,9 @@ test('refresh 更新全局及当前项目已有内容，保留个人内容和未
   assert.match(await fs.readFile(path.join(projectDir, 'AGENTS.md'), 'utf8'), /New rule[\s\S]*Personal project instructions/)
   assert.equal(await fs.readFile(path.join(codexHome, 'hooks/check.sh'), 'utf8'), '# new hook')
   assert.equal(await fs.pathExists(path.join(projectDir, '.codex/hooks/check.sh')), false)
-  assert.equal(await fs.pathExists(path.join(homeDir, '.dwy/skills/unselected')), false)
+  assert.equal(await fs.readFile(path.join(homeDir, '.dwy/skills/unselected/SKILL.md'), 'utf8'), '# Unselected')
+  assert.equal(await fs.pathExists(path.join(homeDir, '.agents/skills/unselected')), false)
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/unselected')), false)
   assert.equal(await fs.pathExists(path.join(homeDir, '.claude')), false)
 })
 
@@ -80,6 +82,18 @@ test('未初始化目录执行 refresh 不创建项目或全局配置；主目�
   await fs.ensureDir(sourceDir)
   await refreshAll({ sourceDir, homeDir, projectDir: homeDir, codexHome: path.join(homeDir, '.codex') })
   assert.deepEqual(await fs.readdir(homeDir), [])
+})
+
+test('在主目录的交互终端只准备全部共享 Skills，不进入项目选择或创建启用入口', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-home-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), homeDir = path.join(root, 'home')
+  await fs.ensureDir(homeDir)
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# Latest')
+  await refreshAll({ sourceDir, homeDir, projectDir: homeDir, codexHome: path.join(homeDir, '.codex'), interactive: true })
+  assert.deepEqual(await fs.readdir(homeDir), ['.dwy'])
+  assert.equal(await fs.readFile(path.join(homeDir, '.dwy/skills/sample/SKILL.md'), 'utf8'), '# Latest')
+  assert.equal(await fs.pathExists(path.join(homeDir, '.dwy/sync-state.json')), false)
 })
 
 test('旧项目 Skill 刷新时先备份，不补装产品流程外部依赖，移除的模板保留', async t => {

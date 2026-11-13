@@ -137,16 +137,24 @@ async function managedNames(root, global, codexHome) {
   }
 }
 
-/** 刷新全局和当前项目已启用的托管内容；其他项目通过共享 Skills 链接生效，不扫描磁盘。 */
+/** 刷新全部模板共享 Skills 和已有配置；交互终端可增删当前项目的 Skills 入口，不扫描其他项目。 */
 export async function refreshAll({
   sourceDir, projectDir = process.cwd(), homeDir = os.homedir(),
   codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'),
+  interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY),
 } = {}) {
   sourceDir ||= await resolveSourceDir({ homeDir })
+  await refreshSharedSkills({ sourceDir, homeDir })
+  const isHome = await fs.realpath(projectDir) === await fs.realpath(homeDir)
+  if (!isHome && interactive) {
+    const result = await syncAll({ sourceDir, projectDir, homeDir, codexHome,
+      scope: 'project', contentTypes: ['skills'], staleRemovals: {},
+    })
+    if (!result) return
+  }
   const scans = { skills: await scanSkills(sourceDir), rules: await scanRules(sourceDir), hooks: await scanHooks(sourceDir), commands: [] }
   const baseline = await readBaselineDoc(sourceDir)
   let projectState = await loadSyncState(projectDir), globalState = await loadSyncState(homeDir)
-  const isHome = await fs.realpath(projectDir) === await fs.realpath(homeDir)
   for (const scope of isHome ? ['global'] : ['global', 'project']) {
     const global = scope === 'global', root = global ? homeDir : projectDir
     const existing = await managedNames(root, global, codexHome)
@@ -181,7 +189,6 @@ export async function refreshAll({
       console.log(chalk.green(`已刷新${global ? '全局' : '当前项目'} ${PLATFORM_LABELS[platform]}：${contentTypes.join('、')}`))
     }
   }
-  await refreshSharedSkills({ sourceDir, homeDir })
 }
 
 const RULE_SKILL_MIGRATIONS = {

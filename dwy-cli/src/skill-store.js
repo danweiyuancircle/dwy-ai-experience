@@ -183,14 +183,14 @@ export async function linkSkill({ skill, dest, backupRoot }) {
   }
 }
 
-/** 从最新可用模板刷新已有共享副本；模板移除的条目保留，避免其他项目坏链。 */
+/** 从最新可用模板准备全部共享副本；模板移除的条目保留，避免其他项目坏链。 */
 export async function refreshSharedSkills({ sourceDir, homeDir = os.homedir() } = {}) {
   const names = await readInstalledNames(homeDir)
   const scans = await scanSkills(sourceDir || await resolveSourceDir({ homeDir }))
   const available = new Map(scans.map(skill => [skill.name, skill]))
-  const updated = names.filter(name => available.has(name))
+  const updated = scans.map(skill => skill.name)
   const retained = names.filter(name => !available.has(name))
-  await prepareSharedSkills({ skills: updated.map(name => available.get(name)), homeDir })
+  await prepareSharedSkills({ skills: scans, homeDir })
   for (const name of retained) console.log(chalk.yellow(`当前模板已移除 ${name}，保留共享旧副本以免其他项目链接失效。`))
   console.log(chalk.green(`已刷新 ${updated.length} 个共享 Skills，保留 ${retained.length} 个旧副本。`))
   return { updated, retained }

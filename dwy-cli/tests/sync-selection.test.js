@@ -91,6 +91,46 @@ const scans = {
 }
 const defaults = { skills: ['first', 'removed'], rules: [], commands: [], hooks: [] }
 
+for (const action of ['replace', 'clear', 'cancel', 'decline']) {
+  test(`refresh 项目选择 ${action}：只增删本项目入口，共享内容与其他项目保留`, async t => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-selection-'))
+    t.after(() => fs.remove(root))
+    const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+    const otherDir = path.join(root, 'other'), codexHome = path.join(homeDir, '.codex')
+    const opts = { sourceDir, projectDir, homeDir, codexHome }
+    await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# Old')
+    await syncAll({ ...opts, selectedPlatforms: ['codex'], contentTypes: ['skills'], selected: { skills: [{ name: 'sample' }] } })
+    await syncAll({ ...opts, projectDir: otherDir, selectedPlatforms: ['codex'], contentTypes: ['skills'], selected: { skills: [{ name: 'sample' }] } })
+    await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# Latest')
+    await fs.outputFile(path.join(sourceDir, 'skills/通用/added/SKILL.md'), '# Added')
+    await fs.outputFile(path.join(projectDir, '.agents/skills/personal/SKILL.md'), '# Personal')
+    await fs.outputFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), '# Historical')
+    const statePath = path.join(projectDir, '.dwy/sync-state.json')
+    const state = await fs.readJson(statePath)
+    state.platforms.codex.skills.push('removed')
+    await fs.writeJson(statePath, state)
+    const before = await fs.readFile(statePath, 'utf8')
+    const keys = action === 'cancel' ? '\x03' : action === 'clear' ? '\x1b[B \r' : ' \x1b[B \r'
+    const scripts = [{ label: 'Skills', keys }]
+    if (action !== 'cancel') scripts.push({ message: '选择要同步的平台', keys: '\r' }, { message: '确认同步？', keys: action === 'decline' ? 'n\r' : 'y\r' })
+    await runProgram(t, `
+      import { refreshAll } from './dwy-cli/src/sync-all.js';
+      await refreshAll(${JSON.stringify({ ...opts, interactive: true })}); console.log('RESULT:{}');
+    `, scripts)
+    const cancelled = ['cancel', 'decline'].includes(action)
+    assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/sample')), cancelled)
+    assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/added')), action === 'replace')
+    if (action === 'replace') assert.equal((await fs.lstat(path.join(projectDir, '.agents/skills/added'))).isSymbolicLink(), true)
+    assert.equal(await fs.readFile(path.join(otherDir, '.agents/skills/sample/SKILL.md'), 'utf8'), '# Latest')
+    assert.equal(await fs.readFile(path.join(homeDir, '.dwy/skills/added/SKILL.md'), 'utf8'), '# Added')
+    assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/personal/SKILL.md'), 'utf8'), '# Personal')
+    assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), 'utf8'), '# Historical')
+    assert.equal(await fs.pathExists(path.join(homeDir, '.agents')), false)
+    if (cancelled) assert.equal(await fs.readFile(statePath, 'utf8'), before)
+    else assert.deepEqual((await fs.readJson(statePath)).platforms.codex.skills, action === 'replace' ? ['added', 'removed'] : ['removed'])
+  })
+}
+
 test('无 Rules 模板的主交互只选择 Skills 和受支持 CLI', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-skills-only-ui-'))
   t.after(() => fs.remove(root))
