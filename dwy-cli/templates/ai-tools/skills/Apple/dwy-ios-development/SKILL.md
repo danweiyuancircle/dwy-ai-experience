@@ -13,6 +13,8 @@ description: 开发、排查、评审或适配 iOS 18+、iPadOS 18+ 应用时使
 
 按需阅读：[布局与安全区](references/layout.md)、[系统外观与 Liquid Glass](references/appearance.md)、[弹窗和锚点](references/presentations.md)、[iOS 踩坑](references/pitfalls.md)。界面变更先确定受影响系统、屏幕尺寸、滚动和交互，再验证布局、可访问性与视觉；编译通过不等于设备验收。
 
+界面开发与评审同时遵循 `dwy-swift-development` 的图标视觉一致性、按钮语义与样式一致性、重复能力封装与复用要求；跨页面检查同类入口，不仅检查当前页面。
+
 涉及设计规范、全局 token、主题或组件抽取时，先读取项目现有规范，再读 [设计规范与组件复用](references/design-system.md)；不得把某个产品的品牌或几何规格直接变成所有 iOS 项目的要求。
 
 发现可复用新坑先查重：只在 iOS 证实的放本 Skill；双端均有证据时将共通部分放 Swift Skill，保留平台差异。记录现象、范围、根因及证据、处理方法、验证状态和未验证项；未确认标记待验证，项目专属问题留项目内。修改共享 Skill 必须已有来源仓库授权。

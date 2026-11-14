@@ -7,6 +7,8 @@ description: 开发、排查或评审 Swift、SwiftUI 和 Apple 平台共享代�
 
 先确认任务范围、项目现有约定、调用方和实际 SDK；用户明确要求优先。阅读 [团队写法](references/conventions.md) 中与任务有关的部分；iOS 专属要求不套用到 macOS。架构、公共模块或抽取涉及 `dwy-apple-architecture` 时同时使用它；涉及 iOS / iPadOS 或 macOS 时分别使用 `dwy-ios-development` 或 `dwy-macos-development`。若其他 Skill 未安装，说明缺口并按项目现有约定继续，不自动安装。
 
+涉及界面开发或评审时，必读团队写法中的「图标视觉一致性」「按钮语义与样式一致性」「重复能力封装与复用」；按实际界面并排、跨页面检查，不能以布局参数相同或编译通过代替验收。
+
 SwiftUI、App Intents 等具体技术优先查找当前环境中与任务匹配的 Apple 官方 Skill，阅读相关参考；确认其来源后使用。不存在或不可用时查 Apple 官方文档，不强制安装、不把第三方 Skill 冒充官方。
 
 项目使用 AppleAppKit 时先查可用的 `dwy-apple-appkit`，按项目锁定版本复用同步、基础工具、设计、认证和购买等已有能力；未安装该 Skill 时核实实际依赖与源码，不自动安装依赖。
