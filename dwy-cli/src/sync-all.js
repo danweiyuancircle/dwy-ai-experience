@@ -137,21 +137,14 @@ async function managedNames(root, global, codexHome) {
   }
 }
 
-/** 刷新全部模板共享 Skills 和已有配置；交互终端可增删当前项目的 Skills 入口，不扫描其他项目。 */
+/** 无交互刷新全部模板共享 Skills 和全局、当前项目已有配置，不扫描其他项目。 */
 export async function refreshAll({
   sourceDir, projectDir = process.cwd(), homeDir = os.homedir(),
   codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'),
-  interactive = Boolean(process.stdin.isTTY && process.stdout.isTTY),
 } = {}) {
   sourceDir ||= await resolveSourceDir({ homeDir })
   await refreshSharedSkills({ sourceDir, homeDir })
   const isHome = await fs.realpath(projectDir) === await fs.realpath(homeDir)
-  if (!isHome && interactive) {
-    const result = await syncAll({ sourceDir, projectDir, homeDir, codexHome,
-      scope: 'project', contentTypes: ['skills'], staleRemovals: {},
-    })
-    if (!result) return
-  }
   const scans = { skills: await scanSkills(sourceDir), rules: await scanRules(sourceDir), hooks: await scanHooks(sourceDir), commands: [] }
   const baseline = await readBaselineDoc(sourceDir)
   let projectState = await loadSyncState(projectDir), globalState = await loadSyncState(homeDir)

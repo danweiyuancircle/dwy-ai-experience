@@ -84,13 +84,48 @@ test('未初始化目录执行 refresh 不创建项目或全局配置；主目�
   assert.deepEqual(await fs.readdir(homeDir), [])
 })
 
+test('项目交互终端执行 refresh 无需输入，更新全局链接及当前项目已有 Skills', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-tty-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), homeDir = path.join(root, 'home'), projectDir = path.join(root, 'project')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# Latest')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/global-sample/SKILL.md'), '# Latest global')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/unselected/SKILL.md'), '# Unselected')
+  await fs.outputFile(path.join(homeDir, '.dwy/skills/global-sample/SKILL.md'), '# Old global')
+  await fs.ensureDir(path.join(homeDir, '.agents/skills'))
+  await fs.symlink(path.join(homeDir, '.dwy/skills/global-sample'), path.join(homeDir, '.agents/skills/global-sample'), process.platform === 'win32' ? 'junction' : 'dir')
+  await fs.outputFile(path.join(projectDir, '.agents/skills/sample/SKILL.md'), '# Old project')
+  await fs.outputFile(path.join(projectDir, '.agents/skills/personal/SKILL.md'), '# Personal')
+  const entry = fileURLToPath(new URL('../bin/index.js', import.meta.url))
+  execFileSync(process.execPath, ['--input-type=module', '-e', `
+    Object.defineProperty(process.stdin, 'isTTY', { value: true })
+    Object.defineProperty(process.stdout, 'isTTY', { value: true })
+    process.stdin.on = () => { throw new Error('refresh 不得读取交互输入') }
+    process.argv = [process.execPath, ${JSON.stringify(entry)}, 'refresh']
+    await import(${JSON.stringify(new URL('../bin/index.js', import.meta.url).href)})
+  `], {
+    cwd: projectDir, encoding: 'utf8', timeout: 5000,
+    env: { ...process.env, HOME: homeDir, USERPROFILE: homeDir, CODEX_HOME: path.join(homeDir, '.codex'),
+      DWY_HOME: path.join(homeDir, '.dwy'), DWY_TEMPLATE_SOURCE_DIR: sourceDir },
+  })
+  assert.equal(await fs.readFile(path.join(homeDir, '.agents/skills/global-sample/SKILL.md'), 'utf8'), '# Latest global')
+  assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/sample/SKILL.md'), 'utf8'), '# Latest')
+  for (const dir of [homeDir, projectDir]) {
+    assert.equal(await fs.pathExists(path.join(dir, '.agents/skills/unselected')), false)
+  }
+  assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/personal/SKILL.md'), 'utf8'), '# Personal')
+  const backups = await fs.readdir(path.join(projectDir, '.dwy/skill-backups'))
+  assert.equal(backups.length, 1)
+  assert.equal(await fs.readFile(path.join(projectDir, '.dwy/skill-backups', backups[0], 'SKILL.md'), 'utf8'), '# Old project')
+})
+
 test('在主目录的交互终端只准备全部共享 Skills，不进入项目选择或创建启用入口', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-home-'))
   t.after(() => fs.remove(root))
   const sourceDir = path.join(root, 'templates'), homeDir = path.join(root, 'home')
   await fs.ensureDir(homeDir)
   await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# Latest')
-  await refreshAll({ sourceDir, homeDir, projectDir: homeDir, codexHome: path.join(homeDir, '.codex'), interactive: true })
+  await refreshAll({ sourceDir, homeDir, projectDir: homeDir, codexHome: path.join(homeDir, '.codex') })
   assert.deepEqual(await fs.readdir(homeDir), ['.dwy'])
   assert.equal(await fs.readFile(path.join(homeDir, '.dwy/skills/sample/SKILL.md'), 'utf8'), '# Latest')
   assert.equal(await fs.pathExists(path.join(homeDir, '.dwy/sync-state.json')), false)

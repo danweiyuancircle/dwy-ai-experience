@@ -51,9 +51,10 @@ test('实际帮助说明远端模板、离线缓存和 CLI 升级', () => {
   assert.match(help, /离线.*缓存.*随包/)
   assert.match(help, /DWY_TEMPLATE_SOURCE_DIR.*优先/)
   assert.match(help, /Skills.*变更.*不.*CLI.*发版/)
-  assert.match(help, /交互终端.*增删项目 Skills/)
-  assert.match(help, /主目录或非交互环境不显示项目选择/)
-  assert.match(help, /取消项目选择.*共享更新仍保留/)
+  assert.match(help, /dwy refresh.*无交互/)
+  assert.match(help, /所有环境均不显示选择或确认页面/)
+  assert.match(help, /增删 Skills 使用 dwy sync/)
+  assert.match(help, /当前项目已有 Skills/)
 })
 
 test('dwy 启动展示品牌，取消后退出', async t => {
