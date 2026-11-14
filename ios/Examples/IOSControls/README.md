@@ -19,6 +19,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project ios
 
 字段继续使用原生 `TextField`/`SecureField`。如需直接配置更复杂编辑器或 FocusState，可把原生编辑器放进 `EFieldShell`/`EField`，不必另写字段外观。宿主拥有键盘收起、提交与取消，组件不替业务校验或 trim 输入。
 
-`ENoticeCenter` 每个宿主独立持有。普通消息持续到主动关闭，只有 `transientSuccess` 默认两秒关闭；读屏、键盘/辅助焦点和触摸停留暂停计时。宿主销毁/消息替换取消旧计时。提示不禁用其他操作；重要错误和需操作的内容使用持久 `EInlineNotice`。
+`ENoticeCenter` 每个宿主独立持有。普通消息持续到主动关闭；`transientSuccess` 和 `transient(verbatim:tone:systemImage:)` 渲染为无可见关闭按钮的紧凑 `EToast`，计时默认两秒，本示例沿用 1.2 秒。读屏、键盘/辅助焦点和交互期间暂停计时。宿主销毁/消息替换取消旧计时。重要错误和需操作的内容使用持久 `EInlineNotice`；`ENoticeHost` 的动作槽可放同行的文字操作。
+
+传入 `--feedback-preview` 可直接预览反馈组件；附加 `--feedback-dark` 验证深色。示例不发起设备连接或写入剪贴板。UI 回归 `testFeedbackToastAndCompactPersistentNotice` 覆盖明暗主题截图、自动消失、持续保留、操作触点与处理后关闭。
 
 `EProgressValue` 在外部边界拒绝无效值；任务取消请求与真实取消结果分别由业务回写，组件不启动或取消业务任务。

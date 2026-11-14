@@ -10,7 +10,7 @@ struct IOSControlsApp: App {
 private struct IOSControlsShowcase: View {
     @State private var theme = ThemeManager.shared
     @State private var useAlternateBrand = false
-    @State private var noticeCenter = ENoticeCenter()
+    @State private var noticeCenter = ENoticeCenter(dismissAfter: .milliseconds(1200))
     @State private var name = ""
     @State private var password = ""
     @State private var search = ""
@@ -29,12 +29,16 @@ private struct IOSControlsShowcase: View {
     var body: some View {
         NavigationStack {
             EForm {
+                if ProcessInfo.processInfo.arguments.contains("--feedback-preview") {
+                    feedback
+                } else {
                 appearance
                 controls
                 selection
                 fields
                 feedback
                 combinations
+                }
             }
             .navigationTitle("iOS Controls")
             .toolbar {
@@ -45,11 +49,22 @@ private struct IOSControlsShowcase: View {
             }
             .safeAreaInset(edge: .bottom) {
                 ENoticeHost(center: noticeCenter, dismissLabel: Text("Dismiss notice"))
+                {
+                    if noticeCenter.notice?.tone == .error {
+                        Button { noticeCenter.dismiss() } label: {
+                            Text("Retry").frame(minWidth: 44, minHeight: 44)
+                                .contentShape(Rectangle())
+                        }
+                            .font(.subheadline)
+                            .buttonStyle(.borderless)
+                            .accessibilityIdentifier("showcase.retryNotice")
+                    }
+                }
                     .padding(.horizontal)
             }
         }
         .eControlTheme(useAlternateBrand ? alternateTheme : .standard)
-        .preferredColorScheme(theme.preferredColorScheme)
+        .preferredColorScheme(ProcessInfo.processInfo.arguments.contains("--feedback-dark") ? .dark : theme.preferredColorScheme)
         .onAppear { theme.applyOnLaunch() }
     }
 
@@ -166,8 +181,10 @@ private struct IOSControlsShowcase: View {
                 ForEach(EStatusTone.allCases, id: \.self) { tone in
                     EStatusBadge(Text(verbatim: tone.rawValue), tone: tone)
                 }
-                EButton("Show persistent error") { noticeCenter.show(ENotice("An error remains readable until dismissed", tone: .error)) }
-                EButton("Replace with success") { noticeCenter.show(.transientSuccess("Saved")) }
+                EButton("Show persistent error") { noticeCenter.show(ENotice("Connection lost", tone: .error)) }
+                    .accessibilityIdentifier("showcase.persistentNotice")
+                EButton("Replace with success") { noticeCenter.show(.transientSuccess("Copied")) }
+                    .accessibilityIdentifier("showcase.copyNotice")
                 taskProgress
                 Slider(value: $progress, in: 0...1)
                 EButton("Confirm cancellation") { phase = .cancelled }

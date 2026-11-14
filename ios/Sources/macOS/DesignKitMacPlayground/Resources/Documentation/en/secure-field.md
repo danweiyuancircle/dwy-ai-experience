@@ -3,7 +3,7 @@
 ID: designkit.mac.secure-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.5
+Package: 0.8.0-beta.6
 
 ## Purpose
 Edit a password using the native secure editor.

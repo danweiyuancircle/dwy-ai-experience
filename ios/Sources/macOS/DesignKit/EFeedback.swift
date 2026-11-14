@@ -51,6 +51,7 @@ extension ETaskProgress where Actions == EmptyView {
 /// 持久非模态通知。错误与需要操作的信息不自动消失，动作不禁用无关区域。
 public struct ENotice<Actions: View>: View {
     @Environment(\.eControlTheme) private var theme
+    @Environment(\.displayScale) private var displayScale
     private let title: Text
     private let tone: EStatusTone
     private let actions: Actions
@@ -67,14 +68,36 @@ public struct ENotice<Actions: View>: View {
     }
 
     public var body: some View {
-        ECard {
-            VStack(alignment: .leading, spacing: theme.spacing.controlGroup) {
-                Label { title.fixedSize(horizontal: false, vertical: true) } icon: {
-                    Image(systemName: tone.symbol).foregroundStyle(tone.color(theme.colors)).accessibilityHidden(true)
-                }
-                actions
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: theme.spacing.controlGroup) {
+                label
+                Spacer(minLength: 0)
+                actions.fixedSize(horizontal: true, vertical: false)
             }
-            .accessibilityElement(children: .contain)
+            VStack(alignment: .leading, spacing: theme.spacing.controlGroup) {
+                label
+                actions.frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .font(theme.typography.secondary)
+        .frame(minHeight: theme.fieldHeight)
+        .padding(.leading, theme.spacing.group)
+        .padding(.trailing, theme.spacing.inline)
+        .padding(.vertical, theme.spacing.inline)
+        .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: theme.cardRadius))
+        .overlay {
+            RoundedRectangle(cornerRadius: theme.cardRadius)
+                .strokeBorder(theme.colors.separator, lineWidth: 1 / displayScale)
+        }
+        .accessibilityElement(children: .contain)
+    }
+
+    private var label: some View {
+        Label {
+            title.foregroundStyle(theme.colors.text).fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: tone.symbol).foregroundStyle(tone.color(theme.colors)).accessibilityHidden(true)
         }
     }
 }
@@ -150,17 +173,20 @@ public struct EToast: View {
     @Environment(\.eControlTheme) private var theme
     @Environment(\.displayScale) private var displayScale
     private let dismissTitle: Text
+    private let dismissAfter: Duration
     @AccessibilityFocusState private var accessibilityFocused: Bool
     @FocusState private var keyboardFocused: Bool
 
-    public init(message: Binding<EToastMessage?>, dismissTitle: LocalizedStringResource) {
-        self.init(message: message, dismissTitle: Text(dismissTitle))
+    public init(message: Binding<EToastMessage?>, dismissTitle: LocalizedStringResource,
+                dismissAfter: Duration = .seconds(2)) {
+        self.init(message: message, dismissTitle: Text(dismissTitle), dismissAfter: dismissAfter)
     }
 
     /// dismissTitle 为辅助功能清除动作命名，不显示按钮；原文显式使用 Text(verbatim:)。
-    public init(message: Binding<EToastMessage?>, dismissTitle: Text) {
+    public init(message: Binding<EToastMessage?>, dismissTitle: Text, dismissAfter: Duration = .seconds(2)) {
         self._message = message
         self.dismissTitle = dismissTitle
+        self.dismissAfter = dismissAfter
     }
 
     public var body: some View {
@@ -204,7 +230,7 @@ public struct EToast: View {
                                             voiceOver: voiceOverEnabled)
             guard lifetime.expiresAutomatically else { return }
             do {
-                try await Task.sleep(for: .seconds(2))
+                try await Task.sleep(for: dismissAfter)
             } catch {
                 // Task.sleep 的取消表示消息替换或宿主退出，不应清掉新消息。
                 return

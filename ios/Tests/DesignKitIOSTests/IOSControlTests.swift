@@ -47,7 +47,7 @@ final class IOSControlTests: XCTestCase {
         let second = ENotice(verbatim: "  user.key \n")
         XCTAssertNotEqual(first.id, second.id)
         XCTAssertEqual(first.announcement(locale: Locale(identifier: "en")), "  user.key \n")
-        XCTAssertFalse(first.isTransientSuccess)
+        XCTAssertFalse(first.isTransient)
     }
 
     func testAnnouncementUsesHostLocaleAndOriginalResourceBundle() throws {
@@ -113,6 +113,55 @@ final class IOSControlTests: XCTestCase {
         center.updateInteraction(active: false)
         try await Task.sleep(for: .milliseconds(40))
         XCTAssertNil(center.notice)
+    }
+
+    func testTransientVerbatimPreservesToneSymbolAndRestartsForIdenticalText() async throws {
+        let center = ENoticeCenter(dismissAfter: .milliseconds(80))
+        let first = ENotice.transient(verbatim: "  copied.key  ", tone: .neutral, systemImage: "arrow.down.to.line")
+        XCTAssertEqual(first.announcement(locale: Locale(identifier: "zh-Hans")), "  copied.key  ")
+        XCTAssertEqual(first.tone, .neutral)
+        XCTAssertEqual(first.systemImage, "arrow.down.to.line")
+        center.show(first)
+        try await Task.sleep(for: .milliseconds(50))
+        let second = ENotice.transient(verbatim: "  copied.key  ")
+        center.show(second)
+        XCTAssertNotEqual(first.id, second.id)
+        try await Task.sleep(for: .milliseconds(50))
+        XCTAssertEqual(center.notice?.id, second.id)
+        try await Task.sleep(for: .milliseconds(80))
+        XCTAssertNil(center.notice)
+    }
+
+    func testFeedbackIsCompactAndGrowsWithoutClippingForAccessibility() {
+        let toast = EToast(Text(verbatim: "已复制"))
+        let toastSize = UIHostingController(rootView: toast).sizeThatFits(in: CGSize(width: 343, height: 500))
+        XCTAssertLessThan(toastSize.width, 180)
+        XCTAssertLessThan(toastSize.height, 60)
+
+        let notice = EInlineNotice(tone: .error) { Text("连接已断开") } actions: {
+            HStack(spacing: 0) {
+                Button {} label: { Text("重连").frame(minWidth: 44, minHeight: 44) }
+                EIconAction(accessibilityLabel: Text("关闭"), action: {}) { Image(systemName: "xmark") }
+            }
+        }
+        let normal = UIHostingController(rootView: notice).sizeThatFits(in: CGSize(width: 343, height: 500))
+        let accessible = UIHostingController(rootView: notice.environment(\.dynamicTypeSize, .accessibility3))
+            .sizeThatFits(in: CGSize(width: 343, height: 1000))
+        XCTAssertLessThanOrEqual(normal.width, 343)
+        XCTAssertLessThan(normal.height, 65)
+        XCTAssertLessThanOrEqual(accessible.width, 343)
+        XCTAssertGreaterThan(accessible.height, normal.height)
+
+        let long = EInlineNotice(tone: .error) {
+            Text(verbatim: String(repeating: "Die Verbindung zum Gerät wurde unterbrochen. ", count: 5))
+        } actions: {
+            Button {} label: { Text("Erneut verbinden").frame(minWidth: 44, minHeight: 44) }
+        }
+        for width: CGFloat in [288, 343] {
+            let size = UIHostingController(rootView: long).sizeThatFits(in: CGSize(width: width, height: 2000))
+            XCTAssertLessThanOrEqual(size.width, width)
+            XCTAssertGreaterThan(size.height, normal.height)
+        }
     }
 
     func testNoticeCenterDoesNotRetainItselfThroughTimer() {

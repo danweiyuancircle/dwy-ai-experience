@@ -1,40 +1,59 @@
 #if os(iOS)
 import SwiftUI
 import UIKit
+import DesignCore
 
 /// 单次非模态消息；重复展示也应创建新实例，方便宿主识别消息世代。
 public struct ENotice: Identifiable {
     public let id = UUID()
     public let tone: EStatusTone
+    /// 默认跟随状态语义；仅日志等明确操作反馈使用自己的 SF Symbol。
+    public let systemImage: String
     private enum Message {
         case localized(LocalizedStringResource)
         case verbatim(String)
     }
     private let message: Message
-    let isTransientSuccess: Bool
+    let isTransient: Bool
 
     /// 重要错误与需阅读消息保持到主动关闭；本地化资源保留调用方 bundle。
     public init(_ message: LocalizedStringResource, tone: EStatusTone = .neutral) {
         self.message = .localized(message)
         self.tone = tone
-        isTransientSuccess = false
+        systemImage = tone.symbolName
+        isTransient = false
     }
 
     /// 用户原文/已解析文本不再作为本地化 key 查找。
     public init(verbatim message: String, tone: EStatusTone = .neutral) {
         self.message = .verbatim(message)
         self.tone = tone
-        isTransientSuccess = false
+        systemImage = tone.symbolName
+        isTransient = false
     }
 
     private init(success message: LocalizedStringResource) {
         self.message = .localized(message)
         tone = .success
-        isTransientSuccess = true
+        systemImage = EStatusTone.success.symbolName
+        isTransient = true
     }
 
     /// 仅非关键成功可自动消失；VoiceOver 开启时仍持续展示供用户阅读。
     public static func transientSuccess(_ message: LocalizedStringResource) -> Self { Self(success: message) }
+
+    private init(transient message: String, tone: EStatusTone, systemImage: String) {
+        self.message = .verbatim(message)
+        self.tone = tone
+        self.systemImage = systemImage
+        isTransient = true
+    }
+
+    /// 已解析的短反馈不再查本地化；需阅读或操作的错误必须使用持久消息初始化器。
+    public static func transient(verbatim message: String, tone: EStatusTone = .success,
+                                 systemImage: String? = nil) -> Self {
+        Self(transient: message, tone: tone, systemImage: systemImage ?? tone.symbolName)
+    }
 
     var text: Text {
         switch message {
@@ -66,7 +85,8 @@ public final class ENoticeCenter {
 
     public init() { dismissAfter = .seconds(2) }
 
-    init(dismissAfter: Duration) { self.dismissAfter = dismissAfter }
+    /// 消费方可沿用既有短反馈时长；读屏或交互期间仍暂停计时。
+    public init(dismissAfter: Duration) { self.dismissAfter = dismissAfter }
 
     deinit { dismissTask?.cancel() }
 
@@ -99,7 +119,7 @@ public final class ENoticeCenter {
 
     private func scheduleDismissal() {
         cancelPendingDismissal()
-        guard let notice, notice.isTransientSuccess, !voiceOverEnabled, !interactionActive else { return }
+        guard let notice, notice.isTransient, !voiceOverEnabled, !interactionActive else { return }
         let id = notice.id
         let delay = dismissAfter
         dismissTask = Task { [weak self] in
@@ -121,6 +141,7 @@ public final class ENoticeCenter {
 /// 关闭名称由产品本地化提供；VoiceOver 开启时自动公告且不定时移除消息。
 public struct ENoticeHost: View {
     @Environment(\.eControlTheme) private var theme
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOverEnabled
     @Environment(\.locale) private var locale
     @AccessibilityFocusState private var accessibilityFocused: Bool
@@ -128,27 +149,50 @@ public struct ENoticeHost: View {
     @GestureState private var touchActive = false
     private let center: ENoticeCenter
     private let dismissLabel: Text
+    private let actions: AnyView
 
-    public init(center: ENoticeCenter, dismissLabel: Text) {
+    /// actions 仅用于持久通知；业务自行决定操作后关闭还是更新消息。
+    public init<Actions: View>(center: ENoticeCenter, dismissLabel: Text, @ViewBuilder actions: () -> Actions) {
         self.center = center
         self.dismissLabel = dismissLabel
+        self.actions = AnyView(actions())
+    }
+
+    public init(center: ENoticeCenter, dismissLabel: Text) {
+        self.init(center: center, dismissLabel: dismissLabel) { EmptyView() }
     }
 
     public var body: some View {
         Group {
             if let notice = center.notice {
-                EInlineNotice(tone: notice.tone) { notice.text } actions: {
-                    EIconAction(accessibilityLabel: dismissLabel, action: center.dismiss) {
-                        Image(systemName: "xmark")
+                if notice.isTransient {
+                    EToast(notice.text, tone: notice.tone, systemImage: notice.systemImage)
+                        .accessibilityIdentifier("notice.toast")
+                        .accessibilityAction(named: dismissLabel, center.dismiss)
+                        .accessibilityFocused($accessibilityFocused)
+                        .allowsHitTesting(voiceOverEnabled)
+                        .transition(.opacity)
+                } else {
+                    EInlineNotice(tone: notice.tone) { notice.text } actions: {
+                        HStack(spacing: 0) {
+                            actions
+                            EIconAction(accessibilityLabel: dismissLabel, action: center.dismiss) {
+                                Image(systemName: "xmark")
+                                    .font(theme.typography.secondary)
+                                    .foregroundStyle(theme.colors.secondary)
+                            }
+                            .accessibilityFocused($accessibilityFocused)
+                            .focused($keyboardFocused)
+                        }
                     }
-                    .accessibilityFocused($accessibilityFocused)
-                    .focused($keyboardFocused)
+                    .simultaneousGesture(DragGesture(minimumDistance: 0).updating($touchActive) { _, active, _ in
+                        active = true
+                    })
+                    .transition(.opacity)
                 }
-                .simultaneousGesture(DragGesture(minimumDistance: 0).updating($touchActive) { _, active, _ in
-                    active = true
-                })
             }
         }
+        .animation(reduceMotion ? nil : Motion.soft, value: center.notice?.id)
         .onChange(of: voiceOverEnabled, initial: true) { _, enabled in
             center.updateAccessibility(voiceOverEnabled: enabled)
         }
@@ -164,9 +208,44 @@ public struct ENoticeHost: View {
     }
 }
 
+/// 只绘制紧凑短反馈；呈现位置与计时由 ENoticeHost 和 ENoticeCenter 管理。
+public struct EToast: View {
+    @Environment(\.eControlTheme) private var theme
+    @Environment(\.displayScale) private var displayScale
+    private let message: Text
+    private let tone: EStatusTone
+    private let systemImage: String
+
+    public init(_ message: Text, tone: EStatusTone = .success, systemImage: String? = nil) {
+        self.message = message
+        self.tone = tone
+        self.systemImage = systemImage ?? tone.symbolName
+    }
+
+    public var body: some View {
+        HStack(spacing: theme.spacing.controlGroup) {
+            Image(systemName: systemImage)
+                .foregroundStyle(tone.color(in: theme)).accessibilityHidden(true)
+            message.foregroundStyle(theme.colors.primary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .font(theme.typography.secondary)
+        .padding(.horizontal, theme.spacing.group)
+        .padding(.vertical, 10)
+        .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: theme.radius.card))
+        .overlay {
+            RoundedRectangle(cornerRadius: theme.radius.card)
+                .strokeBorder(theme.colors.separator, lineWidth: theme.hairline(displayScale: displayScale))
+        }
+        .accessibilityElement(children: .combine)
+    }
+}
+
 /// 持久内联提示，允许明确操作；没有自动计时或模态蒙层。
 public struct EInlineNotice<Message: View, Actions: View>: View {
     @Environment(\.eControlTheme) private var theme
+    @Environment(\.displayScale) private var displayScale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private let tone: EStatusTone
     private let message: Message
     private let actions: Actions
@@ -178,13 +257,46 @@ public struct EInlineNotice<Message: View, Actions: View>: View {
     }
 
     public var body: some View {
-        ECard {
-            VStack(alignment: .leading, spacing: theme.spacing.controlGroup) {
-                Label { message } icon: { Image(systemName: tone.symbolName) }
-                    .foregroundStyle(tone.color(in: theme))
-                actions
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                expanded
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(spacing: theme.spacing.controlGroup) {
+                        label
+                        Spacer(minLength: 0)
+                        actions.fixedSize(horizontal: true, vertical: false)
+                    }
+                    expanded
+                }
             }
         }
+        .font(theme.typography.secondary)
+        .frame(minHeight: theme.size.iconHit)
+        .padding(.leading, theme.spacing.group)
+        .padding(.trailing, theme.spacing.inline)
+        .padding(.vertical, theme.spacing.inline)
+        .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: theme.radius.card))
+        .overlay {
+            RoundedRectangle(cornerRadius: theme.radius.card)
+                .strokeBorder(theme.colors.separator, lineWidth: theme.hairline(displayScale: displayScale))
+        }
+    }
+
+    private var label: some View {
+        Label {
+            message.foregroundStyle(theme.colors.primary).fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: tone.symbolName).foregroundStyle(tone.color(in: theme)).accessibilityHidden(true)
+        }
+    }
+
+    private var expanded: some View {
+        VStack(alignment: .leading, spacing: theme.spacing.controlGroup) {
+            label
+            actions.frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 

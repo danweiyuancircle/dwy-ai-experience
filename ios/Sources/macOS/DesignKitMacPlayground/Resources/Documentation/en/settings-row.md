@@ -3,7 +3,7 @@
 ID: designkit.mac.settings-row
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.5
+Package: 0.8.0-beta.6
 
 ## Purpose
 Pair a label and explanation with a native setting control.

@@ -18,6 +18,19 @@ final class MacControlHostTests: XCTestCase {
         XCTAssertGreaterThan(long.height, short.height)
     }
 
+    func testPersistentNoticeKeepsShortActionInlineAndLongTextReadable() {
+        let short = measure(ENotice(Text("连接已断开"), tone: .failure) {
+            Button("重连") {}.buttonStyle(.plain)
+            Button {} label: { Image(systemName: "xmark") }
+        }, width: 340)
+        let long = measure(ENotice(Text(verbatim: String(repeating: "The device is disconnected. ", count: 12)), tone: .failure) {
+            Button("Reconnect to this device") {}
+        }, width: 240)
+        XCTAssertLessThan(short.height, 50)
+        XCTAssertLessThanOrEqual(long.width, 241)
+        XCTAssertGreaterThan(long.height, short.height)
+    }
+
     func testPublicFieldShellMatchesConvenienceFieldAndSupportsNativeAccessory() {
         let direct = measure(EFieldShell { TextField("Name", text: .constant("Text")).textFieldStyle(.plain) })
         let convenience = measure(ETextField("Name", text: .constant("Text")))

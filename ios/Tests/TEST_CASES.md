@@ -14,6 +14,8 @@
 
 ## 平台编译回归
 
+iOS `IOSControlTests` 另覆盖短暂原文与自定义图标、相同文本替换重启计时、紧凑 Toast 宽高、持续通知单行高度及辅助字号增长。示例 UI 回归 `testFeedbackToastAndCompactPersistentNotice` 验证明暗主题真实截图、短反馈自动消失、持续通知保留、同行操作的 44pt 触控范围及操作后关闭。
+
 `.github/workflows/private-release.yml` 在 macOS 26 runner 执行完整 `swift test`，编译 `arm64-apple-macosx26.0`，并使用真实 iPhoneSimulator SDK 对列出的 iOS 目标执行 `swift build --target "$target" --triple arm64-apple-ios18.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios`。iOS 目标清单不包含 Mac 展示 executable；交叉编译不代表目标设备交互通过。
 
 ## Mac 基础组件与 Playground

@@ -3,7 +3,7 @@
 ID: designkit.mac.picker
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.5
+Package: 0.8.0-beta.6
 
 ## Purpose
 Choose a strongly typed or Optional value through a native menu or segments.

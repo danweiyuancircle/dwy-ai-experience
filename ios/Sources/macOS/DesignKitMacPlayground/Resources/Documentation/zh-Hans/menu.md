@@ -3,7 +3,7 @@
 ID: designkit.mac.menu
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0-beta.5
+Package: 0.8.0-beta.6
 
 ## 用途
 展示动作、分组条目和原生菜单勾选。

@@ -72,3 +72,5 @@
 
 "Action count: %lld" = "操作次数：%lld";
 "Selected segment: %lld" = "当前分段：%lld";
+"Copied" = "已复制";
+"Connection lost" = "连接已断开";

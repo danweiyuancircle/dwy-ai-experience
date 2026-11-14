@@ -44,6 +44,38 @@ final class IOSControlsUITests: XCTestCase {
         XCTAssertTrue(button.isEnabled)
     }
 
+    func testFeedbackToastAndCompactPersistentNotice() {
+        app.terminate()
+        for dark in [false, true] {
+            app.launchArguments = ["--feedback-preview", "-AppleLanguages", "(zh-Hans)"]
+            if dark { app.launchArguments.append("--feedback-dark") }
+            app.launch()
+            let copy = app.buttons["showcase.copyNotice"]
+            XCTAssertTrue(copy.waitForExistence(timeout: 5))
+            copy.tap()
+            let toast = app.descendants(matching: .any)["notice.toast"].firstMatch
+            XCTAssertTrue(toast.exists, app.debugDescription)
+            let copied = XCTAttachment(screenshot: app.screenshot())
+            copied.name = dark ? "feedback-toast-dark" : "feedback-toast-light"
+            copied.lifetime = .keepAlways
+            add(copied)
+            XCTAssertTrue(toast.waitForNonExistence(timeout: 3))
+
+            app.buttons["showcase.persistentNotice"].tap()
+            let retry = app.buttons["showcase.retryNotice"]
+            XCTAssertTrue(retry.waitForExistence(timeout: 2))
+            XCTAssertGreaterThanOrEqual(retry.frame.height, 44)
+            let persistent = XCTAttachment(screenshot: app.screenshot())
+            persistent.name = dark ? "feedback-persistent-dark" : "feedback-persistent-light"
+            persistent.lifetime = .keepAlways
+            add(persistent)
+            XCTAssertFalse(retry.waitForNonExistence(timeout: 2))
+            retry.tap()
+            XCTAssertTrue(retry.waitForNonExistence(timeout: 2))
+            app.terminate()
+        }
+    }
+
     private func reveal(_ element: XCUIElement, file: StaticString = #filePath, line: UInt = #line) {
         let scrollView = app.scrollViews.firstMatch
         for _ in 0..<12 {

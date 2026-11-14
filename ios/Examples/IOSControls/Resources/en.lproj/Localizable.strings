@@ -42,6 +42,8 @@
 "Saved" = "Saved";
 "Cancel" = "Cancel";
 "Feedback" = "Feedback";
+"Copied" = "Copied";
+"Connection lost" = "Connection lost";
 "Show persistent error" = "Show persistent error";
 "An error remains readable until dismissed" = "An error remains readable until dismissed";
 "Replace with success" = "Replace with success";

@@ -13,7 +13,7 @@
 | 选择 | EPicker（menu/segmented）、ESwitch | EPicker（menu/segmented）、ESwitch、ECheckbox |
 | 输入 | ETextField、ESecureField、ESearchField、EField、EForm | ETextField、ESecureField、ESearchField、EField、EForm、EComboBox |
 | 内容 | ECard、ESettingsRow、ELabelValue、EStatusBadge、EStateView | ECard、ESettingsRow、ELabelValue、EStatusBadge、EContentState |
-| 反馈 | ENotice、ENoticeCenter、ENoticeHost、EInlineNotice、EProgressValue、ETaskProgress | ENotice、EToastMessage、EToast、EProgressFraction、ETaskProgress |
+| 反馈 | ENotice、ENoticeCenter、ENoticeHost、EToast、EInlineNotice、EProgressValue、ETaskProgress | ENotice、EToastMessage、EToast、EProgressFraction、ETaskProgress |
 | 独立示例 | `ios/Examples/IOSControls/` | `ios/Examples/MacControls/` |
 
 两端只共享已有 DesignCore 语义，不互相依赖；不引用 ADBox。未新增运行时依赖。已有 ThemeManager 与持久化键保持原样，控件主题只承载值，业务服务和任务不进入 Environment 默认值。
@@ -31,6 +31,8 @@
 EComboBox 改用原生 NSComboBox，关闭自动补全，明确激活提交与失焦通知分开；候选去重、过滤和重排保持文本身份。原生弹层替代旧 overlay，完整键盘与 IME 行为仍需目标系统验收，不能沿用旧原型的行为结论。
 
 两端提示均处理消息替换、取消、焦点/交互停留与动态 VoiceOver。非关键成功可计时消失，重要错误持久显示。公告采用宿主 locale 并保留调用方资源 bundle。两端 API 保留各自生命周期模型，不强行合并为共享状态机。
+
+iOS 的 `ENoticeHost` 将短暂消息渲染为按内容收紧的 `EToast`，不显示关闭按钮；持久消息使用单行 `EInlineNotice`，动作与关闭同行，辅助字号允许纵向增长。两者共用主题背景、16pt 圆角、物理像素边框、语义图标，正文保持正常前景色。`ENotice.transient(verbatim:tone:systemImage:)` 用于已解析的短反馈，重复文本也创建新 ID；中心默认两秒，消费方可使用 `ENoticeCenter(dismissAfter: .milliseconds(1200))` 沿用原有时长。`ENoticeHost` 的 actions 槽仅用于持久消息，业务自行处理完成后关闭或更新提示。
 
 ## 独立接入
 
