@@ -18,13 +18,14 @@ public enum Motion {
 
 /// 轻量按压缩放。
 public struct ScalePressButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     public init() {}
 
     public func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .scaleEffect(configuration.isPressed ? 0.94 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.94 : 1)
             .opacity(configuration.isPressed ? 0.86 : 1)
-            .animation(Motion.press, value: configuration.isPressed)
+            .animation(reduceMotion ? nil : Motion.press, value: configuration.isPressed)
     }
 }
 

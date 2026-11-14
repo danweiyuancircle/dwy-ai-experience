@@ -1,6 +1,7 @@
 import SwiftUI
 import L10nKit
 import PurchaseCore
+import DesignKitIOS
 
 // MARK: - ② 买断墙
 // 标题 + 说明 + 价格。文案按产品改 xcstrings。Mac 上跑 iPhone App 须显式注入 LifetimeStore。
@@ -41,8 +42,10 @@ struct PaywallView: View {
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    Button(loc("store_retry_load")) {
+                    EButton {
                         Task { await store.reloadProduct() }
+                    } label: {
+                        Text(loc("store_retry_load"))
                     }
                 }
                 Spacer()

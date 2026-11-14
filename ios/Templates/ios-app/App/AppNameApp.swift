@@ -36,6 +36,7 @@ struct __APP_NAME__App: App {
                 .environment(theme)
                 .environment(store)
                 .environment(\.locale, localization.locale)
+                .eControlTheme(.standard)
                 .preferredColorScheme(theme.preferredColorScheme)
                 .onAppear { theme.applyOnLaunch() }
         }

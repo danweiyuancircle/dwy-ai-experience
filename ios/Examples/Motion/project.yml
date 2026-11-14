@@ -1,0 +1,23 @@
+name: MotionGallery
+options:
+  deploymentTarget:
+    iOS: "18.0"
+packages:
+  AppleAppKit:
+    path: ../../..
+targets:
+  MotionGallery:
+    type: application
+    platform: iOS
+    sources:
+      - path: MotionGalleryApp.swift
+    dependencies:
+      - package: AppleAppKit
+        product: DesignCore
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dwy.motion-gallery
+        GENERATE_INFOPLIST_FILE: "YES"
+        SWIFT_VERSION: "6.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_UILaunchScreen_Generation: "YES"

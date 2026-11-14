@@ -90,6 +90,12 @@ let package = Package(
             dependencies: ["L10nKit"],
             path: "ios/Sources/Shared/DesignCore"
         ),
+        .testTarget(
+            name: "DesignCoreTests",
+            dependencies: ["DesignCore"],
+            path: "ios/Tests/DesignCoreTests",
+            exclude: ["TEST_CASES.md"]
+        ),
 
         // MARK: 平台层（两套代码，各自演进）
 
@@ -208,6 +214,13 @@ let package = Package(
 )
 
 #if os(macOS)
+package.products.append(.executable(name: "MotionGallery", targets: ["MotionGallery"]))
+package.targets.append(.executableTarget(
+    name: "MotionGallery",
+    dependencies: ["DesignCore"],
+    path: "ios/Examples/Motion",
+    exclude: ["project.yml", "README.md", "MotionGallery.xcodeproj"]
+))
 // 示例只作为开发工具构建，应用仍只链接 DesignKitMac library product。
 package.products.append(.executable(name: "MacControlsGallery", targets: ["MacControlsGallery"]))
 package.targets.append(.executableTarget(

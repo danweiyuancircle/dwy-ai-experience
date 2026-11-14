@@ -38,7 +38,7 @@ MyApp/
 
 ## 生成
 
-以下命令从统一仓库根目录执行；0.4.1 tag 发布后，生成项目才能远端解析该版本。私有仓库访问通过开发者现有 Git 认证完成，模板不含凭据。
+以下命令从统一仓库根目录执行。iOS 新项目精确依赖已发布的 `0.8.0-beta.4`，默认接入 `DesignKitIOS`；macOS 模板仍保留原有 `0.4.1` 基线。模板不含凭据。
 
 ```bash
 ./ios/scripts/new-app.sh \
@@ -52,7 +52,10 @@ cd ~/WebstormProjects/MyApp
 ls   # 应看到 App Features BizFoundation Foundation
 xcodegen generate
 open MyApp.xcodeproj
+python3 -m unittest discover -s Tests -p 'test_*.py'
 ```
+
+iOS App 根注入 `EControlTheme`，设置页直接使用 E 组件。品牌和业务组合留项目内，通用控件的 iOS 18 / 26 差异由基础库处理；原生导航、系统 toolbar/alert、菜单项与认证品牌控件保留系统契约。生成物中的边界测试检查版本一致、iOS 平台依赖、主题入口和页面材质越界，不代替实际编译与设备验收。具体边界见生成项目的 `Docs/ARCHITECTURE.md`。
 
 ## 骨架仓（④ 实现）
 
@@ -67,7 +70,7 @@ ios/scripts/new-app.sh
 
 所有 iOS/macOS 实现与配套文件统一在 `ios/`；认证代码不再分散在 `modules/auth/`。仓库根 `Package.swift` / `Package.resolved` 保留为远程 SwiftPM 的包入口与依赖锁文件，所有 target 均指向 `ios/`，产品名和调用方式不变。
 
-iOS 与 macOS 分别维护设计规范及平台组件，双端抽取方案见 [ios/Docs/DESIGN_SYSTEMS.md](Docs/DESIGN_SYSTEMS.md)、[ios/Docs/IOS_DESIGN_SYSTEM.md](Docs/IOS_DESIGN_SYSTEM.md) 和 [ios/Docs/MACOS_DESIGN_SYSTEM.md](Docs/MACOS_DESIGN_SYSTEM.md)。iOS 方案目标为 18+，根清单与模板当前仍为 17，待方案实施时同步；上表反映当前源码基线。
+iOS 与 macOS 分别维护设计规范及平台组件，双端抽取方案见 [ios/Docs/DESIGN_SYSTEMS.md](Docs/DESIGN_SYSTEMS.md)、[ios/Docs/IOS_DESIGN_SYSTEM.md](Docs/IOS_DESIGN_SYSTEM.md) 和 [ios/Docs/MACOS_DESIGN_SYSTEM.md](Docs/MACOS_DESIGN_SYSTEM.md)。根清单与 iOS 模板均支持 iOS 18+。
 
 专业 UI 基础库的完整范围见 [ios/Docs/UI_FOUNDATION_PLAN.md](Docs/UI_FOUNDATION_PLAN.md)，包含 [全局设计 tokens](Docs/DESIGN_TOKENS.md)、[配置与使用规则](Docs/DESIGN_CONFIGURATION.md)、通用组合、可选业务组件及新项目接入验收；这些方案内容尚未全部实现或发布。
 

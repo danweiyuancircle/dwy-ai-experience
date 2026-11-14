@@ -29,7 +29,7 @@ struct SettingsView: View {
         let _ = localization.language
         List {
             Section {
-                Button {
+                EButton(emphasis: .tertiary) {
                     showPaywall = true
                 } label: {
                     HStack {
@@ -45,7 +45,7 @@ struct SettingsView: View {
                     }
                 }
                 #if DEBUG
-                Toggle(loc("settings_debug_unlock"), isOn: $store.debugUnlockAll)
+                ESwitch(isOn: $store.debugUnlockAll) { Text(loc("settings_debug_unlock")) }
                 #endif
             } header: {
                 Text(loc("settings_section_unlock"))
@@ -63,19 +63,19 @@ struct SettingsView: View {
                     Text(versionText)
                         .foregroundStyle(.secondary)
                 }
-                Button {
+                EButton(emphasis: .tertiary) {
                     if let url = AppConfig.privacyURL(localeIdentifier: localization.locale.identifier) {
                         openURL(url)
                     }
                 } label: {
                     Label(loc("settings_privacy"), systemImage: "hand.raised")
                 }
-                Button {
+                EButton(emphasis: .tertiary) {
                     sendFeedback()
                 } label: {
                     Label(loc("settings_feedback"), systemImage: "envelope")
                 }
-                Button {
+                EButton(emphasis: .tertiary) {
                     // 系统评价框。年度次数有限，未弹出属正常。
                     // 上架后填 AppConfig.appStoreID，需要保底时改成 openURL(AppConfig.writeReviewURL)。
                     requestReview()
@@ -92,19 +92,14 @@ struct SettingsView: View {
             }
 
             Section {
-                Button {
+                EButton(emphasis: .tertiary, isBusy: isExporting) {
                     exportLogs()
                 } label: {
                     HStack {
                         Label(loc("settings_export_logs"), systemImage: "square.and.arrow.up")
                         Spacer()
-                        if isExporting {
-                            ProgressView()
-                                .controlSize(.small)
-                        }
                     }
                 }
-                .disabled(isExporting)
             } footer: {
                 Text(loc("settings_export_logs_footer"))
             }

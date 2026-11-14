@@ -29,8 +29,9 @@ class TemplateSmokeTests(unittest.TestCase):
             project = (output / "project.yml").read_text()
             self.assertIn(REPOSITORY_URL, manifest)
             self.assertIn(REPOSITORY_URL, project)
-            self.assertIn('exact: "0.4.1"', manifest)
-            self.assertIn("exactVersion: 0.4.1", project)
+            version = "0.8.0-beta.4" if platform == "ios" else "0.4.1"
+            self.assertIn(f'exact: "{version}"', manifest)
+            self.assertIn(f"exactVersion: {version}", project)
             self.assertIn('package: "dwy-ai-experience"', manifest)
             self.assertIn('.macOS("26.0")', manifest)
             if platform == "macos":
@@ -46,6 +47,23 @@ class TemplateSmokeTests(unittest.TestCase):
                 self.assertIn('.iOS(.v18)', manifest)
                 self.assertIn('iOS: "18.0"', project)
                 self.assertIn('IPHONEOS_DEPLOYMENT_TARGET: "18.0"', project)
+                app = (output / f"App/{name}App.swift").read_text()
+                settings = (output / "Features/Settings/SettingsView.swift").read_text()
+                self.assertIn(".eControlTheme(.standard)", app)
+                self.assertIn("EButton(", settings)
+                self.assertIn("ESwitch(", settings)
+                boundary = ["python3", "-B", "-m", "unittest", "discover", "-s", "Tests", "-p", "test_ui_boundary.py"]
+                check = subprocess.run(boundary, cwd=output, capture_output=True, text=True)
+                self.assertEqual(check.returncode, 0, check.stderr)
+                # 在临时生成物中注入三类越界，防止检查器始终返回成功。
+                source = output / "Features/Settings/SettingsView.swift"
+                source.write_text(settings + "\nimport DesignKitMac\n// .glassEffect is documentation only\nlet illegal = Color.clear.glassEffect()\n")
+                (output / "project.yml").write_text(project.replace(f"exactVersion: {version}", "exactVersion: 0.0.0"))
+                rejected = subprocess.run(boundary, cwd=output, capture_output=True, text=True)
+                self.assertNotEqual(rejected.returncode, 0)
+                self.assertIn("FAILED (failures=3)", rejected.stderr)
+                source.write_text(settings)
+                (output / "project.yml").write_text(project)
             self.assertTrue((output / (name + "Tests") / "SmokeTests.swift").is_file())
             for path in output.rglob("*"):
                 if not path.is_file():
@@ -54,8 +72,8 @@ class TemplateSmokeTests(unittest.TestCase):
                 for stale in ["apple-app-kit", "/ios-arc", "__SKELETON_PATH__", "__APP_NAME__", "__BUNDLE_ID__", "__TEAM_ID__", "__PACKAGE_URL__", "__PACKAGE_VERSION__", "__PACKAGE_ID__"]:
                     self.assertNotIn(stale, text, str(path))
 
-    def test_ios_template_uses_private_versioned_package(self):
-        """iOS 生成物通过统一私有包 URL 按 0.4.1 版本引用。"""
+    def test_ios_template_uses_versioned_components(self):
+        """iOS 新项目真实使用已发布组件，并能拒绝平台、材质和版本越界。"""
         self.check_platform("ios")
 
     def test_macos_template_uses_private_versioned_package(self):
