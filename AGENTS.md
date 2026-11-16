@@ -178,6 +178,10 @@ Playground imports `docs/eui-integration-guide.md` via `?raw`; it does **not** n
 
 See `CLAUDE.md` for full build/test/release details, design system references, and extended conventions. This `AGENTS.md` is the condensed quick-start; `CLAUDE.md` is the exhaustive source of truth.
 
+## Flutter 开发
+
+`flutter/` 工作区另遵循 `flutter/AGENTS.md`。团队 Skills 位于 `dwy-cli/templates/ai-tools/skills/Flutter/`：Dart 代码使用 `dwy-dart-development`，分层与抽取使用 `dwy-flutter-architecture`，Widget 与平台使用 `dwy-flutter-development`，自有基础包使用 `dwy-flutter-appkit`。配合匹配的 Flutter/Dart 官方 Skill；本工作区工具链基线见 `flutter/docs/development-baseline.md`。使用官方 CLI 或已核实官方 MCP 验证，不能用静态文件检查代替运行结果。
+
 ## 项目经验
 
 开发或排查前查阅 `.dwy/dwy-project-learning/lessons.md` 中与任务相关的经验，并按 `dwy-project-learning` Skill 沉淀新的可复用教训。

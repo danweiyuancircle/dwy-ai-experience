@@ -1,0 +1,14 @@
+name: dwy_database
+description: Native Drift database opening and resource lifecycle for DWY applications.
+version: 0.1.0
+publish_to: none
+resolution: workspace
+environment:
+  sdk: '>=3.14.0 <4.0.0'
+dependencies:
+  drift: 2.35.3
+  sqlite3: 3.8.0
+dev_dependencies:
+  test: 1.32.0
+  drift_dev: 2.35.3
+  build_runner: 2.17.1

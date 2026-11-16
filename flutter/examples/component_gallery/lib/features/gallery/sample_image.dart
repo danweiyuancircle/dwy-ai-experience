@@ -1,0 +1,8 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
+/// Repository-owned PNG fixture. Do not mutate this shared buffer while used by
+/// DwyImageSource.memory; the matching bundled asset is assets/sample.png.
+final Uint8List galleryImageBytes = base64Decode(
+  'iVBORw0KGgoAAAANSUhEUgAAAGAAAABACAIAAABqVuVZAAABSElEQVR42u3aTQrCQAyG4V7Gk3kkz+RFXAluXIoouBBK8aeTmeRj0uGFLEvBBx1q3k67/UU6h+NTOqfzVToTQAABBBBAAAEEEEAAAQRQJ6Db/VEcC5DlPhYUy30sH95y5STVWQLl1PECOXVmoLQ6ciDLGZRZRwsUdX511BECjaGjAhpGRwI0kk480GA6wUDZdCxP0k7iCqCEOkUg/3fQCpRTZx0o5BdqAkqrswIUdX6VgTLr/AOK0olZd3TU+QkUqBMA1FfnGyhWxwvUXecDKFzHBWTchEh1lkAKnXYg+55IqjMDiXQagaq2aFKdN5BOpwWodsco1Qn8vxYD1LCB3bROHVDbfnrTOhVAzdv75DoB2YcuRheji9HF6GJ0MboYXYwuRheji9HF6GJ0MboYXYwuRhfjRXKAAAIIIIAAAggggAACCCDPvACNuHmn2Hm/UgAAAABJRU5ErkJggg==',
+);

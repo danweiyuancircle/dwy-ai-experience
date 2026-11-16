@@ -1,0 +1,15 @@
+name: dwy_design
+description: DWY Material 3 themes and reusable, product-independent Flutter components.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: '>=3.14.0 <4.0.0'
+  flutter: '>=3.50.0'
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: 1.11.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

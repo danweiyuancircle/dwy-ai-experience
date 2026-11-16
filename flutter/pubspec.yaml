@@ -1,0 +1,14 @@
+name: dwy_flutter_workspace
+publish_to: none
+environment:
+  sdk: '>=3.14.0 <4.0.0'
+workspace:
+  - packages/dwy_database
+  - packages/dwy_design
+  - packages/dwy_image
+  - packages/dwy_log
+  - packages/dwy_media
+  - packages/dwy_network
+  - packages/dwy_preferences
+  - packages/dwy_secure_storage
+  - examples/component_gallery
