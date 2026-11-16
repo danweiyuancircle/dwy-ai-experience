@@ -88,12 +88,9 @@ export DEST_ROOT="$DEST"
 export REPLACE_APP_NAME="$APP_NAME"
 export REPLACE_BUNDLE_ID="$BUNDLE_ID"
 export REPLACE_TEAM_ID="$TEAM_ID"
-# iOS 模板使用已发布 E 组件；Mac 模板继续保留原有版本基线。
+# 两端共用同一正式版本，避免新项目继续绑定预发布或旧基线。
 export REPLACE_PACKAGE_URL="https://github.com/danweiyuancircle/dwy-ai-experience.git"
-export REPLACE_PACKAGE_VERSION="0.4.1"
-if [[ "$PLATFORM" == "ios" ]]; then
-  export REPLACE_PACKAGE_VERSION="0.8.0-beta.4"
-fi
+export REPLACE_PACKAGE_VERSION="0.8.0"
 export REPLACE_PACKAGE_ID="dwy-ai-experience"
 
 python3 - <<'PY'

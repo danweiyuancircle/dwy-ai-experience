@@ -9,7 +9,7 @@ BizFoundation/    ③ 业务基础层 — 领域纯逻辑 SPM
 Foundation/       ④ 业务无关基础层 — 层锚点；kits 来自统一私有包版本
 ```
 
-0.4.1 版本规约：`https://github.com/danweiyuancircle/dwy-ai-experience/blob/0.4.1/apple/Docs/ARCHITECTURE.md`。该固定版本保留历史路径；当前开发目录统一为 `ios/`，规约位于 `ios/Docs/ARCHITECTURE.md`。
+基础库锁定版本见 `Package.swift` 与 `project.yml`，两处必须一致。对应版本规约位于基础库的 `ios/Docs/ARCHITECTURE.md`；源码、公开 API 与示例必须按锁定标签读取。
 
 ## 依赖
 

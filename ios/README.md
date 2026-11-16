@@ -38,7 +38,7 @@ MyApp/
 
 ## 生成
 
-以下命令从统一仓库根目录执行。iOS 新项目精确依赖已发布的 `0.8.0-beta.4`，默认接入 `DesignKitIOS`；macOS 模板仍保留原有 `0.4.1` 基线。模板不含凭据。
+以下命令从统一仓库根目录执行。iOS / macOS 新项目统一精确依赖正式版本 `0.8.0`，分别接入 `DesignKitIOS` / `DesignKitMac`；远程生成工程前须确认该标签已推送。模板不含凭据。
 
 ```bash
 ./ios/scripts/new-app.sh \
