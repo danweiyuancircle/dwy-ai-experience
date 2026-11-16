@@ -7,6 +7,8 @@ description: 开发、排查、评审或适配 macOS 应用时使用，涵盖设
 
 同时使用可用的 `dwy-swift-development`；涉及模块边界或公共代码时使用 `dwy-apple-architecture`。缺少其他 Skill 时说明并按现有项目约定继续，不自动安装。按任务使用 Apple 官方 Skill；没有适用项时查官方文档。
 
+开发前必须同时核对官方 Skill、可用 MCP、Xcode/CLI 与实际 macOS SDK；遵循 `dwy-swift-development` 的 `references/official-tooling.md`，即使该 Skill 未安装也不能省略四项核对。确认选中工具链、SDK、部署版本和目标架构，不能只读 Skill 或只看到构建成功就跳过核对。
+
 新应用默认最低 macOS 26+，仅支持 Apple Silicon `arm64`，不支持 Intel `x86_64`；默认不为 macOS 15 及以下版本或 Intel 编写兼容实现、安排测试。具体支持范围按实际项目上下文决定：先读取项目约定、实际 deployment target、架构与调用方要求，现有项目不因启用 Skill 自动升级系统下限或移除架构。新 API 按 SDK 与实际支持的运行时版本判断。
 
 最低系统基线为 macOS 26.0：新应用及已明确迁移的项目须统一 App、扩展、测试目标的 `MACOSX_DEPLOYMENT_TARGET`、XcodeGen 的 `deploymentTarget` 与本项目 Swift Package 的 macOS 平台声明；同时更新当前支持说明。构建后回读 App 和扩展的 `LSMinimumSystemVersion` 及 Mach-O 的 `minos`，确认均不低于 26.0。macOS 26 已提供的 API 可直接使用，不为已停止支持的系统新增兼容分支；高于项目最低版本的 API 仍须判断可用性。

@@ -9,7 +9,7 @@ description: 开发、排查或评审 Swift、SwiftUI 和 Apple 平台共享代�
 
 涉及界面开发或评审时，必读团队写法中的「图标视觉一致性」「按钮语义与样式一致性」「重复能力封装与复用」；按实际界面并排、跨页面检查，不能以布局参数相同或编译通过代替验收。
 
-SwiftUI、App Intents 等具体技术优先查找当前环境中与任务匹配的 Apple 官方 Skill，阅读相关参考；确认其来源后使用。不存在或不可用时查 Apple 官方文档，不强制安装、不把第三方 Skill 冒充官方。
+每项 Apple 开发开始前，必须核对匹配的官方 Skill、可用 MCP、CLI 和实际 SDK，按 [官方能力与工具链核对](references/official-tooling.md) 执行；不能只检查 Skill 就跳过工具和 SDK。SwiftUI、App Intents 等具体技术找到来源可核实、适用的 Apple 官方 Skill 后必须实际读取并使用；没有适用项时记录查找范围并使用 Apple 官方文档，不把第三方 Skill 冒充官方。
 
 项目使用 AppleAppKit 时先查可用的 `dwy-apple-appkit`，按项目锁定版本复用同步、基础工具、设计、认证和购买等已有能力；未安装该 Skill 时核实实际依赖与源码，不自动安装依赖。
 
