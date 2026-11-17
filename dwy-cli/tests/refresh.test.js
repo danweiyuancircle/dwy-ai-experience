@@ -7,6 +7,96 @@ import { execFileSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { syncAll, refreshAll } from '../src/sync-all.js'
 
+test('refresh 按实际差异列出共享 Skill、全局 Hook 和项目规则，重复刷新报告无变更', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-changes-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  const codexHome = path.join(homeDir, '.codex')
+  const options = { sourceDir, projectDir, homeDir, codexHome }
+  await fs.ensureDir(projectDir)
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/changed/SKILL.md'), '# Same skill')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/changed/references/guide.md'), 'old guide')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/unchanged/SKILL.md'), '# Same skill')
+  await fs.outputFile(path.join(sourceDir, 'rules/通用/sample.md'), '# Old rule')
+  await fs.outputFile(path.join(sourceDir, 'hooks/Git/check.sh'), '# old hook')
+  await fs.outputJson(path.join(sourceDir, 'hook-manifests/hooks.json'), [{ name: 'check.sh', platforms: ['codex'] }])
+  await syncAll({ ...options, scope: 'global', selectedPlatforms: ['codex'], selected: { skills: [{ name: 'changed' }, { name: 'unchanged' }] }, contentTypes: ['skills', 'hooks'] })
+  await syncAll({ ...options, selectedPlatforms: ['codex'], selected: { rules: [{ name: 'sample.md' }] }, contentTypes: ['rules'] })
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/changed/references/guide.md'), 'new guide')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/new-skill/SKILL.md'), '# New skill')
+  await fs.outputFile(path.join(sourceDir, 'rules/通用/sample.md'), '# New rule')
+  await fs.outputFile(path.join(sourceDir, 'hooks/Git/check.sh'), '# new hook')
+  const run = () => execFileSync(process.execPath, [fileURLToPath(new URL('../bin/index.js', import.meta.url)), 'refresh'], {
+    cwd: projectDir, encoding: 'utf8',
+    env: { ...process.env, HOME: homeDir, USERPROFILE: homeDir, CODEX_HOME: codexHome, NO_COLOR: '1', FORCE_COLOR: '0',
+      DWY_HOME: path.join(homeDir, '.dwy'), DWY_TEMPLATE_SOURCE_DIR: sourceDir },
+  })
+  const output = run()
+  const changes = output.split('\n').filter(line => /^\s+(新增|更新|移除) /.test(line))
+  for (const [action, dest] of [
+    ['新增', path.join(homeDir, '.dwy/skills/new-skill')],
+    ['更新', path.join(homeDir, '.dwy/skills/changed')],
+    ['更新', path.join(codexHome, 'hooks/check.sh')],
+    ['更新', path.join(await fs.realpath(projectDir), 'AGENTS.md')],
+  ]) assert.ok(changes.includes(`  ${action} ${dest}`), `应报告 ${action} ${dest}，实际输出：\n${output}`)
+  assert.ok(!changes.some(line => line.includes('/unchanged')), '内容未变的 Skill 不应列入变更')
+  assert.ok(!output.includes('new guide'), '变更报告不能输出文件正文')
+  const repeated = run()
+  assert.match(repeated, /无变更/)
+  assert.equal(repeated.split('\n').filter(line => /^\s+(新增|更新|移除) /.test(line)).length, 0, repeated)
+  assert.equal(await fs.readFile(path.join(homeDir, '.agents/skills/changed/references/guide.md'), 'utf8'), 'new guide')
+})
+
+test('refresh 报告 Skill 内文件删除和执行权限变化，忽略修改时间变化', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-file-changes-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), homeDir = path.join(root, 'home')
+  const skill = path.join(sourceDir, 'skills/通用/sample')
+  const dest = path.join(homeDir, '.dwy/skills/sample')
+  await fs.ensureDir(homeDir)
+  await fs.outputFile(path.join(skill, 'SKILL.md'), '# Sample')
+  await fs.outputFile(path.join(skill, 'script.sh'), '# script', { mode: 0o644 })
+  await fs.outputFile(path.join(skill, 'removed.txt'), 'old')
+  const run = () => execFileSync(process.execPath, [fileURLToPath(new URL('../bin/index.js', import.meta.url)), 'refresh'], {
+    cwd: homeDir, encoding: 'utf8',
+    env: { ...process.env, HOME: homeDir, USERPROFILE: homeDir, CODEX_HOME: path.join(homeDir, '.codex'), NO_COLOR: '1', FORCE_COLOR: '0',
+      DWY_HOME: path.join(homeDir, '.dwy'), DWY_TEMPLATE_SOURCE_DIR: sourceDir },
+  })
+  run()
+  await fs.remove(path.join(skill, 'removed.txt'))
+  assert.ok(run().includes(`  更新 ${dest}`))
+  await fs.chmod(path.join(skill, 'script.sh'), 0o755)
+  if (process.platform !== 'win32') assert.ok(run().includes(`  更新 ${dest}`))
+  await fs.utimes(path.join(skill, 'SKILL.md'), new Date(0), new Date(0))
+  assert.match(run(), /无变更/)
+})
+
+test('refresh 区分重复入口移除与坏链接修复，不把保留的历史 Skill 报为移除', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-links-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), homeDir = path.join(root, 'home'), projectDir = path.join(root, 'project')
+  await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# Latest')
+  await fs.outputFile(path.join(homeDir, '.agents/skills/sample/SKILL.md'), '# Old global')
+  await fs.outputFile(path.join(projectDir, '.agents/skills/sample/SKILL.md'), '# Duplicate')
+  await fs.outputFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), '# Retained')
+  await fs.outputJson(path.join(projectDir, '.dwy/sync-state.json'), { platforms: { codex: { skills: ['sample', 'removed'] } } })
+  const run = () => execFileSync(process.execPath, [fileURLToPath(new URL('../bin/index.js', import.meta.url)), 'refresh'], {
+    cwd: projectDir, encoding: 'utf8',
+    env: { ...process.env, HOME: homeDir, USERPROFILE: homeDir, CODEX_HOME: path.join(homeDir, '.codex'), NO_COLOR: '1', FORCE_COLOR: '0',
+      DWY_HOME: path.join(homeDir, '.dwy'), DWY_TEMPLATE_SOURCE_DIR: sourceDir },
+  })
+  const output = run()
+  assert.ok(output.includes(`  更新 ${path.join(homeDir, '.agents/skills/sample')}`))
+  assert.ok(output.includes(`  移除 ${path.join(await fs.realpath(projectDir), '.agents/skills/sample')}`))
+  assert.ok(!output.split('\n').some(line => /^\s+移除 .*\/removed$/.test(line)))
+  assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), 'utf8'), '# Retained')
+  const dest = path.join(homeDir, '.agents/skills/sample')
+  await fs.unlink(dest)
+  await fs.symlink(path.join(root, 'missing'), dest, process.platform === 'win32' ? 'junction' : 'dir')
+  assert.ok(run().includes(`  更新 ${dest}`))
+  assert.equal(await fs.readFile(path.join(dest, 'SKILL.md'), 'utf8'), '# Latest')
+})
+
 for (const installed of [true, false]) {
   test(`refresh 不下载外部 Skills，${installed ? '完整保留旧文件' : '空安装目录保持为空'}`, async t => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-no-external-'))

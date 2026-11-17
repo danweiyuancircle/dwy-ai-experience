@@ -4,6 +4,7 @@ import path from 'node:path'
 import { randomUUID } from 'node:crypto'
 import { copyFilter, resolveSourceDir, scanSkills } from './sync.js'
 import { chalk } from './utils.js'
+import { snapshotRefreshPaths, reportRefreshChanges } from './refresh-changes.js'
 
 function validateName(name) {
   if (!/^[\p{L}\p{N}_-]+$/u.test(name)) throw new Error(`无效 Skill 名称：${name}`)
@@ -190,8 +191,10 @@ export async function refreshSharedSkills({ sourceDir, homeDir = os.homedir() } 
   const available = new Map(scans.map(skill => [skill.name, skill]))
   const updated = scans.map(skill => skill.name)
   const retained = names.filter(name => !available.has(name))
+  const paths = updated.map(name => path.join(homeDir, '.dwy', 'skills', name))
+  const before = await snapshotRefreshPaths(paths)
   await prepareSharedSkills({ skills: scans, homeDir })
+  reportRefreshChanges('共享 Skills', before, await snapshotRefreshPaths(paths))
   for (const name of retained) console.log(chalk.yellow(`当前模板已移除 ${name}，保留共享旧副本以免其他项目链接失效。`))
-  console.log(chalk.green(`已刷新 ${updated.length} 个共享 Skills，保留 ${retained.length} 个旧副本。`))
   return { updated, retained }
 }

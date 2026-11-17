@@ -12,6 +12,7 @@ import { scanExistingCursorRules } from './sync-cursor.js'
 import { selfUpgrade } from './self-upgrade.js'
 import { buildSyncPlan, contentOptions, projectSkillChoices, PLATFORM_LABELS, PLATFORM_SYNC_TYPES } from './sync-plan.js'
 import { assertConfigPath, baselineProviders, globalBaselinePath, globalHookNames, hasManagedHookConfig } from './sync-inheritance.js'
+import { snapshotRefreshPaths, reportRefreshChanges } from './refresh-changes.js'
 
 const PLATFORM_OPTIONS = [
   { value: 'claude', label: 'Claude Code', description: '支持 Skills、Hooks 和全局通用规范' },
@@ -168,6 +169,10 @@ export async function refreshAll({
         scans: { ...scans, hooks }, sourceDir, projectDir, homeDir, codexHome, projectState, globalState, baseline,
         staleEntries: staleEntries(scans, global ? globalState : projectState, existing, [platform]),
       })
+      const paths = plan.operations.flatMap(operation => operation.paths)
+      if (plan.projectChanged) paths.push(path.join(projectDir, ...SYNC_STATE_PATH))
+      if (plan.globalChanged) paths.push(path.join(homeDir, ...SYNC_STATE_PATH))
+      const before = await snapshotRefreshPaths(paths)
       for (const operation of plan.operations) await operation.run()
       projectState = plan.nextProject
       globalState = plan.nextGlobal
@@ -179,7 +184,7 @@ export async function refreshAll({
         await assertConfigPath(path.join(homeDir, ...SYNC_STATE_PATH), homeDir)
         await saveSyncState(homeDir, globalState)
       }
-      console.log(chalk.green(`已刷新${global ? '全局' : '当前项目'} ${PLATFORM_LABELS[platform]}：${contentTypes.join('、')}`))
+      reportRefreshChanges(`${global ? '全局' : '当前项目'} ${PLATFORM_LABELS[platform]}`, before, await snapshotRefreshPaths(paths))
     }
   }
 }
