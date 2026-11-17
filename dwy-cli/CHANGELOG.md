@@ -1,5 +1,16 @@
 # create-dwy
 
+## [0.37.1] - 2026-11-17
+
+### Fixed
+
+- Flutter 旧规则迁移准确区分 Dart 逻辑与 Flutter 平台开发，网络规则迁入 dwy-dart-development，核心规则同时启用匹配的 Dart / Flutter Skills。
+
+### Changed
+
+- 随包 Skills 同步 ai-tools 0.40.0：AppleAppKit 0.9.0 权限与 iOS 弹框、四层单端/双端脚手架、业务 UI 组合与基础库回流规则；补充 Apple 官方工具核实、Flutter/Dart 分工、页面开发和终端日志隐私规范。
+- 模板优先使用显式本地来源，否则核对远端 develop，离线保留有效缓存或随包模板；本次不改变既有来源优先级，不修改用户全局已安装 Skills。
+
 ## [0.37.0] - 2026-11-14
 
 ### Changed

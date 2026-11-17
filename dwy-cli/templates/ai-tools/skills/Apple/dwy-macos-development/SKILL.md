@@ -21,4 +21,6 @@ description: 开发、排查、评审或适配 macOS 应用时使用，涵盖设
 
 涉及设计规范、全局 token、主题或组件抽取时，先读取项目现有规范，再读 [设计规范与组件复用](references/design-system.md)；不得把某个产品的品牌或几何规格直接变成所有 Mac 项目的要求。
 
+macOS 单端与双端项目内部均按 App①、Features②、BizFoundation③、Foundation④四层；BusinessUI 属于②，产品平台业务适配属于③，不增加第五层。新项目使用统一生成器的 macos 或 apple 形态，按 `dwy-apple-architecture` 的目录与依赖规则执行；只生成所选平台，追加另一端不搬已有壳或升级依赖。
+
 发现可复用新坑先查重：只在 macOS 证实的放本 Skill；双端均有证据时将共通部分放 Swift Skill，保留平台差异。记录现象、范围、根因及证据、处理方法、验证状态和未验证项；未确认标记待验证，项目专属问题留项目内。修改共享 Skill 必须已有来源仓库授权。

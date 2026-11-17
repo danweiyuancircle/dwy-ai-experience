@@ -17,6 +17,8 @@ description: 开发、排查、评审或适配 iOS 18+、iPadOS 18+ 应用时使
 
 界面开发与评审同时遵循 `dwy-swift-development` 的图标视觉一致性、按钮语义与样式一致性、重复能力封装与复用要求；跨页面检查同类入口，不仅检查当前页面。
 
-团队新 iOS 应用默认接入 AppleAppKit 的 `DesignKitIOS`，使用已发布、精确锁定的版本，并在 App/独立 scene 根装配组件主题。涉及 UI 开发、设计规范、全局 token、主题或组件抽取时，先读取项目现有规范，再读 [设计规范与组件复用](references/design-system.md) 和 `dwy-apple-appkit`；已有基础组件必须复用，项目只封装品牌与业务组合。既有项目按授权范围迁移，不擅自全量替换；不得把某个产品的品牌或几何规格直接变成所有 iOS 项目的要求。
+团队新 iOS 应用默认接入 AppleAppKit 的 `DesignKitIOS`，使用已发布、精确锁定的版本，并在 App/独立 scene 根装配组件主题。涉及 UI 开发、设计规范、全局 token、主题或组件抽取时，先读取项目现有规范，再读 [设计规范与组件复用](references/design-system.md) 和 `dwy-apple-appkit`；已有且满足需求的基础组件直接使用，禁止同功能再包装。业务定制在项目 UI 层封装业务基础组件，优先组合共享组件；共享能力不足时允许自行实现所缺部分，并收敛在业务组件内。既有项目按授权范围迁移，不擅自全量替换；不得把某个产品的品牌或几何规格直接变成所有 iOS 项目的要求。
+
+iOS 单端与双端项目内部均按 App①、Features②、BizFoundation③、Foundation④四层；BusinessUI 属于②，产品平台业务适配属于③，不增加第五层。新项目使用统一生成器的 ios 或 apple 形态，按 `dwy-apple-architecture` 的目录与依赖规则执行；只生成所选平台，追加另一端不搬已有壳或升级依赖。
 
 发现可复用新坑先查重：只在 iOS 证实的放本 Skill；双端均有证据时将共通部分放 Swift Skill，保留平台差异。记录现象、范围、根因及证据、处理方法、验证状态和未验证项；未确认标记待验证，项目专属问题留项目内。修改共享 Skill 必须已有来源仓库授权。

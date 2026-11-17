@@ -1,5 +1,17 @@
 # ai-tools 内部版本
 
+## 0.40.0 - 2026-11-17
+
+### Added
+
+- 页面开发 Skill 与分端资料统一信息、文案、视觉、交互和可访问性约束；补充用户终端日志隐私要求，Flutter / Dart 按语言、架构与平台能力拆分。
+
+### Changed
+
+- AppleAppKit 接入同步 0.9.0：权限产品按需链接、系统状态保真、设置返回与生命周期约束，iOS 系统弹框使用公开 EAlert / EConfirm / EErrorAlert。
+- Apple 单端/双端项目统一四层架构和生成入口，产品 BusinessUI 负责业务组件组合，BizFoundation 保持逻辑边界；现有共享组件优先复用，通用缺口按实际收益回流。
+- Apple 目录引用统一为 apple/；新增基础库版本、Changelog 与 tag 前的 Skill 同步检查，核实官方开发工具，避免使用未查证 API 或旧版本能力。
+
 ## 0.39.2 - 2026-11-14
 
 ### Changed
