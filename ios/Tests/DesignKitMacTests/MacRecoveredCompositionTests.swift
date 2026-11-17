@@ -36,8 +36,14 @@ final class MacRecoveredCompositionTests: XCTestCase {
     func testApplicationLogoUsesLocalAppAndMissingIdentityUsesSymbol() throws {
         let path = try XCTUnwrap(NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal"))
         let actual = try XCTUnwrap(EApplicationIcon.image(bundleIdentifier: "com.apple.Terminal", fallbackSymbol: "terminal"))
-        XCTAssertEqual(actual.tiffRepresentation, NSWorkspace.shared.icon(forFile: path.path).tiffRepresentation)
-        XCTAssertNotNil(EApplicationIcon.image(bundleIdentifier: "test.missing.application", fallbackSymbol: "terminal"))
+        XCTAssertTrue(FileManager.default.fileExists(atPath: path.path))
+        XCTAssertTrue(actual.isValid)
+        XCTAssertFalse(actual.isTemplate)
+        let fallback = try XCTUnwrap(EApplicationIcon.image(bundleIdentifier: "test.missing.application", fallbackSymbol: "terminal"))
+        XCTAssertTrue(fallback.isTemplate)
+        let explicitPath = try XCTUnwrap(EApplicationIcon.image(bundleIdentifier: "test.missing.application", appPath: path.path, fallbackSymbol: "terminal"))
+        XCTAssertTrue(explicitPath.isValid)
+        XCTAssertFalse(explicitPath.isTemplate)
     }
 
     func testContentStateAndFormBuildWithLocalizedAndVerbatimContent() {

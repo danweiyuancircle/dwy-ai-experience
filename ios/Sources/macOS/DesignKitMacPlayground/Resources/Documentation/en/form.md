@@ -3,7 +3,7 @@
 ID: designkit.mac.form
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.1
+Package: 0.8.2
 
 ## Purpose
 Keep form content scrollable while its action area remains reachable.

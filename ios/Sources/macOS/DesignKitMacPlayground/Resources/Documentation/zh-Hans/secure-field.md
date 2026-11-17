@@ -3,7 +3,7 @@
 ID: designkit.mac.secure-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.1
+Package: 0.8.2
 
 ## 用途
 使用原生安全编辑器输入密码。

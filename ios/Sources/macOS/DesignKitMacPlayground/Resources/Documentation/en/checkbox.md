@@ -3,7 +3,7 @@
 ID: designkit.mac.checkbox
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.1
+Package: 0.8.2
 
 ## Purpose
 Express a desktop Boolean choice using a native checkbox.

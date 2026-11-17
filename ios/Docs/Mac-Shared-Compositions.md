@@ -39,6 +39,6 @@ struct SharedSettingsExample: View {
 
 编辑弹层使用现有 `EForm` 的 content/actions 槽，不自行重复滚动与固定动作区。文案使用 `Text` 或 `LocalizedStringResource` 显式传入，基础库不引用应用本地化 key、资源、单例或业务模型。
 
-组件回归见 `ios/Tests/DesignKitMacTests/MacRecoveredCompositionTests.swift`。这些组合从正式版 `0.8.1` 提供，消费方须精确锁定版本并更新锁文件；本地 workspace 联调不是远程发布证明。
+组件回归见 `ios/Tests/DesignKitMacTests/MacRecoveredCompositionTests.swift`。这些组合从正式版 `0.8.2` 提供，消费方须精确锁定版本并更新锁文件；本地 workspace 联调不是远程发布证明。
 
 可操作的组合示例为 `ios/Sources/macOS/DesignKitMacPlayground/ERecoveredCompositionsPreview.swift`，公开入口 `ERecoveredCompositionsPreview()`。演示支持中英文、局部表单状态及排序，不写业务偏好。根目录的 Playground catalog 统一负责展示入口。

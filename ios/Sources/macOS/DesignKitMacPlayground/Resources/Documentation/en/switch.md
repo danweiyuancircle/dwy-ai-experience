@@ -3,7 +3,7 @@
 ID: designkit.mac.switch
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.1
+Package: 0.8.2
 
 ## Purpose
 Express an immediate Boolean preference using a native switch.
