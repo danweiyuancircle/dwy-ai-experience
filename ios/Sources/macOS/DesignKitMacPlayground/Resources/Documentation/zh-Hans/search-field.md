@@ -3,7 +3,7 @@
 ID: designkit.mac.search-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0
+Package: 0.8.1
 
 ## 用途
 编辑并清空当前搜索 Binding。

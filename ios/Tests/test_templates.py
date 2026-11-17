@@ -29,7 +29,7 @@ class TemplateSmokeTests(unittest.TestCase):
             project = (output / "project.yml").read_text()
             self.assertIn(REPOSITORY_URL, manifest)
             self.assertIn(REPOSITORY_URL, project)
-            version = "0.8.0"
+            version = "0.8.1"
             self.assertIn(f'exact: "{version}"', manifest)
             self.assertIn(f"exactVersion: {version}", project)
             self.assertIn('package: "dwy-ai-experience"', manifest)

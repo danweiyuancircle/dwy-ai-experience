@@ -3,7 +3,7 @@
 ID: designkit.mac.field-shell
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0
+Package: 0.8.1
 
 ## Purpose
 Apply the field appearance to a native editor that requires direct focus or input configuration.

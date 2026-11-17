@@ -3,7 +3,7 @@
 ID: designkit.mac.button
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0
+Package: 0.8.1
 
 ## Purpose
 Trigger an explicit action with native primary, secondary, plain, destructive, busy and disabled semantics.

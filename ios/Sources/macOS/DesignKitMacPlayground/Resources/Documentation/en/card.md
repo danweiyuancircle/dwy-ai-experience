@@ -3,7 +3,7 @@
 ID: designkit.mac.card
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0
+Package: 0.8.1
 
 ## Purpose
 Group content on a semantic opaque surface.

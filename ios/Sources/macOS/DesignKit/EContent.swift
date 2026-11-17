@@ -71,7 +71,12 @@ public struct ELabelValue: View {
     private let value: Text
 
     public init(_ title: LocalizedStringResource, value: Text) {
-        self.title = Text(title)
+        self.init(Text(title), value: value)
+    }
+
+    /// 已解析应用文案或原文通过 Text 保留其本地化语义。
+    public init(_ title: Text, value: Text) {
+        self.title = title
         self.value = value
     }
 
@@ -138,18 +143,20 @@ public struct EContentState<Actions: View>: View {
     private let title: Text
     private let detail: Text?
     private let actions: Actions
+    private let systemImage: String?
 
     public init(_ phase: EContentPhase, title: LocalizedStringResource,
-                detail: LocalizedStringResource? = nil, @ViewBuilder actions: () -> Actions) {
-        self.init(phase, title: Text(title), detail: detail.map { Text($0) }, actions: actions)
+                detail: LocalizedStringResource? = nil, systemImage: String? = nil, @ViewBuilder actions: () -> Actions) {
+        self.init(phase, title: Text(title), detail: detail.map { Text($0) }, systemImage: systemImage, actions: actions)
     }
 
-    public init(_ phase: EContentPhase, title: Text, detail: Text? = nil,
+    public init(_ phase: EContentPhase, title: Text, detail: Text? = nil, systemImage: String? = nil,
                 @ViewBuilder actions: () -> Actions) {
         self.phase = phase
         self.title = title
         self.detail = detail
         self.actions = actions()
+        self.systemImage = systemImage
     }
 
     public var body: some View {
@@ -157,7 +164,7 @@ public struct EContentState<Actions: View>: View {
             if phase == .loading {
                 ProgressView().accessibilityHidden(true)
             } else {
-                Image(systemName: phase == .failure ? "exclamationmark.triangle" : phase == .success ? "checkmark.circle" : "tray")
+                Image(systemName: systemImage ?? (phase == .failure ? "exclamationmark.triangle" : phase == .success ? "checkmark.circle" : "tray"))
                     .foregroundStyle(phase == .failure ? theme.colors.danger : theme.colors.secondaryText)
                     .accessibilityHidden(true)
             }

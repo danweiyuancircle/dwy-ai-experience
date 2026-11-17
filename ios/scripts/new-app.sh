@@ -90,7 +90,7 @@ export REPLACE_BUNDLE_ID="$BUNDLE_ID"
 export REPLACE_TEAM_ID="$TEAM_ID"
 # 两端共用同一正式版本，避免新项目继续绑定预发布或旧基线。
 export REPLACE_PACKAGE_URL="https://github.com/danweiyuancircle/dwy-ai-experience.git"
-export REPLACE_PACKAGE_VERSION="0.8.0"
+export REPLACE_PACKAGE_VERSION="0.8.1"
 export REPLACE_PACKAGE_ID="dwy-ai-experience"
 
 python3 - <<'PY'

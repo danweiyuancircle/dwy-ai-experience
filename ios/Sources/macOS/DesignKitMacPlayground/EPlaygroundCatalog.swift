@@ -25,6 +25,14 @@ public enum EPlaygroundComponent: String, CaseIterable, Identifiable, Sendable {
     case toast = "toast"
     case taskProgress = "task-progress"
     case form = "form"
+    case pageHeader = "page-header"
+    case settingsPage = "settings-page"
+    case itemRow = "item-row"
+    case sidebarItem = "sidebar-item"
+    case applicationIcon = "application-icon"
+    case progressPanelContent = "progress-panel-content"
+    case reorderableList = "reorderable-list"
+    case managementListStyle = "management-list-style"
 
     public var id: String { "designkit.mac." + rawValue }
     public var module: String { "DesignKitMac" }
@@ -54,6 +62,14 @@ public enum EPlaygroundComponent: String, CaseIterable, Identifiable, Sendable {
         case .toast: "EToast"
         case .taskProgress: "ETaskProgress"
         case .form: "EForm"
+        case .pageHeader: "EPageHeader"
+        case .settingsPage: "ESettingsPage"
+        case .itemRow: "EItemRow"
+        case .sidebarItem: "ESidebarItem"
+        case .applicationIcon: "EApplicationIcon"
+        case .progressPanelContent: "EProgressPanelContent"
+        case .reorderableList: "EReorderableList"
+        case .managementListStyle: "EManagementListStyle"
         }
     }
 
@@ -81,6 +97,14 @@ public enum EPlaygroundComponent: String, CaseIterable, Identifiable, Sendable {
         case .toast: "ToastExample"
         case .taskProgress: "TaskProgressExample"
         case .form: "FormExample"
+        case .pageHeader: "PageHeaderExample"
+        case .settingsPage: "SettingsPageExample"
+        case .itemRow: "ItemRowExample"
+        case .sidebarItem: "SidebarItemExample"
+        case .applicationIcon: "ApplicationIconExample"
+        case .progressPanelContent: "ProgressPanelContentExample"
+        case .reorderableList: "ReorderableListExample"
+        case .managementListStyle: "ManagementListStyleExample"
         }
     }
 
@@ -92,6 +116,8 @@ public enum EPlaygroundComponent: String, CaseIterable, Identifiable, Sendable {
         case .card, .settingsRow, .labelValue: .content
         case .statusBadge, .contentState, .notice, .toast, .taskProgress: .feedback
         case .form: .forms
+        case .pageHeader, .settingsPage, .itemRow, .sidebarItem, .applicationIcon, .reorderableList, .managementListStyle: .content
+        case .progressPanelContent: .feedback
         }
     }
 
@@ -112,7 +138,7 @@ enum EPlaygroundCategory: String, CaseIterable, Identifiable {
 
 /// 包资源与展示/复制共用，缺失时抛错，不静默跳到其他组件。
 public enum EPlaygroundCatalog {
-    public static let version = "0.8.0"
+    public static let version = "0.8.1"
 
     public struct Documentation: Sendable {
         public let markdown: String

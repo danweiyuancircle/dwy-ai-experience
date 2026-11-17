@@ -3,7 +3,7 @@
 ID: designkit.mac.checkbox
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0
+Package: 0.8.1
 
 ## 用途
 用原生桌面复选框表达布尔选择。

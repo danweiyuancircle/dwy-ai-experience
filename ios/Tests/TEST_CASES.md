@@ -28,6 +28,14 @@ iOS `IOSControlTests` 另覆盖短暂原文与自定义图标、相同文本替�
 
 `ios/Tests/AuthCoreTests/TEST_CASES.md` 记录HTTP和会话回归，`ios/Tests/AuthUITests/TEST_CASES.md` 记录表单状态测试。示例工程的 `ios/Examples/EmailPasswordAuth/Tests/AuthFlowUITests.swift` 验证真实模拟器首次呈现、注册/重置导航、输入错误提示，不发送真实邮件。
 
+## macOS 共享 UI 回收（0.8.1）
+
+`MacRecoveredCompositionTests` 覆盖标准主题映射、原生排序插入位置及边界、注入页边距和长内容测量、应用 Logo 与缺失符号、状态/表单/侧栏/进度组合。
+
+`MacPlatformHostTests` 覆盖警告按钮顺序、危险 Return 与取消 Escape、提交可用性、原生取消返回码、目录/文件类型限制、工具窗生命周期和 Settings 挂载后样式。
+
+Playground 目录新增八个入口，并通过中英资源完整性、可复制源码一致性及双宽度测量验证。独立 `EPlatformHostPreview()` 仅演示确认和目录路径，不执行业务文件操作；scope 由演示在取得路径后及时释放。GUI、目标系统、IME 和 VoiceOver 验收须单独记录。
+
 ## DesignCore 动效
 
 `ios/Tests/DesignCoreTests/TEST_CASES.md` 记录 4 项动效测试，执行 `swift test --filter MotionTests`。覆盖系统减少动态效果时禁用动画、语义预设复用既有节奏、位移转场降为淡入和公开修饰符/旧按压 API 编译兼容。双平台完整交互示例位于 `ios/Examples/Motion`；纯策略测试不代替系统设置、指针和触控验收。

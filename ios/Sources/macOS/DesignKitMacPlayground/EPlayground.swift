@@ -266,6 +266,14 @@ struct EPlaygroundFixture: View {
         case .toast: ToastExample(bundle: .module)
         case .taskProgress: TaskProgressExample(bundle: .module)
         case .form: FormExample(bundle: .module, isBusy: scenario == .busy, isInvalid: scenario == .invalid)
+        case .pageHeader: PageHeaderExample()
+        case .settingsPage: SettingsPageExample()
+        case .itemRow: ItemRowExample()
+        case .sidebarItem: SidebarItemExample()
+        case .applicationIcon: ApplicationIconExample()
+        case .progressPanelContent: ProgressPanelContentExample()
+        case .reorderableList: ReorderableListExample()
+        case .managementListStyle: ManagementListStyleExample()
         }
     }
 }

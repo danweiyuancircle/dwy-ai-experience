@@ -9,6 +9,10 @@ public struct ESemanticColors: Sendable {
     public var elevatedSurface = Color(nsColor: .controlBackgroundColor)
     public var text = Color.primary
     public var secondaryText = Color.secondary
+    public var tertiaryText = Color(nsColor: .tertiaryLabelColor)
+    public var canvas = Color(nsColor: .textBackgroundColor)
+    public var sidebarSurface = Color.primary.opacity(0.025)
+    public var hover = Color.accentColor.opacity(0.07)
     public var separator = Color(nsColor: .separatorColor)
     public var accent = Self.defaultAccent
     public var onAccent = Self.defaultOnAccent
@@ -45,12 +49,109 @@ public struct ETypography: Sendable {
     /// AppKit 编辑器的原生正文字号；SwiftUI Font 不可反向转换，产品字号根映射须同步设置此值。
     public var nativeBodySize: CGFloat = NSFont.preferredFont(forTextStyle: .body).pointSize
     public var title: Font = .title3
+    public var pageTitle: Font = .title2.bold()
     public var sectionTitle: Font = .headline
     public var body: Font = .body
     public var secondary: Font = .callout
     public var caption: Font = .caption
     public var monospaced: Font = .body.monospaced()
     public init() {}
+}
+
+/// 标准页面语义间距；旧消费方可通过类型别名接入，不再复制数字表。
+public enum ESpace {
+    public static var list: CGFloat { EControlTheme.standard.spacing.inline / 2 }
+    public static var xs: CGFloat { EControlTheme.standard.spacing.inline }
+    public static var s: CGFloat { EControlTheme.standard.spacing.fieldLabel }
+    public static var title: CGFloat { EControlTheme.standard.spacing.controlGroup }
+    public static var tight: CGFloat { EControlTheme.standard.spacing.controlGroup }
+    public static var inset: CGFloat { EControlTheme.standard.spacing.group }
+    public static var row: CGFloat { EControlTheme.standard.spacing.group }
+    public static var rowInner: CGFloat { EControlTheme.standard.spacing.group }
+    public static var section: CGFloat { EControlTheme.standard.spacing.section }
+    public static var xl: CGFloat { EControlTheme.standard.spacing.pageInset }
+    public static var chrome: CGFloat { EControlTheme.standard.spacing.pageInset }
+    public static var page: CGFloat { EControlTheme.standard.spacing.pageInset }
+    public static var hero: CGFloat { EControlTheme.standard.fieldHeight }
+    public static var empty: CGFloat { EControlTheme.standard.spacing.pageInset * 2 }
+}
+
+/// 标准页面圆角与控件主题共源；产品不再单独维护通用半径。
+public enum ERadius {
+    public static var badge: CGFloat { EControlTheme.standard.fieldRadius / 2 }
+    public static var menu: CGFloat { EControlTheme.standard.fieldRadius / 2 }
+    public static var control: CGFloat { EControlTheme.standard.fieldRadius }
+    public static var row: CGFloat { EControlTheme.standard.fieldRadius }
+    public static var card: CGFloat { EControlTheme.standard.cardRadius }
+    public static var tile: CGFloat { EControlTheme.standard.cardRadius }
+    public static var panel: CGFloat { EControlTheme.standard.cardRadius }
+    public static var overlay: CGFloat { EControlTheme.standard.cardRadius * 2 }
+}
+
+/// 标准页面字体，正文、标题与辅助内容沿用共享主题的语义角色。
+public enum ETypeScale {
+    public static var pageTitle: Font { EControlTheme.standard.typography.pageTitle }
+    public static var detail: Font { EControlTheme.standard.typography.secondary }
+    public static var bodyPoint: CGFloat { EControlTheme.standard.typography.nativeBodySize }
+    public static var body: Font { EControlTheme.standard.typography.body }
+    public static var control: Font { body.weight(.medium) }
+    public static var rowTitle: Font { body }
+    public static var metaPoint: CGFloat { NSFont.preferredFont(forTextStyle: .caption1).pointSize }
+    public static var meta: Font { EControlTheme.standard.typography.caption }
+    public static var metaStrong: Font { meta.weight(.medium) }
+    public static var badge: Font { meta.weight(.medium) }
+    public static var badgeStrong: Font { meta.weight(.semibold) }
+    public static var iconDrag: Font { meta }
+    public static var iconMenu: Font { body }
+    public static var iconAction: Font { EControlTheme.standard.typography.title }
+    public static var iconRow: Font { body }
+    public static var iconHero: Font { .largeTitle }
+    public static var iconWelcome: Font { .largeTitle }
+    public static var iconUnlock: Font { .largeTitle }
+    public static var monoBody: Font { EControlTheme.standard.typography.monospaced }
+    public static var monoCaption: Font { meta.monospaced() }
+    public static var monoCaption2: Font { meta.monospaced() }
+    public static func sidebar(selected: Bool) -> Font { body.weight(selected ? .semibold : .regular) }
+}
+
+/// 标准语义表面和叠色。产品品牌可配置主题，通用视觉档位只在基础库定义。
+public enum EPalette {
+    private static var colors: ESemanticColors { EControlTheme.standard.colors }
+    public static var accent: Color { colors.accent }
+    public static var label: Color { colors.text }
+    public static var secondaryLabel: Color { colors.secondaryText }
+    public static var tertiaryLabel: Color { colors.tertiaryText }
+    public static var onAccent: Color { colors.onAccent }
+    public static var danger: Color { colors.danger }
+    public static var warning: Color { colors.warning }
+    public static var success: Color { colors.success }
+    public static var window: Color { colors.background }
+    public static var canvas: Color { colors.canvas }
+    public static var row: Color { colors.surface }
+    public static var separator: Color { colors.separator }
+    public static var sidebarShade: Color { colors.sidebarSurface }
+    public enum AccentWash { case column, hover, banner, selected, badge, glow }
+    public static func accent(_ wash: AccentWash) -> Color {
+        switch wash {
+        case .column: accent.opacity(0.08)
+        case .hover: colors.hover
+        case .banner: accent.opacity(0.12)
+        case .selected: colors.selection
+        case .badge: accent.opacity(0.2)
+        case .glow: accent.opacity(0.25)
+        }
+    }
+    public enum InkWash { case card, hairline, stroke }
+    public static func ink(_ wash: InkWash) -> Color {
+        switch wash {
+        case .card: colors.text.opacity(0.06)
+        case .hairline: colors.text.opacity(0.08)
+        case .stroke: colors.text.opacity(0.12)
+        }
+    }
+    public static var warningFill: Color { colors.warning.opacity(0.2) }
+    public static var warningBanner: Color { colors.warning.opacity(0.14) }
+    public static var successFill: Color { colors.success.opacity(0.12) }
 }
 
 /// Mac 标准密度的离散间距；业务页面引用角色而非复制数值。

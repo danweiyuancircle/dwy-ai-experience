@@ -16,4 +16,6 @@ description: 使用或排查 AppleAppKit SwiftPM 自有基础库时使用，按�
 
 按目标平台查 Package.swift、对应公开声明和 ios/README.md，再核对初始化、生命周期、系统版本与错误处理。找不到确切版本时查对应语义化 Git tag；不可用时说明缺口，不以默认分支替代。使用新产品或新增依赖遵守项目选择和授权，不擅自安装。
 
+已采用 DesignKitMac 的项目，通用控件、页面组合与平台 UI 优先使用基础库公开入口。通用颜色、字号、间距和圆角读取共享主题，不在产品维护第二套默认样式。系统版本适配留在基础组件内部；缺少必需能力时先补基础库、示例和验证，再迁移业务调用。原生 NSAlert、文件选择和工具窗口可以作为基础库内部实现；文件授权、危险操作、任务取消、权益和持久化仍属于业务。不要机械包装布局原语或把产品几何搬成全体默认值。具体能力以所选版本的 ios/Docs/Mac-Shared-Compositions.md 与 ios/Docs/Mac-Platform-Dialogs.md 为准。
+
 查到对应版本源码后：同步查 `ios/Docs/SYNC_CORE.md` 与 `ios/Examples/OfflineSync/`；Apple 登录、Google 登录和邮箱密码分别查 `ios/Docs/APPLE_AUTH.md`、`ios/Docs/GOOGLE_AUTH.md`、`ios/Docs/EMAIL_PASSWORD_AUTH.md` 与相应示例。具体文件是否存在以所选 tag 为准。

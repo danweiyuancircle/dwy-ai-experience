@@ -3,7 +3,7 @@
 ID: designkit.mac.field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.8.0
+Package: 0.8.1
 
 ## 用途
 组合标签、编辑器、说明与校验错误。
