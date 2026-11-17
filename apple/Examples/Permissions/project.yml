@@ -1,0 +1,42 @@
+name: PermissionsDemo
+options:
+  deploymentTarget:
+    iOS: '18.0'
+    macOS: '26.0'
+packages:
+  AppleAppKit:
+    path: ../../..
+settings:
+  base:
+    SWIFT_VERSION: '6.0'
+    CODE_SIGN_STYLE: Automatic
+    GENERATE_INFOPLIST_FILE: YES
+    INFOPLIST_KEY_NSCameraUsageDescription: 用于用户主动测试相机授权流程。
+targets:
+  PermissionsIOS:
+    type: application
+    platform: iOS
+    sources: [PermissionsApp.swift]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dwy.examples.permissions-ios
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        TARGETED_DEVICE_FAMILY: '1,2'
+    dependencies:
+      - package: AppleAppKit
+        products: [PermissionCore, PermissionIOS, PermissionCameraIOS, PermissionUI, DesignKitIOS]
+  PermissionsMac:
+    type: application
+    platform: macOS
+    sources: [PermissionsApp.swift]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dwy.examples.permissions-mac
+        ARCHS: arm64
+        ENABLE_APP_SANDBOX: YES
+        ENABLE_USER_SELECTED_FILES: readwrite
+        ENABLE_RESOURCE_ACCESS_CAMERA: YES
+    dependencies:
+      - package: AppleAppKit
+        products: [PermissionCore, PermissionMac, PermissionUI, DesignKitMac]

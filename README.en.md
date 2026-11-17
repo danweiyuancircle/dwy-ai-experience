@@ -19,10 +19,10 @@ A public source monorepo for shared libraries and development tools, with public
 | `frontend/admin-shell/` | `@dwydev/admin-kit`: administrator application framework |
 | `frontend/auth-web/` | `@dwydev/auth-web`: Web authentication and Cookie sessions |
 | `frontend/playground/` | Documentation and component demos |
-| `ios/` | AppleAppKit: iOS/macOS frameworks, authentication, tests, and templates |
+| `apple/` | AppleAppKit: iOS/macOS frameworks, authentication, tests, and templates |
 | `ci/`, `scripts/`, `.github/` | Shared validation and build/release tooling |
 
-The root `Package.swift` provides the remote SwiftPM entry point; implementation and tests live under `ios/`. The root `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml` manage the CLI and frontend packages. Python packages use uv separately.
+The root `Package.swift` provides the remote SwiftPM entry point; implementation and tests live under `apple/`. The root `package.json`, `pnpm-workspace.yaml`, and `pnpm-lock.yaml` manage the CLI and frontend packages. Python packages use uv separately.
 
 The root `.claude/` and `.agents/` configure development of this repository; distributable AI templates belong to `dwy-cli/templates/ai-tools/`.
 
@@ -60,7 +60,7 @@ Apple validation requires a full Xcode installation. For local Node 26 Vitest/js
 
 - Authentication overview: [docs/auth.md](docs/auth.md).
 - EUI integration/design and Tasks guides: [docs/README.md](docs/README.md).
-- Apple frameworks and examples: [ios/README.md](ios/README.md).
+- Apple frameworks and examples: [apple/README.md](apple/README.md).
 - Public source and package installation: [docs/private-distribution.md](docs/private-distribution.md).
 
 GitHub source is public; npm/PyPI packages are public and available for anyone to install. Package tags trigger `.github/workflows/publish-*.yml` using OIDC. `dwy upgrade` updates from public npm, and bundled CLI templates do not require repository access. SwiftPM continues to use semantic tags in the same Git repository. Cross-package CI and optional GitHub snapshots remain in `.github/workflows/private-release.yml`.

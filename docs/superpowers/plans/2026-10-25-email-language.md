@@ -29,7 +29,7 @@
 
 ### Task 1: Apple request header
 
-Files: `ios/Sources/Shared/AuthCore/AppCloudAuthClient.swift`, matching AuthCore tests and test inventory.
+Files: `apple/Sources/Shared/AuthCore/AppCloudAuthClient.swift`, matching AuthCore tests and test inventory.
 
 - [x] Add header tests with injectable preferred-language source; observe RED.
 - [x] Add a compatible initializer default and resolve language per request.

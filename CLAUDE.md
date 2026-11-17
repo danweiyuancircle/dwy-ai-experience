@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 共享基础包 monorepo。pnpm workspace 管理前端 + CLI，Python (uv) 单独管理后端。
 
-顶层按 `dwy-cli/`、`backend/`、`frontend/`、`ios/` 划分。认证后端位于 `backend/packages/auth/`，网页认证位于 `frontend/auth-web/`，跨端接入总览见 `docs/auth.md`。CLI 分发的 skills、rules、hooks 保留在 `dwy-cli/templates/ai-tools/`；根 `.claude/`、`.agents/` 是本仓库开发配置。
+顶层按 `dwy-cli/`、`backend/`、`frontend/`、`apple/` 划分。认证后端位于 `backend/packages/auth/`，网页认证位于 `frontend/auth-web/`，跨端接入总览见 `docs/auth.md`。CLI 分发的 skills、rules、hooks 保留在 `dwy-cli/templates/ai-tools/`；根 `.claude/`、`.agents/` 是本仓库开发配置。
 
 ## Commands
 
@@ -113,7 +113,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。扁平模块：
 - **`dwy upgrade`**：将全局安装的 `create-dwy` 更新到公开 npm 的正式版 `latest`；源码仓不自升级。
 - **`dwy --help`** / **`dwy --version`**
 
-AI 模板随 CLI 包分发，默认读取 `dwy-cli/templates/ai-tools`，启动不联网检查模板，也不通过 Git 拉取模板。Skills 新增或变更需要 CLI 发版；开发时保留 `DWY_TEMPLATE_SOURCE_DIR` 优先覆盖。使用与继承边界见 `docs/cli-sync.md`。
+AI 模板随 CLI 包分发；优先使用 `DWY_TEMPLATE_SOURCE_DIR` 或显式本地来源，否则核对远端 `develop`，离线复用有效缓存或随包模板。仅模板变更无需单独发布 CLI，CLI 运行时代码变更按版本发布。使用与继承边界见 `docs/cli-sync.md`。
 
 ### frontend/playground/
 
@@ -133,6 +133,8 @@ skill / 工具的本机判断缓存统一存项目内 `<project_root>/.dwy/<业�
 - 缓存文件用 JSON，含 `version` + `configured_at`
 
 ## 文档同步约束
+
+AppleAppKit 更新版本、`apple/CHANGELOG.md` 或创建/发布语义化 tag 前，必须执行 `AGENTS.md` 的“AppleAppKit 版本与 Skill 同步”检查。以本次与上一发布 tag 的实际差异核对分发 Skill、平台引用资料和文档路径；需要更新时在 tag 前完成，无需更新时在对应 Changelog 版本条目记录具体依据。不得把“源码已更新”当作“Skill 已同步”。
 
 - `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件
 - 该文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-integration-guide.md`

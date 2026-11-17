@@ -107,7 +107,7 @@ The helper makes `auth_users.google_subject` nullable and creates `auth_password
 
 宿主提供自己的 AuthRuntime、业务主体、会话撤销回调及 Alembic 迁移，并在现有 `install_runtime_auth` 后安装 `dwyeapi.auth_apple.install_apple_auth`。把 service 注册为 runtime 的 apple provider，驱动 `process_revocations()`，在业务删号事务内调用 `prepare_delete(db, subject)`；其返回值为撤销任务 ID，可用于区分本地删除完成与上游撤销 pending。签名 Key 与 Fernet token_encryption_key 只保留服务端，不能复用内购配置或按邮箱合并账号。
 
-原生 Swift 接入使用共享 AuthCore 与 AuthAppleIOS，说明见仓库根 `ios/Docs/APPLE_AUTH.md`。每个应用独立配置 client_id、密钥、数据库与业务 UUID，代码共享不代表跨产品 SSO。
+原生 Swift 接入使用共享 AuthCore 与 AuthAppleIOS，说明见仓库根 `apple/Docs/APPLE_AUTH.md`。每个应用独立配置 client_id、密钥、数据库与业务 UUID，代码共享不代表跨产品 SSO。
 
 ## 已登录账号的邮箱与登录方式管理
 

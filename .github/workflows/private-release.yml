@@ -95,7 +95,7 @@ jobs:
           if [[ "$RELEASE_TAG" == *-* ]]; then
             release_flags+=(--prerelease --latest=false)
           fi
-          gh release create "$RELEASE_TAG" private-dist/* --verify-tag "${release_flags[@]}" --title "Shared $RELEASE_TAG" --notes "Apple framework and EAPI package snapshots. See ios/CHANGELOG.md at this tag for compatibility, validation and known limitations. SwiftPM consumers use the semantic Git tag. Verify release-manifest.json and SHA256SUMS before installing snapshot artifacts."
+          gh release create "$RELEASE_TAG" private-dist/* --verify-tag "${release_flags[@]}" --title "Shared $RELEASE_TAG" --notes "Apple framework and EAPI package snapshots. See apple/CHANGELOG.md at this tag for compatibility, validation and known limitations. SwiftPM consumers use the semantic Git tag. Verify release-manifest.json and SHA256SUMS before installing snapshot artifacts."
       - name: Download the published release and verify bytes
         if: startsWith(github.ref, 'refs/tags/')
         run: |
@@ -105,18 +105,46 @@ jobs:
     uses: ./.github/workflows/device-fingerprint.yml
 
   apple:
-    runs-on: macos-26
+    name: Apple (macOS ${{ matrix.macos }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - macos: '26'
+            runner: macos-26
+            developer-dir: /Applications/Xcode_26.0.1.app/Contents/Developer
+          # GitHub 的 macOS 27 ARM64 公开预览镜像使用 xcode-27 标签。
+          - macos: '27'
+            runner: xcode-27
+            developer-dir: /Applications/Xcode_27.2.app/Contents/Developer
+    runs-on: ${{ matrix.runner }}
     env:
       GH_TOKEN: ${{ github.token }}
-      # 固定 Xcode 26 工具链；Mac 包仅支持 macOS 26 Apple Silicon。
-      DEVELOPER_DIR: /Applications/Xcode_26.0.1.app/Contents/Developer
+      # 分别固定工具链；包的最低系统仍为 macOS 26 Apple Silicon。
+      DEVELOPER_DIR: ${{ matrix.developer-dir }}
+      APPLE_TEMPLATE_TOOL_TESTS: '1'
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - name: Report Apple runner and toolchain
+        run: |
+          sw_vers
+          uname -m
+          xcodebuild -version
+          swift --version
+      - name: Prepare verified XcodeGen for template regression
+        run: |
+          xcodegen_dir="$RUNNER_TEMP/xcodegen-2.46.0"
+          mkdir -p "$xcodegen_dir"
+          gh release download 2.46.0 --repo yonaskolb/XcodeGen --pattern xcodegen.zip --dir "$xcodegen_dir"
+          echo "4d9e34b62172d645eed6457cac13fc222569974098ef4ee9c3368bedf0196806  $xcodegen_dir/xcodegen.zip" | shasum -a 256 --check
+          ditto -xk "$xcodegen_dir/xcodegen.zip" "$xcodegen_dir"
+          echo "$xcodegen_dir/xcodegen/bin" >> "$GITHUB_PATH"
       - name: Verify repository access and Swift package
         run: |
+          xcodegen --version
           python3 scripts/private_release.py check
           swift package dump-package > /tmp/ios-package.json
-          python3 -m unittest discover -s ios/Tests -p 'test_*.py'
+          python3 -m unittest discover -s apple/Tests -p 'test_*.py'
           swift test
       - name: Build Apple package for Apple Silicon
         run: |
@@ -125,6 +153,6 @@ jobs:
         run: |
           ios_sdk_path="$(xcrun --sdk iphonesimulator --show-sdk-path)"
           # 清单在 macOS 宿主求值时包含 Mac 展示程序；只编译 iOS 公开库及其依赖。
-          for target in SyncCore CoreKit LogKit L10nKit CacheKit DesignCore DesignKitIOS PurchaseCore AuthCore AuthUI AuthGoogleIOS AuthAppleIOS; do
+          for target in SyncCore CoreKit LogKit L10nKit CacheKit DesignCore DesignKitIOS PurchaseCore AuthCore AuthUI AuthGoogleIOS AuthAppleIOS PermissionCore PermissionIOS PermissionUI PermissionCameraIOS PermissionPhotoLibraryIOS PermissionMicrophoneIOS PermissionContactsIOS PermissionSpeechIOS PermissionMotionIOS PermissionMediaLibraryIOS PermissionBluetoothIOS PermissionTrackingIOS PermissionSiriIOS PermissionNotificationIOS PermissionCalendarIOS PermissionRemindersIOS PermissionHealthIOS PermissionFaceIDIOS PermissionLocationIOS; do
             swift build --target "$target" --triple arm64-apple-ios18.0-simulator --sdk "$ios_sdk_path" --scratch-path .build-ios
           done

@@ -1,0 +1,2 @@
+# 保留纳管上游的空白格式，避免无关格式补丁；自有源码仍使用默认检查。
+apple/ThirdParty/** whitespace=-blank-at-eol,-blank-at-eof

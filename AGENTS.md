@@ -27,7 +27,7 @@ Compact instructions for OpenCode sessions working in `dwy-shared`.
 | `backend/` | uv | `dwyeapi` | FastAPI infrastructure (Python 3.11+) |
 | `backend/packages/device-fingerprint/` | uv | `dwy-device-fingerprint` | Standalone native device fingerprint package |
 | `backend/packages/auth/` | uv | `dwy-auth` | Application authentication and independent administrator sessions |
-| `ios/` | SwiftPM (root `Package.swift`) | `AppleAppKit` | iOS/macOS frameworks, authentication, tests, and templates |
+| `apple/` | SwiftPM (root `Package.swift`) | `AppleAppKit` | iOS/macOS frameworks, authentication, tests, and templates |
 
 `pnpm-workspace.yaml` only covers `frontend/*` and `dwy-cli`. Python backend is managed separately by uv and **not** in the pnpm workspace.
 
@@ -144,6 +144,13 @@ chore: upgrade Vite to 8.x      # cross-package, omit scope
 Never skip tests for base-library changes. Never let `TEST_CASES.md` drift from real test files.
 
 ### Documentation sync constraints
+
+#### AppleAppKit 版本与 Skill 同步（强制）
+
+- AppleAppKit 每次变更版本、更新 `apple/CHANGELOG.md`、创建或发布新语义化 tag 前，必须以本次版本和上一发布 tag 的实际差异检查 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 及其引用资料是否需要更新；iOS、macOS 任一侧变化都适用。
+- 检查公开产品/API、调用方式、初始化和生命周期、权限/配置、最低系统及工具链、废弃/迁移说明、示例和文档路径。消费规则受影响时，同步检查相应 `dwy-ios-development`、`dwy-macos-development`、`dwy-swift-development` 引用资料。
+- 需要更新时，必须在打 tag 前提交对应 Skill 源文件和资料；无需更新时也必须在本次 Changelog 版本条目记录“Skill 同步检查：无需更新”及具体依据。需要更新则记录实际更新路径，不为凑记录强改 Skill。
+- 复用已存在 tag 时核对其代码与 Skill 检查记录，不重写标签。该检查不授权自动发布、推送或修改用户全局已安装 Skills。
 
 When these docs change, sync to the dwy-cli template paths:
 

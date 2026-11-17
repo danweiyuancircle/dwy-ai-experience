@@ -66,7 +66,7 @@ install_apple_auth(app, apple, binding=binding, profile_loader=profile_loader)
 
 - 在仓库外新建虚拟环境，从正式 PyPI 安装以上精确版本；导入 `dwy_auth.apple`、`dwy_auth.apple_auth`、`dwyeapi.auth_apple`，确认导入来自该环境的 site-packages。
 - 用自己的逻辑 app_id、Bundle ID、用户模型和数据库运行挑战、登录、重复挑战拒绝、撤销通知、删号及 worker 重试；另一应用的挑战与凭据必须被拒绝。
-- iOS 按 [原生接入说明](../ios/Docs/APPLE_AUTH.md) 使用自己的 URL/namespace/窗口；nonce 原样交给 Apple，后端兑换后才建立业务会话。
+- iOS 按 [原生接入说明](../apple/Docs/APPLE_AUTH.md) 使用自己的 URL/namespace/窗口；nonce 原样交给 Apple，后端兑换后才建立业务会话。
 - 最后用真实 Apple ID 和签名真机验收。单测中的受控 Apple 响应、包安装成功或模拟器编译均不能代替这一步。
 
 私钥、Apple refresh token、client_secret 和加密密钥不能进入 iOS、Git、公开示例或日志。不要直接 JSON 序列化含 `SecretStr` 的配置用于部署；默认序列化会将密钥掩码，部署工具应明确读取 SecretStr 原值并通过保密通道注入。

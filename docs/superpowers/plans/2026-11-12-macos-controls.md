@@ -2,7 +2,7 @@
 
 目标：从 ADBox 已有控件提炼可独立消费的 DesignKitMac，后续 macOS 应用直接使用。用户已确认采用现有自有基础库、macOS 26.0，无须旧版系统兼容。
 
-2026-11-12 范围更新：用户改为先基于 ADBox 双端分析，iOS 与 Mac 各自一份规范及组件。后续以 `ios/Docs/DESIGN_SYSTEMS.md`、`ios/Docs/IOS_DESIGN_SYSTEM.md`、`ios/Docs/MACOS_DESIGN_SYSTEM.md` 为设计依据。本计划已生成的 Mac 原型保留；暂停扩大迁移，不标为稳定发布或 ADBox 已接入。
+2026-11-12 范围更新：用户改为先基于 ADBox 双端分析，iOS 与 Mac 各自一份规范及组件。后续以 `apple/Docs/DESIGN_SYSTEMS.md`、`apple/Docs/IOS_DESIGN_SYSTEM.md`、`apple/Docs/MACOS_DESIGN_SYSTEM.md` 为设计依据。本计划已生成的 Mac 原型保留；暂停扩大迁移，不标为稳定发布或 ADBox 已接入。
 
 架构：保留原生 Button/Menu/Picker/TextField/Toggle 语义；主题、布局和材质集中维护。组件不依赖 ADBox 的 Palette、Pro、设备及日志历史。DesignCore 与 iOS 接口不变。
 

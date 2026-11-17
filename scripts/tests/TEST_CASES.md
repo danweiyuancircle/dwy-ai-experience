@@ -13,3 +13,9 @@
 | 产物目录 | 拒绝空目录和环境文件 |
 
 外部 GitHub 查询使用固定响应替身；摘要、文件与清单验证使用真实临时目录。真实仓库访问和发包下载由发布工作流及发布后的安装 smoke 验证。
+
+## Apple 云端环境
+
+`.github/workflows/private-release.yml` 的 Apple 作业在 macOS 26 / Xcode 26.0.1 与 macOS 27 / Xcode 27.2 两组 ARM64 环境运行。macOS 27 使用 GitHub 官方 `xcode-27` 公开预览标签，见 [runner 标签](https://github.com/actions/runner-images/blob/main/README.md) 与 [镜像工具链](https://github.com/actions/runner-images/blob/main/images/macos/xcode-27-arm64-Readme.md)。
+
+两组执行相同的 Swift 单测、模板生成回归、macOS arm64 与 iOS 模拟器 SDK 编译；最低部署目标继续为 macOS 26 / iOS 18。`fail-fast: false` 保留两组独立结果，联合打包通过 `needs: [apple, device]` 等待两组 Apple 作业和设备指纹作业均成功。作业输出实际系统、架构及工具链版本，不将 YAML 校验或本地测试当作云端运行成功。
