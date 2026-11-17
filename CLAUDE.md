@@ -134,6 +134,8 @@ skill / 工具的本机判断缓存统一存项目内 `<project_root>/.dwy/<业�
 
 ## 文档同步约束
 
+AppleAppKit（iOS/macOS）默认发布 `MAJOR.MINOR.PATCH` 正式版本（如 `0.8.2`、`0.8.3`）；只有用户主动明确要求时才发布 beta、alpha、rc 等预发布版本。按变更兼容性递增版本，保留历史预发布标签和记录。
+
 AppleAppKit 更新版本、`apple/CHANGELOG.md` 或创建/发布语义化 tag 前，必须执行 `AGENTS.md` 的“AppleAppKit 版本与 Skill 同步”检查。以本次与上一发布 tag 的实际差异核对分发 Skill、平台引用资料和文档路径；需要更新时在 tag 前完成，无需更新时在对应 Changelog 版本条目记录具体依据。不得把“源码已更新”当作“Skill 已同步”。
 
 - `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件

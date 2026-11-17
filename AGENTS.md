@@ -147,6 +147,7 @@ Never skip tests for base-library changes. Never let `TEST_CASES.md` drift from 
 
 #### AppleAppKit 版本与 Skill 同步（强制）
 
+- iOS/macOS 共用的 AppleAppKit 默认发布 `MAJOR.MINOR.PATCH` 正式版本（如 `0.8.2`、`0.8.3`）；只有用户主动明确要求时才发布 beta、alpha、rc 等预发布版本。按变更兼容性递增版本，保留历史预发布标签和记录。
 - AppleAppKit 每次变更版本、更新 `apple/CHANGELOG.md`、创建或发布新语义化 tag 前，必须以本次版本和上一发布 tag 的实际差异检查 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 及其引用资料是否需要更新；iOS、macOS 任一侧变化都适用。
 - 检查公开产品/API、调用方式、初始化和生命周期、权限/配置、最低系统及工具链、废弃/迁移说明、示例和文档路径。消费规则受影响时，同步检查相应 `dwy-ios-development`、`dwy-macos-development`、`dwy-swift-development` 引用资料。
 - 需要更新时，必须在打 tag 前提交对应 Skill 源文件和资料；无需更新时也必须在本次 Changelog 版本条目记录“Skill 同步检查：无需更新”及具体依据。需要更新则记录实际更新路径，不为凑记录强改 Skill。
