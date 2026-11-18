@@ -3,7 +3,7 @@
 ID: designkit.mac.text-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## 用途
 编辑单行文本，保留原生输入、提交与焦点行为。

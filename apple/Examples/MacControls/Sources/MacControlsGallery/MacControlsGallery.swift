@@ -7,11 +7,17 @@ import DesignKitMacPlayground
 struct MacControlsGallery: App {
     var body: some Scene {
         WindowGroup("Mac Controls") {
-            EPlayground()
-                .onAppear {
-                    NSApp.setActivationPolicy(.regular)
-                    NSApp.activate()
+            Group {
+                if ProcessInfo.processInfo.arguments.contains("--window-overlay-preview") {
+                    EPlatformHostPreview()
+                } else {
+                    EPlayground()
                 }
+            }
+            .onAppear {
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate()
+            }
         }
         .defaultSize(width: 1100, height: 800)
     }

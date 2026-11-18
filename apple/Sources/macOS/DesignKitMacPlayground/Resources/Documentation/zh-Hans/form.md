@@ -3,7 +3,7 @@
 ID: designkit.mac.form
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## 用途
 表单正文可滚动，动作区始终可达。

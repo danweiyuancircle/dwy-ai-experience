@@ -3,7 +3,7 @@
 ID: designkit.mac.label-value
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## Purpose
 Display a readable, selectable static value next to its meaning.

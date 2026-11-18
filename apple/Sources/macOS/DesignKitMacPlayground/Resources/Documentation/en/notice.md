@@ -3,7 +3,7 @@
 ID: designkit.mac.notice
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## Purpose
 Keep important information or failure readable until replaced by the caller.

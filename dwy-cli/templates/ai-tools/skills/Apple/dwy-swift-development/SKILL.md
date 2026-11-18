@@ -13,6 +13,6 @@ description: 开发、排查或评审 Swift、SwiftUI 和 Apple 平台共享代�
 
 项目使用 AppleAppKit 时先查可用的 `dwy-apple-appkit`，按项目锁定版本复用同步、基础工具、设计、认证和购买等已有能力；未安装该 Skill 时核实实际依赖与源码，不自动安装依赖。
 
-涉及弹窗、popover 或其锚点时读取 [弹层与锚点](references/presentations.md)，再读取对应平台 Skill 中的差异。
+涉及弹窗、popover 或其锚点时读取 [弹层与锚点](references/presentations.md)，落实模态输入隔离、焦点与关闭行为，再读取对应平台 Skill 中的差异。
 
 排查共通问题时读 [共通踩坑](references/pitfalls.md)。新增经验先查重，记录现象、适用平台和版本、根因与证据、处理方式、验证及未验证项；未证实的推断明确标记。仅单项目成立的经验留在项目中。共享 Skill 属于其来源仓库：只有已获授权才修改，否则在结果中提出候选；不擅自写全局配置。

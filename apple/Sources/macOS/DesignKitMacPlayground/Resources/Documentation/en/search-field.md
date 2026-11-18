@@ -3,7 +3,7 @@
 ID: designkit.mac.search-field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## Purpose
 Edit and clear the current search Binding.

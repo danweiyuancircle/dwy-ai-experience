@@ -25,6 +25,23 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.10.1 - 2026-11-18
+
+- 修复 DesignKitMac `eWindowOverlay` 的模态输入隔离：禁用底页 SwiftUI 控件及快捷键，拦截所属窗口内面板之外的鼠标和手势输入，保留透明背景，不绘制灰色蒙层。
+- 弹框自动获得焦点，Tab / Shift-Tab 不进入底页；关闭后恢复焦点，多层弹框仅最上层响应，窗口关闭时清理监听。面板快捷键和文本编辑保留 AppKit 原生分发。
+- 补充 SwiftUI 挂载、透明像素、焦点、普通输入、多行 Return、快捷键、层级与监听清理测试；新增透明模态演示入口，同步生成器与 Playground 版本。
+- 明确宿主须使用同一呈现状态禁用应用级业务菜单及自行安装的事件监听，不能将页内承载当作全应用模态会话。
+- Skill 同步检查：已更新 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md`、`dwy-cli/templates/ai-tools/skills/Apple/dwy-swift-development/SKILL.md`、`dwy-cli/templates/ai-tools/skills/Apple/dwy-swift-development/references/presentations.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md`，覆盖输入隔离、透明背景、焦点及宿主边界；iOS 复用共通规则，无独立 API 或最低系统变化。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.10.0 能否不改 App 继续编 | 可以。公开调用签名保持不变，修复既有模态行为；底页控件显示正常禁用样式。 |
+| 不升会怎样 | 0.10.0 继续可用，但页内弹框不提供本版完整的焦点及底页快捷键隔离。 |
+| 升上来可选/必改项 | 需要修复时精确锁定 0.10.1；检查宿主已有焦点拦截逻辑，避免重复处理，并按文档阻断应用级业务菜单与自定义监听。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0，均未提高。 |
+
 ## 0.10.0 - 2026-11-18
 
 - DesignKitMac 新增 `eWindowOverlay`，在窗口内容区居中呈现无蒙层的自定义弹框，随内容区缩小并拦截底页点击。宿主提供内容、呈现状态及焦点策略。

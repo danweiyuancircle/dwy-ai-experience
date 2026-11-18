@@ -3,7 +3,7 @@
 ID: designkit.mac.field
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## Purpose
 Combine a label, editor, hint and validation error.

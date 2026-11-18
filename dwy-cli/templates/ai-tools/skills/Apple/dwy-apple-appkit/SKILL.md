@@ -20,6 +20,7 @@ description: 使用或排查 AppleAppKit SwiftPM 自有基础库时使用，按�
 - SyncCore：同步；CoreKit、LogKit、L10nKit、CacheKit：基础功能、日志、本地化与缓存。
 - DesignCore、DesignKitIOS、DesignKitMac：跨平台及平台界面能力。
 - DesignKitMac 0.10.0 起提供 `eWindowOverlay` 和 `ePreventsSidebarCollapse`。前者在当前内容区呈现无蒙层的自定义弹框，后者用于 SwiftUI 原生分栏的侧栏内容。挂载位置、关闭及焦点职责见 `apple/Docs/Mac-Platform-Dialogs.md`。
+- DesignKitMac 0.10.1 起补充 `eWindowOverlay` 的模态输入隔离，不能当作 0.10.0 已有能力：底页 SwiftUI 控件及快捷键禁用，面板管理输入焦点、Tab 循环和关闭后的焦点恢复，透明背景不绘制整页灰色蒙层。Command 编辑与面板快捷键保留原生分发；应用级业务菜单及宿主自行安装的事件监听须按同一呈现状态阻断。先核对所用 tag 的实现和文档，不在业务侧重复补一套已由所用版本承担的隔离逻辑。
 - AuthCore、AuthUI、AuthGoogleIOS、AuthAppleIOS、AuthGoogleMac：认证核心与平台接入。
 - PurchaseCore：购买能力。
 - PermissionCore、PermissionIOS、按需 Permission*IOS、PermissionMac、PermissionUI：从 0.9.0 起提供权限状态、申请、设置引导与可选说明 UI；旧标签不具备这些产品。

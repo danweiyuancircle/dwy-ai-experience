@@ -3,7 +3,7 @@
 ID: designkit.mac.switch
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## 用途
 用原生开关表达即时布尔选择。

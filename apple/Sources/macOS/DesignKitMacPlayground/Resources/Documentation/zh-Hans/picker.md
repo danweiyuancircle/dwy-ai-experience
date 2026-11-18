@@ -3,7 +3,7 @@
 ID: designkit.mac.picker
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## 用途
 通过原生菜单或分段选择强类型或 Optional 值。

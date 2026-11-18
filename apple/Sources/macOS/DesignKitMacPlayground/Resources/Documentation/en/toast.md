@@ -3,7 +3,7 @@
 ID: designkit.mac.toast
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.0
+Package: 0.10.1
 
 ## Purpose
 Show brief non-critical success feedback from an external message Binding.
