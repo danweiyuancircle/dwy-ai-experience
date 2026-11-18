@@ -1,6 +1,8 @@
 # AppleAppKit 平台支持与适配记录
 
-更新日期：2026-11-17。本次版本为 `0.9.0`，发布状态与提交以对应 Git tag / GitHub Release 为准；下方保留各 Beta 版本的原始验证证据。本页记录整个 AppleAppKit 共享版本的平台边界，并按产品和场景限定适配证据；不将某个 UI 示例通过解释为全部模块、系统版本或设备通过。
+更新日期：2026-11-18。本次版本为 `0.10.0`，发布状态与提交以对应 Git tag / GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
+
+0.10.0 在 macOS 27.2.1 / Xcode 27.2 通过 SwiftPM 全量测试和 Playground 双语资源同源检查。新增测试覆盖弹框尺寸和侧栏项定位。应用宿主中的弹框视觉、键盘及焦点行为需在目标系统验收。
 
 0.9.0 发布前本机 macOS 27.2.1 / Xcode 27.2 执行 SwiftPM 全量 269 项 XCTest、34 项模板与架构工具回归通过，DesignKitIOS 在真实 iOS Simulator SDK、iOS 18 部署目标下编译通过。版本与资源同源校验通过。CI 配置新增 macOS 26 / Xcode 26.0.1 和 macOS 27 / Xcode 27.2 ARM64 双环境；云端结果以对应 Actions run 为准。本记录不声明权限系统弹框、真实外设、VoiceOver 或 macOS 26 桌面交互已验收。
 

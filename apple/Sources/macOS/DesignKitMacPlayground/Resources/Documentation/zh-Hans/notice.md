@@ -3,7 +3,7 @@
 ID: designkit.mac.notice
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.9.0
+Package: 0.10.0
 
 ## 用途
 保留重要信息或错误，直到宿主主动更新。

@@ -3,7 +3,7 @@
 ID: designkit.mac.application-icon
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.9.0
+Package: 0.10.0
 
 ## 用途
 

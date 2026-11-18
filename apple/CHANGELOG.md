@@ -25,6 +25,22 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.10.0 - 2026-11-18
+
+- DesignKitMac 新增 `eWindowOverlay`，在窗口内容区居中呈现无蒙层的自定义弹框，随内容区缩小并拦截底页点击。宿主提供内容、呈现状态及焦点策略。
+- DesignKitMac 新增 `ePreventsSidebarCollapse`，用于 SwiftUI 原生分栏的侧栏内容。
+- 同步生成器、接入示例和 DesignKitMac Playground 的版本。
+- Skill 同步检查：已更新 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md`、`dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/SKILL.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md`，覆盖无蒙层、组件复用及宿主交互职责。iOS 和通用 Swift 的接入约束未受影响。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.9.0 能否不改 App 继续编 | 可以。新增两个 macOS 视图修饰器，现有 API 保留。 |
+| 不升会怎样 | 0.9.0 继续可用，缺少页内弹框与侧栏防折叠修饰器。 |
+| 升上来可选/必改项 | 需要时锁定 0.10.0 并按 macOS 文档接入新修饰器。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0。 |
+
 ## 0.9.0 - 2026-11-17
 
 - 新增 20 个按需权限产品：共享状态与请求合并、iOS 分权限申请、macOS 系统设置引导和可选 PermissionUI；保留 limited、restricted、provisional、unknown 等真实状态，不把设置跳转成功当作授权成功。

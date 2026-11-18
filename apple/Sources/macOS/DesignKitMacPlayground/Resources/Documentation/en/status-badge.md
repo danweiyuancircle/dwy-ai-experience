@@ -3,7 +3,7 @@
 ID: designkit.mac.status-badge
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.9.0
+Package: 0.10.0
 
 ## Purpose
 Present neutral, success, warning and failure with text plus an icon.
