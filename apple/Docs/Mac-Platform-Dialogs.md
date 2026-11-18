@@ -8,6 +8,12 @@
 
 SwiftUI 简单错误提示使用 `.eErrorAlert(title:message:dismissTitle:)`；消息保留到用户关闭，不自动重试或丢弃失败。
 
+## 自定义页内弹框与侧栏
+
+从 AppleAppKit 0.10.0 起，`.eWindowOverlay(isPresented:preferredSize:onDismiss:panel:)` 挂在当前内容区的稳定根视图上。由宿主提供面板样式与内容。容器居中显示并随内容区限位，保持底页原有亮度，拦截内容区背景点击，按 Escape 时调用 `onDismiss`。宿主在回调中更新呈现状态，管理面板的键盘焦点、业务快捷键以及关闭后的焦点归还。工具栏和窗口控制按钮的交互由窗口宿主管理。
+
+在 SwiftUI 原生分栏的侧栏内容上使用 `.ePreventsSidebarCollapse()`，让所属分栏项保持展开。侧栏宽度和工具栏入口仍由宿主管理。
+
 ## 文件与目录选择
 
 `EFileDialog.chooseFile` 保留类型过滤，`chooseDirectory` 仅选择目录，两者取消返回 nil。组件只负责系统选择器展示，不读取所选文件、不存书签、不调用 `stopAccessingSecurityScopedResource()`。系统选择器产生的隐式 scope 和后续显式 scope 均由业务原有生命周期管理。

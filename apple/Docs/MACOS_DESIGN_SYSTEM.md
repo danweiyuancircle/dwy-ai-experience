@@ -30,6 +30,7 @@
 
 - 指向入口的 popover / confirmationDialog 关联实际触发按钮或行；列表、toolbar 和自定义坐标须保留来源对象及所属窗口。普通居中 alert 不按箭头锚点处理。
 - Mac 不套用 iPhone 的紧凑尺寸 sheet 适配。允许系统选方向时用不指定边的原生重载；指定边时验证窗口移动、缩放和屏幕边缘约束。
+- 自定义页内弹框保持底页原有亮度和清晰度。共享承载复用、原生呈现边界和验收按 [macOS 弹窗差异](../../dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md) 执行。
 - 取消、外部点击是否关闭、Enter/Esc、焦点返回及非激活窗首次点击属于明确契约；通用组件不查找应用首个窗口代替真实来源，也不擅自注册全局快捷键。
 
 ## 产物级基线与架构验真
@@ -51,7 +52,7 @@
 | 建议下拉 | `ios/Mac/Chrome/MacFilterComboBox.swift` | 过滤展示与提交协议可抽；Logcat 字段、历史写入、长度限制和 UserDefaults 键留业务。窗口边缘和滚动裁剪是稳定性门槛 |
 | 表单行/动作组 | `ios/Mac/Chrome/MacFormField.swift`、`ios/Mac/Chrome/EButtons.swift` | 标题、说明、校验与右对齐动作；长内容可滚动、主次操作不被裁掉 |
 | 轻提示/确认/进度 | `ios/Mac/Chrome/MacNoticeHost.swift`、`ios/Mac/Chrome/MacConfirmAlert.swift`、`ios/Mac/Chrome/MacBusyOverlay.swift` | 抽展示与明确的宿主协议；普通提示非模态，重要确认模态；不直接依赖 MacAppModel 或复制 ADBox 根壳状态机 |
-| 页内承载/弹层 | `ios/Mac/Chrome/MacHostSheet.swift`、`ios/Mac/Chrome/MacFormSheet.swift`、`ios/Mac/Chrome/MacInCardPage.swift` | 后续单独评审呈现协议；蒙层洞、toolbar 阻断、红绿灯放行及 Escape 所有权不能随材质调整丢失 |
+| 页内承载/弹层 | `ios/Mac/Chrome/MacHostSheet.swift`、`ios/Mac/Chrome/MacFormSheet.swift`、`ios/Mac/Chrome/MacInCardPage.swift` | 后续单独评审呈现协议；明确底页和 toolbar 的事件拦截范围、窗口控制按钮能否操作及 Escape 归属 |
 
 优先抽稳定的基础控件，再处理与宿主窗口密切相关的呈现。表格、快捷指令抽屉、设备 tab、多会话保活不直接整体搬入控件库。
 

@@ -7,6 +7,35 @@ import UniformTypeIdentifiers
 
 @MainActor
 final class MacPlatformHostTests: XCTestCase {
+    func testWindowOverlayFitsAvailableSpaceWithMargins() {
+        let preferred = CGSize(width: 500, height: 400)
+        XCTAssertEqual(EWindowOverlayLayout.size(preferred: preferred, available: CGSize(width: 800, height: 600)),
+                       preferred)
+        XCTAssertEqual(EWindowOverlayLayout.size(preferred: preferred, available: CGSize(width: 360, height: 300)),
+                       CGSize(width: 320, height: 260))
+        XCTAssertEqual(EWindowOverlayLayout.size(preferred: preferred, available: .zero), .zero)
+    }
+
+    func testCollapseGuardOnlyChangesTheContainingSplitViewItem() {
+        let controller = NSSplitViewController()
+        let sidebar = NSSplitViewItem(sidebarWithViewController: NSViewController())
+        let other = NSSplitViewItem(viewController: NSViewController())
+        sidebar.canCollapse = true
+        other.canCollapse = true
+        controller.addSplitViewItem(sidebar)
+        controller.addSplitViewItem(other)
+        let window = NSWindow(contentViewController: controller)
+        window.isReleasedWhenClosed = false
+        defer { window.close() }
+        window.setContentSize(NSSize(width: 800, height: 600))
+        controller.view.layoutSubtreeIfNeeded()
+        let attachment = SidebarCollapseAttachment()
+        sidebar.viewController.view.addSubview(attachment)
+        XCTAssertTrue(attachment.window === window)
+        XCTAssertFalse(sidebar.canCollapse)
+        XCTAssertTrue(other.canCollapse)
+    }
+
     func testAlertKeepsResponseOrderAndMarksDestructiveAction() {
         let alert = EAlert(title: "Delete", message: "Confirm", style: .critical,
                            actions: [.init("Delete", role: .destructive), .init("Cancel", role: .cancel)])

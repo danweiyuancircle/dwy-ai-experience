@@ -69,7 +69,7 @@ iOS `IOSControlTests` 另覆盖短暂原文与自定义图标、相同文本替�
 
 ## Mac 页面组合回收
 
-`MacPlatformHostTests` 覆盖系统对话框按钮顺序、危险操作不绑定 Return、取消 Escape、动态提交可用性、模态取消返回原生第二按钮码、目录/文件类型限制、取消返回 nil、工具窗口关闭与生命周期策略、公开共享内容宿主，以及 Settings 窗口挂载后采用统一缩放和标题栏。执行 `swift test --filter MacPlatformHostTests`，5 项测试不执行真实文件操作。
+`MacPlatformHostTests` 覆盖系统对话框按钮顺序、危险操作不绑定 Return、取消 Escape、动态提交可用性、模态取消返回原生第二按钮码、目录/文件类型限制、取消返回 nil、工具窗口关闭与生命周期策略、公开共享内容宿主，以及 Settings 窗口挂载后采用统一缩放和标题栏。另验证页内弹框尺寸随内容区收缩，以及侧栏防折叠只影响所属分栏项。执行 `swift test --filter MacPlatformHostTests`，7 项测试不执行真实文件操作。
 
 Playground 目录新增 page-header、settings-page、item-row、sidebar-item、application-icon、progress-panel-content、reorderable-list、management-list-style；每项保留中英说明和与编译 fixture 完全相同的可复制源码。现有目录完整性、资源同步与双宽度布局测试覆盖这些入口；原生桥接可用 `EPlatformHostPreview()` 人工操作。
 
