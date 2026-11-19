@@ -1,0 +1,15 @@
+name: dwy_permission
+description: UI-free iOS and Android runtime permission checks for DWY apps.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: '>=3.14.0 <4.0.0'
+  flutter: '>=3.50.0'
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  permission_handler: 13.0.2
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

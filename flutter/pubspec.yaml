@@ -9,6 +9,7 @@ workspace:
   - packages/dwy_log
   - packages/dwy_media
   - packages/dwy_network
+  - packages/dwy_permission
   - packages/dwy_preferences
   - packages/dwy_secure_storage
   - examples/component_gallery
