@@ -1,0 +1,16 @@
+name: dwy_sign_in
+description: Provider-agnostic third-party sign-in for DWY apps; Apple and Google adapters included.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: '>=3.14.0 <4.0.0'
+  flutter: '>=3.50.0'
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  google_sign_in: 7.2.0
+  sign_in_with_apple: 8.2.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

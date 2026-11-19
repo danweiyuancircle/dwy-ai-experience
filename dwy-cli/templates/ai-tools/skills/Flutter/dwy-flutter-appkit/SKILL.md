@@ -8,7 +8,7 @@ description: 使用或排查 DWY 自有 Flutter、Dart 基础包、设计组件�
 先从项目 `pubspec.yaml`、`pubspec.lock` 和实际解析源码确认包名、来源与版本；版本范围不等于锁定版本。同仓 workspace 查当前源码，跨仓查已发布版本或明确 Git 提交，不以默认分支替代实际依赖。
 
 - UI 主题、令牌和基础组件优先查 `dwy_design`；图片查 `dwy_image`；日志查 `dwy_log`；网络查 `dwy_network`。
-- 偏好、安全存储、数据库和媒体分别查 `dwy_preferences`、`dwy_secure_storage`、`dwy_database`、`dwy_media`。这是模块查找入口，不是已发布或已验收清单。
+- 偏好、安全存储、数据库和媒体分别查 `dwy_preferences`、`dwy_secure_storage`、`dwy_database`、`dwy_media`；内购查 `dwy_iap`，第三方登录查 `dwy_sign_in`，两者的凭据都必须由业务后端验证。这是模块查找入口，不是已发布或已验收清单。
 - 在对应版本源码中读取包 README、公开入口、pubspec、测试与示例，确认初始化、生命周期、权限、错误处理和平台约束。缺少包或确切版本就报告缺口，不编造 API。
 - 按需依赖，不建立强制引入全部能力的聚合入口。无 UI 的 Flutter 插件仍可能依赖引擎和原生配置，不能当作纯 Dart。
 - 产品组合品牌和业务，复用基础件，不复制已有组件；产品 schema、DTO、账户策略留在产品。架构归属使用 `dwy-flutter-architecture`。

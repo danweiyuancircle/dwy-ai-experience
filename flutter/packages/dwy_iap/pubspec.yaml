@@ -1,0 +1,15 @@
+name: dwy_iap
+description: Store-agnostic in-app purchase flow for DWY apps; in_app_purchase is the first adapter.
+version: 0.1.0
+publish_to: none
+environment:
+  sdk: '>=3.14.0 <4.0.0'
+  flutter: '>=3.50.0'
+resolution: workspace
+dependencies:
+  flutter:
+    sdk: flutter
+  in_app_purchase: 3.3.1
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

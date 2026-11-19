@@ -12,6 +12,8 @@ Material 3 交互底座，统一的浅灰白、蓝色强调主题。iOS、Androi
 - `flutter/packages/dwy_secure_storage`：产品/账户隔离的安全存储。
 - `flutter/packages/dwy_database`：Drift/SQLite 连接、生命周期与迁移测试示例。
 - `flutter/packages/dwy_media`：无自定义 UI 的相册访问与系统选择器适配。
+- `flutter/packages/dwy_iap`：无界面的商店内购门面（当前适配 `in_app_purchase`），凭据由业务后端验证。
+- `flutter/packages/dwy_sign_in`：Apple / Google 第三方登录凭据获取，identityToken 由业务后端验证。
 - `flutter/examples/component_gallery`：可交互的组件 Playground，提供 Web 启动入口。
 - `flutter/docs/design-system.md`：默认规范、组件接口与定制方式。
 - `flutter/docs/architecture.md`：四层边界与后续基础包接入位置。

@@ -5,6 +5,7 @@ environment:
 workspace:
   - packages/dwy_database
   - packages/dwy_design
+  - packages/dwy_iap
   - packages/dwy_image
   - packages/dwy_log
   - packages/dwy_media
@@ -12,4 +13,5 @@ workspace:
   - packages/dwy_permission
   - packages/dwy_preferences
   - packages/dwy_secure_storage
+  - packages/dwy_sign_in
   - examples/component_gallery
