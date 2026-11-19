@@ -71,15 +71,22 @@ test('坏链接可以修复，项目去重时真实目录先备份', async t => 
   assert.equal(await fs.readFile(path.join(backup, 'custom.md'), 'utf8'), 'keep on dedup')
 })
 
-test('新包移除的共享 Skill 保留，外部缓存不纳入刷新', async t => {
-  const { homeDir, sourceDir, skill } = await fixture(t)
+test('刷新移除旧模板的共享副本和登记，保留外部缓存', async t => {
+  const { root, homeDir, sourceDir, skill } = await fixture(t)
   const [shared] = await prepareSharedSkills({ skills: [skill], homeDir })
   await fs.outputFile(path.join(homeDir, '.dwy', 'skills', 'external', 'SKILL.md'), '# external')
+  const external = path.join(root, 'external-package')
+  await fs.outputFile(path.join(external, 'SKILL.md'), '# external package')
+  const linked = path.join(homeDir, '.dwy', 'skills', 'linked')
+  await fs.symlink(external, linked, 'junction')
+  await fs.outputJson(path.join(homeDir, '.dwy', 'skill-store.json'), ['sample', 'linked'])
   await fs.remove(skill.sourcePath)
   const result = await refreshSharedSkills({ sourceDir, homeDir })
-  assert.deepEqual(result.retained, ['sample'])
-  assert.equal(await fs.readFile(path.join(shared.sourcePath, 'SKILL.md'), 'utf8'), '# v1')
+  assert.deepEqual(result.removed, ['sample'])
+  assert.equal(await fs.pathExists(shared.sourcePath), false)
+  assert.deepEqual(await fs.readJson(path.join(homeDir, '.dwy/skill-store.json')), [])
   assert.equal(await fs.readFile(path.join(homeDir, '.dwy', 'skills', 'external', 'SKILL.md'), 'utf8'), '# external')
+  assert.equal(await fs.readFile(path.join(linked, 'SKILL.md'), 'utf8'), '# external package')
 })
 
 test('首次刷新准备全部模板 Skills，后续刷新纳入新增项但不自动启用全局入口', async t => {

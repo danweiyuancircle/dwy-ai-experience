@@ -25,7 +25,7 @@ description: 使用或排查 DWY 自有 Python 基础包，包括 EAPI、认证�
 | 微信支付事件 | `dwy-wechatpay-notify` | [微信支付通知](references/wechatpay-notify/guide.md) |
 | 设备指纹 | `dwy-device-fingerprint` | [设备指纹](references/device-fingerprint/guide.md) |
 
-只读本次任务涉及的资料，不加载全部包或自动引入依赖。框架适配、可选 extra、配置、存储和生命周期按实际版本核对；产品模型、会话策略、HTTP 装配与权益由宿主按相应契约承担。语言与异步规范使用 `dwy-python-development`，分层使用 `dwy-python-architecture`，HTTP 接入使用 `dwy-python-api`。
+只读本次任务涉及的资料，不加载全部包或自动引入依赖。框架适配、可选 extra、配置、存储和生命周期按实际版本核对；产品模型、会话策略、HTTP 装配与权益由宿主按相应契约承担。语言与异步规范使用 `dwy-python-development`，分层使用 `dwy-python-architecture`，FastAPI 接口开发使用 `dwy-python-fastapi`。
 
 ## 维护基础包时
 

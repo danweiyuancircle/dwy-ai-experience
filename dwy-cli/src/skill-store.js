@@ -40,8 +40,8 @@ export async function ensureSharedSkills({ skills, homeDir = os.homedir() }) {
  * 将当前模板 Skills 准备到稳定用户目录，返回指向共享副本的条目。
  * 同一用户的刷新互斥；完整副本准备失败时不替换旧内容。外部 Skills 缓存不纳入本模块清单。
  */
-export async function prepareSharedSkills({ skills, homeDir = os.homedir() }) {
-  if (skills.length === 0) return []
+export async function prepareSharedSkills({ skills, homeDir = os.homedir(), prune = false }) {
+  if (skills.length === 0 && !prune) return []
   for (const skill of skills) {
     validateName(skill.name)
     if (!(await fs.stat(path.join(skill.sourcePath, 'SKILL.md'))).isFile()) {
@@ -76,6 +76,16 @@ export async function prepareSharedSkills({ skills, homeDir = os.homedir() }) {
       installed.add(skill.name)
       prepared.push({ ...skill, sourcePath: dest })
     }
+    if (prune) {
+      const current = new Set(skills.map(skill => skill.name))
+      for (const name of installed) {
+        if (current.has(name)) continue
+        const dest = path.join(store, name)
+        await entryParent(dest, path.join(root, 'skill-backups'))
+        replacements.push({ dest, old: path.join(staging, `${name}.old`), saved: false, replaced: false })
+        installed.delete(name)
+      }
+    }
     const manifest = path.join(staging, 'skill-store.json')
     await fs.writeJson(manifest, [...installed].sort(), { spaces: 2 })
     try {
@@ -84,12 +94,14 @@ export async function prepareSharedSkills({ skills, homeDir = os.homedir() }) {
           if (error.code === 'ENOENT') return null
           throw error
         })
-        if (existing) {
+        if (existing && (entry.next || existing.isDirectory())) {
           await fs.rename(entry.dest, entry.old)
           entry.saved = true
         }
-        await fs.rename(entry.next, entry.dest)
-        entry.replaced = true
+        if (entry.next) {
+          await fs.rename(entry.next, entry.dest)
+          entry.replaced = true
+        }
       }
       await fs.rename(manifest, path.join(root, 'skill-store.json'))
     } catch (error) {
@@ -184,17 +196,22 @@ export async function linkSkill({ skill, dest, backupRoot }) {
   }
 }
 
-/** 从最新可用模板准备全部共享副本；模板移除的条目保留，避免其他项目坏链。 */
-export async function refreshSharedSkills({ sourceDir, homeDir = os.homedir() } = {}) {
+/** 刷新共享副本；仅在来源明确时清理清单内已从模板移除的副本。 */
+export async function refreshSharedSkills({ sourceDir, homeDir = os.homedir(), prune = true } = {}) {
+  sourceDir ||= await resolveSourceDir({ homeDir, onFallback: () => { prune = false } })
+  prune &&= await fs.pathExists(path.join(sourceDir, 'skills'))
   const names = await readInstalledNames(homeDir)
-  const scans = await scanSkills(sourceDir || await resolveSourceDir({ homeDir }))
-  const available = new Map(scans.map(skill => [skill.name, skill]))
+  const scans = await scanSkills(sourceDir)
   const updated = scans.map(skill => skill.name)
-  const retained = names.filter(name => !available.has(name))
-  const paths = updated.map(name => path.join(homeDir, '.dwy', 'skills', name))
+  const available = new Set(updated)
+  const retired = prune ? names.filter(name => !available.has(name)) : []
+  const store = path.join(homeDir, '.dwy', 'skills')
+  const paths = [...updated, ...retired].map(name => path.join(store, name))
   const before = await snapshotRefreshPaths(paths)
-  await prepareSharedSkills({ skills: scans, homeDir })
-  reportRefreshChanges('共享 Skills', before, await snapshotRefreshPaths(paths))
-  for (const name of retained) console.log(chalk.yellow(`当前模板已移除 ${name}，保留共享旧副本以免其他项目链接失效。`))
-  return { updated, retained }
+  await prepareSharedSkills({ skills: scans, homeDir, prune })
+  const after = await snapshotRefreshPaths(paths)
+  reportRefreshChanges('共享 Skills', before, after)
+  const retiredCopies = new Map(retired.map(name => [name, before.get(path.join(store, name))]))
+  const removed = retired.filter(name => retiredCopies.get(name) && after.get(path.join(store, name)) === null)
+  return { updated, removed, retiredCopies }
 }

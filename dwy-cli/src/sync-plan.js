@@ -6,6 +6,7 @@ import { loadHookManifests, syncClaude } from './sync.js'
 import { hasManagedBaseline, removeLegacyBaseline, syncBaselineDoc, syncCodex, syncProjectAgentsMd } from './sync-codex.js'
 import { syncCursor } from './sync-cursor.js'
 import { assertConfigPath, assertHooksEnabled, baselineProviders, globalBaselinePath, globalHookNames, hasManagedHookConfig, hookConfigFile, removeManagedHooks } from './sync-inheritance.js'
+import { snapshotRefreshPaths } from './refresh-changes.js'
 
 /** 平台显示名，交互和变更清单共用。 */
 export const PLATFORM_LABELS = { claude: 'Claude Code', codex: 'Codex', opencode: 'OpenCode', cursor: 'Cursor' }
@@ -66,6 +67,22 @@ function ownedGlobalRoots(platform, homeDir, codexHome) {
   return [resolveGlobalSkillDir(platform, homeDir)]
 }
 
+async function isRetiredSkillEntry(dest, homeDir, retiredCopies) {
+  const name = path.basename(dest)
+  const shared = path.join(homeDir, '.dwy', 'skills', name)
+  const oldCopy = retiredCopies.get(name)
+  const stat = await fs.lstat(dest).catch(error => {
+    if (error.code === 'ENOENT') return null
+    throw error
+  })
+  // 同名旧目录可能已被替换。只清理指向 DWY 的链接或与旧共享副本一致的目录。
+  if (stat?.isSymbolicLink()) {
+    return path.resolve(path.dirname(dest), await fs.readlink(dest)) === shared && !await existsEntry(shared)
+  }
+  return stat?.isDirectory() && oldCopy?.startsWith('directory:')
+    && (await snapshotRefreshPaths([dest])).get(dest) === oldCopy
+}
+
 /**
  * 只读计算本次全部操作和下一份状态；run 回调只在确认后执行。
  * 主交互可在确认后刷新所选共享内容；显式脚本默认仅补缺，项目去重不改写全局提供者。
@@ -76,6 +93,7 @@ export async function buildSyncPlan({
   migratedRuleSources = {},
   contentActions = {},
   refreshSkills = false,
+  retiredCopies,
   skillScope = { destinations: ['project'], globalSkills: [] },
 }) {
   const global = scope === 'global'
@@ -139,7 +157,8 @@ export async function buildSyncPlan({
     for (const platform of platforms.filter(p => PLATFORM_SYNC_TYPES[p].includes('skills'))) {
       if (!global && !skillScope.destinations.includes('project')) continue
       const roots = global ? ownedGlobalRoots(platform, homeDir, codexHome) : [resolveProjectSkillDir(projectDir, platform)]
-      const managed = new Set([...skillSources.keys(), ...approved(platform, 'skills')])
+      const retired = new Set(approved(platform, 'skills'))
+      const managed = new Set([...skillSources.keys(), ...retired])
       const names = new Set([...selectedSkillNames, ...retained(platform, 'skills')])
       const actualNames = new Set()
       for (const skill of scans.skills) {
@@ -164,9 +183,15 @@ export async function buildSyncPlan({
           if (!safeName(name) || !managed.has(name)) continue
           const dest = path.join(root, name)
           if (global ? names.has(name) : actualNames.has(name)) continue
+          const checkRetired = retiredCopies && retired.has(name)
+          if (checkRetired && !await isRetiredSkillEntry(dest, homeDir, retiredCopies)) continue
           const globallyProvided = !global && await providedToProject(name, platform)
           add('remove-skill', `${globallyProvided ? '全局优先，清理项目重复入口' : '移除托管 Skill 入口'}：${name}（原真实目录先备份）`, [dest],
-            () => removeSkillEntry({ dest, backupRoot }))
+            async () => {
+              if (!checkRetired || await isRetiredSkillEntry(dest, homeDir, retiredCopies)) {
+                await removeSkillEntry({ dest, backupRoot })
+              }
+            })
           if (global) removedGlobalPaths.add(dest)
         }
       }

@@ -8,10 +8,11 @@ import { interactiveSelect, scanRules, scanSkills } from '../src/sync.js'
 import { syncAll } from '../src/sync-all.js'
 
 const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../templates/ai-tools')
-const expected = ['dwy-python-development', 'dwy-python-architecture', 'dwy-python-api', 'dwy-python-appkit', 'dwy-vue-development', 'dwy-vue-architecture', 'dwy-vue-appkit', 'dwy-apple-appkit', 'dwy-android-development', 'dwy-android-architecture', 'dwy-flutter-development', 'dwy-harmony-development', 'dwy-postgres', 'dwy-redis', 'dwy-alembic']
+const expected = ['dwy-python-development', 'dwy-python-architecture', 'dwy-python-fastapi', 'dwy-python-appkit', 'dwy-vue-development', 'dwy-vue-architecture', 'dwy-vue-appkit', 'dwy-apple-appkit', 'dwy-android-development', 'dwy-android-architecture', 'dwy-flutter-development', 'dwy-harmony-development', 'dwy-postgres', 'dwy-redis', 'dwy-alembic']
 
 test('语言与基础库技能可发现，引用资料存在，Python 和 Vue 规则已迁移', async () => {
   const skills = await scanSkills(source)
+  assert.equal(skills.some(skill => skill.name === 'dwy-python-api'), false)
   for (const name of expected) {
     const skill = skills.find(item => item.name === name)
     assert.ok(skill, `缺少 ${name}`)

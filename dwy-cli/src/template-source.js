@@ -240,7 +240,7 @@ async function refreshTemplates(root, cache, repositoryUrl) {
  * 从固定公开仓库更新用户模板缓存；只读取已验证的目录，不执行模板脚本。
  * 显式目录优先，其次用户配置的本地模板；更新失败保留缓存，无有效缓存才用随包模板。
  */
-export async function resolveTemplateSource({ homeDir = os.homedir(), repository = REMOTE } = {}) {
+export async function resolveTemplateSource({ homeDir = os.homedir(), repository = REMOTE, onFallback } = {}) {
   const explicitSourceDir = process.env.DWY_TEMPLATE_SOURCE_DIR
   if (explicitSourceDir) {
     if (!await fs.pathExists(explicitSourceDir)) {
@@ -278,6 +278,7 @@ export async function resolveTemplateSource({ homeDir = os.homedir(), repository
     return cache
   } catch (error) {
     progress?.stop('模板更新未完成，正在检查本地来源')
+    onFallback?.()
     try {
       await validateCache(cache)
     } catch {

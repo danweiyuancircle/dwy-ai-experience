@@ -1,5 +1,15 @@
 # create-dwy
 
+## [0.39.0] - 2026-11-19
+
+### Added
+
+- `dwy refresh` 自动清理新版模板中已移除的 DWY 受管 Skills。第三方链接、个人 Skills 和无法确认归属的同名目录会保留，远端更新失败并回退时暂停清理。
+
+### Changed
+
+- Python 与 Vue 自有基础包统一使用 `dwy-python-appkit` 和 `dwy-vue-appkit`。FastAPI 开发入口更名为 `dwy-python-fastapi`，新入口通过 `dwy sync` 启用。
+
 ## [0.38.0] - 2026-11-17
 
 ### Added

@@ -5,7 +5,7 @@ description: 开发、修改或排查 Python 应用、脚本或基础库时使�
 
 # Python 开发
 
-先检查项目现有版本、依赖和架构，优先复用已安装库。项目未使用自有库时，仅提出可用能力，不自动添加依赖。涉及 FastAPI 使用可用的 dwy-python-api，涉及分层使用 dwy-python-architecture。
+先检查项目现有版本、依赖和架构，优先复用已安装库。项目未使用自有库时，仅提出可用能力，不自动添加依赖。涉及 FastAPI 使用 dwy-python-fastapi，涉及分层使用 dwy-python-architecture。
 
 - [Python 规范](references/dwy-python-core.md)：语言、依赖与配置。
 - [测试](references/dwy-python-testing.md)：编写和运行测试。

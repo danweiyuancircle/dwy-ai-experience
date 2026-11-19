@@ -121,7 +121,7 @@ Keep the Git source public and publish installable packages to public npm/PyPI t
 - Commands: `dwy` / `dwy sync`（范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 确认）；`dwy refresh`（始终无交互，更新全部模板共享 Skills 及全局、当前项目已有的 Skills 和配置，不显示选择或确认页）；`dwy migrate`（迁移老项目入口）；`dwy upgrade`（更新到 npm 正式版 latest）；`dwy --help` / `dwy --version`。
 - Skills / Rules 按分类显示 Tab；通用规范和 Hooks 默认启用，项目已有有效全局提供者时跳过对应选择且不重复写入。CLI 最后选择，Codex 默认选中，并恢复当前范围已同步的其他 CLI。Commands 停用并保留本地文件，启动时展示 dwy 品牌。
 - 不存在 `dwy claude sync` / `dwy codex sync` / `dwy sync md` / `dwy skills install`（平台选择与刷新外部 skill 都在 `dwy` 交互里完成）。
-- AI 模板目录为 `dwy-cli/templates/ai-tools`；优先使用显式开发覆盖或本地来源，否则检查远端 `develop`，离线使用有效缓存或随包模板。模板内容变更不必单独发布 CLI。`dwy sync` 确认后修改目标配置和所选共享内容；`dwy refresh` 无交互更新全部共享内容及已有启用项，不增删启用项，增删使用 `dwy sync`。项目已被有效全局入口完整覆盖的 Skills 禁止重复勾选。详见 `docs/cli-sync.md`。
+- AI 模板目录为 `dwy-cli/templates/ai-tools`；优先使用显式开发覆盖或本地来源，否则检查远端 `develop`，离线使用有效缓存或随包模板。模板内容变更不必单独发布 CLI。`dwy sync` 确认后修改目标配置和所选共享内容；`dwy refresh` 无交互更新共享内容及已有启用项，并清理模板已移除的受管 Skills，远端更新失败并回退时暂停清理。主动调整启用项使用 `dwy sync`。项目已被有效全局入口完整覆盖的 Skills 禁止重复勾选。详见 `docs/cli-sync.md`。
 
 ## Workflow Conventions
 

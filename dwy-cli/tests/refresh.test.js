@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'fs-extra'
 import os from 'node:os'
 import path from 'node:path'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { syncAll, refreshAll } from '../src/sync-all.js'
 
@@ -71,14 +71,16 @@ test('refresh 报告 Skill 内文件删除和执行权限变化，忽略修改�
   assert.match(run(), /无变更/)
 })
 
-test('refresh 区分重复入口移除与坏链接修复，不把保留的历史 Skill 报为移除', async t => {
+test('refresh 报告重复和退役入口移除，并能修复仍受支持的坏链接', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-links-'))
   t.after(() => fs.remove(root))
   const sourceDir = path.join(root, 'templates'), homeDir = path.join(root, 'home'), projectDir = path.join(root, 'project')
   await fs.outputFile(path.join(sourceDir, 'skills/通用/sample/SKILL.md'), '# Latest')
   await fs.outputFile(path.join(homeDir, '.agents/skills/sample/SKILL.md'), '# Old global')
   await fs.outputFile(path.join(projectDir, '.agents/skills/sample/SKILL.md'), '# Duplicate')
-  await fs.outputFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), '# Retained')
+  await fs.outputFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), '# Old managed')
+  await fs.outputFile(path.join(homeDir, '.dwy/skills/removed/SKILL.md'), '# Old managed')
+  await fs.outputJson(path.join(homeDir, '.dwy/skill-store.json'), ['removed'])
   await fs.outputJson(path.join(projectDir, '.dwy/sync-state.json'), { platforms: { codex: { skills: ['sample', 'removed'] } } })
   const run = () => execFileSync(process.execPath, [fileURLToPath(new URL('../bin/index.js', import.meta.url)), 'refresh'], {
     cwd: projectDir, encoding: 'utf8',
@@ -88,8 +90,8 @@ test('refresh 区分重复入口移除与坏链接修复，不把保留的历史
   const output = run()
   assert.ok(output.includes(`  更新 ${path.join(homeDir, '.agents/skills/sample')}`))
   assert.ok(output.includes(`  移除 ${path.join(await fs.realpath(projectDir), '.agents/skills/sample')}`))
-  assert.ok(!output.split('\n').some(line => /^\s+移除 .*\/removed$/.test(line)))
-  assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), 'utf8'), '# Retained')
+  assert.ok(output.includes(`  移除 ${path.join(await fs.realpath(projectDir), '.agents/skills/removed')}`))
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/removed')), false)
   const dest = path.join(homeDir, '.agents/skills/sample')
   await fs.unlink(dest)
   await fs.symlink(path.join(root, 'missing'), dest, process.platform === 'win32' ? 'junction' : 'dir')
@@ -221,7 +223,30 @@ test('在主目录的交互终端只准备全部共享 Skills，不进入项目�
   assert.equal(await fs.pathExists(path.join(homeDir, '.dwy/sync-state.json')), false)
 })
 
-test('旧项目 Skill 刷新时先备份，不补装产品流程外部依赖，移除的模板保留', async t => {
+test('模板更新失败回退随包模板时，保留旧 Skill 的副本和入口', async t => {
+  const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-offline-'))
+  t.after(() => fs.remove(homeDir))
+  const shared = path.join(homeDir, '.dwy/skills/test-retired-skill')
+  const entry = path.join(homeDir, '.agents/skills/test-retired-skill')
+  await fs.outputFile(path.join(shared, 'SKILL.md'), '# Keep offline')
+  await fs.ensureDir(path.dirname(entry))
+  await fs.symlink(shared, entry, 'junction')
+  await fs.outputJson(path.join(homeDir, '.dwy/skill-store.json'), ['test-retired-skill'])
+  await fs.outputJson(path.join(homeDir, '.dwy/sync-state.json'), {
+    platforms: { codex: { skills: ['test-retired-skill'] } },
+  })
+  const result = spawnSync(process.execPath, [fileURLToPath(new URL('../bin/index.js', import.meta.url)), 'refresh'], {
+    cwd: homeDir, encoding: 'utf8', timeout: 5000,
+    env: { ...process.env, HOME: homeDir, USERPROFILE: homeDir, CODEX_HOME: path.join(homeDir, '.codex'),
+      DWY_HOME: path.join(homeDir, '.dwy'), DWY_TEMPLATE_SOURCE_DIR: '', PATH: '' },
+  })
+  assert.equal(result.status, 0, result.stderr)
+  assert.match(result.stderr, /回退随包模板/)
+  assert.equal(await fs.readFile(path.join(entry, 'SKILL.md'), 'utf8'), '# Keep offline')
+  assert.ok((await fs.readJson(path.join(homeDir, '.dwy/skill-store.json'))).includes('test-retired-skill'))
+})
+
+test('refresh 清理模板已删除的受管 Skill，备份真实目录并保留个人 Skill', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-legacy-'))
   t.after(() => fs.remove(root))
   const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
@@ -229,12 +254,33 @@ test('旧项目 Skill 刷新时先备份，不补装产品流程外部依赖，�
   await fs.outputFile(path.join(sourceDir, 'skills/产品0到1/sample/SKILL.md'), '# Latest')
   await fs.outputFile(path.join(projectDir, '.agents/skills/sample/SKILL.md'), '# Old')
   await fs.outputFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), '# Removed template')
-  await fs.outputJson(path.join(projectDir, '.dwy/sync-state.json'), { platforms: { codex: { skills: ['sample', 'removed'] } } })
+  await fs.outputFile(path.join(projectDir, '.agents/skills/personal/SKILL.md'), '# Personal')
+  await fs.outputFile(path.join(homeDir, '.dwy/skills/removed/SKILL.md'), '# Removed template')
+  await fs.outputFile(path.join(homeDir, '.dwy/skills/replaced/SKILL.md'), '# Original')
+  await fs.outputFile(path.join(projectDir, '.agents/skills/replaced/SKILL.md'), '# Third-party replacement')
+  await fs.outputJson(path.join(homeDir, '.dwy/skill-store.json'), ['removed', 'replaced'])
+  const globalEntry = path.join(homeDir, '.agents/skills/removed')
+  await fs.ensureDir(path.dirname(globalEntry))
+  await fs.symlink(path.join(homeDir, '.dwy/skills/removed'), globalEntry, 'junction')
+  const external = path.join(root, 'third-party')
+  const externalEntry = path.join(homeDir, '.agents/skills/replaced')
+  await fs.outputFile(path.join(external, 'SKILL.md'), '# Third-party link')
+  await fs.symlink(external, externalEntry, 'junction')
+  await fs.outputJson(path.join(homeDir, '.dwy/sync-state.json'), { platforms: { codex: { skills: ['removed', 'replaced'] } } })
+  await fs.outputJson(path.join(projectDir, '.dwy/sync-state.json'), { platforms: { codex: { skills: ['sample', 'removed', 'replaced', 'already-missing'] } } })
   await refreshAll({ sourceDir, projectDir, homeDir, codexHome: path.join(homeDir, '.codex') })
   assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/sample/SKILL.md'), 'utf8'), '# Latest')
   const backups = await fs.readdir(path.join(projectDir, '.dwy/skill-backups'))
-  assert.equal(backups.length, 1)
-  assert.equal(await fs.readFile(path.join(projectDir, '.dwy/skill-backups', backups[0], 'SKILL.md'), 'utf8'), '# Old')
-  assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/removed/SKILL.md'), 'utf8'), '# Removed template')
+  assert.deepEqual((await Promise.all(backups.map(name =>
+    fs.readFile(path.join(projectDir, '.dwy/skill-backups', name, 'SKILL.md'), 'utf8')))).sort(),
+  ['# Old', '# Removed template'])
+  await assert.rejects(fs.lstat(globalEntry), { code: 'ENOENT' })
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/removed')), false)
+  assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/personal/SKILL.md'), 'utf8'), '# Personal')
+  assert.equal(await fs.readlink(externalEntry), external)
+  assert.equal(await fs.readFile(path.join(externalEntry, 'SKILL.md'), 'utf8'), '# Third-party link')
+  assert.equal(await fs.readFile(path.join(projectDir, '.agents/skills/replaced/SKILL.md'), 'utf8'), '# Third-party replacement')
+  assert.deepEqual((await fs.readJson(path.join(projectDir, '.dwy/sync-state.json'))).platforms.codex.skills, ['sample'])
+  assert.deepEqual((await fs.readJson(path.join(homeDir, '.dwy/sync-state.json'))).platforms.codex.skills, [])
   assert.equal(await fs.pathExists(path.join(homeDir, '.dwy/skills/brainstorming')), false)
 })

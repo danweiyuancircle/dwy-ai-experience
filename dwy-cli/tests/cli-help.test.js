@@ -53,7 +53,7 @@ test('实际帮助说明远端模板、离线缓存和 CLI 升级', () => {
   assert.match(help, /Skills.*变更.*不.*CLI.*发版/)
   assert.match(help, /dwy refresh.*无交互/)
   assert.match(help, /所有环境均不显示选择或确认页面/)
-  assert.match(help, /增删 Skills 使用 dwy sync/)
+  assert.match(help, /清理模板已移除的受管 Skills/)
   assert.match(help, /当前项目已有 Skills/)
 })
 

@@ -47,7 +47,7 @@ export function buildHelpText(version) {
     '  更新 CLI：dwy upgrade（全局安装时可用；更新后执行 dwy --version 查看版本）。',
     '  迁移老项目：cd your-project 后执行 dwy migrate，无需重新勾选。',
     '  更新 Skills：执行 dwy refresh 更新全部共享副本和当前项目已有 Skills；其他项目共享链接同时生效。',
-    '  refresh 在所有环境均不显示选择或确认页面，不增删启用项；增删 Skills 使用 dwy sync。',
+    '  refresh 在所有环境均不显示选择或确认页面，刷新已有配置并清理模板已移除的受管 Skills。',
     '  在用户主目录执行 refresh 只刷新共享内容和已有全局配置。',
     '  首次安装：npm install -g create-dwy@latest',
     '',

@@ -138,13 +138,15 @@ async function managedNames(root, global, codexHome) {
   }
 }
 
-/** 无交互刷新全部模板共享 Skills 和全局、当前项目已有配置，不扫描其他项目。 */
+/** 无交互刷新共享 Skills 和已有配置，清理全局及当前项目中模板已移除的受管 Skills。 */
 export async function refreshAll({
   sourceDir, projectDir = process.cwd(), homeDir = os.homedir(),
   codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'),
 } = {}) {
-  sourceDir ||= await resolveSourceDir({ homeDir })
-  await refreshSharedSkills({ sourceDir, homeDir })
+  let prune = true
+  sourceDir ||= await resolveSourceDir({ homeDir, onFallback: () => { prune = false } })
+  prune &&= await fs.pathExists(path.join(sourceDir, 'skills'))
+  const { retiredCopies } = await refreshSharedSkills({ sourceDir, homeDir, prune })
   const isHome = await fs.realpath(projectDir) === await fs.realpath(homeDir)
   const scans = { skills: await scanSkills(sourceDir), rules: await scanRules(sourceDir), hooks: await scanHooks(sourceDir), commands: [] }
   const baseline = await readBaselineDoc(sourceDir)
@@ -155,6 +157,9 @@ export async function refreshAll({
     for (const platform of Object.keys(PLATFORM_SYNC_TYPES).filter(p => !global || p !== 'cursor')) {
       const state = (global ? globalState : projectState).platforms[platform]
       const names = type => new Set([...(state?.[type] || []), ...existing[platform][type]])
+      const removedSkills = prune
+        ? (state?.skills || []).filter(name => !scans.skills.some(skill => skill.name === name))
+        : []
       const selected = { skills: scans.skills.filter(item => names('skills').has(item.name)),
         rules: scans.rules.filter(item => names('rules').has(platform === 'cursor' ? buildCursorRuleName(item.name) : item.name)
           || (state?.rules || []).includes(item.name)) }
@@ -163,11 +168,13 @@ export async function refreshAll({
       const managedBaseline = platform !== 'cursor' && await hasManagedBaseline(baselinePath)
       const contentTypes = PLATFORM_SYNC_TYPES[platform].filter(type => type === 'baseline'
         ? baseline.trim() && (state?.baseline || managedBaseline)
-        : type === 'hooks' ? hooks.length : selected[type]?.length)
+        : type === 'hooks' ? hooks.length : type === 'skills' ? selected.skills.length || removedSkills.length : selected[type]?.length)
       if (!contentTypes.length) continue
       const plan = await buildSyncPlan({ scope, platforms: [platform], contentTypes, selected,
         scans: { ...scans, hooks }, sourceDir, projectDir, homeDir, codexHome, projectState, globalState, baseline,
         staleEntries: staleEntries(scans, global ? globalState : projectState, existing, [platform]),
+        staleRemovals: { [platform]: { skills: removedSkills } },
+        retiredCopies,
       })
       const paths = plan.operations.flatMap(operation => operation.paths)
       if (plan.projectChanged) paths.push(path.join(projectDir, ...SYNC_STATE_PATH))
@@ -194,7 +201,7 @@ const RULE_SKILL_MIGRATIONS = {
   'dwy-python-testing.md': ['dwy-python-development'],
   'dwy-python-pitfalls.md': ['dwy-python-development'],
   'dwy-python-base-lib.md': ['dwy-python-development', 'dwy-python-appkit'],
-  'dwy-python-backend.md': ['dwy-python-api'],
+  'dwy-python-backend.md': ['dwy-python-fastapi'],
   'dwy-python-layering.md': ['dwy-python-architecture'],
   'dwy-vue-core.md': ['dwy-vue-development'],
   'dwy-vue-testing.md': ['dwy-vue-development'],
