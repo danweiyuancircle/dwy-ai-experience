@@ -25,6 +25,21 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.11.0 - 2026-11-19
+
+- 移除 DesignKitMac `eWindowOverlay`。页内叠加弹框需要自行拦截鼠标、键盘、快捷键、菜单与焦点，范围难以完整覆盖；模态弹框统一改用 SwiftUI `.sheet` / `.alert` / `.confirmationDialog` 或 AppKit sheet。
+- Playground 平台对话框演示改为原生 `.sheet`，示例启动参数改为 `--platform-host-preview`；删除对应 9 项页内弹框测试。`ePreventsSidebarCollapse` 保留。
+- Skill 同步检查：已更新 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md`、`dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/SKILL.md`、`dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-swift-development/references/presentations.md`，要求模态弹框使用系统模态并禁止页内叠加模拟模态，记录迁移方式。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.10.1 能否不改 App 继续编 | 不能。调用 `eWindowOverlay` 的 App 编译失败，其余公开 API 不变。 |
+| 不升会怎样 | 0.10.x 继续可用，但页内弹框的输入隔离边界仍需宿主自行补齐。 |
+| 升上来可选/必改项 | 必改：把 `eWindowOverlay` 面板内容迁入 `.sheet`，删除为其补的菜单阻断和事件监听，重新验收键盘与焦点。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0，均未提高。 |
+
 ## 0.10.1 - 2026-11-18
 
 - 修复 DesignKitMac `eWindowOverlay` 的模态输入隔离：禁用底页 SwiftUI 控件及快捷键，拦截所属窗口内面板之外的鼠标和手势输入，保留透明背景，不绘制灰色蒙层。

@@ -3,7 +3,7 @@
 ID: designkit.mac.icon-action
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.1
+Package: 0.11.0
 
 ## 用途
 上下文明确时使用有可访问名称的图标操作。

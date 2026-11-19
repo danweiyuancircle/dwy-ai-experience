@@ -3,7 +3,7 @@
 ID: designkit.mac.status-badge
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.1
+Package: 0.11.0
 
 ## 用途
 通过文字和图标展示普通、成功、警告与失败状态。

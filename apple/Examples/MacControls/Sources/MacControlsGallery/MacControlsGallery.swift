@@ -8,7 +8,7 @@ struct MacControlsGallery: App {
     var body: some Scene {
         WindowGroup("Mac Controls") {
             Group {
-                if ProcessInfo.processInfo.arguments.contains("--window-overlay-preview") {
+                if ProcessInfo.processInfo.arguments.contains("--platform-host-preview") {
                     EPlatformHostPreview()
                 } else {
                     EPlayground()

@@ -4,11 +4,12 @@
 - Apple 文档说明 SwiftUI popover 的指定 `arrowEdge` 在 macOS 上一直受尊重；系统边界和内容仍须在目标系统实测。若允许系统选择方向，使用不指定边的重载。
 - 结合产品交互检查键盘、焦点、取消和点击外部关闭；不要把 iOS 的紧凑尺寸适配行为直接套到 macOS。
 
-## 自定义页内弹框
+## 模态弹框必须用原生模态
 
-- 底页保持原有亮度、对比度和清晰度。弹框用自身表面、描边或阴影形成层次。原生 `.sheet`、系统警告和文件选择器沿用系统呈现。
-- 项目已采用 AppleAppKit 时，优先核对所用版本的 `DesignKitMac` 是否提供符合需求的公共承载。有合适的通用容器时，业务方复用容器并提供内容、状态与业务操作。`EAlert`、`eErrorAlert` 和 `EFileDialog` 分别用于系统警告、错误提示和文件选择。
-- AppleAppKit 0.10.0 起，通过 `eWindowOverlay(isPresented:preferredSize:onDismiss:panel:)` 在稳定的内容区根视图挂载。容器负责居中、缩窗限位、拦截内容区背景点击和派发 Escape 关闭回调。宿主提供面板样式、关闭状态、键盘焦点和内容区之外的交互策略。
-- AppleAppKit 0.10.1 起扩展窗口输入拦截、底页 SwiftUI 控件及快捷键禁用、面板焦点与 Tab 隔离和关闭后的焦点恢复，消费方先核对实际版本。应用级菜单与自行安装的事件监听仍由宿主按同一呈现状态阻断，具体边界见 `apple/Docs/Mac-Platform-Dialogs.md`。底页控件可使用正常禁用样式，透明背景不绘制整页变暗层。
-- 自定义页内模态弹框必须遵循 `dwy-swift-development` 弹层参考的输入隔离要求，由承载层和宿主共同覆盖完整模态范围。内容区背景点击拦截不代表底页键盘、快捷键、工具栏或菜单命令已被阻断；须核对所用版本的实际能力，补齐范围外的命令路由与焦点管理。按交互约定处理 Escape、外部点击和关闭，关闭事件不得穿透，并把焦点还给仍有效的触发入口。
-- 在目标 macOS 的浅色和深色外观中确认弹框打开前后，未被覆盖的底页区域没有变暗或模糊。验证约定的鼠标、键盘和焦点行为。
+- 需要独占输入的弹框（编辑、管理、表单、确认、选择）必须用系统模态承载：SwiftUI `.sheet`、`.alert`、`.confirmationDialog`、`.fileImporter`，AppKit `beginSheet` / `runModal`。项目已采用 AppleAppKit 时，确认与错误提示优先用 `EAlert`、`eErrorAlert`，文件选择用 `EFileDialog`。
+- 禁止用 `ZStack`、`.overlay`、透明拦截层或同窗口子视图自绘模态弹框。页内叠加需要自行拦截鼠标、键盘、快捷键、菜单命令、焦点与辅助功能，范围难以完整覆盖，底页误操作风险高。AppleAppKit 0.11.0 已移除 `eWindowOverlay`，不再提供页内模态承载。
+- 指向某个入口的轻量编辑用 `popover`；明确设计为非模态、可与主窗口并行操作的面板用 `EToolPanel` / `EToolWindow` 或独立窗口，不伪装成模态。
+- macOS sheet 附着于所属窗口，系统负责窗口级输入隔离和焦点。不给底页或整窗自绘灰色蒙层、半透明变暗层或背景模糊；系统自身的呈现效果保持原样。
+- sheet 的确认按钮使用 `.keyboardShortcut(.defaultAction)`，取消或关闭按钮使用 `.keyboardShortcut(.cancelAction)` 以响应 Escape。尺寸用内容 `.frame` 或 `presentationSizing` 控制，不套用 iPhone detent。多层模态由上一层 sheet 继续呈现，关闭后交还下一层。
+- 应用级 `Commands` 在 sheet 显示时仍可能对主窗口生效时，按同一呈现状态禁用会修改底页数据的命令。
+- 在目标 macOS 的浅色和深色外观中实际打开弹框，验证底页无法点击和输入、Escape / Return 行为、焦点进入与关闭后恢复。

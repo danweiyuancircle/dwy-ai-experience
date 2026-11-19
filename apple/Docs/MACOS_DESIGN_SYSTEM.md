@@ -30,7 +30,7 @@
 
 - 指向入口的 popover / confirmationDialog 关联实际触发按钮或行；列表、toolbar 和自定义坐标须保留来源对象及所属窗口。普通居中 alert 不按箭头锚点处理。
 - Mac 不套用 iPhone 的紧凑尺寸 sheet 适配。允许系统选方向时用不指定边的原生重载；指定边时验证窗口移动、缩放和屏幕边缘约束。
-- 自定义页内弹框保持底页原有亮度和清晰度。共享承载复用、原生呈现边界和验收按 [macOS 弹窗差异](../../dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md) 执行。
+- 模态弹框使用系统 sheet / alert，不在页面内叠加模拟模态，不自绘蒙层。呈现方式和验收按 [macOS 弹窗差异](../../dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md) 执行。
 - 取消、外部点击是否关闭、Enter/Esc、焦点返回及非激活窗首次点击属于明确契约；通用组件不查找应用首个窗口代替真实来源，也不擅自注册全局快捷键。
 
 ## 产物级基线与架构验真

@@ -3,7 +3,7 @@
 ID: designkit.mac.field-shell
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.1
+Package: 0.11.0
 
 ## 用途
 为需要直接配置焦点或输入行为的原生编辑器复用字段外观。

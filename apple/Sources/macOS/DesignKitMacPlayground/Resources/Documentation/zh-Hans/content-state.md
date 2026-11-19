@@ -3,7 +3,7 @@
 ID: designkit.mac.content-state
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.1
+Package: 0.11.0
 
 ## 用途
 展示明确的空闲、加载、空内容、失败或成功结果。

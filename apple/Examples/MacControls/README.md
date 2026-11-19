@@ -4,7 +4,7 @@
 
 默认入口装配 `EPlayground()`。目录逐项展示全部 22 个可视组件，支持检索、状态预览、局部明暗/语言/字号覆盖，提供双语用途、调用约束与可复制 Swift。局部覆盖不写应用偏好。维护入口与同源校验见 `apple/Sources/macOS/DesignKitMacPlayground/README.md`。
 
-通过 `swift run MacControlsGallery --window-overlay-preview` 直接打开平台对话框示例。打开透明模态弹框后，验证输入框焦点、Tab / Shift-Tab、Return、Escape、Close 与面板 Command-P；点击底页或按 Command-B 不得增加底页计数，关闭后应恢复。背景不绘制灰色蒙层，底页控件使用正常禁用状态；此示例不执行文件修改。
+通过 `swift run MacControlsGallery --platform-host-preview` 直接打开平台对话框示例。打开 sheet 后，验证输入框焦点、Return 触发 Done、Escape 触发 Cancel；点击底页或按 Command-B 不得增加底页计数，关闭后应恢复。此示例不执行文件修改。
 
 可本地化文字传 `LocalizedStringResource`；原文传 `Text(verbatim:)`，组合框动态原文标题使用 `EComboBox(verbatim:text:suggestions:onEditingEnded:onCommit:)`。资源属于消费项目时在资源上明确 bundle；库不读取 ADBox 本地化单例。
 

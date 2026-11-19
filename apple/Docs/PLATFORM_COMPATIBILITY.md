@@ -1,6 +1,8 @@
 # AppleAppKit 平台支持与适配记录
 
-更新日期：2026-11-18。本次版本为 `0.10.1`，发布状态与提交以对应 Git tag / GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
+更新日期：2026-11-19。本次版本为 `0.11.0`，发布状态与提交以对应 Git tag / GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
+
+0.11.0 移除 DesignKitMac `eWindowOverlay`，模态弹框改用系统 sheet / alert。在 macOS 27.2.1 / Xcode 27.2 执行 SwiftPM 全量测试与模板回归；Playground sheet 演示的前台交互、macOS 26 桌面及 VoiceOver 未验收，云端结果以同版本 Actions 为准。
 
 0.10.1 在 macOS 27.2.1 / Xcode 27.2 验证透明模态承载：定向测试覆盖透明像素、鼠标拦截、焦点和 Tab、文本编辑、多行 Return、SwiftUI 面板及底页快捷键、层级和窗口关闭清理。演示窗口确认无整页灰色蒙层、普通输入、底页点击阻断与关闭操作；前台 Command 快捷键验收受自动化工具失焦限制，不作为 GUI 已通过项。macOS 26 前台、VoiceOver、真实输入法组合及外部文件拖放未验收；云端构建与测试以同版本 Actions 结果为准。
 

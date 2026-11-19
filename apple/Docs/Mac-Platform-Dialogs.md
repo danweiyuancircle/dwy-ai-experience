@@ -8,19 +8,11 @@
 
 SwiftUI 简单错误提示使用 `.eErrorAlert(title:message:dismissTitle:)`；消息保留到用户关闭，不自动重试或丢弃失败。
 
-## 自定义页内弹框与侧栏
+## 模态弹框与侧栏
 
-从 AppleAppKit 0.10.0 起，`.eWindowOverlay(isPresented:preferredSize:onDismiss:panel:)` 挂在当前内容区的稳定根视图上。由宿主提供面板样式与内容，容器居中显示并随内容区限位。背景透明，不绘制灰色蒙层或模糊；面板自身的表面、描边和阴影由宿主提供。
+需要独占输入的弹框使用系统模态：SwiftUI `.sheet`、`.alert`、`.confirmationDialog`，或 AppKit `beginSheet` / `runModal`。macOS sheet 附着在所属窗口上，系统负责窗口级输入隔离、焦点和辅助功能；确认按钮用 `.keyboardShortcut(.defaultAction)`，取消按钮用 `.keyboardShortcut(.cancelAction)`。应用级 `Commands` 中会修改底页数据的命令，由宿主按同一呈现状态禁用。
 
-AppleAppKit 0.10.1 起的模态行为：
-
-- 显示期间禁用底页的 SwiftUI 控件及其快捷键，并隐藏底页辅助功能入口；控件可呈现平台正常的禁用样式，不给整页加变暗层。透明承载拦截所属窗口内面板之外的点击、滚轮、拖拽与手势，其他独立窗口保持可操作。
-- 自动移入面板焦点，Tab / Shift-Tab 只在面板内切换；关闭后恢复仍在同一窗口的原控件，原入口已移除时归还内容区。多层弹框仅最上层处理输入，移除或窗口关闭时清理监听。
-- 普通键盘输入发送给面板内的响应者，未处理的普通按键不能传给底页。Command 编辑命令和 SwiftUI `.keyboardShortcut` 保留原生分发，底页快捷键由禁用状态阻断。输入法组合期间优先交给编辑器，普通多行编辑器的 Return 仍用于换行。
-- Escape 调用 `onDismiss`，宿主在回调中更新呈现状态；外部点击仅消费，不自动关闭。打开和关闭过渡中以实际承载的存续期保持拦截，面板内开始的鼠标拖拽保留到释放。
-- 应用级 `Commands`、显式指定业务 target 的菜单和宿主自行安装的事件监听，不属于页内 SwiftUI 控件树，必须由宿主使用同一呈现状态禁用或在处理入口阻断；例如业务 `Commands` 中的 `Button` 使用 `.disabled(showsOverlay)`。不能假定本地事件监听之间有可依赖的执行顺序，也不通过全局拦截或修改系统菜单强行隔离其他窗口。
-
-必须挂在完整内容区根节点；若只挂在某个按钮或行上，布局尺寸及底页禁用范围都只覆盖该局部。窗口级应用菜单和全局监听需按上述边界配合，不能仅挂修饰符就宣称整个应用已模态化。
+不用 overlay、ZStack 或透明拦截层在内容区叠加模拟模态。AppleAppKit 0.10.0 / 0.10.1 的 `eWindowOverlay` 已在 0.11.0 移除：页内叠加须自行拦截鼠标、键盘、快捷键、菜单与焦点，范围难以完整覆盖。迁移时把面板内容放入 `.sheet`，删除宿主为页内弹框补的菜单阻断与事件监听。
 
 在 SwiftUI 原生分栏的侧栏内容上使用 `.ePreventsSidebarCollapse()`，让所属分栏项保持展开。侧栏宽度和工具栏入口仍由宿主管理。
 

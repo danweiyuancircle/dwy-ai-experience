@@ -3,7 +3,7 @@
 ID: designkit.mac.button
 Module: DesignKitMac
 Platform: macOS 26.0+
-Package: 0.10.1
+Package: 0.11.0
 
 ## 用途
 触发明确操作，保留原生主次、危险、忙碌和禁用语义。

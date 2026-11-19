@@ -7,8 +7,8 @@ import DesignKitMac
 public struct EPlatformHostPreview: View {
     @State private var selectedPath: String?
     @State private var panel: EToolPanel?
-    @State private var showsOverlay = false
-    @State private var overlayText = ""
+    @State private var showsSheet = false
+    @State private var sheetText = ""
     @State private var backgroundActions = 0
 
     public init() {}
@@ -16,11 +16,7 @@ public struct EPlatformHostPreview: View {
     public var body: some View {
         VStack(alignment: .leading, spacing: ESpace.row) {
             EPageHeader(title: Text("Platform dialogs and windows"))
-            EButton("Show transparent modal") {
-                NSApp.activate()
-                NSApp.mainWindow?.makeKeyAndOrderFront(nil)
-                showsOverlay = true
-            }
+            EButton("Show sheet") { showsSheet = true }
             EButton("Background action (Command-B)") { backgroundActions += 1 }
                 .keyboardShortcut("b")
             Text("Background actions: \(backgroundActions)")
@@ -50,20 +46,20 @@ public struct EPlatformHostPreview: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .padding()
-        .eWindowOverlay(isPresented: showsOverlay, preferredSize: CGSize(width: 360, height: 220),
-                        onDismiss: { showsOverlay = false }) {
+        .sheet(isPresented: $showsSheet) {
             VStack(alignment: .leading, spacing: ESpace.row) {
-                Text("Transparent modal").font(.headline)
-                EField("Name") { ETextField("Name", text: $overlayText) }
-                EButton("Close") { showsOverlay = false }
-                    .keyboardShortcut(.defaultAction)
-                EButton("Close (Command-P)") { showsOverlay = false }
-                    .keyboardShortcut("p")
+                Text("Sheet").font(.headline)
+                EField("Name") { ETextField("Name", text: $sheetText) }
+                HStack {
+                    Spacer()
+                    EButton("Cancel") { showsSheet = false }
+                        .keyboardShortcut(.cancelAction)
+                    EButton("Done") { showsSheet = false }
+                        .keyboardShortcut(.defaultAction)
+                }
             }
             .padding()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color(nsColor: .windowBackgroundColor))
-            .border(Color(nsColor: .separatorColor))
+            .frame(width: 360)
         }
         .onDisappear { panel?.close(); panel = nil }
     }
