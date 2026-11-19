@@ -3,6 +3,40 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('theme preview shares selection between controls', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1440, 1400);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await tester.pumpWidget(const GalleryApp());
+    final segment = find.descendant(
+      of: find.byType(SegmentedButton<int>),
+      matching: find.text('记录'),
+    );
+    await tester.ensureVisible(segment);
+    await tester.tap(segment);
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      1,
+    );
+    final home = find.descendant(
+      of: find.byType(NavigationBar),
+      matching: find.text('概览'),
+    );
+    await tester.tap(home);
+    await tester.pumpAndSettle();
+    expect(
+      tester
+          .widget<SegmentedButton<int>>(find.byType(SegmentedButton<int>))
+          .selected,
+      {0},
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('desktop gallery changes theme and exercises button state', (
     tester,
   ) async {

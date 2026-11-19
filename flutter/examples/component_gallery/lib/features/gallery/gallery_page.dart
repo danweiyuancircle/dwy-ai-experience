@@ -54,6 +54,7 @@ class _GalleryPageState extends State<GalleryPage> {
   final _form = GlobalKey<FormState>();
   int _selected = 0;
   int _clicks = 0;
+  int _previewScope = 0;
   bool _loading = false;
   bool _notifications = true;
   bool _sync = false;
@@ -151,10 +152,6 @@ class _GalleryPageState extends State<GalleryPage> {
           padding: const EdgeInsets.only(bottom: 4),
           child: ListTile(
             selected: _selected == index,
-            selectedTileColor: Theme.of(context).colorScheme.primaryContainer,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
             leading: Icon(_icons[index]),
             title: Text(_sections[index]),
             onTap: () {
@@ -264,6 +261,27 @@ class _GalleryPageState extends State<GalleryPage> {
             onPressed: () => _notice('按钮可用'),
           ),
           DwyTextField(controller: _name, label: '示例输入', hintText: '输入内容'),
+          SegmentedButton<int>(
+            segments: const [
+              ButtonSegment(value: 0, label: Text('概览')),
+              ButtonSegment(value: 1, label: Text('记录')),
+            ],
+            selected: {_previewScope},
+            onSelectionChanged: (values) =>
+                setState(() => _previewScope = values.single),
+          ),
+          NavigationBar(
+            selectedIndex: _previewScope,
+            onDestinationSelected: (value) =>
+                setState(() => _previewScope = value),
+            destinations: const [
+              NavigationDestination(
+                icon: Icon(Icons.home_outlined),
+                label: '概览',
+              ),
+              NavigationDestination(icon: Icon(Icons.list_alt), label: '记录'),
+            ],
+          ),
         ]),
       ],
     );
@@ -469,13 +487,7 @@ class _GalleryPageState extends State<GalleryPage> {
     ),
   ]);
 
-  Widget _panel(String title, List<Widget> children) => DecoratedBox(
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(
-        DwyTheme.tokensOf(context).groupRadius,
-      ),
-    ),
+  Widget _panel(String title, List<Widget> children) => Card(
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Column(

@@ -24,19 +24,16 @@ class DwySettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return ListTile(
       enabled: enabled,
       onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      minVerticalPadding: 12,
       leading: leading,
       title: Text(title),
       subtitle: subtitle == null
           ? null
           : Padding(
               padding: const EdgeInsets.only(top: 4),
-              child: Text(subtitle!, style: theme.textTheme.bodySmall),
+              child: Text(subtitle!),
             ),
       trailing: trailing == null
           ? (onTap == null ? null : const Icon(Icons.chevron_right))

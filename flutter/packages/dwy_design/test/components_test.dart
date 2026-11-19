@@ -3,6 +3,109 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  testWidgets('settings subtitle respects theme and disabled colors', (
+    tester,
+  ) async {
+    final base = DwyTheme.create(brightness: Brightness.light);
+    final theme = base.copyWith(
+      listTileTheme: base.listTileTheme.copyWith(
+        subtitleTextStyle: const TextStyle(
+          fontSize: 19,
+          color: Colors.deepPurple,
+        ),
+      ),
+    );
+    for (final enabled in [true, false]) {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: theme,
+          home: Scaffold(
+            body: DwySettingsTile(
+              title: 'Setting',
+              subtitle: 'Details',
+              enabled: enabled,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      final style = DefaultTextStyle.of(tester.element(find.text('Details')))
+          .style;
+      expect(style.fontSize, 19);
+      expect(style.color, enabled ? Colors.deepPurple : theme.disabledColor);
+    }
+  });
+
+  for (final brightness in Brightness.values) {
+    testWidgets('$brightness themed controls fit and retain selection', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      var selected = 0;
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: DwyTheme.create(brightness: brightness),
+          home: MediaQuery(
+            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+            child: Scaffold(
+              body: StatefulBuilder(
+                builder: (context, setState) => SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Card(
+                      child: Column(
+                        children: [
+                          const ListTile(
+                            title: Text('Title'),
+                            subtitle: Text('Description wraps'),
+                          ),
+                          SegmentedButton<int>(
+                            segments: const [
+                              ButtonSegment(value: 0, label: Text('One')),
+                              ButtonSegment(value: 1, label: Text('Two')),
+                            ],
+                            selected: {selected},
+                            onSelectionChanged: (values) =>
+                                setState(() => selected = values.single),
+                          ),
+                          NavigationBar(
+                            selectedIndex: selected,
+                            onDestinationSelected: (value) =>
+                                setState(() => selected = value),
+                            destinations: const [
+                              NavigationDestination(
+                                icon: Icon(Icons.home_outlined),
+                                label: 'Home',
+                              ),
+                              NavigationDestination(
+                                icon: Icon(Icons.list),
+                                label: 'List',
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Two'));
+      await tester.pumpAndSettle();
+      expect(selected, 1);
+      await tester.tap(find.text('Home'));
+      await tester.pumpAndSettle();
+      expect(selected, 0);
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets(
     'loading button blocks actions and retains its accessible label',
     (tester) async {

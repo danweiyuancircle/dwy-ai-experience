@@ -13,15 +13,9 @@ Future<bool> showDwyConfirmation({
   required String cancelLabel,
   bool destructive = false,
 }) async {
-  final radius = DwyTheme.tokensOf(context).groupRadius;
   final result = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      backgroundColor: Theme.of(dialogContext).colorScheme.surface,
-      surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(radius),
-      ),
       title: Text(title),
       content: Text(message),
       actions: [
