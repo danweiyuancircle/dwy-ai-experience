@@ -1,14 +1,16 @@
 """经营快照、租约与 outbox 必须由同一事务保护。"""
 
 import asyncio
-from datetime import date
+from datetime import UTC, date, datetime
 from decimal import Decimal
+from types import SimpleNamespace
 
 import pytest
 from dwyeapi.database import create_async_engine_factory, create_session_factory
 from sqlalchemy import MetaData, event, select
 
-from dwy_apple_notify.analytics.models import AnalyticsValue, AppleBusinessSnapshot
+from dwy_apple_notify.analytics.models import AnalyticsApp, AnalyticsValue, AppleBusinessSnapshot
+from dwy_apple_notify.analytics.service import AnalyticsMonitor
 from dwy_apple_notify.analytics.storage import AnalyticsStore, build_analytics_tables
 
 
@@ -76,6 +78,49 @@ async def test_snapshot_roundtrip_account_isolation_and_restart_dedup(storage):
     assert await finish(store, other, issuer="other")
     assert len(await rows(storage, "snapshots")) == 2
     assert len({r["app_id"] for r in await rows(storage, "deliveries")}) == 2
+
+
+async def test_revenue_retries_missing_period_and_queues_complete_totals_once(storage):
+    day = date(2026, 2, 6)
+    clock = [datetime(2026, 2, 6, tzinfo=UTC).timestamp()]
+    store = AnalyticsStore(*storage[:2], clock=lambda: clock[0])
+    config = SimpleNamespace(
+        issuer_id="issuer", apps={"123": AnalyticsApp(name="工具"), "456": AnalyticsApp(name="阅读")},
+    )
+    ready = False
+
+    async def collect(app_id, start, period):
+        assert period in ("weekly", "monthly")
+        values = (
+            {"sales_usd": "90", "refunds_usd": "10", "proceeds_usd": "65"} if ready else {}
+        )
+        return AppleBusinessSnapshot(
+            app_id=app_id, report_date=start, metrics={
+                key: AnalyticsValue(value=Decimal(value), status="available", currency="USD")
+                for key, value in values.items()
+            },
+        )
+
+    worker = AnalyticsMonitor(config, store, SimpleNamespace(collect_revenue=collect))
+    await worker._run_revenue(day)
+    assert not await rows(storage, "deliveries")
+    ready = True
+    clock[0] += 86400
+    await worker._run_revenue(date(2026, 2, 7))
+    clock[0] += 86400
+    await worker._run_revenue(date(2026, 2, 8))
+    deliveries = await rows(storage, "deliveries")
+    assert {row["event_type"] for row in deliveries} == {
+        "analytics.revenue_weekly", "analytics.revenue_monthly",
+    }
+    assert len(deliveries) == 2
+    content = "\n".join(row["payload"]["content"] for row in deliveries)
+    assert "2026-01-26 至 2026-02-01" in content
+    assert "2026-01-01 至 2026-01-31" in content
+    assert "销售额（退款前） 100.00" in content
+    assert "退款额 10.00" in content
+    assert "开发者预估净收益 65.00" in content
+    assert "合计**｜销售额（退款前） 200.00" in content
 
 
 async def test_takeover_fences_complete_release_and_corrected_versions_replace(storage):

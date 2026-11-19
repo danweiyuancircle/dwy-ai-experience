@@ -35,6 +35,7 @@ def monitor(day="2026-10-26T08:30:00"):
         send_hour=8,
         send_minute=30,
         retention_days=400,
+        revenue_reports_enabled=False,
     )
     return AnalyticsMonitor(config, store, client), store, client
 

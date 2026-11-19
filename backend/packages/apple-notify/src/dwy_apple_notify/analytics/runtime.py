@@ -10,7 +10,7 @@ from dwy_notify.sqlalchemy import SQLAlchemyDeliveryQueue
 from .appearance import DEFAULT_APPEARANCE
 from .client import AppleAnalyticsClient
 from .service import AnalyticsMonitor
-from .storage import AnalyticsStore
+from .storage import REVENUE_SCOPE, AnalyticsStore
 
 
 @dataclass(frozen=True)
@@ -34,10 +34,13 @@ def install_analytics_monitor(
     collector = AppleAnalyticsClient(config) if owned_client else client
     store = AnalyticsStore(sessions, tables)
     monitor = AnalyticsMonitor(config, store, collector, feedback=feedback)
+    scopes = {f"{config.issuer_id}:{app_id}" for app_id in config.apps}
+    if config.revenue_reports_enabled:
+        scopes.add(f"{config.issuer_id}:{REVENUE_SCOPE}")
     queue = SQLAlchemyDeliveryQueue(
         sessions, tables.deliveries, sender, notifier=notifier, source="app_store_analytics",
         appearance=DEFAULT_APPEARANCE,
-        allowed_scopes={f"{config.issuer_id}:{app_id}" for app_id in config.apps},
+        allowed_scopes=scopes,
     )
     runtime = AnalyticsRuntime(monitor, queue)
     previous_lifespan = app.router.lifespan_context

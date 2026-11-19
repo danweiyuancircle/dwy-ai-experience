@@ -347,13 +347,21 @@ class AppleAnalyticsClient:
 
     async def collect(self, app_id: str, report_date: date) -> AppleBusinessSnapshot:
         """Latest processing instance replaces each report date across all of its segments."""
+        return await self._collect(app_id, report_date, "DAILY", REPORT_NAMES)
+
+    async def collect_revenue(self, app_id: str, start: date, period: str) -> AppleBusinessSnapshot:
+        """Read Apple's complete ISO week or calendar month starting on UTC date start."""
+        granularity = {"weekly": "WEEKLY", "monthly": "MONTHLY"}[period]
+        return await self._collect(app_id, start, granularity, (PURCHASES,))
+
+    async def _collect(self, app_id, report_date, granularity, sources):
         requests = await self._requests(app_id)
         if not requests:
             return aggregate_reports(
                 app_id,
                 report_date,
                 {},
-                pending=REPORT_NAMES,
+                pending=sources,
                 notes=("ONGOING report request is not active; initialize explicitly",),
             )
         reports, selected, pending = [], {}, []
@@ -364,19 +372,19 @@ class AppleAnalyticsClient:
         segment_count, collection_bytes = 0, 0
         for report in reports:
             source = report.get("attributes", {}).get("name")
-            if source not in REPORT_NAMES:
+            if source not in sources:
                 continue
             instances = await self._list(
                 f"/v1/analyticsReports/{self._id(report)}/instances",
                 "analyticsReportInstances",
-                "&filter[granularity]=DAILY",
+                f"&filter[granularity]={granularity}",
             )
             relevant = []
             try:
                 for instance in instances:
                     attrs = instance["attributes"]
                     processing = date.fromisoformat(attrs["processingDate"])
-                    if attrs["granularity"] == "DAILY" and processing >= report_date:
+                    if attrs["granularity"] == granularity and processing >= report_date:
                         relevant.append((processing, self._id(instance)))
             except (KeyError, ValueError, TypeError):
                 raise AnalyticsCollectionError("analytics_invalid_response") from None

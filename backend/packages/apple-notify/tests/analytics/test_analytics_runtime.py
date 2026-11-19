@@ -39,7 +39,10 @@ async def test_lifespan_ownership_shutdown_order_and_public_state(monkeypatch, o
     app = FastAPI(lifespan=host)
     runtime = install_analytics_monitor(
         app,
-        SimpleNamespace(discord_webhook_url=None, apps={"1234567890": object()}, issuer_id="issuer"),
+        SimpleNamespace(
+            discord_webhook_url=None, apps={"1234567890": object()}, issuer_id="issuer",
+            revenue_reports_enabled=True,
+        ),
         object(),
         SimpleNamespace(deliveries=object()),
         client=None if owned else client,

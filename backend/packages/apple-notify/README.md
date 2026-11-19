@@ -5,7 +5,7 @@ Apple 通知集成：购买通知验签与文案、App Store Connect 审核事�
 ## 按需安装
 
 ```bash
-pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.9'
+pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.2.0'
 ```
 
 `iap` 安装 Apple Server SDK；`asc`、`reviews`、`analytics` 分别安装现有 ASC HTTP/JWT/加密依赖。只使用审核、评论或报表时不需要 Apple Server SDK，也不需要 Resend。
@@ -38,6 +38,8 @@ pip install 'dwy-apple-notify[iap,asc,reviews,analytics,ratings]==0.1.9'
 ## 经营统计日期
 
 每个 `AppleAnalyticsConfig.apps` 条目可设置 `daily_report_enabled: false`：该应用仍按原计划静默采集并保存快照，只在指定时区的周一发送经营周报，不发送日报。默认 `true` 保持日报加周报，评分日报是独立配置，不受此开关影响。
+
+设置 `AppleAnalyticsConfig.revenue_reports_enabled: true` 可在同一通知目标接收完整收入周报和自然月报。按 UTC 周一至周日及自然月统计，分别从 Apple 周五及次月 5 日发布的购买报表读取退款前销售额、客户退款额和开发者预估净收益（USD）。报告按应用及合计展示可比较的上期变化；Apple 缺少金额时最多等待两个额外统计日，随后标记缺项。预估净收益采用 Apple 已计入退款、税费和佣金的口径。
 
 默认北京时间 `Asia/Shanghai` 每天 08:30，内部固定查询统计时区日期的前两天，例如 30 日查询 28 日、31 日查询 29 日。Apple 报表生成存在延迟，因此不暴露 `lag_days` 配置。周一附加截至前两天的连续七天周报。日报和周报固定展示全部指标与地区、来源 Top 3：有值显示实际数值，获取不到显示“无数据”，真实零值保留为零。快照仍保留原始可用性状态，不把缺失数据写成零，不自动重复补发历史日报。
 

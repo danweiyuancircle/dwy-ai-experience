@@ -4,7 +4,7 @@ import hashlib
 import re
 import time
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 from uuid import uuid4
 
 from dwy_notify.sqlalchemy import build_delivery_table
@@ -13,6 +13,8 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from .models import AppleBusinessSnapshot
+
+REVENUE_SCOPE = "revenue"
 
 
 @dataclass(frozen=True, slots=True)
@@ -132,6 +134,18 @@ class AnalyticsStore:
             )
         return [AppleBusinessSnapshot.model_validate(payload) for payload in payloads]
 
+    async def revenue_queued(self, issuer_id: str, period: str, start: date, end: date) -> bool:
+        """检查周期首段是否已与其余分段一起原子入队。"""
+        scope = _scope(issuer_id, REVENUE_SCOPE)
+        outbox = self.tables.deliveries
+        async with self.sessions() as db:
+            return await db.scalar(
+                select(outbox.c.id).where(
+                    outbox.c.app_id == scope,
+                    outbox.c.id == _delivery_id(scope, "revenue_" + period, start, end, 0),
+                )
+            ) is not None
+
     async def complete(
         self,
         issuer_id: str,
@@ -145,8 +159,23 @@ class AnalyticsStore:
     ) -> bool:
         """替换日期版本并按账号/App/期间/分段去重；失效 worker 不得写入任何内容。"""
         scope = _scope(issuer_id, app_id)
-        if not 1 <= len(snapshots) <= 7 or any(s.app_id != app_id for s in snapshots):
+        if app_id == REVENUE_SCOPE:
+            if snapshots:
+                raise ValueError("Revenue collection does not write daily snapshots")
+            periods = {
+                "revenue_weekly": lambda start, end: start.weekday() == 0 and (end - start).days == 6,
+                "revenue_monthly": lambda start, end: (
+                    start.day == 1 and start <= end and end.month == start.month and end.year == start.year
+                    and (end + timedelta(days=1)).day == 1
+                ),
+            }
+        elif not 1 <= len(snapshots) <= 7 or any(s.app_id != app_id for s in snapshots):
             raise ValueError("Invalid analytics snapshot batch")
+        else:
+            periods = {
+                "daily": lambda start, end: start == end,
+                "weekly": lambda start, end: (end - start).days == 6,
+            }
         table, state, outbox = self.tables.snapshots, self.tables.state, self.tables.deliveries
         now = int(self.clock())
         key = (state.c.issuer_id == issuer_id, state.c.app_id == app_id, state.c.lease_token == token)
@@ -164,9 +193,7 @@ class AnalyticsStore:
                     .on_conflict_do_update(index_elements=["issuer_id", "app_id", "report_date"], set_=values)
                 )
             for period, start, end, parts in messages:
-                if period not in ("daily", "weekly") or (end - start).days != (
-                    6 if period == "weekly" else 0
-                ):
+                if period not in periods or not periods[period](start, end):
                     raise ValueError("Invalid analytics notification period")
                 for index, content in enumerate(parts):
                     if not isinstance(content, str) or not 1 <= len(content.encode("utf-16-le")) // 2 <= 2000:

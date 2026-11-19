@@ -37,6 +37,34 @@ def collection(data, next_url=None):
     return {"data": data, "links": {"next": next_url}}
 
 
+@pytest.mark.parametrize("period", ["weekly", "monthly"])
+async def test_revenue_downloads_only_purchases_at_requested_granularity(period):
+    reports = [
+        {"id": "purchases", "attributes": {"name": "App Store Purchases Standard"}},
+        {"id": "downloads", "attributes": {"name": "App Downloads Standard"}},
+    ]
+    instances = [{
+        "id": "period",
+        "attributes": {"granularity": period.upper(), "processingDate": "2026-11-05"},
+    }]
+    start = date(2026, 10, 5 if period == "weekly" else 1)
+    async with httpx.AsyncClient() as http:
+        client = AppleAnalyticsClient(config(), client=http)
+        client._requests = AsyncMock(return_value=[{"id": "request"}])
+        client._list = AsyncMock(side_effect=[reports, instances, [{"attributes": {"url": DOWNLOAD}}]])
+        client._download = AsyncMock(return_value=(
+            b"Date\tApp Apple Identifier\tPurchases\tSales in USD\tProceeds in USD\tTerritory\n"
+            + f"{start}\t123\t1\t10\t7\tUSA\n{start}\t123\t0\t-2\t-1.4\tUSA\n".encode()
+        ))
+        result = await client.collect_revenue("123", start, period)
+    assert client._list.await_args_list[1] == call(
+        "/v1/analyticsReports/purchases/instances", "analyticsReportInstances",
+        f"&filter[granularity]={period.upper()}",
+    )
+    assert result.metrics["refunds_usd"].value == 2
+    assert result.metrics["sales_usd"].value == 8
+
+
 @pytest.mark.asyncio
 async def test_collect_discovers_ongoing_and_all_segments_latest_date_replaces():
     seen = []

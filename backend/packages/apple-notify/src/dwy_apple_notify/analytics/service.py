@@ -2,7 +2,7 @@
 
 import asyncio
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from uuid import uuid4
 from zoneinfo import ZoneInfo
@@ -11,6 +11,8 @@ from dwyeapi.logger import get_logger
 
 from .formatting import apple_business_digest_content
 from .models import AnalyticsCollectionError, AnalyticsValue
+from .revenue import revenue_amounts, revenue_content, revenue_periods
+from .storage import REVENUE_SCOPE
 
 
 class AnalyticsMonitor:
@@ -21,7 +23,7 @@ class AnalyticsMonitor:
         self.config, self.store, self.client, self.feedback = config, store, client, feedback
 
     async def run_once(self) -> int:
-        """发送边界后仅生成当前日报及周一周报，启动时不补发历史日期。"""
+        """发送边界后运行现有经营报表及显式启用的收入报表。"""
         config = self.config
         await self.store.cleanup(config.issuer_id, config.retention_days)
         now = datetime.fromtimestamp(self.store.clock(), ZoneInfo(config.timezone))
@@ -149,7 +151,43 @@ class AnalyticsMonitor:
                     f"elapsed_ms={int((time.monotonic() - started) * 1000)}"
                 )
                 await self.store.fail(config.issuer_id, app_id, token, target, app_name=application.name)
+        if config.revenue_reports_enabled:
+            await self._run_revenue(now.astimezone(UTC).date())
         return completed
+
+    async def _run_revenue(self, today):
+        config = self.config
+        issuer = config.issuer_id
+        token = await self.store.claim(issuer, REVENUE_SCOPE, today)
+        if token is None:
+            return
+        try:
+            messages = []
+            async with asyncio.timeout(240):
+                for period, start, end, prior, due in revenue_periods(today):
+                    if await self.store.revenue_queued(issuer, period, start, end):
+                        continue
+                    current = {
+                        app_id: revenue_amounts(await self.client.collect_revenue(app_id, start, period))
+                        for app_id in config.apps
+                    }
+                    # Apple 未为部分 App 提供数据时，先留两个额外统计日补齐，再明确展示缺项。
+                    if any(value is None for value in current.values()) and today < due + timedelta(days=2):
+                        continue
+                    previous = {
+                        app_id: revenue_amounts(await self.client.collect_revenue(app_id, prior, period))
+                        if current[app_id] is not None else None
+                        for app_id in config.apps
+                    }
+                    messages.append((
+                        "revenue_" + period, start, end,
+                        revenue_content(period, start, end, config.apps, current, previous),
+                    ))
+            await self.store.complete(
+                issuer, REVENUE_SCOPE, token, [], report_date=today, messages=messages, next_poll_at=0,
+            )
+        finally:
+            await self.store.release(issuer, REVENUE_SCOPE, token)
 
     async def run(self) -> None:
         """每分钟检查持久计划，失败或重启由数据库调度接续。"""

@@ -42,6 +42,9 @@ class AppleAnalyticsConfig(NotificationSettings):
     send_hour: int = Field(default=8, ge=0, le=23, strict=True)
     send_minute: int = Field(default=30, ge=0, le=59, strict=True)
     retention_days: int = Field(default=400, ge=7, le=3650, strict=True)
+    revenue_reports_enabled: bool = Field(
+        default=False, strict=True, description="发送 Apple 完整收入周报和自然月报",
+    )
 
     @field_validator("timezone")
     @classmethod
