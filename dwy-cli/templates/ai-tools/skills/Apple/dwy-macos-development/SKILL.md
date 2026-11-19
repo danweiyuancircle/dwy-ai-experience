@@ -17,7 +17,7 @@ description: 开发、排查、评审或适配 macOS 应用时使用，涵盖设
 
 按需阅读 [窗口与系统外观](references/ui-adaptation.md)、[弹窗差异](references/presentations.md) 和 [macOS 踩坑](references/pitfalls.md)。界面变更先确定目标系统、窗口尺寸、键鼠和辅助功能验证；签名或启动通过不等于目标系统交互与视觉验收。
 
-需要独占输入的弹框必须使用系统模态（`.sheet`、`.alert`、`.confirmationDialog`、AppKit sheet / modal），禁止用 overlay、ZStack 或透明拦截层在页面内叠加模拟模态；不给底页自绘蒙层或模糊。实现与评审弹框时按 [弹窗差异](references/presentations.md) 核对呈现方式、键盘和验收要求。
+问号或信息按钮触发的简短只读说明必须使用锚定到按钮的 `.popover`。需要独占输入的弹框必须使用系统模态（`.sheet`、`.alert`、`.confirmationDialog`、AppKit sheet / modal），禁止用 overlay、ZStack 或透明拦截层在页面内叠加模拟模态；不给底页自绘蒙层或模糊。实现与评审弹框时按 [弹窗差异](references/presentations.md) 核对呈现方式、键盘和验收要求。
 
 界面开发与评审同时遵循 `dwy-swift-development` 的图标视觉一致性、按钮语义与样式一致性、重复能力封装与复用要求；跨页面检查同类入口，不仅检查当前窗口。
 

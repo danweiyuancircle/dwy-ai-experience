@@ -4,6 +4,11 @@
 - Apple 文档说明 SwiftUI popover 的指定 `arrowEdge` 在 macOS 上一直受尊重；系统边界和内容仍须在目标系统实测。若允许系统选择方向，使用不指定边的重载。
 - 结合产品交互检查键盘、焦点、取消和点击外部关闭；不要把 iOS 的紧凑尺寸适配行为直接套到 macOS。
 
+## 按钮触发的简短说明
+
+- 问号或信息按钮只用于解释当前功能、字段或操作时，必须在该按钮上挂载 `.popover`。这条规则同样适用于已经打开的 sheet 内的帮助按钮，禁止仅为展示说明再叠一层 `.sheet` 或 `.alert`。
+- 说明内容按需提供标题和正文，省去「完成」或「确定」按钮。验证点击弹层外或按 Escape 可收起说明，已打开的管理或编辑面板保持打开。
+
 ## 模态弹框必须用原生模态
 
 - 需要独占输入的弹框（编辑、管理、表单、确认、选择）必须用系统模态承载：SwiftUI `.sheet`、`.alert`、`.confirmationDialog`、`.fileImporter`，AppKit `beginSheet` / `runModal`。项目已采用 AppleAppKit 时，确认与错误提示优先用 `EAlert`、`eErrorAlert`，文件选择用 `EFileDialog`。
