@@ -1,6 +1,6 @@
 # EUI 页面设计风格规范
 
-> AI 使用 @dwydev/eui 编写 UI 页面时必须遵循此规范。
+> 本规范约束使用 @dwydev/eui 时的组件选择、token 和视觉写法。页面放哪些信息、内容是否真实、需要覆盖哪些状态，遵循 `dwy-product-ui`；两者冲突时，以真实内容和完整状态为准。
 
 ## 一、设计风格定位
 
@@ -246,6 +246,7 @@ neutral（默认）| blue | green | rose | orange | violet | slate
 - 卡片用 `rounded-lg border bg-card`，不加阴影
 - 卡片标题和内容间距 `mb-4`
 - 统计卡片用紧凑内边距 `p-4`
+- 统计卡片仅用于用户当前任务需要的真实指标，不作为页头装饰
 
 ## 十、代码自检清单
 

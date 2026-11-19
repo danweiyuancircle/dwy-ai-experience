@@ -1,6 +1,6 @@
 # EUI 落地页设计风格规范
 
-> AI 使用 @dwydev/eui 编写落地页时必须遵循此规范。
+> 本规范约束使用 @dwydev/eui 编写落地页时的组件选择、token 和视觉写法。页面放哪些信息、内容是否真实、需要覆盖哪些状态，遵循 `dwy-product-ui`；两者冲突时，以真实内容和完整状态为准。
 > 本规范与 `eui-design-guide.md`（中后台规范）互补，落地页特有规则在此定义，通用规则（颜色系统、暗色模式、ESelect 约束等）仍遵循中后台规范。
 
 ## 一、落地页 vs 中后台的核心差异
@@ -11,7 +11,7 @@
 | 字号 | `text-sm` ~ `text-2xl` | `text-base` ~ `text-6xl` |
 | 留白 | 紧凑 `p-6 gap-6` | 大量 `py-16 lg:py-24` |
 | 宽度 | 满屏利用 | `max-w-6xl mx-auto` 居中 |
-| 响应式 | 最小 `md`（768px） | 最小 `sm`（375px），手机优先 |
+| 响应式 | 375px 可用（布局壳用窄屏抽屉） | 375px 起，手机优先 |
 | 阴影 | `shadow-xs` / `shadow-sm` | 可用 `shadow-md` / `shadow-lg` |
 | 动画 | 几乎不用 | 适度滚动入场动画 |
 
@@ -34,16 +34,16 @@
 | 序号 | Section | 目的 | 必须 |
 |------|---------|------|------|
 | 1 | Hero | 核心价值主张 + 主 CTA | 是 |
-| 2 | 社会证明 | 客户 Logo 墙 / 数字指标 | 推荐 |
+| 2 | 社会证明 | 客户 Logo 墙 / 数字指标 | 有真实素材时 |
 | 3 | 功能/特性 | 3-4 个核心卖点 | 是 |
-| 4 | 产品展示 | 截图 / 动图 / 视频 | 推荐 |
-| 5 | 用户评价 | 真实用户推荐语 | 推荐 |
+| 4 | 产品展示 | 截图 / 动图 / 视频 | 有真实素材时 |
+| 5 | 用户评价 | 真实用户推荐语 | 有真实素材时 |
 | 6 | 定价方案 | 2-3 档价格卡片 | 可选 |
-| 7 | FAQ | 常见疑虑解答 | 推荐 |
+| 7 | FAQ | 常见疑虑解答 | 有真实素材时 |
 | 8 | 底部 CTA | 再次强调行动号召 | 是 |
 | 9 | Footer | 链接 / 版权 / 备案 | 是 |
 
-可根据产品类型增减，但 **Hero + 功能 + 底部 CTA + Footer** 是最小集。
+可根据产品类型增减，但 **Hero + 功能 + 底部 CTA + Footer** 是最小集。没有真实客户、指标、评价或常见问题时，不使用对应 Section，也不编造占位内容。
 
 ## 三、导航栏
 
@@ -173,7 +173,7 @@
 <section class="py-12 border-y bg-muted/30">
   <div class="max-w-6xl mx-auto px-6">
     <p class="text-center text-sm text-muted-foreground mb-8">
-      受到以下企业信赖
+      {{ proofTitle }}
     </p>
     <div class="flex flex-wrap items-center justify-center gap-x-12 gap-y-6 opacity-60">
       <!-- SVG Logos，不用 emoji -->
@@ -194,6 +194,7 @@
 ```
 
 规则：
+- Logo 和指标必须来自真实且可公开展示的数据；标题按实际关系撰写，不照抄示例
 - Logo 统一灰度 + 降低透明度（`opacity-60`），不抢主视觉
 - 数字指标 2-4 个，数值用 `text-primary font-bold`
 
@@ -202,7 +203,7 @@
 ```vue
 <section class="py-16 lg:py-24 bg-muted/30">
   <div class="max-w-6xl mx-auto px-6">
-    <h2 class="text-3xl font-bold text-center mb-12">用户怎么说</h2>
+    <h2 class="text-3xl font-bold text-center mb-12">{{ testimonialsTitle }}</h2>
 
     <div class="grid md:grid-cols-3 gap-6">
       <div v-for="t in testimonials" :key="t.name"
@@ -223,7 +224,7 @@
 ```
 
 规则：
-- 3-5 条评价，有头像 + 姓名 + 职位
+- 评价必须来自真实且已授权展示的用户，数量按实际情况决定；有授权时展示头像、姓名和职位
 - 评价区背景用 `bg-muted/30` 区分层级
 - 引号用中文引号，不用 `""`
 
@@ -363,7 +364,7 @@
 | 类型 | 实现 | 场景 |
 |------|------|------|
 | 滚动入场 | `opacity-0 translate-y-4` → `opacity-100 translate-y-0` | Section 内容 |
-| 数字递增 | JS 计数动画 | 统计指标 |
+| 数字递增 | JS 计数动画 | 真实统计指标 |
 | 渐显 | `opacity-0` → `opacity-100` | Logo 墙 |
 | 悬停阴影 | `hover:shadow-md transition-shadow` | 功能卡片 |
 
@@ -435,3 +436,4 @@ useIntersectionObserver(target, ([{ isIntersecting }]) => {
 | 10 | 动画 `duration-700` 以内，检查 `prefers-reduced-motion` |
 | 11 | 定价卡片推荐档 `border-primary shadow-lg` 高亮 |
 | 12 | 暗色模式所有元素可见可读 |
+| 13 | 社会证明、评价、指标和定价均来自已确认的真实数据，无编造占位 |
