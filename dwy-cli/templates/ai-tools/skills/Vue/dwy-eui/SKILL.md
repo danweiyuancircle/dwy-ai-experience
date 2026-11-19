@@ -25,7 +25,7 @@ Vue 3 组件库（Reka-ui + shadcn 视觉 + Element Plus 式 API + Tailwind 4）
 4. **文档不够 / 和记忆冲突 / 下限对不上** → 读代码，顺序如下（命中即停）：
    1. clone 安装版本对应 tag（见下）
    2. tag 不存在 / clone 失败 → 读**当前项目** `node_modules/@dwydev/eui`
-   3. `node_modules` 也没有 → **停下来问人**，禁止猜 props，禁止拿旁边 dwy-shared master 冒充
+   3. `node_modules` 也没有 → **停下来问人**，禁止猜 props，禁止拿旁边 dwy-shared develop 冒充
 
 ## 读源码
 
@@ -83,7 +83,7 @@ ls node_modules/@dwydev/eui/dist/component-manifest.json
 
 | 借口 | 实际 |
 |------|------|
-| 读旁边 dwy-shared master | 消费方版本可能不同。先 clone 安装版本的 tag，不行再读本项目 node_modules |
+| 读旁边 dwy-shared develop | 消费方版本可能不同。先 clone 安装版本的 tag，不行再读本项目 node_modules |
 | 文档是 2.1，装的 2.4.0，差不多 | 有下限的能力必须对照版本；已删组件当不存在 |
 | tag 没有就猜 / 直接停 | clone 失败后读 node_modules；也没有才停 |
 | 再开一个 `dwy-eui-v2` skill | 对外只有 `dwy-eui` |

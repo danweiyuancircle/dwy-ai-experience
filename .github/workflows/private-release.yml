@@ -2,7 +2,7 @@ name: Shared package CI and GitHub snapshot
 
 on:
   push:
-    branches: [master, 'codex/private-shared-*']
+    branches: [develop, 'codex/private-shared-*']
     tags: ['0.*']
   pull_request:
   workflow_dispatch:

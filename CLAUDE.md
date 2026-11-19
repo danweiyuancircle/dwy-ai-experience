@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-`master` 为主干，`develop` 为日常开发分支；验收通过后将 `develop` 合入 `master`。默认直接在仓库主工作目录的 `develop` 上修改，不另建功能分支或额外 worktree，除非用户明确要求。分支整合不重写发布标签，不自动删除既有分支或 worktree。
+`develop` 为唯一主干，开发、提交和发版 tag 都在 `develop` 上完成；历史 `master` 仅保留，不再合入。默认直接在仓库主工作目录的 `develop` 上修改，不另建功能分支或额外 worktree，除非用户明确要求。分支整合不重写发布标签，不自动删除既有分支或 worktree。
 
 共享基础包 monorepo。pnpm workspace 管理前端 + CLI，Python (uv) 单独管理后端。
 

@@ -210,7 +210,7 @@ git -C "$REPO_PATH" diff --cached --stat
 
 ```bash
 git -C "$REPO_PATH" -c commit.gpgsign=false commit -m "$MSG"
-git -C "$REPO_PATH" push origin master
+git -C "$REPO_PATH" push origin develop
 ```
 
 ### 步骤 11：完成提示
