@@ -1,8 +1,7 @@
 <script setup lang="ts">
 const skills = [
-  { name: 'dwy-eui', title: '@dwydev/eui', desc: 'Vue 3 组件库速查 — 89 组件完整 API', path: '/claude/skills/dwy-eui' },
-  { name: 'dwy-ekit', title: '@dwydev/ekit', desc: '前端工具库速查 — request/storage/validators/date/hooks', path: '/claude/skills/dwy-ekit' },
-  { name: 'dwy-eapi', title: 'dwyeapi', desc: 'FastAPI 后端基础设施速查 — 8 模块全异步', path: '/claude/skills/dwy-eapi' },
+  { name: 'dwy-vue-appkit', title: 'Vue 基础库', desc: 'EUI、EKIT、后台框架与网页认证，按项目实际版本查证接口', path: '/claude/skills/dwy-vue-appkit' },
+  { name: 'dwy-python-appkit', title: 'Python 基础库', desc: 'EAPI、认证、支付与通知，按需读取对应版本接入资料', path: '/claude/skills/dwy-python-appkit' },
 ]
 
 const rules = [
@@ -30,7 +29,7 @@ const hooks = [
     <!-- Skills -->
     <div class="mb-8">
       <h2 class="text-xl font-semibold mb-1">Skills</h2>
-      <p class="text-sm text-muted-foreground mb-4">3 个技能 — Claude 在特定场景自动触发的领域知识</p>
+      <p class="text-sm text-muted-foreground mb-4">2 个基础库入口 — 按生态选择，按能力读取资料</p>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <router-link
           v-for="skill in skills"

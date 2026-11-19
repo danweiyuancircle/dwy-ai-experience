@@ -12,6 +12,7 @@ Material 3 交互底座，统一的浅灰白、蓝色强调主题。iOS、Androi
 - `flutter/packages/dwy_secure_storage`：产品/账户隔离的安全存储。
 - `flutter/packages/dwy_database`：Drift/SQLite 连接、生命周期与迁移测试示例。
 - `flutter/packages/dwy_media`：无自定义 UI 的相册访问与系统选择器适配。
+- `flutter/packages/dwy_permission`：无界面的 iOS / Android 运行时权限，宿主按能力配置用途声明。
 - `flutter/packages/dwy_iap`：无界面的商店内购门面（当前适配 `in_app_purchase`），凭据由业务后端验证。
 - `flutter/packages/dwy_sign_in`：Apple / Google 第三方登录凭据获取，identityToken 由业务后端验证。
 - `flutter/examples/component_gallery`：可交互的组件 Playground，提供 Web 启动入口。
@@ -19,6 +20,8 @@ Material 3 交互底座，统一的浅灰白、蓝色强调主题。iOS、Androi
 - `flutter/docs/architecture.md`：四层边界与后续基础包接入位置。
 
 上述包分别声明依赖，不会因使用一个按钮而引入网络、数据库或相册。工作区开发工具链为 Flutter 3.50.0 stable / Dart 3.14.0，来源与各包兼容范围见 `flutter/docs/development-baseline.md`。
+
+消费项目使用 `dwy-flutter-appkit` Skill，入口位于 `dwy-cli/templates/ai-tools/skills/Flutter/dwy-flutter-appkit/SKILL.md`。按任务读取引用资料，并逐包确认实际解析的来源、版本/提交与公开 API；Skill 和本总览更新不代表消费项目已升级，接入以实际依赖源码为准。
 
 移动端约定支持 iOS 18+、Android 10+（minSdk 29）；实际原生插件、宿主工程及打包产物仍须逐项核对。targetSdk 与最低系统分开管理。
 

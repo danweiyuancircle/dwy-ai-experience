@@ -2,6 +2,12 @@
 
 `dwy` 与 `dwy sync` 使用同一交互流程。首次安装运行 `npm install -g create-dwy@latest`，进入项目目录后运行 `dwy`；用户主目录只能选择全局范围。
 
+## 基础库 Skills
+
+Python 基础库统一选择 `dwy-python-appkit`，覆盖 EAPI、认证、支付、通知和设备指纹；Vue 基础库统一选择 `dwy-vue-appkit`，覆盖 EUI、EKIT、Admin Kit 和 Auth Web。各包接入资料及版本记录在入口的 `references/` 下，按任务读取，不再逐包选择 Skill，也不要求安装全部基础包。
+
+入口更新不等于项目依赖升级；使用时逐包核对实际来源、版本/提交与公开 API。旧模板入口已移除，已有项目需要通过 `dwy sync` 选择新入口，并核对预览中的历史条目清理与备份；`dwy refresh` 不负责启用新名称。未被同步记录管理的个人文件仍按原有规则保留，不自动删除。
+
 ## 交互顺序
 
 1. 选择当前项目或全局范围。

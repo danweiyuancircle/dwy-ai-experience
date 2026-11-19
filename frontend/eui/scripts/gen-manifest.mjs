@@ -2,7 +2,7 @@
 /**
  * 生成 dist/component-manifest.json
  *
- * 目的：给 AI（dwy-eui skill）一份"组件地图"，让它在下游消费方项目里
+ * 目的：给 AI（dwy-vue-appkit skill）一份"组件地图"，让它在下游消费方项目里
  * 凭 node_modules/@dwydev/eui/dist/component-manifest.json 就能定位
  * 每个组件的 props/emits 类型文件，避免靠 SKILL.md 的过期表格。
  *

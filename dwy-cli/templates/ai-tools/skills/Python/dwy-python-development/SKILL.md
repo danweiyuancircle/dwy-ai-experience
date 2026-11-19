@@ -12,6 +12,6 @@ description: 开发、修改或排查 Python 应用、脚本或基础库时使�
 - [踩坑](references/dwy-python-pitfalls.md)：排查环境、异步与运行时问题。
 - [基础库](references/dwy-python-base-lib.md)：定位 dwyeapi 既有能力；以项目实际依赖与版本为准。
 
-自有库导航：基础设施查 `dwy-eapi`；认证查 `dwy-auth`；支付查 `dwy-payment`；通用通知查 `dwy-notify`；Webhook 查 `dwy-webhooks`；Apple、邮件和微信支付来源分别查 `dwy-apple-notify`、`dwy-email-notify`、`dwy-wechatpay-notify`；设备信息查 `dwy-device-fingerprint`。对应 Skill 未安装时直接核实项目实际依赖和源码，不自动安装。
+自有库导航：基础设施查 `dwy-python-appkit`；认证查 `dwy-auth`；支付查 `dwy-payment`；通用通知查 `dwy-notify`；Webhook 查 `dwy-webhooks`；Apple、邮件和微信支付来源分别查 `dwy-apple-notify`、`dwy-email-notify`、`dwy-wechatpay-notify`；设备信息查 `dwy-device-fingerprint`。对应 Skill 未安装时直接核实项目实际依赖和源码，不自动安装。
 
 参考资料中的强制选型只适用于已经采用该技术栈或用户明确选择的新项目；现有项目以其依赖、版本和用户要求为准。

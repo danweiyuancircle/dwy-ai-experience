@@ -69,7 +69,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 
 - 连接串必须从环境变量读取，**禁止**硬编码
 - 生产环境必须 `sslmode=require`（或更严的 `verify-full`）
-- 连接池参数走 dwyeapi 引擎工厂（具体 API 查 `dwy-eapi` skill），**禁止**手动 `create_async_engine` 跳过框架约束
+- 连接池参数走 dwyeapi 引擎工厂（具体 API 查 `dwy-python-appkit` skill），**禁止**手动 `create_async_engine` 跳过框架约束
 
 ---
 

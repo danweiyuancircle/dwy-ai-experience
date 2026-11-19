@@ -157,10 +157,10 @@ When these docs change, sync to the dwy-cli template paths:
 
 | Source | Target sync path |
 |--------|------------------|
-| `docs/eui-integration-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-integration-guide.md` |
-| `docs/eui-design-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-design-guide.md` |
-| `docs/eui-landing-design-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-landing-design-guide.md` |
-| `docs/tasks-integration-guide.md` | `dwy-cli/templates/ai-tools/skills/Python/dwy-eapi/references/tasks-integration-guide.md` |
+| `docs/eui-integration-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-vue-appkit/references/eui/eui-integration-guide.md` |
+| `docs/eui-design-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-vue-appkit/references/eui/eui-design-guide.md` |
+| `docs/eui-landing-design-guide.md` | `dwy-cli/templates/ai-tools/skills/Vue/dwy-vue-appkit/references/eui/eui-landing-design-guide.md` |
+| `docs/tasks-integration-guide.md` | `dwy-cli/templates/ai-tools/skills/Python/dwy-python-appkit/references/eapi/tasks-integration-guide.md` |
 
 Playground imports `docs/eui-integration-guide.md` via `?raw`; it does **not** need a separate copy.
 

@@ -246,9 +246,8 @@ export const modules: ModuleConfig[] = [
       {
         title: 'Skills',
         items: [
-          { name: 'dwy-eui', path: '/claude/skills/dwy-eui' },
-          { name: 'dwy-ekit', path: '/claude/skills/dwy-ekit' },
-          { name: 'dwy-eapi', path: '/claude/skills/dwy-eapi' },
+          { name: 'dwy-vue-appkit', path: '/claude/skills/dwy-vue-appkit' },
+          { name: 'dwy-python-appkit', path: '/claude/skills/dwy-python-appkit' },
           { name: 'dwy-cli-sync-local', path: '/claude/skills/dwy-cli-sync-local' },
           { name: 'dwy-dev-qa', path: '/claude/skills/dwy-dev-qa' },
           { name: 'dwy-git-commit', path: '/claude/skills/dwy-git-commit' },

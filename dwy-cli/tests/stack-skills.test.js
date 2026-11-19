@@ -8,7 +8,7 @@ import { interactiveSelect, scanRules, scanSkills } from '../src/sync.js'
 import { syncAll } from '../src/sync-all.js'
 
 const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../templates/ai-tools')
-const expected = ['dwy-python-development', 'dwy-python-architecture', 'dwy-python-api', 'dwy-vue-development', 'dwy-vue-architecture', 'dwy-apple-appkit', 'dwy-auth', 'dwy-payment', 'dwy-notify', 'dwy-webhooks', 'dwy-apple-notify', 'dwy-email-notify', 'dwy-wechatpay-notify', 'dwy-device-fingerprint', 'dwy-admin-kit', 'dwy-auth-web', 'dwy-android-development', 'dwy-android-architecture', 'dwy-flutter-development', 'dwy-harmony-development', 'dwy-postgres', 'dwy-redis', 'dwy-alembic']
+const expected = ['dwy-python-development', 'dwy-python-architecture', 'dwy-python-api', 'dwy-python-appkit', 'dwy-vue-development', 'dwy-vue-architecture', 'dwy-vue-appkit', 'dwy-apple-appkit', 'dwy-android-development', 'dwy-android-architecture', 'dwy-flutter-development', 'dwy-harmony-development', 'dwy-postgres', 'dwy-redis', 'dwy-alembic']
 
 test('语言与基础库技能可发现，引用资料存在，Python 和 Vue 规则已迁移', async () => {
   const skills = await scanSkills(source)

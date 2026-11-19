@@ -11,6 +11,6 @@ description: 开发、修改、测试或排查 Vue 应用、组件及组合式�
 - [Pinia](references/dwy-vue-pinia.md)：项目使用 Pinia 时参考。
 - [测试](references/dwy-vue-testing.md)：组件和业务测试。
 - [踩坑](references/dwy-vue-pitfalls.md)：响应式、路由和构建排查。
-- [自有基础库](references/dwy-vue-base-lib.md)：项目已使用时查 dwy-eui、dwy-ekit；管理后台和认证分别查 dwy-admin-kit、dwy-auth-web。
+- [自有基础库](references/dwy-vue-base-lib.md)：项目已使用时查 dwy-vue-appkit、dwy-vue-appkit；管理后台和认证分别查 dwy-admin-kit、dwy-auth-web。
 
 资料中的强制选型仅适用于已采用该栈或用户明确选择的新项目，现有项目遵循现有依赖和用户要求。

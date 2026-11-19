@@ -35,8 +35,7 @@ paths:
 
 ```
 Skill 工具调用：
-  - skill="dwy-eui"   组件库 API 与设计规范
-  - skill="dwy-ekit"  工具库 API 与契约
+  - skill="dwy-vue-appkit"  按需查 EUI 组件、EKIT 工具及其实际版本契约
 ```
 
 ---
@@ -58,10 +57,10 @@ Skill 工具调用：
 
 ### 强制规则
 
-- HTTP 客户端**必须**用 ekit `createRequest` 创建，全局唯一实例放 `core/http.ts`（具体参数与插件查 `dwy-ekit` skill）
+- HTTP 客户端**必须**用 ekit `createRequest` 创建，全局唯一实例放 `core/http.ts`（具体参数与插件查 `dwy-vue-appkit` skill）
 - **禁止**业务代码 `axios.create()` / `fetch()` / `new XMLHttpRequest()`
-- 响应解包契约与 dwyeapi 对齐（`{ code, message, data }`），具体类型与守卫查 `dwy-ekit` skill
-- 401 / 422 / 业务错误的统一处理由 ekit request 插件完成（具体 API 查 `dwy-ekit` skill）
+- 响应解包契约与 dwyeapi 对齐（`{ code, message, data }`），具体类型与守卫查 `dwy-vue-appkit` skill
+- 401 / 422 / 业务错误的统一处理由 ekit request 插件完成（具体 API 查 `dwy-vue-appkit` skill）
 - 业务侧 catch 用 ekit 提供的 `isApiBusinessError` 类型守卫做分支（`NOT_FOUND` / `VALIDATION_ERROR` / `PERMISSION_DENIED` 等）
 
 > API 函数的目录归属、独立导出、类型标注等结构约定见 `dwy-vue-core` 第六节。
@@ -69,13 +68,13 @@ Skill 工具调用：
 ### 示例
 
 ```typescript
-// core/http.ts —— 全局唯一 HTTP 客户端（具体 plugins 查 dwy-ekit skill）
+// core/http.ts —— 全局唯一 HTTP 客户端（具体 plugins 查 dwy-vue-appkit skill）
 import { createRequest } from '@dwydev/ekit'
 
 export const request = createRequest({
   baseURL: import.meta.env.VITE_API_BASE_URL,
   plugins: [
-    /* tokenPlugin / refreshTokenPlugin / unwrapPlugin —— 具体用法查 dwy-ekit skill */
+    /* tokenPlugin / refreshTokenPlugin / unwrapPlugin —— 具体用法查 dwy-vue-appkit skill */
   ],
 })
 
@@ -96,7 +95,7 @@ export function createUser(data: UserCreate) {
 
 ## 四、通用 hooks 走 ekit
 
-通用 hooks（debounce / throttle / clickOutside / mediaQuery 等）**禁止**自己造，走 ekit hooks（具体 API 查 `dwy-ekit` skill）。
+通用 hooks（debounce / throttle / clickOutside / mediaQuery 等）**禁止**自己造，走 ekit hooks（具体 API 查 `dwy-vue-appkit` skill）。
 
 ---
 
@@ -108,7 +107,7 @@ export function createUser(data: UserCreate) {
 
 ## 六、错误拦截走 ekit
 
-401 / 422 / 业务错误的拦截走 ekit request 插件（查 `dwy-ekit` skill），**禁止**每个 API 都包 try-catch。业务侧统一在页面级或 store 级处理，用 `isApiBusinessError` 守卫分支。
+401 / 422 / 业务错误的拦截走 ekit request 插件（查 `dwy-vue-appkit` skill），**禁止**每个 API 都包 try-catch。业务侧统一在页面级或 store 级处理，用 `isApiBusinessError` 守卫分支。
 
 ---
 
@@ -118,7 +117,7 @@ AI 编写或审查 Vue 代码时，涉及 eui / ekit 必须检查以下违规模
 
 | 检查项 | 违规模式 | 严重程度 |
 |--------|---------|---------|
-| 未查 skill | 使用 eui / ekit API 前未先查 `dwy-eui` / `dwy-ekit` skill | 高 |
+| 未查 skill | 使用 eui / ekit API 前未先查 `dwy-vue-appkit` skill | 高 |
 | ekit 重复造轮子 | 自造 HTTP / storage / cookie / date / 校验 / 脱敏 等 ekit 已提供能力 | 高 |
 | eui 重复造轮子 | 自造已有 UI 组件（Button / Input / Dialog 等） | 高 |
 | 组件直调 axios | 组件内 `axios.get` / `fetch` / `new XMLHttpRequest` | **致命 → STOP** |

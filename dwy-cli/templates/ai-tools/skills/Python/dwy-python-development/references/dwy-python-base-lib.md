@@ -6,7 +6,7 @@ paths:
 
 # Python 后端 dwyeapi 基础能力
 
-本资料适用于已采用 dwyeapi 的项目；版本及公开接口以实际安装包和 dwy-eapi Skill 为准。项目未采用时此处仅用于了解能力，不要求引入或替换现有实现。
+本资料适用于已采用 dwyeapi 的项目；版本及公开接口以实际安装包和 dwy-python-appkit Skill 为准。项目未采用时此处仅用于了解能力，不要求引入或替换现有实现。
 
 `dwyeapi` 是团队内部 PyPI 基础设施包，已封装后端项目所需的通用能力。
 
@@ -33,10 +33,10 @@ paths:
 
 ### 查阅方式（关键）
 
-**在编写任何后端代码前，以及调用任何 dwyeapi 提供的 API 之前，必须先用 `Skill` 工具加载 `dwy-eapi`。** skill 会按消费方**实际安装版本**选 `v0`/`v1` 文档线；不确定时先 clone `dwyeapi@x.y.z`，拿不到再读虚拟环境里的安装包。本文件**只规定约束与边界**，**不固化**模块路径、类名、函数签名。
+**在编写任何后端代码前，以及调用任何 dwyeapi 提供的 API 之前，必须先用 `Skill` 工具加载 `dwy-python-appkit`。** Skill 从基础包导航按需读取 EAPI 资料，先核对项目实际解释器、发行版本与导入源码，再选适用版本线；资料不足时补查对应来源/提交。本文件**只规定约束与边界**，**不固化**模块路径、类名、函数签名。
 
 ```
-Skill 工具调用：skill="dwy-eapi"
+Skill 工具调用：skill="dwy-python-appkit"
 ```
 
 ---
@@ -84,6 +84,6 @@ Skill 工具调用：skill="dwy-eapi"
 | 检查项 | 违规模式 | 严重程度 |
 |--------|---------|---------|
 | 重复造轮子 | 自造异常基类 / 自封装统一响应 / 手写 bcrypt 或 JWT 调用 / 自建 Redis 连接池 等 dwyeapi 已提供能力 | 高 |
-| 未查 skill | 调用 dwyeapi 能力域却未先查 `dwy-eapi` skill 拿当前 API | 高 |
+| 未查 skill | 调用 dwyeapi 能力域却未先查 `dwy-python-appkit` skill 拿当前 API | 高 |
 | 密码弱存储 | 使用 MD5 / SHA 而非 dwyeapi 安全模块的 bcrypt | **致命 → STOP** |
 | `datetime.now()` 直用 | 业务代码直接 `datetime.now()` 而非走 dwyeapi 时间模块 | 高 |

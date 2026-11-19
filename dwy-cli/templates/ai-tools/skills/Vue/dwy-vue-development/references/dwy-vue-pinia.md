@@ -54,7 +54,7 @@ export const useAuthStore = defineStore('auth', {
 | 不在组件中直接改 state | 必须通过 store 方法修改，**禁止** `store.xxx = yyy` |
 | 异步操作放 store | API 调用封装在 store 方法中，组件不直接调 API（除非纯展示页） |
 | 业务聚合 | store 文件放在对应业务模块目录（`modules/users/store.ts`），**禁止**顶级 `stores/` 把不同业务混放 |
-| 持久化 | 需要持久化的状态走 ekit storage / `useStorage`（具体 API 查 `dwy-ekit` skill），**禁止**直接 `localStorage` |
+| 持久化 | 需要持久化的状态走 ekit storage / `useStorage`（具体 API 查 `dwy-vue-appkit` skill），**禁止**直接 `localStorage` |
 | HTTP 调用 | 走全局 ekit `createRequest` 客户端，**禁止**自建 axios 实例 |
 
 ---

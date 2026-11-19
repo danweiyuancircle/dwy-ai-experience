@@ -2,7 +2,7 @@
 /**
  * 生成 dist/module-manifest.json
  *
- * 目的：给 AI（dwy-ekit skill）一份"导出索引"，让它在下游消费方项目里
+ * 目的：给 AI（dwy-vue-appkit skill）一份"导出索引"，让它在下游消费方项目里
  * 凭 node_modules/@dwydev/ekit/dist/module-manifest.json 就能定位
  * 每个 API 的精确类型文件，避免靠 SKILL.md 的过期签名表格。
  *

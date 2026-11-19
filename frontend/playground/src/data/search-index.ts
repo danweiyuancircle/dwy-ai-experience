@@ -120,9 +120,8 @@ const searchItems: SearchItem[] = [
   // CLI
   { title: 'create-dwy', module: 'CLI', path: '/cli/create-dwy', content: 'dwy create dwy sync 项目脚手架 配置同步' },
   // Claude Code · Skills
-  { title: 'dwy-eui', module: 'Claude Code', path: '/claude/skills/dwy-eui', content: 'EUI 组件库 skill Vue 3 reka-ui shadcn' },
-  { title: 'dwy-ekit', module: 'Claude Code', path: '/claude/skills/dwy-ekit', content: 'EKit 工具库 skill request storage validators date hooks' },
-  { title: 'dwy-eapi', module: 'Claude Code', path: '/claude/skills/dwy-eapi', content: 'EApi 基础设施 skill FastAPI SQLAlchemy Redis' },
+  { title: 'dwy-vue-appkit', module: 'Claude Code', path: '/claude/skills/dwy-vue-appkit', content: 'Vue 基础库 skill EUI EKIT admin-kit auth-web 组件 请求 后台 认证' },
+  { title: 'dwy-python-appkit', module: 'Claude Code', path: '/claude/skills/dwy-python-appkit', content: 'Python 基础库 skill EAPI FastAPI 认证 支付 通知 设备指纹' },
   { title: 'dwy-cli-sync-local', module: 'Claude Code', path: '/claude/skills/dwy-cli-sync-local', content: 'CLI 发版后同步本地全局 dwy 命令 skill npm publish' },
   { title: 'dwy-dev-qa', module: 'Claude Code', path: '/claude/skills/dwy-dev-qa', content: '开发质量保障流程 code review 测试 skill' },
   { title: 'dwy-git-commit', module: 'Claude Code', path: '/claude/skills/dwy-git-commit', content: 'Git commit 规范 提交前 pull rebase 远程 冲突 多人 type scope subject 中文 禁 AI 署名 敏感数据扫描 API Key Token 密钥 rule' },

@@ -139,14 +139,14 @@ AppleAppKit（iOS/macOS）默认发布 `MAJOR.MINOR.PATCH` 正式版本（如 `0
 AppleAppKit 更新版本、`apple/CHANGELOG.md` 或创建/发布语义化 tag 前，必须执行 `AGENTS.md` 的“AppleAppKit 版本与 Skill 同步”检查。以本次与上一发布 tag 的实际差异核对分发 Skill、平台引用资料和文档路径；需要更新时在 tag 前完成，无需更新时在对应 Changelog 版本条目记录具体依据。不得把“源码已更新”当作“Skill 已同步”。
 
 - `docs/eui-integration-guide.md` 是 EUI 集成指南的唯一源文件
-- 该文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/eui-integration-guide.md`
+- 该文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Vue/dwy-vue-appkit/references/eui/eui-integration-guide.md`
 - playground 的 `EuiIntegrationDoc.vue` 通过 `?raw` 导入同一文件，无需额外同步
 - `docs/tasks-integration-guide.md` 是 Tasks 集成指南的唯一源文件
-- 该文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Python/dwy-eapi/references/tasks-integration-guide.md`
-- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `dwy-cli/templates/ai-tools/skills/Python/dwy-eapi/SKILL.md` 中的 tasks 章节
+- 该文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Python/dwy-python-appkit/references/eapi/tasks-integration-guide.md`
+- tasks 模块有变更时，需同步更新 `docs/tasks-integration-guide.md` 和 `dwy-cli/templates/ai-tools/skills/Python/dwy-python-appkit/references/eapi/guide.md` 中的 tasks 章节
 - `docs/eui-design-guide.md` 是 EUI 中后台设计规范的唯一源文件
 - `docs/eui-landing-design-guide.md` 是 EUI 落地页设计规范的唯一源文件
-- 以上两个文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Vue/dwy-eui/references/` 对应文件
+- 以上两个文件变更后，必须同步到 `dwy-cli/templates/ai-tools/skills/Vue/dwy-vue-appkit/references/eui/` 对应文件
 
 ## 产品0到1 流程 schema 版本约束（强制）
 

@@ -13,7 +13,7 @@ paths:
 
 ## 一、客户端使用（强制）
 
-- **必须**通过 dwyeapi 缓存模块获取共享异步 Redis 客户端（具体 API 查 `dwy-eapi` skill）
+- **必须**通过 dwyeapi 缓存模块获取共享异步 Redis 客户端（具体 API 查 `dwy-python-appkit` skill）
 - **禁止**业务代码中 `aioredis.from_url(...)` 自建连接池
 - **禁止**直接使用同步 `redis-py`（除非脚本类一次性任务）
 
