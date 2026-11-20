@@ -1,110 +1,30 @@
 import 'package:dwy_design/dwy_design.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('settings subtitle respects theme and disabled colors', (
+  testWidgets('uses Cupertino controls and applies shared geometry', (
     tester,
   ) async {
-    final base = DwyTheme.create(brightness: Brightness.light);
-    final theme = base.copyWith(
-      listTileTheme: base.listTileTheme.copyWith(
-        subtitleTextStyle: const TextStyle(
-          fontSize: 19,
-          color: Colors.deepPurple,
+    await tester.pumpWidget(
+      host(
+        DwyTheme.withTokens(
+          tokens: const DwyTokens(controlRadius: 24),
+          child: DwySettingsGroup(
+            children: [
+              const DwySettingsTile(title: 'Setting', subtitle: 'Details'),
+              DwyButton(label: 'Continue', onPressed: () {}),
+            ],
+          ),
         ),
       ),
     );
-    for (final enabled in [true, false]) {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: theme,
-          home: Scaffold(
-            body: DwySettingsTile(
-              title: 'Setting',
-              subtitle: 'Details',
-              enabled: enabled,
-            ),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-      final style = DefaultTextStyle.of(tester.element(find.text('Details')))
-          .style;
-      expect(style.fontSize, 19);
-      expect(style.color, enabled ? Colors.deepPurple : theme.disabledColor);
-    }
+    expect(find.byType(CupertinoListSection), findsOneWidget);
+    expect(find.byType(CupertinoListTile), findsOneWidget);
+    final button = tester.widget<CupertinoButton>(find.byType(CupertinoButton));
+    expect(button.borderRadius, BorderRadius.circular(24));
+    expect(button.minimumSize!.height, 48);
   });
-
-  for (final brightness in Brightness.values) {
-    testWidgets('$brightness themed controls fit and retain selection', (
-      tester,
-    ) async {
-      tester.view.physicalSize = const Size(320, 800);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.resetPhysicalSize);
-      addTearDown(tester.view.resetDevicePixelRatio);
-      var selected = 0;
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: DwyTheme.create(brightness: brightness),
-          home: MediaQuery(
-            data: const MediaQueryData(textScaler: TextScaler.linear(2)),
-            child: Scaffold(
-              body: StatefulBuilder(
-                builder: (context, setState) => SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Card(
-                      child: Column(
-                        children: [
-                          const ListTile(
-                            title: Text('Title'),
-                            subtitle: Text('Description wraps'),
-                          ),
-                          SegmentedButton<int>(
-                            segments: const [
-                              ButtonSegment(value: 0, label: Text('One')),
-                              ButtonSegment(value: 1, label: Text('Two')),
-                            ],
-                            selected: {selected},
-                            onSelectionChanged: (values) =>
-                                setState(() => selected = values.single),
-                          ),
-                          NavigationBar(
-                            selectedIndex: selected,
-                            onDestinationSelected: (value) =>
-                                setState(() => selected = value),
-                            destinations: const [
-                              NavigationDestination(
-                                icon: Icon(Icons.home_outlined),
-                                label: 'Home',
-                              ),
-                              NavigationDestination(
-                                icon: Icon(Icons.list),
-                                label: 'List',
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-      await tester.tap(find.text('Two'));
-      await tester.pumpAndSettle();
-      expect(selected, 1);
-      await tester.tap(find.text('Home'));
-      await tester.pumpAndSettle();
-      expect(selected, 0);
-      expect(tester.takeException(), isNull);
-    });
-  }
 
   testWidgets(
     'loading button blocks actions and retains its accessible label',
@@ -115,7 +35,7 @@ void main() {
       );
       await tester.tap(find.text('Save'));
       expect(calls, 0);
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byType(CupertinoActivityIndicator), findsOneWidget);
       expect(find.text('Save'), findsOneWidget);
       await tester.pumpWidget(
         host(DwyButton(label: 'Save', onPressed: () => calls++)),
@@ -141,11 +61,12 @@ void main() {
         ),
       ),
     );
-    await tester.tap(find.byTooltip('Clear search'));
+    expect(find.byType(CupertinoSearchTextField), findsOneWidget);
+    await tester.tap(find.bySemanticsLabel('Clear search'));
     await tester.pump();
     expect(controller.text, isEmpty);
     expect(query, '');
-    expect(find.byTooltip('Clear search'), findsNothing);
+    expect(find.bySemanticsLabel('Clear search'), findsNothing);
   });
 
   testWidgets(
@@ -161,6 +82,8 @@ void main() {
             child: DwyTextField(
               controller: controller,
               label: 'Name',
+              autofillHints: const [AutofillHints.name],
+              maxLength: 7,
               validator: (value) => value!.isEmpty ? 'Required' : null,
             ),
           ),
@@ -169,7 +92,12 @@ void main() {
       expect(form.currentState!.validate(), isFalse);
       await tester.pump();
       expect(find.text('Required'), findsOneWidget);
-      await tester.enterText(find.byType(TextFormField), 'Example');
+      final input = find.byType(CupertinoTextField);
+      expect(tester.widget<CupertinoTextField>(input).autofillHints, [
+        AutofillHints.name,
+      ]);
+      await tester.enterText(input, 'Example overflow');
+      expect(controller.text, 'Example');
       expect(form.currentState!.validate(), isTrue);
     },
   );
@@ -183,11 +111,14 @@ void main() {
         DwySettingsTile(
           title: 'Disabled setting',
           enabled: false,
-          trailing: Switch(value: false, onChanged: (_) => changed = true),
+          trailing: CupertinoSwitch(
+            value: false,
+            onChanged: (_) => changed = true,
+          ),
         ),
       ),
     );
-    await tester.tap(find.byType(Switch), warnIfMissed: false);
+    await tester.tap(find.byType(CupertinoSwitch), warnIfMissed: false);
     expect(changed, isFalse);
   });
 
@@ -237,6 +168,11 @@ void main() {
   testWidgets('bottom sheet scrolls content and returns the explicit result', (
     tester,
   ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetViewInsets);
     String? result;
     await tester.pumpWidget(
       host(
@@ -271,7 +207,11 @@ void main() {
     );
     await tester.tap(find.text('Open sheet'));
     await tester.pumpAndSettle();
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Choose'));
+    await tester.pumpAndSettle();
+    expect(tester.getBottomRight(find.text('Choose')).dy, lessThan(544));
     await tester.tap(find.text('Choose'));
     await tester.pumpAndSettle();
     expect(result, 'chosen');
@@ -299,8 +239,8 @@ void main() {
                       title: 'A setting with a deliberately long title',
                       subtitle:
                           'A description that must wrap without clipping.',
-                      leading: const Icon(Icons.tune),
-                      trailing: Switch(value: true, onChanged: (_) {}),
+                      leading: const Icon(CupertinoIcons.slider_horizontal_3),
+                      trailing: CupertinoSwitch(value: true, onChanged: (_) {}),
                     ),
                   ],
                 ),
@@ -321,7 +261,7 @@ void main() {
   });
 }
 
-Widget host(Widget child) => MaterialApp(
+Widget host(Widget child) => CupertinoApp(
   theme: DwyTheme.create(brightness: Brightness.light),
-  home: Scaffold(body: SafeArea(child: child)),
+  home: CupertinoPageScaffold(child: SafeArea(child: child)),
 );

@@ -1,7 +1,7 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
-import 'button.dart';
 import 'theme.dart';
+import 'tokens.dart';
 
 /// Returns true only for confirmation; cancel, back and barrier dismissal return
 /// false. The caller performs the action after awaiting this result.
@@ -13,22 +13,21 @@ Future<bool> showDwyConfirmation({
   required String cancelLabel,
   bool destructive = false,
 }) async {
-  final result = await showDialog<bool>(
+  final result = await showCupertinoDialog<bool>(
     context: context,
-    builder: (dialogContext) => AlertDialog(
+    barrierDismissible: true,
+    builder: (dialogContext) => CupertinoAlertDialog(
       title: Text(title),
       content: Text(message),
       actions: [
-        DwyButton(
-          label: cancelLabel,
-          variant: DwyButtonVariant.subtle,
+        CupertinoDialogAction(
+          child: Text(cancelLabel),
           onPressed: () => Navigator.of(dialogContext).pop(false),
         ),
-        DwyButton(
-          label: confirmLabel,
-          variant: destructive
-              ? DwyButtonVariant.danger
-              : DwyButtonVariant.primary,
+        CupertinoDialogAction(
+          isDefaultAction: !destructive,
+          isDestructiveAction: destructive,
+          child: Text(confirmLabel),
           onPressed: () => Navigator.of(dialogContext).pop(true),
         ),
       ],
@@ -43,42 +42,32 @@ Future<T?> showDwySheet<T>({
   required BuildContext context,
   required String title,
   required WidgetBuilder builder,
-}) => showModalBottomSheet<T>(
+}) => showCupertinoSheet<T>(
   context: context,
-  isScrollControlled: true,
-  useSafeArea: true,
   showDragHandle: true,
-  backgroundColor: Theme.of(context).colorScheme.surface,
-  shape: RoundedRectangleBorder(
-    borderRadius: BorderRadius.vertical(
-      top: Radius.circular(DwyTheme.tokensOf(context).groupRadius),
-    ),
-  ),
-  builder: (sheetContext) => Padding(
-    padding: EdgeInsets.only(
-      bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
-    ),
-    child: ConstrainedBox(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.sizeOf(sheetContext).height * 0.85,
-      ),
-      child: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(
-          24,
-          0,
-          24,
-          24 + MediaQuery.paddingOf(sheetContext).bottom,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(title, style: Theme.of(sheetContext).textTheme.titleLarge),
-            const SizedBox(height: 20),
-            builder(sheetContext),
-          ],
+  scrollableBuilder: (sheetContext, controller) {
+    final theme = CupertinoTheme.of(sheetContext);
+    final inset = DwyTheme.tokensOf(sheetContext).pageInset;
+    return CupertinoPageScaffold(
+      backgroundColor: CupertinoColors.secondarySystemGroupedBackground
+          .resolveFrom(sheetContext),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          controller: controller,
+          padding: EdgeInsets.fromLTRB(inset, DwyTokens.spaceXL, inset, inset),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Semantics(
+                header: true,
+                child: Text(title, style: theme.textTheme.navTitleTextStyle),
+              ),
+              const SizedBox(height: DwyTokens.spaceL),
+              Builder(builder: builder),
+            ],
+          ),
         ),
       ),
-    ),
-  ),
+    );
+  },
 );

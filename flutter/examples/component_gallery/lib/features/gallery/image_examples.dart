@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dwy_design/dwy_design.dart';
 import 'package:dwy_image/dwy_image.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 import 'sample_image.dart';
 
@@ -76,18 +76,20 @@ class _ImageExamplesState extends State<ImageExamples> {
     children: [
       const Text('资源和内存示例无需网络。网络示例仅在你输入地址并点击加载后发起请求。'),
       const SizedBox(height: 20),
-      Text('外观与解码', style: Theme.of(context).textTheme.titleMedium),
+      Text(
+        '外观与解码',
+        style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
+      ),
       Text('物理解码上限：${_decodeSize.round()} px'),
-      Slider(
+      CupertinoSlider(
         value: _decodeSize,
         min: 48,
         max: 384,
         divisions: 7,
-        label: '${_decodeSize.round()} px',
         onChanged: (value) => setState(() => _decodeSize = value),
       ),
       Text('圆角：${_radius.round()}'),
-      Slider(
+      CupertinoSlider(
         value: _radius,
         min: 0,
         max: 32,
@@ -122,7 +124,10 @@ class _ImageExamplesState extends State<ImageExamples> {
       if (_repaired)
         const Padding(padding: EdgeInsets.only(top: 8), child: Text('已换成有效图片')),
       const SizedBox(height: 32),
-      Text('网络与 scope 隔离', style: Theme.of(context).textTheme.titleMedium),
+      Text(
+        '网络与 scope 隔离',
+        style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
+      ),
       const SizedBox(height: 12),
       const Text('可用 tool/image_fixture.dart 启动本机服务。不要在演示地址中填写凭据或敏感内容。'),
       const SizedBox(height: 12),
@@ -141,19 +146,18 @@ class _ImageExamplesState extends State<ImageExamples> {
         runSpacing: 12,
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          DropdownButton<String>(
-            value: _scope,
-            items: const [
-              DropdownMenuItem(value: 'a', child: Text('Scope A')),
-              DropdownMenuItem(value: 'b', child: Text('Scope B')),
-            ],
-            onChanged: _busy
-                ? null
-                : (value) => setState(() {
-                    _scope = value!;
-                    _network = null;
-                    _status = '已切换 scope，请点击加载。';
-                  }),
+          CupertinoSlidingSegmentedControl<String>(
+            groupValue: _scope,
+            disabledChildren: _busy ? const {'a', 'b'} : const {},
+            children: const {'a': Text('Scope A'), 'b': Text('Scope B')},
+            onValueChanged: (value) {
+              if (value == null || value == _scope) return;
+              setState(() {
+                _scope = value;
+                _network = null;
+                _status = '已切换 scope，请点击加载。';
+              });
+            },
           ),
           DwyButton(label: '加载网络图片', onPressed: _busy ? null : _load),
           DwyButton(
@@ -229,7 +233,7 @@ class _ImageExamplesState extends State<ImageExamples> {
               showErrorDemo ? '示例数据暂不可解码' : '图片暂不可用',
               textAlign: TextAlign.center,
             ),
-            TextButton(
+            CupertinoButton(
               onPressed: retry,
               child: Text(showErrorDemo ? '重试解码' : '重试加载'),
             ),

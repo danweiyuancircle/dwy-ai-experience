@@ -1,10 +1,12 @@
 # Flutter 基础库交付状态
 
-状态日期：2026-11-16。当前结论：**工具链兼容检查、单测与 Web 编译通过，原生验收尚未完成**。
+## 2026-11-16 · 前一版验证
+
+下表记录迁移 Cupertino 之前的基础库与工具链验证。当前界面基线及旧代码归档见 `flutter/docs/design-system.md`。
 
 | 项目 | 当前事实 |
 | --- | --- |
-| UI、图片与 Gallery | 23项测试通过，独立 material_ui；详见 `flutter/docs/ui-3.50-validation.md` |
+| UI、图片与 Gallery | 23 项测试通过，详见 `flutter/docs/ui-3.50-validation.md` |
 | 网络、日志、媒体、三类存储 | 50项测试通过；详见 `flutter/docs/foundation-3.50-validation.md` |
 | 工作区 | 8个包和Playground统一解析成功，有真实lockfile；完整分析无诊断 |
 | 数据库生成代码 | Dart3.14下实际执行build_runner生成成功 |
@@ -14,9 +16,9 @@
 
 首次封装统一从Flutter3.50.0 stable / Dart3.14.0起步，不保留旧下限或旧UI兼容入口。精确基线见 `flutter/docs/development-baseline.md`；历史交接与安装提案不代表当前状态。
 
-## 后续闭环
+## 前一版待办
 
 1. 使用官方CLI生成Playground移动宿主，设置iOS18 / Android10支持基线，执行构建和目标系统验证。
 2. 启动可交互Playground并检查主题、品牌、基础组件、图片和关键失败路径，提供实际访问地址与运行证据。
 
-当前源码没有提交、推送或发布；包内已记录的上游限制需要在集成审查中逐项裁决，不能默认视为已接受的最终限制。
+本次记录时源码没有提交、推送或发布；包内已记录的上游限制需要在集成审查中逐项裁决，不能默认视为已接受的最终限制。

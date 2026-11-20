@@ -16,7 +16,9 @@
 | 统一 Mocktail、测试用例只覆盖既定 Provider 模式 | 匹配纯 Dart/Widget/平台测试，按实际依赖选 fake/mock，明确验证范围 |
 | 无官方 Skill 实际使用凭据 | 每项开发必须读取并使用匹配官方 Skill，记录来源、工作流与实际验证结果 |
 
-## 当前强约束
+## 2026-11-16 评审时的强约束
+
+当前界面基线见 `flutter/docs/design-system.md`。
 
 - 新移动端支持基线 iOS 18+、Android 10+/minSdk29；targetSdk、compileSdk 和 Dart/Flutter SDK 版本分别管理。
 - Material 3 + DWY 主题统一双端视觉，不默认混用 Cupertino/adaptive 外观，不加入玻璃材质。

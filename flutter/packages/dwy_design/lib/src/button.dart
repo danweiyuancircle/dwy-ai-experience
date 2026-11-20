@@ -1,4 +1,6 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+
+import 'theme.dart';
 
 /// Action hierarchy, independent of any product-specific command.
 enum DwyButtonVariant { primary, secondary, subtle, danger }
@@ -12,7 +14,7 @@ class DwyButton extends StatelessWidget {
     this.variant = DwyButtonVariant.primary,
     this.icon,
     this.loading = false,
-    this.style,
+    this.padding,
     super.key,
   });
 
@@ -21,20 +23,22 @@ class DwyButton extends StatelessWidget {
   final DwyButtonVariant variant;
   final IconData? icon;
   final bool loading;
-  final ButtonStyle? style;
+
+  /// Overrides the default content insets for this button.
+  final EdgeInsetsGeometry? padding;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = CupertinoTheme.of(context);
+    final tokens = DwyTheme.tokensOf(context);
+    final radius = BorderRadius.circular(tokens.controlRadius);
+    final minimumSize = Size(48, tokens.controlHeight);
     final action = loading ? null : onPressed;
     final content = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (loading) ...[
-          const SizedBox.square(
-            dimension: 18,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
+          const CupertinoActivityIndicator(radius: 8),
           const SizedBox(width: 8),
         ] else if (icon != null) ...[
           Icon(icon, size: 20),
@@ -43,30 +47,37 @@ class DwyButton extends StatelessWidget {
         Flexible(child: Text(label, textAlign: TextAlign.center)),
       ],
     );
-    return switch (variant) {
-      DwyButtonVariant.primary => FilledButton(
+    if (variant == DwyButtonVariant.secondary) {
+      return CupertinoButton.tinted(
         onPressed: action,
-        style: style,
+        padding: padding,
+        minimumSize: minimumSize,
+        borderRadius: radius,
         child: content,
-      ),
-      DwyButtonVariant.secondary => OutlinedButton(
+      );
+    }
+    if (variant == DwyButtonVariant.subtle) {
+      return CupertinoButton(
         onPressed: action,
-        style: style,
+        padding: padding,
+        minimumSize: minimumSize,
+        borderRadius: radius,
         child: content,
-      ),
-      DwyButtonVariant.subtle => TextButton(
-        onPressed: action,
-        style: style,
-        child: content,
-      ),
-      DwyButtonVariant.danger => FilledButton(
-        onPressed: action,
-        style: FilledButton.styleFrom(
-          backgroundColor: scheme.error,
-          foregroundColor: scheme.onError,
-        ).merge(style),
-        child: content,
-      ),
-    };
+      );
+    }
+    final background = variant == DwyButtonVariant.danger
+        ? CupertinoDynamicColor.resolve(CupertinoColors.systemRed, context)
+        : theme.primaryColor;
+    return CupertinoButton.filled(
+      color: background,
+      foregroundColor: background.computeLuminance() > 0.179
+          ? CupertinoColors.black
+          : CupertinoColors.white,
+      onPressed: action,
+      padding: padding,
+      minimumSize: minimumSize,
+      borderRadius: radius,
+      child: content,
+    );
   }
 }

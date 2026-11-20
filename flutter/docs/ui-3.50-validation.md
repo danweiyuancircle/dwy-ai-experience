@@ -1,4 +1,6 @@
-# UI 基础库 Flutter 3.50 验证
+# UI 基础库 Flutter 3.50 验证 · Material 历史记录
+
+本页记录停用前的验证。当前界面基线见 `flutter/docs/design-system.md`。
 
 2026-11-16 回读实际工具链：Flutter 3.50.0 stable，framework ab2912035e，Dart 3.14.0。沿用已安装工具链，没有安装或升级额外工具。
 

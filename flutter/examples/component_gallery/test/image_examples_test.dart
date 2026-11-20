@@ -1,7 +1,7 @@
 import 'package:dwy_component_gallery/features/gallery/image_examples.dart';
 import 'package:dwy_design/dwy_design.dart';
 import 'package:dwy_image/dwy_image.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -32,7 +32,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.byKey(const Key('image-url')));
     await tester.enterText(
-      find.byType(TextFormField),
+      find.byType(CupertinoTextField),
       'file:///private/image.png',
     );
     await tester.ensureVisible(find.text('加载网络图片'));
@@ -60,10 +60,10 @@ void main() {
   });
 }
 
-Widget host({double textScale = 1}) => MaterialApp(
+Widget host({double textScale = 1}) => CupertinoApp(
   theme: DwyTheme.create(brightness: Brightness.light),
-  home: Scaffold(
-    body: MediaQuery(
+  home: CupertinoPageScaffold(
+    child: MediaQuery(
       data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
       child: const SingleChildScrollView(
         child: Padding(padding: EdgeInsets.all(24), child: ImageExamples()),

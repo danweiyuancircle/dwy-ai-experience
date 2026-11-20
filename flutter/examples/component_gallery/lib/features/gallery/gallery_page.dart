@@ -1,7 +1,10 @@
 import 'package:dwy_design/dwy_design.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 import 'image_examples.dart';
+
+/// Appearance selection for the Gallery app root.
+enum GalleryThemeMode { system, light, dark }
 
 /// Interactive examples consume public DWY UI APIs and Flutter primitives.
 class GalleryPage extends StatefulWidget {
@@ -17,11 +20,11 @@ class GalleryPage extends StatefulWidget {
     super.key,
   });
 
-  final ThemeMode themeMode;
+  final GalleryThemeMode themeMode;
   final Color primary;
   final bool rounded;
   final bool customButtons;
-  final ValueChanged<ThemeMode> onThemeMode;
+  final ValueChanged<GalleryThemeMode> onThemeMode;
   final ValueChanged<Color> onPrimary;
   final ValueChanged<bool> onRounded;
   final ValueChanged<bool> onCustomButtons;
@@ -41,13 +44,13 @@ class _GalleryPageState extends State<GalleryPage> {
     '图片',
   ];
   static const _icons = [
-    Icons.palette_outlined,
-    Icons.touch_app_outlined,
-    Icons.search,
-    Icons.tune,
-    Icons.web_asset_outlined,
-    Icons.inbox_outlined,
-    Icons.image_outlined,
+    CupertinoIcons.paintbrush,
+    CupertinoIcons.add_circled,
+    CupertinoIcons.search,
+    CupertinoIcons.slider_horizontal_3,
+    CupertinoIcons.rectangle,
+    CupertinoIcons.tray,
+    CupertinoIcons.photo,
   ];
   final _name = TextEditingController();
   final _search = TextEditingController();
@@ -61,6 +64,7 @@ class _GalleryPageState extends State<GalleryPage> {
   String _query = '';
   String _formResult = '';
   String _dialogResult = '尚未操作';
+  String? _feedback;
   DwyStatusKind _status = DwyStatusKind.empty;
 
   @override
@@ -74,32 +78,51 @@ class _GalleryPageState extends State<GalleryPage> {
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, layout) {
       final wide = layout.maxWidth >= 900;
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('DWY Playground'),
-          actions: [
-            PopupMenuButton<ThemeMode>(
-              tooltip: '外观模式',
-              initialValue: widget.themeMode,
-              icon: const Icon(Icons.brightness_6_outlined),
-              onSelected: widget.onThemeMode,
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: ThemeMode.system, child: Text('跟随系统')),
-                PopupMenuItem(value: ThemeMode.light, child: Text('浅色')),
-                PopupMenuItem(value: ThemeMode.dark, child: Text('深色')),
-              ],
+      final theme = CupertinoTheme.of(context);
+      return CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
+          middle: const Text('DWY Playground'),
+          leading: wide
+              ? null
+              : Semantics(
+                  label: '组件目录',
+                  child: CupertinoButton(
+                    padding: EdgeInsets.zero,
+                    onPressed: () => showDwySheet<void>(
+                      context: context,
+                      title: '组件目录',
+                      builder: (sheetContext) =>
+                          _navigation(sheetContext, true),
+                    ),
+                    child: const Icon(CupertinoIcons.line_horizontal_3),
+                  ),
+                ),
+          trailing: Semantics(
+            label: '外观模式',
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: _chooseAppearance,
+              child: const Icon(CupertinoIcons.circle_lefthalf_fill),
             ),
-            const SizedBox(width: 12),
-          ],
+          ),
         ),
-        drawer: wide ? null : Drawer(child: SafeArea(child: _navigation(true))),
-        body: SafeArea(
-          top: false,
+        child: SafeArea(
           child: Row(
             children: [
               if (wide) ...[
-                SizedBox(width: 240, child: _navigation(false)),
-                const VerticalDivider(width: 1),
+                SizedBox(
+                  width: 240,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: _navigation(context, false),
+                  ),
+                ),
+                SizedBox(
+                  width: 1,
+                  child: ColoredBox(
+                    color: CupertinoColors.separator.resolveFrom(context),
+                  ),
+                ),
               ],
               Expanded(
                 child: SingleChildScrollView(
@@ -113,20 +136,18 @@ class _GalleryPageState extends State<GalleryPage> {
                         children: [
                           Text(
                             _sections[_selected],
-                            style: Theme.of(context).textTheme.headlineMedium,
+                            style: theme.textTheme.navLargeTitleTextStyle,
                           ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Material 3 交互底座 · 双端统一视觉 · 无玻璃材质',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 28),
+                          const SizedBox(height: 24),
                           _content(context),
-                          const SizedBox(height: 32),
-                          Text(
-                            '图片页仅在主动加载 URL 后联网，其他示例均在本地运行。',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
+                          if (_feedback case final feedback?)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: Semantics(
+                                liveRegion: true,
+                                child: Text(feedback),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -140,28 +161,55 @@ class _GalleryPageState extends State<GalleryPage> {
     },
   );
 
-  Widget _navigation(bool closeDrawer) => ListView(
-    padding: const EdgeInsets.all(16),
+  Widget _navigation(BuildContext context, bool closeSheet) => DwySettingsGroup(
+    title: closeSheet ? null : '组件目录',
     children: [
-      Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
-        child: Text('组件目录', style: Theme.of(context).textTheme.titleSmall),
-      ),
       for (var index = 0; index < _sections.length; index++)
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: ListTile(
-            selected: _selected == index,
+        Semantics(
+          selected: _selected == index,
+          child: CupertinoListTile.notched(
+            backgroundColor: _selected == index
+                ? CupertinoColors.tertiarySystemFill.resolveFrom(context)
+                : CupertinoColors.transparent,
             leading: Icon(_icons[index]),
             title: Text(_sections[index]),
             onTap: () {
-              setState(() => _selected = index);
-              if (closeDrawer) Navigator.of(context).pop();
+              setState(() {
+                _selected = index;
+                _feedback = null;
+              });
+              if (closeSheet) Navigator.of(context).pop();
             },
           ),
         ),
     ],
   );
+
+  Future<void> _chooseAppearance() async {
+    final mode = await showCupertinoModalPopup<GalleryThemeMode>(
+      context: context,
+      builder: (context) => CupertinoActionSheet(
+        title: const Text('外观模式'),
+        actions: [
+          for (final entry in const {
+            GalleryThemeMode.system: '跟随系统',
+            GalleryThemeMode.light: '浅色',
+            GalleryThemeMode.dark: '深色',
+          }.entries)
+            CupertinoActionSheetAction(
+              isDefaultAction: widget.themeMode == entry.key,
+              onPressed: () => Navigator.of(context).pop(entry.key),
+              child: Text(entry.value),
+            ),
+        ],
+        cancelButton: CupertinoActionSheetAction(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+      ),
+    );
+    if (mounted && mode != null) widget.onThemeMode(mode);
+  }
 
   Widget _content(BuildContext context) => switch (_selected) {
     0 => _themeExamples(context),
@@ -174,12 +222,13 @@ class _GalleryPageState extends State<GalleryPage> {
   };
 
   Widget _themeExamples(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
+    final theme = CupertinoTheme.of(context);
+    final separator = CupertinoColors.separator.resolveFrom(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _panel('品牌配置', [
-          const Text('切换品牌色后，按钮、聚焦边框、选中状态同时更新。'),
+          const Text('切换品牌色后，按钮和 Tab 选中状态同时更新。'),
           Wrap(
             spacing: 12,
             runSpacing: 8,
@@ -189,10 +238,12 @@ class _GalleryPageState extends State<GalleryPage> {
                 '松石绿': Color(0xFF0F766E),
                 '柔和紫': Color(0xFF7C3AED),
               }.entries)
-                ChoiceChip(
-                  label: Text(entry.key),
-                  selected: widget.primary == entry.value,
-                  onSelected: (_) => widget.onPrimary(entry.value),
+                DwyButton(
+                  label: entry.key,
+                  variant: widget.primary == entry.value
+                      ? DwyButtonVariant.primary
+                      : DwyButtonVariant.secondary,
+                  onPressed: () => widget.onPrimary(entry.value),
                 ),
             ],
           ),
@@ -201,11 +252,12 @@ class _GalleryPageState extends State<GalleryPage> {
             runSpacing: 8,
             children: [
               for (final entry in {
-                '主要操作': scheme.primary,
-                '内容表面': scheme.surface,
-                '主要文字': scheme.onSurface,
-                '次要文字': scheme.onSurfaceVariant,
-                '分隔线': scheme.outlineVariant,
+                '主要操作': theme.primaryColor,
+                '内容表面': CupertinoColors.secondarySystemGroupedBackground
+                    .resolveFrom(context),
+                '主要文字': CupertinoColors.label.resolveFrom(context),
+                '次要文字': CupertinoColors.secondaryLabel.resolveFrom(context),
+                '分隔线': separator,
               }.entries)
                 SizedBox(
                   width: 140,
@@ -217,13 +269,14 @@ class _GalleryPageState extends State<GalleryPage> {
                         decoration: BoxDecoration(
                           color: entry.value,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: scheme.outlineVariant),
+                          border: Border.all(color: separator),
                         ),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         entry.key,
-                        style: Theme.of(context).textTheme.bodySmall,
+                        style: CupertinoTheme.of(context).textTheme.textStyle
+                            .copyWith(fontSize: 13),
                       ),
                     ],
                   ),
@@ -238,15 +291,15 @@ class _GalleryPageState extends State<GalleryPage> {
             DwySettingsTile(
               title: '圆角令牌',
               subtitle: '在 12 与 24 之间切换，观察按钮和输入框。',
-              trailing: Switch(
+              trailing: CupertinoSwitch(
                 value: widget.rounded,
                 onChanged: widget.onRounded,
               ),
             ),
             DwySettingsTile(
               title: '组件主题覆盖',
-              subtitle: '应用层通过 ThemeData.copyWith 增大实心按钮内边距。',
-              trailing: Switch(
+              subtitle: '应用层为单个按钮覆盖内容内边距。',
+              trailing: CupertinoSwitch(
                 value: widget.customButtons,
                 onChanged: widget.onCustomButtons,
               ),
@@ -257,29 +310,32 @@ class _GalleryPageState extends State<GalleryPage> {
         _panel('预览', [
           DwyButton(
             label: '主要操作',
-            icon: Icons.check,
+            icon: CupertinoIcons.check_mark,
+            padding: widget.customButtons
+                ? const EdgeInsets.symmetric(horizontal: 32, vertical: 20)
+                : null,
             onPressed: () => _notice('按钮可用'),
           ),
           DwyTextField(controller: _name, label: '示例输入', hintText: '输入内容'),
-          SegmentedButton<int>(
-            segments: const [
-              ButtonSegment(value: 0, label: Text('概览')),
-              ButtonSegment(value: 1, label: Text('记录')),
-            ],
-            selected: {_previewScope},
-            onSelectionChanged: (values) =>
-                setState(() => _previewScope = values.single),
+          CupertinoSlidingSegmentedControl<int>(
+            children: const {0: Text('概览'), 1: Text('记录')},
+            groupValue: _previewScope,
+            onValueChanged: (value) {
+              if (value != null) setState(() => _previewScope = value);
+            },
           ),
-          NavigationBar(
-            selectedIndex: _previewScope,
-            onDestinationSelected: (value) =>
-                setState(() => _previewScope = value),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
+          CupertinoTabBar(
+            currentIndex: _previewScope,
+            onTap: (value) => setState(() => _previewScope = value),
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.house),
                 label: '概览',
               ),
-              NavigationDestination(icon: Icon(Icons.list_alt), label: '记录'),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.list_bullet),
+                label: '记录',
+              ),
             ],
           ),
         ]),
@@ -292,7 +348,11 @@ class _GalleryPageState extends State<GalleryPage> {
       spacing: 12,
       runSpacing: 12,
       children: [
-        DwyButton(label: '主要操作', icon: Icons.add, onPressed: _countClick),
+        DwyButton(
+          label: '主要操作',
+          icon: CupertinoIcons.add,
+          onPressed: _countClick,
+        ),
         DwyButton(
           label: '次要操作',
           variant: DwyButtonVariant.secondary,
@@ -362,9 +422,9 @@ class _GalleryPageState extends State<GalleryPage> {
           '空状态',
           '弹窗',
         ].where((value) => value.contains(_query)))
-          ListTile(
+          CupertinoListTile(
             title: Text(value),
-            leading: const Icon(Icons.widgets_outlined),
+            leading: const Icon(CupertinoIcons.square_grid_2x2),
           ),
       ]),
     ],
@@ -377,16 +437,16 @@ class _GalleryPageState extends State<GalleryPage> {
       DwySettingsTile(
         title: '通知偏好',
         subtitle: '仅演示本地开关，不申请系统权限。',
-        leading: const Icon(Icons.notifications_none),
-        trailing: Switch(
+        leading: const Icon(CupertinoIcons.bell),
+        trailing: CupertinoSwitch(
           value: _notifications,
           onChanged: (value) => setState(() => _notifications = value),
         ),
       ),
       DwySettingsTile(
         title: '同步偏好',
-        leading: const Icon(Icons.sync),
-        trailing: Switch(
+        leading: const Icon(CupertinoIcons.arrow_2_circlepath),
+        trailing: CupertinoSwitch(
           value: _sync,
           onChanged: (value) => setState(() => _sync = value),
         ),
@@ -394,19 +454,18 @@ class _GalleryPageState extends State<GalleryPage> {
       DwySettingsTile(
         title: '可跳转的设置行',
         subtitle: '支持说明文字自动换行和系统大字体。',
-        leading: const Icon(Icons.info_outline),
+        leading: const Icon(CupertinoIcons.info_circle),
         onTap: () => _notice('已点击设置行'),
       ),
       const DwySettingsTile(
         title: '暂不可用',
-        leading: Icon(Icons.lock_outline),
+        leading: Icon(CupertinoIcons.lock),
         enabled: false,
       ),
     ],
   );
 
   Widget _dialogExamples(BuildContext context) => _panel('确认与底部面板', [
-    const Text('双端保持同一套 Material 3 / DWY 外观，不切换 Cupertino。'),
     Wrap(
       spacing: 12,
       runSpacing: 12,
@@ -461,10 +520,12 @@ class _GalleryPageState extends State<GalleryPage> {
           '加载中': DwyStatusKind.loading,
           '错误': DwyStatusKind.error,
         }.entries)
-          ChoiceChip(
-            label: Text(entry.key),
-            selected: _status == entry.value,
-            onSelected: (_) => setState(() => _status = entry.value),
+          DwyButton(
+            label: entry.key,
+            variant: _status == entry.value
+                ? DwyButtonVariant.primary
+                : DwyButtonVariant.secondary,
+            onPressed: () => setState(() => _status = entry.value),
           ),
       ],
     ),
@@ -487,13 +548,24 @@ class _GalleryPageState extends State<GalleryPage> {
     ),
   ]);
 
-  Widget _panel(String title, List<Widget> children) => Card(
+  Widget _panel(String title, List<Widget> children) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+        context,
+      ),
+      borderRadius: BorderRadius.circular(
+        DwyTheme.tokensOf(context).groupRadius,
+      ),
+    ),
     child: Padding(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            title,
+            style: CupertinoTheme.of(context).textTheme.navTitleTextStyle,
+          ),
           for (final child in children) ...[const SizedBox(height: 16), child],
         ],
       ),
@@ -510,7 +582,5 @@ class _GalleryPageState extends State<GalleryPage> {
     _notice('演示操作完成');
   }
 
-  void _notice(String message) =>
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
+  void _notice(String message) => setState(() => _feedback = message);
 }

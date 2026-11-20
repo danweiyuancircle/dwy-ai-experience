@@ -1,21 +1,14 @@
 # dwy_design 测试用例
 
-2026-11-18：Flutter3.50.0 / Dart3.14.0，独立 material_ui1.11.0，15项测试通过；原生设备和视觉验收另行记录。
-
-| 文件 / 测试 | 目标 |
-| --- | --- |
-| `components_test.dart` / settings subtitle respects theme and disabled colors | 设置说明继承消费方 ListTileTheme 的字号与颜色，禁用时继承系统禁用文字色 |
-| `theme_test.dart` / Brightness.dark、Brightness.light shares typography and quiet component surfaces | 两种主题共享文字层级、卡片/导航/弹窗表面，选中文字对比度，导航禁用样式委托原生默认，分段按钮禁用优先于选中状态（2项） |
-| `components_test.dart` / Brightness.dark、Brightness.light themed controls fit and retain selection | 320宽、2倍文字下卡片/列表/分段按钮/导航不溢出，分段和导航仍能改变选择（2项） |
-| `theme_test.dart` / default theme keeps neutral surfaces and accessible brand text | 公开 ThemeData 与独立 Material 类型一致，默认浅色令牌与主色、次要文字对比度 |
-| `theme_test.dart` / brand and geometry are injected without changing component API | 品牌覆盖、按钮与分段控件高度，卡片与弹窗圆角随token变化，品牌文字对比度 |
-| `theme_test.dart` / dark theme has distinct surfaces and readable semantic text | 深色表面层级及文字对比度 |
-| `components_test.dart` / loading button blocks actions and retains its accessible label | 加载状态防重复且保留操作文字，恢复后可点击 |
-| `components_test.dart` / search clear updates controller and parent callback | 清除内容同步调用方，不残留清除按钮 |
-| `components_test.dart` / input exposes form validation without owning application rules | Form 校验规则来自调用方 |
-| `components_test.dart` / disabled settings row also blocks its trailing control | 禁用设置行也阻止尾部开关响应 |
-| `components_test.dart` / confirmation returns explicit choice; dismiss is not acceptance | 确认和取消结果明确 |
-| `components_test.dart` / bottom sheet scrolls content and returns the explicit result | 长内容滚动，关闭时返回指定结果 |
-| `components_test.dart` / settings and status fit a narrow screen with large text | 320宽、2倍文字下设置与状态组件不溢出 |
-
-执行：在 `flutter/packages/dwy_design` 运行 `flutter test`。需要先在工作区成功解析 SDK 依赖。
+| 测试 | 验证内容 |
+|---|---|
+| `components_test.dart` · uses Cupertino controls and applies shared geometry | 设置列表和按钮使用 Cupertino 控件，应用可覆盖圆角令牌 |
+| loading button blocks actions and retains its accessible label | 加载时保留按钮标签，阻止重复操作 |
+| search clear updates controller and parent callback | 清空文本并通知调用方，清除入口消失 |
+| input exposes form validation without owning application rules | 调用方校验错误显示和恢复，转交自动填充提示并限制输入长度 |
+| disabled settings row also blocks its trailing control | 禁用设置行阻止尾部开关操作 |
+| confirmation returns explicit choice; dismiss is not acceptance | 取消、确认和点击遮罩各自返回预期结果 |
+| bottom sheet scrolls content and returns the explicit result | 模拟键盘遮挡后长内容可滚动，底部动作可达并返回指定结果 |
+| settings and status fit a narrow screen with large text | 320 宽、双倍字号下设置和状态组件可布局 |
+| `theme_test.dart` · brand and brightness configure the standalone Cupertino theme | 主题使用独立 Cupertino 类型，品牌与字体可配置 |
+| dynamic background follows the active theme | 动态背景跟随浅深主题 |

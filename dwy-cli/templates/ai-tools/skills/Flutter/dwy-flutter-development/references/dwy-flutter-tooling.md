@@ -75,7 +75,7 @@ flutter build ios --no-codesign
 
 ## 跟随 SDK 核对
 
-- Material/Cupertino 的 SDK 入口与独立包、国际化及兼容桥按锁定 SDK 的官方迁移文档核对；不能把旧 import 当永久推荐，也不能只凭新文档批量迁移旧项目。
+- 独立 Cupertino 包、国际化及兼容桥按锁定 SDK 的官方迁移文档核对；不能把旧 import 当永久推荐，也不能只凭新文档批量迁移旧项目。
 - Flutter 编译 iOS 时核对项目所选 Xcode/DEVELOPER_DIR 和实际 iOS SDK；Android 核对 SDK/JDK/Gradle 兼容范围。安装器或 doctor 提示不代表已经授权自动升级、接受许可或更改全局环境。
 - Widget Preview 的命令、注解与平台限制用当前 SDK 验证，不将 Web 预览结果写成原生插件成功。
 - 官方 MCP 已连接时优先使用适合的诊断、测试和运行工具；未连接时使用官方 CLI。找到 MCP/Skill 不等于已安装或已运行。

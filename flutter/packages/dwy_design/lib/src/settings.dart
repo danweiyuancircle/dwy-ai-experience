@@ -1,4 +1,4 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 import 'theme.dart';
 
@@ -24,20 +24,42 @@ class DwySettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
+    final text = CupertinoTheme.of(context).textTheme.textStyle;
+    final secondary = CupertinoDynamicColor.resolve(
+      enabled ? CupertinoColors.secondaryLabel : CupertinoColors.tertiaryLabel,
+      context,
+    );
+    return Semantics(
       enabled: enabled,
-      onTap: onTap,
-      leading: leading,
-      title: Text(title),
-      subtitle: subtitle == null
-          ? null
-          : Padding(
-              padding: const EdgeInsets.only(top: 4),
-              child: Text(subtitle!),
-            ),
-      trailing: trailing == null
-          ? (onTap == null ? null : const Icon(Icons.chevron_right))
-          : IgnorePointer(ignoring: !enabled, child: trailing),
+      child: CupertinoListTile.notched(
+        onTap: enabled ? onTap : null,
+        leading: leading,
+        title: DefaultTextStyle(
+          // The official tile defaults to one line. Settings descriptions may wrap.
+          style: text,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(title, style: enabled ? null : TextStyle(color: secondary)),
+              if (subtitle != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    subtitle!,
+                    style: TextStyle(fontSize: 14, color: secondary),
+                  ),
+                ),
+            ],
+          ),
+        ),
+        trailing: trailing == null
+            ? (onTap == null ? null : const CupertinoListTileChevron())
+            : IgnorePointer(
+                ignoring: !enabled,
+                child: ExcludeSemantics(excluding: !enabled, child: trailing),
+              ),
+      ),
     );
   }
 }
@@ -57,36 +79,19 @@ class DwySettingsGroup extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final tokens = DwyTheme.tokensOf(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (title != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 4, bottom: 12),
-            child: Text(title!, style: theme.textTheme.titleSmall),
-          ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(tokens.groupRadius),
-          child: Material(
-            color: theme.colorScheme.surface,
-            child: Column(
-              children: [
-                for (var index = 0; index < children.length; index++) ...[
-                  if (index > 0) const Divider(indent: 16, endIndent: 16),
-                  children[index],
-                ],
-              ],
-            ),
-          ),
+    return CupertinoListSection.insetGrouped(
+      header: title == null ? null : Text(title!),
+      footer: footnote == null ? null : Text(footnote!),
+      margin: EdgeInsets.zero,
+      backgroundColor: CupertinoColors.transparent,
+      decoration: BoxDecoration(
+        color: CupertinoColors.secondarySystemGroupedBackground.resolveFrom(
+          context,
         ),
-        if (footnote != null)
-          Padding(
-            padding: const EdgeInsets.only(left: 4, top: 8),
-            child: Text(footnote!, style: theme.textTheme.bodySmall),
-          ),
-      ],
+        borderRadius: BorderRadius.circular(tokens.groupRadius),
+      ),
+      children: children.isEmpty ? const [SizedBox.shrink()] : children,
     );
   }
 }

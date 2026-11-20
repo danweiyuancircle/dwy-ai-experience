@@ -1,6 +1,6 @@
 import 'package:dwy_design/dwy_design.dart';
 import 'package:dwy_image/dwy_image.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter/widget_previews.dart';
 
 import '../features/gallery/sample_image.dart';
@@ -13,11 +13,11 @@ Widget galleryImageLightPreview() => _preview(Brightness.light);
 @Preview(name: 'Memory / dark', group: 'DWY Images', size: Size(360, 260))
 Widget galleryImageDarkPreview() => _preview(Brightness.dark);
 
-Widget _preview(Brightness brightness) => MaterialApp(
+Widget _preview(Brightness brightness) => CupertinoApp(
   debugShowCheckedModeBanner: false,
   theme: DwyTheme.create(brightness: brightness),
-  home: Scaffold(
-    body: Center(
+  home: CupertinoPageScaffold(
+    child: Center(
       child: DwyImage(
         source: DwyImageSource.memory(galleryImageBytes),
         width: 280,

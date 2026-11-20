@@ -1,6 +1,6 @@
 # DWY Flutter 基础库
 
-Material 3 交互底座，统一的浅灰白、蓝色强调主题。iOS、Android 共用同一视觉，不按平台切换 Cupertino，也不包含玻璃材质。
+iOS 和 Android 共用 Flutter 官方 Cupertino 控件与 DWY 主题。品牌、令牌和共享组件接入见 `flutter/docs/design-system.md`。
 
 ## 当前内容
 
@@ -47,9 +47,9 @@ flutter test
 flutter run -d web-server --web-hostname 127.0.0.1 --web-port 5188
 ```
 
-Playground 地址：`http://127.0.0.1:5188/`。支持桌面侧栏与窄屏抽屉，可切换明暗、品牌色、圆角、组件主题，操作表单、搜索、设置、确认弹窗、底部面板和内容状态。
+Playground 地址：`http://127.0.0.1:5188/`。支持桌面侧栏与窄屏目录面板，可切换明暗、品牌色、圆角、按钮内边距，操作表单、搜索、设置、确认弹窗、底部面板和内容状态。
 
-UI 包、测试与 Gallery 使用独立 `material_ui` 1.11.0，公开主题类型来源保持一致。新增 UI 依赖或国际化配置时核对实际版本接口，不直接采用在线最新示例。各包依赖、版本来源和限制见包 README 及迁移记录。
+UI 包、测试与 Gallery 使用独立 `cupertino_ui` 1.1.6，公开主题类型来源保持一致。新增 UI 依赖或国际化配置时核对实际版本接口，不直接采用在线最新示例。各包依赖、版本来源和限制见包 README 及迁移记录。
 
 本例先提供 Web 宿主，iOS/Android 宿主工程及签名、设备构建仍待 SDK 环境就绪后生成和验收。不要将 Web 可运行等同于双端验收完成。
 

@@ -1,4 +1,4 @@
-/// DWY Material 3 design system. Install [DwyTheme] at the application root.
+/// DWY Cupertino theme and shared UI behavior for iOS and Android.
 library;
 
 export 'src/button.dart';

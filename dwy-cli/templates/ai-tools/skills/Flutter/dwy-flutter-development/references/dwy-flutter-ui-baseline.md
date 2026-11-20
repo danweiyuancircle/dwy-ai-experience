@@ -15,16 +15,12 @@
 
 ## Flutter 3.50 UI 基线
 
-Material/Cupertino 已拆成独立包，SDK 内置设计库在 3.50 正式废弃。新 Material UI 从 `package:material_ui/material_ui.dart` 导入；不为未使用的 Cupertino 引入独立包。UI 包与 Flutter SDK 独立选版本并记录锁定结果，不能认为升级 Flutter 就升级了 Material。
+Flutter 3.50 的 DWY UI 使用独立 `cupertino_ui`，统一采用 Apple 风格。UI 包与 Flutter SDK 独立选版本，按工作区解析结果核对。
 
-迁移顺序：
-
-1. 查 [官方迁移说明](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui)，追踪当前源码、测试、示例及直接/传递依赖的 import 和公开 UI 类型。
-2. 使用本次 SDK 的 `dart fix --dry-run --code=migrate_design_widgets` 预览，只应用与任务相关的迁移。新增直接依赖遵循已有选型规则；每个直接 import 的成员包自己声明依赖。
-3. 统一公开 ThemeData、ColorScheme、TextTheme、组件主题及回调签名的类型来源。新旧库同名类型不同，必须迁移相应依赖契约；禁止 dynamic/cast 绕过。
-4. 核对本版本独立库的国际化入口，例如 `GlobalMaterialLocalizations.delegates`，验证产品实际支持语言。不要机械保留旧 flutter_localizations 配置。
-5. 只有第三方旧 Widget 实际需要旧 Theme/Localizations 时，在根装配使用 `MaterialUiCompatibilityBridge`，记录需要它的具体依赖和移除条件。桥只能向下提供上下文，不能转换公开 API 的新旧类型。
-6. 运行分析和受影响测试，验证浅深主题、输入、弹层、导航与本地化，再做目标平台构建/交互验收。基础库公开类型迁移属于破坏性变更，发布时按实际消费影响处理。
+1. 查 [官方迁移说明](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui)，跟踪源码、测试、示例和第三方依赖使用的公开 UI 类型。直接导入的成员自行声明依赖。
+2. 应用用 `CupertinoApp` 和 `DwyTheme.create` 装配主题。项目令牌通过 `DwyTheme.withTokens` 装配。国际化用独立包的 `GlobalCupertinoLocalizations.delegates`，验证产品实际支持的语言。
+3. Flutter 核心布局使用核心 Widget。已有 Cupertino 控件直接使用，共用样式和交互使用 `dwy_design`。只有实际消费旧 SDK Cupertino Widget 时才核对 `CupertinoUiCompatibilityBridge` 的上下文适用范围。
+4. 用共用 Widget 用例验证主题、输入、弹层和导航，再用同一条流程验证 iOS 和 Android 安全区、键盘与返回。公开主题类型变化需同步消费方接入。
 
 ## 升级闭环
 

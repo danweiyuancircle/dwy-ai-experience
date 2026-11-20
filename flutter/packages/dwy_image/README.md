@@ -62,7 +62,7 @@ Widget 强制提供逻辑尺寸，加载/失败时布局不改变；按设备像
 | flutter_cache_manager | 3.5.0 | 2026-11-04 07:11:52.925282 | MIT |
 | file（仅测试） | 7.0.1 | 2024-10-08 15:54:11.380188 | BSD-3-Clause |
 
-前两者均为 Baseflow 维护，选型时正式版已发布满 7 天；未升级到 `4.0.7`。4.x 上游依赖独立 `material_ui`，本包、设计包与 Gallery 已统一使用锁文件已有的 `material_ui` 1.11.0，公开主题类型不混用旧 SDK Material 库。具体运行证据见 `flutter/docs/flutter-3.50-migration.md`。
+前两者均为 Baseflow 维护，选型时正式版已发布满 7 天；未升级到 `4.0.7`。默认加载、错误重试和占位使用独立 `cupertino_ui`。缓存与图片来源仍使用现有上游实现。消费方可以用 `placeholderBuilder` 和 `errorBuilder` 提供自身样式。
 
 来源：[精确图片包元数据](https://pub.dev/api/packages/cached_network_image/versions/4.0.6)、[缓存管理器元数据](https://pub.dev/api/packages/flutter_cache_manager/versions/3.5.0)、[图片包源码](https://github.com/Baseflow/flutter_cached_network_image)、[缓存管理器源码](https://github.com/Baseflow/flutter_cache_manager)。许可声明见 `THIRD_PARTY.md`；应用发布时把锁定版本与许可加入隐私协议的「第三方开源组件」附录。
 

@@ -1,6 +1,6 @@
 # DWY Component Playground
 
-默认 Material 3 + DWY 中性主题，支持桌面目录与窄屏抽屉。图片页使用 `dwy_image` 公共 API；没有远程演示图片、默认 HTTP 请求或权限申请。
+使用独立 Cupertino UI 和 DWY 主题，支持桌面侧栏与窄屏目录面板。图片页使用 `dwy_image` 公共 API；没有远程演示图片、默认 HTTP 请求或权限申请。
 
 ## 图片示例
 
@@ -41,8 +41,6 @@ flutter widget-preview start
 
 注解导入 `package:flutter/widget_previews.dart`，没有引入额外 preview 包；首次运行仍由工作区集成验证 SDK API 与 Web 转译兼容性。
 
-## 验证状态
+## 验证入口
 
-本轮读取并使用官方 `flutter-build-responsive-layout`、`flutter-add-widget-test`、`flutter-add-widget-preview` Skill：按可用宽度 Wrap/ConstrainedBox 布局，测试输入/点击/刷新状态，并提供无原生调用的有界 Preview。来源和四项环境检查写入 `flutter/docs/implementation-review.md` 的图片接入段。
-
-新增测试源码见 `test/image_examples_test.dart`：本地默认来源、错误重试/修复、非法 URL 拦截、不创建缓存时的清理提示、320宽双倍文字布局。本 agent 未运行共享 CLI；SDK 安装后由主任务统一格式化、分析、测试与实际浏览器检查。
+使用工作区锁定的 Flutter 版本运行 `flutter test`，测试说明见 `test/TEST_CASES.md`。移动宿主集成可选同一条搜索、编辑、弹层、返回流程分别在 iOS 和 Android 验证。

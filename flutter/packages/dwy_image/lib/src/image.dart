@@ -1,4 +1,4 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 import 'source.dart';
 
@@ -100,20 +100,15 @@ final class _DwyImageState extends State<DwyImage> {
       widget.placeholderBuilder?.call(context) ??
       Semantics(
         label: widget.loadingLabel,
-        child: const Center(
-          child: SizedBox.square(
-            dimension: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ),
+        child: const Center(child: CupertinoActivityIndicator()),
       );
 
   Widget _failed(BuildContext context, Object error) =>
       widget.errorBuilder?.call(context, error, _retry) ??
       Center(
-        child: Tooltip(
-          message: widget.errorLabel,
-          child: TextButton(
+        child: Semantics(
+          label: widget.errorLabel,
+          child: CupertinoButton(
             onPressed: _retry,
             child: Text(
               widget.retryLabel,
@@ -167,7 +162,7 @@ final class _DwyImageState extends State<DwyImage> {
           width: widget.width,
           height: widget.height,
           child: ColoredBox(
-            color: Theme.of(context).colorScheme.surfaceContainerLow,
+            color: CupertinoColors.tertiarySystemFill.resolveFrom(context),
             child: content,
           ),
         ),

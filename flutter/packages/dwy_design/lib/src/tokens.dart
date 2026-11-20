@@ -1,10 +1,8 @@
-import 'dart:ui' show lerpDouble;
-
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/foundation.dart';
 
 /// Product-independent geometry. Flutter text scaling remains enabled.
 @immutable
-class DwyTokens extends ThemeExtension<DwyTokens> {
+class DwyTokens {
   const DwyTokens({
     this.controlRadius = 12,
     this.groupRadius = 16,
@@ -26,7 +24,7 @@ class DwyTokens extends ThemeExtension<DwyTokens> {
   final double controlHeight;
   final double pageInset;
 
-  @override
+  /// Returns geometry with the supplied dimensions replaced.
   DwyTokens copyWith({
     double? controlRadius,
     double? groupRadius,
@@ -38,15 +36,4 @@ class DwyTokens extends ThemeExtension<DwyTokens> {
     controlHeight: controlHeight ?? this.controlHeight,
     pageInset: pageInset ?? this.pageInset,
   );
-
-  @override
-  DwyTokens lerp(covariant DwyTokens? other, double t) {
-    if (other == null) return this;
-    return DwyTokens(
-      controlRadius: lerpDouble(controlRadius, other.controlRadius, t)!,
-      groupRadius: lerpDouble(groupRadius, other.groupRadius, t)!,
-      controlHeight: lerpDouble(controlHeight, other.controlHeight, t)!,
-      pageInset: lerpDouble(pageInset, other.pageInset, t)!,
-    );
-  }
 }

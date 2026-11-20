@@ -14,10 +14,10 @@
 ## 产品与包边界
 
 - 工作区开发工具链固定 Flutter 3.50.0 stable / 内置 Dart 3.14.0，具体来源、UI 包与验证范围见 `flutter/docs/development-baseline.md`。首次封装的全部包从此基线开始：Dart 下限统一为 3.14，依赖 Flutter 的包下限统一为 3.50；不保留旧版兼容入口、适配层或旧下限。不自动升级到下一补丁或浮动 latest/stable。
-- UI 使用独立 `material_ui`；公开主题与组件类型不能混用 SDK 内置 Material 类型。兼容桥只解决旧 Widget 上下文，不解决公开类型冲突。
+- UI 使用独立 `cupertino_ui`。公开主题使用该包的 `CupertinoThemeData`，基础 Widget 使用 Flutter 核心库。
 - 统一移动端基线：iOS 18+，Android 10+（minSdk 29）。targetSdk/compileSdk 分别核实；插件升级不得静默提高最低支持版本。
 - 四层：Assembly、Features、BizFoundation、Foundation；业务包不得依赖 Widget、设计主题和应用路由；Feature 互不引用。
-- UI 以 Material 3 + DWY 主题统一双端风格；不默认切 Cupertino/adaptive 外观，不加玻璃材质。必要平台行为单独适配。
+- iOS 和 Android 共用 Cupertino 控件与 `dwy_design` 主题。共享包只封装通用视觉和交互约定，页面按需直接使用其余官方控件。
 - 默认清爽中性灰白 + 蓝强调色，浅深跟随系统；产品可覆盖品牌、令牌、组件主题。新组件提供 Playground 示例及必要测试。
 - 网络 Dio、日志 logger、偏好 shared_preferences、安全存储 flutter_secure_storage、数据库 Drift/SQLite、相册 photo_manager/image_picker、图片 cached_network_image 是当前用户选定底座；精确版本、传递依赖和原生约束仍须核实。
 - 共享包按需依赖，无 UI 插件不等于纯 Dart。基础包不包含产品 DTO、数据库表、全局认证或导航。

@@ -30,6 +30,12 @@ test('Flutter 四个职责入口可发现，随同步安装后本地引用仍可
   for (const skill of skills) {
     const projectDir = path.join(root, skill.name)
     await copySkillsToProjectPlatforms({ projectDir, homeDir: path.join(root, 'home'), platforms: ['codex'], skills: [skill] })
-    await checkReferences(path.join(projectDir, '.agents/skills', skill.name))
+    const installed = path.join(projectDir, '.agents/skills', skill.name)
+    await checkReferences(installed)
+    if (skill.name === 'dwy-flutter-appkit' || skill.name === 'dwy-flutter-development') {
+      const entry = await fs.readFile(path.join(installed, 'SKILL.md'), 'utf8')
+      assert.match(entry, /`cupertino_ui`/)
+      assert.doesNotMatch(entry, /`material_ui`|Material 3/)
+    }
   }
 })

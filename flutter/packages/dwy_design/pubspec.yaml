@@ -1,5 +1,5 @@
 name: dwy_design
-description: DWY Material 3 themes and reusable, product-independent Flutter components.
+description: DWY Cupertino themes and reusable, product-independent Flutter components.
 version: 0.1.0
 publish_to: none
 environment:
@@ -9,7 +9,8 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  material_ui: 1.11.0
+  cupertino_ui: 1.1.6
+  cupertino_icons: 1.0.9
 dev_dependencies:
   flutter_test:
     sdk: flutter

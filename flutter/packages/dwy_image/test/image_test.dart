@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dwy_image/dwy_image.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -16,7 +16,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     final bytes = await tester.runAsync(imageBytes);
     await tester.pumpWidget(
-      MaterialApp(
+      CupertinoApp(
         home: Center(
           child: DwyImage(
             source: DwyImageSource.memory(bytes!),
@@ -43,7 +43,7 @@ void main() {
     (tester) async {
       final source = DwyImageSource.memory(Uint8List.fromList([0, 1, 2]));
       await tester.pumpWidget(
-        MaterialApp(
+        CupertinoApp(
           builder: (context, child) => MediaQuery(
             data: MediaQuery.of(context)
                 .copyWith(textScaler: const TextScaler.linear(2)),
@@ -78,7 +78,7 @@ void main() {
   testWidgets(
     'network prefetch caches, invalidation reloads and scope clear is isolated',
     (tester) async {
-      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
+      await tester.pumpWidget(const CupertinoApp(home: SizedBox()));
       final context = tester.element(find.byType(SizedBox));
       await tester.runAsync(
         () => HttpOverrides.runWithHttpOverrides(() async {

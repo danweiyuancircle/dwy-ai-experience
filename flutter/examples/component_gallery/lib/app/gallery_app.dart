@@ -1,5 +1,5 @@
 import 'package:dwy_design/dwy_design.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 import '../features/gallery/gallery_page.dart';
 
@@ -12,36 +12,29 @@ class GalleryApp extends StatefulWidget {
 }
 
 class _GalleryAppState extends State<GalleryApp> {
-  ThemeMode _mode = ThemeMode.system;
+  GalleryThemeMode _mode = GalleryThemeMode.system;
   Color _primary = const Color(0xFF2563EB);
   bool _rounded = false;
   bool _customButtons = false;
 
-  ThemeData _theme(Brightness brightness) {
-    final theme = DwyTheme.create(
-      brightness: brightness,
-      brand: DwyBrand(primary: _primary),
-      tokens: DwyTokens(controlRadius: _rounded ? 24 : 12),
-    );
-    if (!_customButtons) return theme;
-    return theme.copyWith(
-      filledButtonTheme: FilledButtonThemeData(
-        style: theme.filledButtonTheme.style!.copyWith(
-          padding: const WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
-  Widget build(BuildContext context) => MaterialApp(
+  Widget build(BuildContext context) => CupertinoApp(
     title: 'DWY 组件 Playground',
     debugShowCheckedModeBanner: false,
-    theme: _theme(Brightness.light),
-    darkTheme: _theme(Brightness.dark),
-    themeMode: _mode,
+    theme: DwyTheme.create(
+      brightness: switch (_mode) {
+        GalleryThemeMode.system => null,
+        GalleryThemeMode.light => Brightness.light,
+        GalleryThemeMode.dark => Brightness.dark,
+      },
+      brand: DwyBrand(primary: _primary),
+    ),
+    localizationsDelegates: GlobalCupertinoLocalizations.delegates,
+    supportedLocales: const [Locale('zh'), Locale('en')],
+    builder: (context, child) => DwyTheme.withTokens(
+      tokens: DwyTokens(controlRadius: _rounded ? 24 : 12),
+      child: child!,
+    ),
     home: GalleryPage(
       themeMode: _mode,
       primary: _primary,

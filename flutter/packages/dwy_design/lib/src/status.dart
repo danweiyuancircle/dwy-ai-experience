@@ -1,4 +1,4 @@
-import 'package:material_ui/material_ui.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
 
 /// States describe presentation only; data ownership stays in the feature.
 enum DwyStatusKind { empty, loading, error }
@@ -23,27 +23,28 @@ class DwyStatusView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final theme = CupertinoTheme.of(context);
+    final secondary = CupertinoColors.secondaryLabel.resolveFrom(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (kind == DwyStatusKind.loading)
-            const CircularProgressIndicator()
+            const CupertinoActivityIndicator()
           else
             Icon(
               icon ??
                   (kind == DwyStatusKind.error
-                      ? Icons.error_outline
-                      : Icons.inbox_outlined),
+                      ? CupertinoIcons.exclamationmark_circle
+                      : CupertinoIcons.tray),
               size: 40,
-              color: theme.colorScheme.onSurfaceVariant,
+              color: secondary,
             ),
           const SizedBox(height: 16),
           Text(
             title,
-            style: theme.textTheme.titleMedium,
+            style: theme.textTheme.navTitleTextStyle,
             textAlign: TextAlign.center,
           ),
           if (message != null) ...[
@@ -51,9 +52,7 @@ class DwyStatusView extends StatelessWidget {
             Text(
               message!,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              style: theme.textTheme.textStyle.copyWith(color: secondary),
             ),
           ],
           if (action != null) ...[const SizedBox(height: 20), action!],
