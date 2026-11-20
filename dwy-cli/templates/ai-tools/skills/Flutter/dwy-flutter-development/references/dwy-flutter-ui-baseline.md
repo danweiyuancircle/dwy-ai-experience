@@ -17,9 +17,9 @@
 
 Flutter 3.50 的 DWY UI 使用独立 `cupertino_ui`，统一采用 Apple 风格。UI 包与 Flutter SDK 独立选版本，按工作区解析结果核对。
 
-1. 查 [官方迁移说明](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui)，跟踪源码、测试、示例和第三方依赖使用的公开 UI 类型。直接导入的成员自行声明依赖。
-2. 应用用 `CupertinoApp` 和 `DwyTheme.create` 装配主题。项目令牌通过 `DwyTheme.withTokens` 装配。国际化用独立包的 `GlobalCupertinoLocalizations.delegates`，验证产品实际支持的语言。
-3. Flutter 核心布局使用核心 Widget。已有 Cupertino 控件直接使用，共用样式和交互使用 `dwy_design`。只有实际消费旧 SDK Cupertino Widget 时才核对 `CupertinoUiCompatibilityBridge` 的上下文适用范围。
+1. 查 [官方迁移说明](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui)，跟踪源码、测试、示例和第三方依赖使用的公开 UI 类型。直接导入上游包的共享库成员自行声明依赖，使用共享入口的应用依赖 `dwy_design`。
+2. 应用从 `dwy_design` 导入 `CupertinoApp`、`DwyTheme.create` 和 `GlobalCupertinoLocalizations`。项目令牌通过 `DwyTheme.withTokens` 装配。配置并验证产品实际支持的语言。
+3. Flutter 核心布局使用核心 Widget。已由 `dwy_design` 导出的 Cupertino 控件沿用官方 API，共用样式和交互使用 DWY 组件。只有实际消费旧 SDK Cupertino Widget 时才核对 `CupertinoUiCompatibilityBridge` 的上下文适用范围。
 4. 用共用 Widget 用例验证主题、输入、弹层和导航，再用同一条流程验证 iOS 和 Android 安全区、键盘与返回。公开主题类型变化需同步消费方接入。
 
 ## 升级闭环

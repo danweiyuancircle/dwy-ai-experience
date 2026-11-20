@@ -21,8 +21,8 @@ description: 开发、测试、排查、评审或适配 Flutter 应用、Widget�
 - 先核对 Flutter/Dart SDK、锁文件、宿主平台和已有实现。用官方 CLI 创建、分析、测试和运行；新宿主用 `flutter create` 生成，不手拼原生构建工程。
 - 新移动项目默认 iOS 18+、Android 10+（`minSdk = 29`）；`targetSdk` 与最低版本分开核实。既有项目不因使用 Skill 被擅自升级；插件提高最低版本必须说明影响。
 - 模块分层、依赖方向与抽取使用 `dwy-flutter-architecture`；Dart 语言、异步和纯 Dart 包使用 `dwy-dart-development`；消费 DWY 自有基础包使用 `dwy-flutter-appkit`，不要求每次加载全部入口。
-- DWY 移动 UI 使用独立 `cupertino_ui` 和 `dwy_design` 主题，iOS 与 Android 共用页面和组件。把系统返回、键盘和安全区的适配集中在实际涉及的共用入口。
-- 3.50 新 UI 使用独立 `cupertino_ui`；基础 Widget 从 Flutter 核心库导入。迁移核对主题、国际化与第三方公开类型，不能只换 import 或装 SDK 就宣称完成，也不添加无实际旧依赖需要的兼容桥。
+- DWY 移动应用通过 `dwy_design` 的公开入口导入共享主题、组件与已导出的官方 Cupertino 控件，iOS 与 Android 共用页面和组件。把系统返回、键盘和安全区的适配集中在实际涉及的共用入口。
+- 基础 Widget 从 Flutter 核心库导入。由直接使用独立 `cupertino_ui` 的共享库成员声明并管理版本。迁移时核对主题、国际化与第三方公开类型，仅在消费旧 SDK 控件时评估兼容桥。
 - 先查共享包的真实接口、版本和验证状态；不能把待开发包当成已发布能力。无合适包时按已批准底座封装，不复制基础实现到产品。
 - 不强制 Riverpod、Freezed、GoRouter 或某个 Mock 库。沿用项目已选方案，新依赖先选型；简单局部状态和简单模型可以用 SDK 能力。
 - SDK 缺失、只有源码/静态检查、只有 Web 预览时，分别报告；不能宣称分析、测试、构建或移动端验收已通过。
