@@ -4,11 +4,11 @@ iOS 和 Android 共用官方 Cupertino 控件和 DWY 主题。应用声明品牌
 
 ## 应用接入
 
-应用在 pubspec 中按需声明 `dwy_design` 与 `cupertino_ui`。使用 `CupertinoIcons` 的应用通过自身依赖或 `dwy_design` 的依赖解析图打包图标字体。
+应用在 pubspec 中声明 `dwy_design`，从其公开入口导入 DWY 组件和常用 Cupertino 控件。共享库统一管理 `cupertino_ui` 与图标字体的版本，Flutter 基础布局通过 `flutter/widgets.dart` 使用。
 
 ```dart
-import 'package:cupertino_ui/cupertino_ui.dart';
 import 'package:dwy_design/dwy_design.dart';
+import 'package:flutter/widgets.dart';
 
 void main() => runApp(const ExampleApp());
 
@@ -51,7 +51,7 @@ class ExampleApp extends StatelessWidget {
 | `showDwyConfirmation` | 仅确认返回 `true`，其余退出返回 `false` |
 | `showDwySheet<T>` | 底部安全区、键盘避让、滚动与拖拽联动，使用 `Navigator.pop(context, result)` 返回结果 |
 
-导航栏、Tab、滑块、选择器等可直接使用官方控件。编辑表单、筛选面板等业务组件放在对应 Feature 或应用共享 UI，由业务层提供数据、校验与动作。跨项目出现相同交互后再评估抽取范围。
+导航栏、Tab、日期选择器等从 `dwy_design` 导入，使用官方控件原有 API。编辑表单、筛选面板等业务组件放在对应 Feature 或应用共享 UI，由业务层提供数据、校验与动作。跨项目出现相同交互后再评估抽取范围。
 
 Gallery 在 `flutter/examples/component_gallery/`，包含浅深、品牌色、令牌、输入搜索、分组、弹层和图片示例。
 

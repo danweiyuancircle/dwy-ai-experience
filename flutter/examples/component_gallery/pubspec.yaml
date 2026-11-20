@@ -9,7 +9,7 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  cupertino_ui: 1.1.6
+  cupertino_ui: 1.1.7
   dwy_design: ^0.1.0
   dwy_image: ^0.1.0
 dev_dependencies:

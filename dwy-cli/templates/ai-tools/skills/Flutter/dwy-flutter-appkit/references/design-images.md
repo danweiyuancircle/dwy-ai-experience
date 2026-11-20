@@ -6,7 +6,7 @@
 
 - 查对应源码的 `flutter/docs/design-system.md`、`flutter/packages/dwy_design/lib/dwy_design.dart` 和 `flutter/examples/component_gallery/`；该包的接入说明在设计系统文档，不依赖一个未必存在的包 README。
 - 应用根使用独立包 `CupertinoApp` 和 `DwyTheme.create`。浅深色默认跟随系统，品牌色与字体按应用装配，令牌有项目级配置时通过 `DwyTheme.withTokens` 放在根 `builder`。核对实际依赖版本的 API。
-- 共用按钮、表单输入、设置项、状态、确认与 Sheet 使用 DWY 入口。导航栏、Tab、滚轮等直接用独立 Cupertino 控件，继承同一套主题。业务交互留在项目 Feature 或应用共享 UI，数据、控制器、焦点和导航由消费方负责。
+- 共用按钮、表单输入、设置项、状态、确认与 Sheet 使用 DWY 入口。导航栏、Tab、日期滚轮等使用 `dwy_design` 导出的官方控件，保留原 API，继承同一套主题。应用依赖 `dwy_design`，由共享库管理所导出控件的上游版本。业务交互留在项目 Feature 或应用共享 UI，数据、控制器、焦点和导航由消费方负责。
 
 ## dwy_image
 

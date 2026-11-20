@@ -8,7 +8,7 @@
 | Framework revision | ab2912035e160d9cad6306df307576da6128ebdb |
 | 内置 Dart | 3.14.0；与 Flutter 同一工具链，不单独升级 |
 | Engine revision | 371f77202a73e8dff57a8b3bff75bca55c090aee |
-| Cupertino UI | cupertino_ui 1.1.6，复用工作区已解析版本，由直接使用的成员声明 |
+| Cupertino UI | cupertino_ui 1.1.7，由直接使用的成员声明 |
 | 单测 | test 1.32.0，与该 SDK flutter_test 固定的 test_api 0.7.14 对齐 |
 | 数据库代码生成 | build_runner 2.17.1 / analyzer 14.7.0，支持 Dart 3.14；不升级 Drift 运行时 |
 | 移动目标 | iOS 18+ / Android 10+（minSdk29）；原生工程和插件仍须逐项核对 |
@@ -21,4 +21,4 @@
 
 公开 UI 使用独立包的 `CupertinoThemeData`。主题迁移会影响调用方的根应用和 Material 专用类型，接入方式见 `flutter/docs/design-system.md`。共享包目前为 `publish_to: none`。
 
-来源：[SDK 标签源码](https://github.com/flutter/flutter/tree/3.50.0)、[官方迁移说明](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui)、[cupertino_ui](https://pub.dev/packages/cupertino_ui/versions/1.1.6)、[test](https://pub.dev/packages/test/versions/1.32.0)。验证记录见 `flutter/docs/flutter-3.50-migration.md`。
+来源：[SDK 标签源码](https://github.com/flutter/flutter/tree/3.50.0)、[官方迁移说明](https://docs.flutter.dev/release/breaking-changes/material-ui-and-cupertino-ui)、[cupertino_ui](https://pub.dev/packages/cupertino_ui/versions/1.1.7)、[test](https://pub.dev/packages/test/versions/1.32.0)。验证记录见 `flutter/docs/flutter-3.50-migration.md`。
