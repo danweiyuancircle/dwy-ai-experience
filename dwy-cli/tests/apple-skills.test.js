@@ -7,7 +7,7 @@ import { scanRules, scanSkills } from '../src/sync.js'
 import { copySkillsToProjectPlatforms } from '../src/sync-global-skills.js'
 
 const source = path.resolve('templates/ai-tools')
-const names = ['dwy-swift-development', 'dwy-apple-architecture', 'dwy-ios-development', 'dwy-macos-development']
+const names = ['dwy-swift-development', 'dwy-apple-architecture', 'dwy-ios-development', 'dwy-macos-development', 'dwy-macos-local-debug']
 
 test('Apple 开发技能可发现且引用的本地资料存在，旧规则不再作为独立规则分发', async () => {
   const skills = await scanSkills(source)
@@ -17,7 +17,7 @@ test('Apple 开发技能可发现且引用的本地资料存在，旧规则不�
     assert.ok(skill, `缺少 ${name}`)
     const content = await fs.readFile(path.join(skill.sourcePath, 'SKILL.md'), 'utf8')
     assert.match(content, new RegExp(`name: ${name}`))
-    for (const [, reference] of content.matchAll(/\]\((references\/[^)]+)\)/g)) {
+    for (const [, reference] of content.matchAll(/\]\(((?:references|scripts)\/[^)]+)\)/g)) {
       await fs.access(path.join(skill.sourcePath, reference))
     }
   }
@@ -26,7 +26,7 @@ test('Apple 开发技能可发现且引用的本地资料存在，旧规则不�
   }
 })
 
-test('四个技能经现有同步流程安装后参考文件可访问', async () => {
+test('Apple 技能经现有同步流程安装后附带资料和脚本可访问', async () => {
   const temp = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-apple-skills-'))
   try {
     const skills = (await scanSkills(source)).filter(item => names.includes(item.name))
@@ -34,7 +34,7 @@ test('四个技能经现有同步流程安装后参考文件可访问', async ()
     for (const skill of skills) {
       const entry = path.join(temp, 'project', '.agents', 'skills', skill.name)
       const content = await fs.readFile(path.join(entry, 'SKILL.md'), 'utf8')
-      for (const [, reference] of content.matchAll(/\]\((references\/[^)]+)\)/g)) {
+      for (const [, reference] of content.matchAll(/\]\(((?:references|scripts)\/[^)]+)\)/g)) {
         await fs.access(path.join(entry, reference))
       }
     }
