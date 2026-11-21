@@ -138,6 +138,17 @@ async function managedNames(root, global, codexHome) {
   }
 }
 
+const SKILL_RENAMES = new Map([
+  ['dwy-dependency-choice', 'dwy-open-source-selection'],
+])
+
+function includeRenamedSkills(names, skills) {
+  for (const [oldName, newName] of SKILL_RENAMES) {
+    if (names.has(oldName) && skills.some(skill => skill.name === newName)) names.add(newName)
+  }
+  return names
+}
+
 /** 无交互刷新共享 Skills 和已有配置，清理全局及当前项目中模板已移除的受管 Skills。 */
 export async function refreshAll({
   sourceDir, projectDir = process.cwd(), homeDir = os.homedir(),
@@ -160,7 +171,8 @@ export async function refreshAll({
       const removedSkills = prune
         ? (state?.skills || []).filter(name => !scans.skills.some(skill => skill.name === name))
         : []
-      const selected = { skills: scans.skills.filter(item => names('skills').has(item.name)),
+      const skillNames = includeRenamedSkills(names('skills'), scans.skills)
+      const selected = { skills: scans.skills.filter(item => skillNames.has(item.name)),
         rules: scans.rules.filter(item => names('rules').has(platform === 'cursor' ? buildCursorRuleName(item.name) : item.name)
           || (state?.rules || []).includes(item.name)) }
       const hooks = scans.hooks.filter(item => names('hooks').has(item.name))
@@ -231,8 +243,8 @@ const RULE_SKILL_MIGRATIONS = {
   'dwy-db-migration.md': ['dwy-alembic'],
   'dwy-docker.md': ['dwy-docker'],
   'dwy-code-craft.md': ['dwy-development-review'],
-  'dwy-dependency-freshness.md': ['dwy-dependency-choice'],
-  'dwy-oss-commercial-license.md': ['dwy-dependency-choice'],
+  'dwy-dependency-freshness.md': ['dwy-open-source-selection'],
+  'dwy-oss-commercial-license.md': ['dwy-open-source-selection'],
   'dwy-git-commit.md': ['dwy-git-commit'],
   'dwy-prod-branch.md': ['dwy-publish'],
 }
@@ -379,6 +391,7 @@ export async function syncAll({
     unionSets(...platforms.map(platform => platform === 'cursor' && type === 'rules' ? cursorRules : existing[platform][type]))]))
   const defaults = buildSelectionDefaultsFromSyncState(current, targetState, platforms)
   for (const type of ['skills', 'rules', 'hooks']) defaults[type] = unionSets(defaults[type], current[type])
+  includeRenamedSkills(defaults.skills, scans.skills)
   const choices = !global && contentTypes.includes('skills')
     ? { ...scans, skills: await projectSkillChoices(scans.skills, platforms, { homeDir, codexHome }) } : scans
   const selected = selectedOverride

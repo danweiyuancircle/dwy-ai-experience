@@ -223,6 +223,27 @@ test('在主目录的交互终端只准备全部共享 Skills，不进入项目�
   assert.equal(await fs.pathExists(path.join(homeDir, '.dwy/sync-state.json')), false)
 })
 
+test('refresh 将已启用的依赖选型 Skill 迁到开源选型新名', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-renamed-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), homeDir = path.join(root, 'home')
+  const options = { sourceDir, homeDir, projectDir: homeDir, codexHome: path.join(homeDir, '.codex') }
+  const oldName = 'dwy-dependency-choice', newName = 'dwy-open-source-selection'
+  const skillSource = name => path.join(sourceDir, 'skills', '通用', name)
+  const skillEntry = name => path.join(homeDir, '.agents', 'skills', name)
+  await fs.ensureDir(homeDir)
+  await fs.outputFile(path.join(skillSource(oldName), 'SKILL.md'), '# Old selection')
+  await syncAll({ ...options, scope: 'global', selectedPlatforms: ['codex'], selected: { skills: [{ name: oldName }] } })
+  await fs.remove(skillSource(oldName))
+  await fs.outputFile(path.join(skillSource(newName), 'SKILL.md'), '# Open source selection')
+
+  await refreshAll(options)
+
+  assert.equal(await fs.readFile(path.join(skillEntry(newName), 'SKILL.md'), 'utf8'), '# Open source selection')
+  await assert.rejects(fs.lstat(skillEntry(oldName)), { code: 'ENOENT' })
+  assert.deepEqual((await fs.readJson(path.join(homeDir, '.dwy/sync-state.json'))).platforms.codex.skills, [newName])
+})
+
 test('模板更新失败回退随包模板时，保留旧 Skill 的副本和入口', async t => {
   const homeDir = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-refresh-offline-'))
   t.after(() => fs.remove(homeDir))

@@ -1,5 +1,11 @@
 # ai-tools 内部版本
 
+## 0.41.0 - 2026-11-21
+
+### Changed
+
+- `skills/通用/dwy-open-source-selection/SKILL.md` 接替 `dwy-dependency-choice`，统一开源库候选检索、Stars、版本与许可证评估。咨询阶段也先检索再推荐，并将候选规则移出通用 `AGENTS.md`。刷新时将旧名的现有启用项迁移到新名。
+
 ## 0.40.0 - 2026-11-17
 
 ### Added
