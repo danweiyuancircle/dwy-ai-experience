@@ -43,6 +43,7 @@ public struct ESettingsPage<Content: View>: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(theme.colors.background)
     }
 }
 

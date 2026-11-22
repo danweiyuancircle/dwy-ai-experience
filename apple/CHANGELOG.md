@@ -25,6 +25,21 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.12.0 - 2026-11-22
+
+- `DesignKitMac` 默认采用 ADBox macOS 的冷静蓝、分层灰阶与语义状态色。系统明暗和增加对比度外观使用同一套主题角色。标准正文为 13 pt，次要文字为 11 pt。
+- 新增 `ETypography(bodySize:)`，统一应用自定义字体和 AppKit 编辑器字号。设置页、Toast 和新建 macOS 工程首页读取共享主题，应用可按窗口或子树覆盖。这次变更仅涉及 macOS 主题与共享版本锁定。
+- Skill 同步检查已更新 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/design-system.md`，记录默认主题、字号入口和应用覆盖方式。iOS 与 Swift 通用开发规则无需更新，iOS UI、依赖初始化和工具链要求未变。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.11.0 能否不改 App 继续编 | 可以。公开 API 保留，使用标准主题的 macOS 页面会采用新的默认配色和字号。 |
+| 不升会怎样 | 继续使用原主题与字号，无法通过 `ETypography(bodySize:)` 派生应用的字号档。 |
+| 升上来可选/必改项 | 无必改调用。重新验收浅色、深色和增加对比度外观。自设品牌可继续使用现有主题环境覆盖。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0，均未提高。 |
+
 ## 0.11.0 - 2026-11-19
 
 - 移除 DesignKitMac `eWindowOverlay`。页内叠加弹框需要自行拦截鼠标、键盘、快捷键、菜单与焦点，范围难以完整覆盖；模态弹框统一改用 SwiftUI `.sheet` / `.alert` / `.confirmationDialog` 或 AppKit sheet。

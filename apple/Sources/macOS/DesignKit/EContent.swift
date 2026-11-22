@@ -41,7 +41,7 @@ public struct ESettingsRow<Control: View>: View {
 
     private var label: some View {
         VStack(alignment: .leading, spacing: theme.spacing.inline) {
-            title.font(theme.typography.body)
+            title.font(theme.typography.body).foregroundStyle(theme.colors.text)
             if let detail {
                 detail.font(theme.typography.secondary).foregroundStyle(theme.colors.secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
@@ -168,7 +168,7 @@ public struct EContentState<Actions: View>: View {
                     .foregroundStyle(phase == .failure ? theme.colors.danger : theme.colors.secondaryText)
                     .accessibilityHidden(true)
             }
-            title.font(theme.typography.sectionTitle)
+            title.font(theme.typography.sectionTitle).foregroundStyle(theme.colors.text)
             if let detail {
                 detail.foregroundStyle(theme.colors.secondaryText).fixedSize(horizontal: false, vertical: true)
             }

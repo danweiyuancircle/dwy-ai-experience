@@ -57,7 +57,9 @@ final class MacControlHostTests: XCTestCase {
     func testNativeComboFontUsesTheInjectedTypographySize() throws {
         _ = NSApplication.shared
         var theme = EControlTheme()
-        theme.typography.nativeBodySize = 26
+        theme.typography = ETypography(bodySize: 26)
+        XCTAssertEqual(theme.typography.body, .system(size: 26))
+        XCTAssertEqual(theme.typography.secondary, .system(size: 24))
         let host = NSHostingView(rootView: EComboBox("Choose", text: .constant(""), suggestions: []) { _ in }
             .eControlTheme(theme).frame(width: 320))
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 320, height: 200),

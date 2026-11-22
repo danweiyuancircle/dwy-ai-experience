@@ -16,6 +16,10 @@
 
 新页面通过 `@Environment(\.eControlTheme)` 读取根主题。标准页面令牌 `EPalette`、`ETypeScale`、`ESpace`、`ERadius` 为已有静态消费方提供标准主题映射；它们不读取某个 View 子树的自定义环境。需要品牌或密度覆盖的组件应读取环境，不在项目复制静态数值表。
 
+`EControlTheme.standard` 使用 ADBox macOS 的冷静蓝和灰阶层次。`colors.background` 用于内容页，`surface` 用于卡片与输入，`elevatedSurface` 用于 Toast 等浮层。配色跟随明暗外观，在增加对比度时提升强调色、辅助文字、状态文字和分隔线的对比度。原生窗口材质、选中态与键盘焦点继续由系统控件处理。
+
+标准正文为 13 pt，次要文字为 11 pt。应用可从 `.standard` 出发，使用 `ETypography(bodySize:)` 同步调整 SwiftUI 内容字体与 AppKit 编辑器字号，也可修改间距、圆角或个别颜色。改品牌色时应同时设置 `colors.accent` 和 `colors.onAccent`，验证浅色、深色与增加对比度下的组合。悬停底色默认随强调色变化。每个独立窗口、AppKit 宿主或需要覆盖的子树通过 `.eControlTheme(theme)` 注入。
+
 ```swift
 import SwiftUI
 import DesignKitMac

@@ -1,6 +1,8 @@
 # AppleAppKit 平台支持与适配记录
 
-更新日期：2026-11-19。本次版本为 `0.11.0`，发布状态与提交以对应 Git tag / GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
+更新日期 2026-11-22。本次版本为 `0.12.0`，发布状态与提交以对应 Git tag 和 GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
+
+0.12.0 更新 DesignKitMac 默认配色与字号。在 macOS 27.2.1 和 Xcode 27.2 验证四套配色的对比度、共享卡片的明暗与自定义渲染、AppKit 编辑器字号和新项目模板。真实业务应用的桌面交互与 VoiceOver 仍需按宿主验收。
 
 0.11.0 移除 DesignKitMac `eWindowOverlay`，模态弹框改用系统 sheet / alert。在 macOS 27.2.1 / Xcode 27.2 执行 SwiftPM 全量测试与模板回归；Playground sheet 演示的前台交互、macOS 26 桌面及 VoiceOver 未验收，云端结果以同版本 Actions 为准。
 

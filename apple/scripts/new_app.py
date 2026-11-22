@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 PACKAGE_URL = "https://github.com/danweiyuancircle/dwy-ai-experience.git"
-PACKAGE_VERSION = "0.11.0"
+PACKAGE_VERSION = "0.12.0"
 
 
 def render_tree(source, destination, replacements):

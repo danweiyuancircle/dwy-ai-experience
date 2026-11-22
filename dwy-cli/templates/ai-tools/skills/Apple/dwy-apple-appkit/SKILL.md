@@ -19,6 +19,7 @@ description: 使用或排查 AppleAppKit SwiftPM 自有基础库时使用，按�
 
 - SyncCore：同步；CoreKit、LogKit、L10nKit、CacheKit：基础功能、日志、本地化与缓存。
 - DesignCore、DesignKitIOS、DesignKitMac：跨平台及平台界面能力。
+- AppleAppKit 0.12.0 起，`DesignKitMac` 的 `EControlTheme.standard` 默认使用冷静蓝、明暗灰阶及 13 pt 正文。应用可复制标准主题并按窗口或页面用 `.eControlTheme(_:)` 覆盖，字号统一用 `ETypography(bodySize:)` 派生。
 - DesignKitMac 0.10.0 起提供 `ePreventsSidebarCollapse`，用于 SwiftUI 原生分栏的侧栏内容。
 - `eWindowOverlay` 仅存在于 0.10.0 / 0.10.1，0.11.0 已移除。模态弹框改用 SwiftUI `.sheet` / `.alert` / `.confirmationDialog` 或 AppKit sheet；确认与错误提示用 `EAlert`、`eErrorAlert`，文件选择用 `EFileDialog`。迁移时删除宿主为页内弹框补的菜单禁用和事件监听阻断，按 sheet 重新验收键盘与焦点。
 - AuthCore、AuthUI、AuthGoogleIOS、AuthAppleIOS、AuthGoogleMac：认证核心与平台接入。

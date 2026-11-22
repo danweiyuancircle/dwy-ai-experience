@@ -65,15 +65,78 @@ final class MacFoundationComponentsTests: XCTestCase {
         XCTAssertEqual(theme.chromeIconSide, 34)
         XCTAssertEqual(theme.fieldHeight, 28)
         XCTAssertEqual(theme.searchHeight, 36)
+        XCTAssertEqual(theme.fieldRadius, 8)
+        XCTAssertEqual(theme.cardRadius, 8)
+        XCTAssertEqual(theme.typography.nativeBodySize, 13)
+        XCTAssertEqual(theme.typography.body, .system(size: 13))
+        XCTAssertEqual(theme.typography.secondary, .system(size: 11))
         for name in [NSAppearance.Name.aqua, .darkAqua, .accessibilityHighContrastAqua, .accessibilityHighContrastDarkAqua] {
-            let appearance = NSAppearance(named: name)!
-            appearance.performAsCurrentDrawingAppearance {
-                let accent = NSColor(theme.colors.accent).usingColorSpace(.sRGB)!
-                let foreground = NSColor(theme.colors.onAccent).usingColorSpace(.sRGB)!
-                let a = luminance(accent), b = luminance(foreground)
-                let contrast = (max(a, b) + 0.05) / (min(a, b) + 0.05)
-                XCTAssertGreaterThanOrEqual(contrast, name.rawValue.contains("HighContrast") ? 7 : 4.5)
+            let colors = ESemanticColors(appearance: name)
+            let increasedContrast = name == .accessibilityHighContrastAqua || name == .accessibilityHighContrastDarkAqua
+            let isDark = name == .darkAqua || name == .accessibilityHighContrastDarkAqua
+            XCTAssertEqual(rgb(colors.background), isDark ? 0x0A0A0B : 0xFAFAFA)
+            XCTAssertEqual(rgb(colors.surface), isDark ? 0x18181B : 0xFFFFFF)
+            XCTAssertEqual(rgb(colors.elevatedSurface), isDark ? 0x1F1F23 : 0xFFFFFF)
+            XCTAssertEqual(rgb(colors.accent), increasedContrast
+                           ? (isDark ? 0x93C5FD : 0x1E40AF)
+                           : (isDark ? 0x3B82F6 : 0x2563EB))
+            let minimum = increasedContrast ? 7.0 : 4.5
+            XCTAssertGreaterThanOrEqual(contrast(colors.accent, colors.onAccent), minimum)
+            for foreground in [colors.text, colors.secondaryText, colors.tertiaryText, colors.success, colors.warning, colors.danger] {
+                for background in [colors.background, colors.surface, colors.elevatedSurface, colors.canvas] {
+                    XCTAssertGreaterThanOrEqual(contrast(foreground, background), minimum, "\(name.rawValue)")
+                }
             }
+            if increasedContrast {
+                XCTAssertGreaterThanOrEqual(contrast(colors.separator, colors.surface), 3)
+            }
+        }
+    }
+
+    func testSharedColorsResolveUsingAppKitEffectiveAppearance() {
+        let dynamic = EControlTheme.standard.colors
+        let roles: [KeyPath<ESemanticColors, Color>] = [\.background, \.surface, \.elevatedSurface, \.secondaryText, \.separator, \.accent, \.danger]
+        for name in [NSAppearance.Name.aqua, .darkAqua] {
+            NSAppearance(named: name)!.performAsCurrentDrawingAppearance {
+                let resolved = ESemanticColors(appearance: NSAppearance.currentDrawing().name)
+                for role in roles {
+                    XCTAssertEqual(rgb(dynamic[keyPath: role]), rgb(resolved[keyPath: role]))
+                }
+            }
+        }
+    }
+
+    func testCustomAccentDrivesHoverUnlessAppOverridesIt() {
+        var theme = EControlTheme.standard
+        theme.accent = .purple
+        XCTAssertEqual(theme.colors.hover, Color.purple.opacity(0.07))
+        theme.colors.hover = .mint
+        theme.accent = .orange
+        XCTAssertEqual(theme.colors.hover, .mint)
+        XCTAssertEqual(EnvironmentValues().eControlTheme.colors.accent, EControlTheme.standard.colors.accent)
+    }
+
+    func testSharedCardRendersLightDarkAndInjectedSurface() throws {
+        _ = NSApplication.shared
+        let standard = EControlTheme.standard
+        var custom = standard
+        custom.colors.surface = Color(red: 0, green: 0, blue: 1)
+        let samples: [(ColorScheme, EControlTheme, Color)] = [
+            (.light, standard, ESemanticColors(appearance: .aqua).surface),
+            (.dark, standard, ESemanticColors(appearance: .darkAqua).surface),
+            (.dark, custom, custom.colors.surface),
+        ]
+        for (scheme, theme, expected) in samples {
+            // 用同一张图的参考色消除显示色域和渲染色域的换算差异。
+            let renderer = ImageRenderer(content: HStack(spacing: 0) {
+                ECard { Color.clear.frame(height: 36) }.frame(width: 120)
+                expected.frame(width: 120, height: 60)
+            }.eControlTheme(theme).environment(\.colorScheme, scheme))
+            let image = try XCTUnwrap(renderer.cgImage)
+            let bitmap = NSBitmapImageRep(cgImage: image)
+            let card = try XCTUnwrap(bitmap.colorAt(x: image.width / 4, y: image.height / 2))
+            let swatch = try XCTUnwrap(bitmap.colorAt(x: image.width * 3 / 4, y: image.height / 2))
+            XCTAssertEqual(card, swatch)
         }
     }
 
@@ -100,7 +163,20 @@ final class MacFoundationComponentsTests: XCTestCase {
         XCTAssertTrue(host.fittingSize.height.isFinite)
     }
 
-    private func luminance(_ color: NSColor) -> Double {
+    private func rgb(_ color: Color) -> UInt32 {
+        let resolved = NSColor(color).usingColorSpace(.sRGB)!
+        return [resolved.redComponent, resolved.greenComponent, resolved.blueComponent].reduce(0) {
+            ($0 << 8) | UInt32(($1 * 255).rounded())
+        }
+    }
+
+    private func contrast(_ foreground: Color, _ background: Color) -> Double {
+        let a = luminance(foreground), b = luminance(background)
+        return (max(a, b) + 0.05) / (min(a, b) + 0.05)
+    }
+
+    private func luminance(_ swiftUIColor: Color) -> Double {
+        let color = NSColor(swiftUIColor).usingColorSpace(.sRGB)!
         func linear(_ value: Double) -> Double { value <= 0.04045 ? value / 12.92 : pow((value + 0.055) / 1.055, 2.4) }
         return 0.2126 * linear(color.redComponent) + 0.7152 * linear(color.greenComponent) + 0.0722 * linear(color.blueComponent)
     }

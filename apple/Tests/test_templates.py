@@ -32,7 +32,7 @@ class TemplateSmokeTests(unittest.TestCase):
             self.assertTrue((core / "Package.swift").is_file())
             manifest = (core / "Package.swift").read_text()
             self.assertIn("https://github.com/danweiyuancircle/dwy-ai-experience.git", manifest)
-            self.assertIn('exact: "0.11.0"', manifest)
+            self.assertIn('exact: "0.12.0"', manifest)
             self.assertTrue((core / "Sources/BizFoundation/AppConfig.swift").is_file())
             self.assertTrue((core / "Tests/BizFoundationTests/BizFoundationTests.swift").is_file())
             self.assertTrue((output / "scripts/check-architecture.py").is_file())
@@ -46,7 +46,7 @@ class TemplateSmokeTests(unittest.TestCase):
                 project = (root / "project.yml").read_text()
                 self.assertIn("path: ../packages/MigrationAppCore", project)
                 self.assertIn("product: BizFoundation", project)
-                self.assertIn("exactVersion: 0.11.0", project)
+                self.assertIn("exactVersion: 0.12.0", project)
                 self.assertIn("- path: BusinessUI", project)
                 self.assertTrue((root / "BusinessUI/README.md").is_file())
                 self.assertFalse((root / "BizFoundation").exists())
@@ -58,6 +58,11 @@ class TemplateSmokeTests(unittest.TestCase):
                 if current == "macos":
                     self.assertEqual(project.count("ARCHS: arm64"), 2)
                     self.assertIn('MACOSX_DEPLOYMENT_TARGET: "26.0"', project)
+                    home = (root / "App/RootView.swift").read_text()
+                    self.assertIn("@Environment(\\.eControlTheme)", home)
+                    self.assertIn(".background(controlTheme.colors.background)", home)
+                    self.assertIn(".font(controlTheme.typography.pageTitle)", home)
+                    self.assertIn(".eControlTheme(.standard)", (root / "App/MigrationAppApp.swift").read_text())
                     with (root / "App/Info.plist").open("rb") as stream:
                         self.assertEqual(plistlib.load(stream)["LSMinimumSystemVersion"], "26.0")
                 else:
@@ -93,9 +98,9 @@ class TemplateSmokeTests(unittest.TestCase):
                 output = Path(folder) / "MigrationApp"
                 manifest = output / "packages/MigrationAppCore/Package.swift"
                 self.assertTrue(manifest.is_file())
-                manifest.write_text(manifest.read_text().replace('exact: "0.11.0"', 'exact: "0.8.0-beta.6"'))
+                manifest.write_text(manifest.read_text().replace('exact: "0.12.0"', 'exact: "0.8.0-beta.6"'))
                 project = output / first / "project.yml"
-                project.write_text(project.read_text().replace("exactVersion: 0.11.0", "exactVersion: 0.8.0-beta.6"))
+                project.write_text(project.read_text().replace("exactVersion: 0.12.0", "exactVersion: 0.8.0-beta.6"))
                 marker = output / first / "App/Keep.swift"
                 marker.write_text("// existing project work\n")
                 before = {p.relative_to(output): p.read_bytes() for p in output.rglob("*") if p.is_file()}
@@ -140,7 +145,7 @@ class TemplateSmokeTests(unittest.TestCase):
             self.assertEqual(self.generate(folder, "ios").returncode, 0)
             output = Path(folder) / "MigrationApp"
             project = output / "ios/project.yml"
-            project.write_text(project.read_text().replace("exactVersion: 0.11.0", "exactVersion: 0.8.0-beta.6"))
+            project.write_text(project.read_text().replace("exactVersion: 0.12.0", "exactVersion: 0.8.0-beta.6"))
             result = self.generate(folder, "macos", "--add-platform", bundle="com.example.migration.macos")
             self.assertNotEqual(result.returncode, 0)
             self.assertFalse((output / "macos").exists())

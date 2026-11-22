@@ -193,7 +193,9 @@ public struct EToast: View {
         Group {
             if let message {
                 Label {
-                    message.title.text(locale: locale).fixedSize(horizontal: false, vertical: true)
+                    message.title.text(locale: locale)
+                        .foregroundStyle(theme.colors.text)
+                        .fixedSize(horizontal: false, vertical: true)
                 } icon: {
                     Image(systemName: message.tone.symbol)
                         .foregroundStyle(message.tone.color(theme.colors)).accessibilityHidden(true)
@@ -201,7 +203,7 @@ public struct EToast: View {
                 .font(theme.typography.secondary)
                 .padding(.horizontal, theme.spacing.group)
                 .padding(.vertical, theme.spacing.controlGroup)
-                .background(theme.colors.surface, in: RoundedRectangle(cornerRadius: theme.cardRadius))
+                .background(theme.colors.elevatedSurface, in: RoundedRectangle(cornerRadius: theme.cardRadius))
                 .overlay {
                     RoundedRectangle(cornerRadius: theme.cardRadius)
                         .strokeBorder(theme.colors.separator, lineWidth: 1 / displayScale)

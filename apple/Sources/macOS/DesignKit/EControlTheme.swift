@@ -2,60 +2,97 @@
 import SwiftUI
 import AppKit
 
-/// Mac 语义颜色。系统文本、危险色与焦点不随品牌替换；强调色需和 onAccent 一起验证。
+/// Mac 内容区的明暗配色。原生窗口材质、选中态和焦点由系统控件处理。
 public struct ESemanticColors: Sendable {
-    public var background = Color(nsColor: .windowBackgroundColor)
-    public var surface = Color(nsColor: .controlBackgroundColor)
-    public var elevatedSurface = Color(nsColor: .controlBackgroundColor)
-    public var text = Color.primary
-    public var secondaryText = Color.secondary
-    public var tertiaryText = Color(nsColor: .tertiaryLabelColor)
-    public var canvas = Color(nsColor: .textBackgroundColor)
+    public var background: Color
+    public var surface: Color
+    public var elevatedSurface: Color
+    public var text: Color
+    public var secondaryText: Color
+    public var tertiaryText: Color
+    public var canvas: Color
     public var sidebarSurface = Color.primary.opacity(0.025)
-    public var hover = Color.accentColor.opacity(0.07)
-    public var separator = Color(nsColor: .separatorColor)
-    public var accent = Self.defaultAccent
-    public var onAccent = Self.defaultOnAccent
-    public var success = Color(nsColor: .systemGreen)
-    public var warning = Color(nsColor: .systemOrange)
-    public var danger = Color(nsColor: .systemRed)
+    /// 默认跟随当前主题的强调色，应用可单独覆盖悬停底色。
+    public var hover: Color {
+        get { hoverOverride ?? accent.opacity(0.07) }
+        set { hoverOverride = newValue }
+    }
+    public var separator: Color
+    public var accent: Color
+    public var onAccent: Color
+    public var success: Color
+    public var warning: Color
+    public var danger: Color
     public var selection = Color(nsColor: .selectedContentBackgroundColor)
 
-    /// 标准中性与蓝色主题，动态跟随系统外观与增加对比度。
-    public init() {}
+    private var hoverOverride: Color?
+    private static let standard = ESemanticColors(appearance: nil)
 
-    private static let defaultAccent = brand(light: 0x2563EB, dark: 0x3B82F6, highLight: 0x1E40AF, highDark: 0x93C5FD)
-    private static let defaultOnAccent = brand(light: 0xFFFFFF, dark: 0x0A1A33, highLight: 0xFFFFFF, highDark: 0x0A1A33)
+    /// 标准灰阶与冷静蓝，随系统明暗和增加对比度设置解析。
+    public init() { self = Self.standard }
 
-    private static func brand(light: UInt32, dark: UInt32, highLight: UInt32, highDark: UInt32) -> Color {
-        Color(nsColor: NSColor(name: nil) { appearance in
-            let match = appearance.bestMatch(from: [.aqua, .darkAqua, .accessibilityHighContrastAqua, .accessibilityHighContrastDarkAqua])
-            let value: UInt32
-            switch match {
-            case .darkAqua: value = dark
-            case .accessibilityHighContrastAqua: value = highLight
-            case .accessibilityHighContrastDarkAqua: value = highDark
-            default: value = light
+    // AppKit 按系统设置选择有效外观，传入名称可独立检验各套色值。
+    init(appearance: NSAppearance.Name?) {
+        func adaptive(light: UInt32, dark: UInt32, highLight: UInt32? = nil, highDark: UInt32? = nil) -> Color {
+            @Sendable func color(_ name: NSAppearance.Name) -> NSColor {
+                let value: UInt32
+                switch name {
+                case .darkAqua, .vibrantDark: value = dark
+                case .accessibilityHighContrastAqua, .accessibilityHighContrastVibrantLight: value = highLight ?? light
+                case .accessibilityHighContrastDarkAqua, .accessibilityHighContrastVibrantDark: value = highDark ?? dark
+                default: value = light
+                }
+                return NSColor(srgbRed: Double((value >> 16) & 255) / 255,
+                               green: Double((value >> 8) & 255) / 255,
+                               blue: Double(value & 255) / 255, alpha: 1)
             }
-            return NSColor(srgbRed: Double((value >> 16) & 255) / 255,
-                           green: Double((value >> 8) & 255) / 255,
-                           blue: Double(value & 255) / 255, alpha: 1)
-        })
+
+            if let appearance { return Color(nsColor: color(appearance)) }
+            return Color(nsColor: NSColor(name: nil) { color($0.name) })
+        }
+
+        background = adaptive(light: 0xFAFAFA, dark: 0x0A0A0B)
+        surface = adaptive(light: 0xFFFFFF, dark: 0x18181B)
+        elevatedSurface = adaptive(light: 0xFFFFFF, dark: 0x1F1F23)
+        text = adaptive(light: 0x18181B, dark: 0xF4F4F5)
+        secondaryText = adaptive(light: 0x6B6B74, dark: 0x8E8E96, highLight: 0x52525B, highDark: 0xB4B4BE)
+        // 两个说明文字角色都可能用于读写任务，沿用满足对比度的灰色。
+        tertiaryText = secondaryText
+        canvas = adaptive(light: 0xF4F4F5, dark: 0x111113)
+        separator = adaptive(light: 0xEBEBEB, dark: 0x2A2A2D, highLight: 0x71717A, highDark: 0xA1A1AA)
+        accent = adaptive(light: 0x2563EB, dark: 0x3B82F6, highLight: 0x1E40AF, highDark: 0x93C5FD)
+        onAccent = adaptive(light: 0xFFFFFF, dark: 0x0A1A33)
+        success = adaptive(light: 0x047857, dark: 0x4ADE80, highLight: 0x064E3B, highDark: 0x86EFAC)
+        warning = adaptive(light: 0xC2410C, dark: 0xFB923C, highLight: 0x7C2D12, highDark: 0xFDBA74)
+        danger = adaptive(light: 0xB91C1C, dark: 0xFB7185, highLight: 0x991B1B, highDark: 0xFDA4AF)
     }
 }
 
-/// 语义字体保留系统缩放和语言字形布局，不复制系统字号表。
+/// Mac 内容字体角色。默认正文 13 pt，SwiftUI 和原生编辑器共用正文字号。
 public struct ETypography: Sendable {
-    /// AppKit 编辑器的原生正文字号；SwiftUI Font 不可反向转换，产品字号根映射须同步设置此值。
-    public var nativeBodySize: CGFloat = NSFont.preferredFont(forTextStyle: .body).pointSize
-    public var title: Font = .title3
+    /// AppKit 编辑器使用的正文字号。应用单独改 `body` 时应同步此值。
+    public var nativeBodySize: CGFloat
+    public var title: Font
     public var pageTitle: Font = .title2.bold()
-    public var sectionTitle: Font = .headline
-    public var body: Font = .body
-    public var secondary: Font = .callout
-    public var caption: Font = .caption
-    public var monospaced: Font = .body.monospaced()
-    public init() {}
+    public var sectionTitle: Font
+    public var body: Font
+    public var secondary: Font
+    public var caption: Font
+    public var monospaced: Font
+
+    /// 使用标准字号初始化各字体角色。
+    public init() { self.init(bodySize: 13) }
+
+    /// 传入大于 2 pt 的正文字号，同时配置 SwiftUI 字体和原生编辑器。页面标题沿用系统样式。
+    public init(bodySize: CGFloat) {
+        nativeBodySize = bodySize
+        title = .system(size: bodySize + 5, weight: .semibold)
+        sectionTitle = .system(size: bodySize, weight: .semibold)
+        body = .system(size: bodySize)
+        secondary = .system(size: bodySize - 2)
+        caption = secondary
+        monospaced = .system(size: bodySize, design: .monospaced)
+    }
 }
 
 /// 标准页面语义间距；旧消费方可通过类型别名接入，不再复制数字表。

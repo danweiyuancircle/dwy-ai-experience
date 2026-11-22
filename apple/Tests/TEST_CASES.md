@@ -61,6 +61,8 @@ iOS `IOSControlTests` 另覆盖短暂原文与自定义图标、相同文本替�
 
 根 `swift test` 覆盖 `DesignKitMacTests` 与 `DesignKitMacPlaygroundTests`。前者验证主题/布局、公开字段壳与便利字段等价、原生 Combo 字号、可选焦点绑定、候选/标记文本与提交边界、Toast 原文/资源及生命周期，以及短提示自然收窄、相较旧通知卡减少高度、长文案在限定宽度换行增高；后者验证全部 22 个可视组件目录、双语资源、复制源码与 fixture 逐字一致、检索、两种宽度与状态宿主布局、公开独立和项目入口。
 
+`MacFoundationComponentsTests` 检查浅色、深色及各自增加对比度的配色、文字与状态色对比度、标准字号和控件尺寸，以及应用强调色和悬停覆盖。另对照 AppKit 有效外观验证动态色解析，并渲染浅色、深色和自定义背景的共享卡片，检查实际像素。`MacControlHostTests` 用真实 AppKit Combo 验证应用的正文字号作用于原生编辑器，并核对 SwiftUI 字体映射。模板回归核对生成的 macOS 首页读取环境主题并由应用根注入 `.standard`。
+
 修改示例后运行 `python3 apple/Sources/macOS/DesignKitMacPlayground/Scripts/sync-examples.py --check`。测试不连接设备、不写应用偏好；离屏宿主与回调测试不能替代真实 IME、VoiceOver、下拉鼠标和屏幕边缘验收。
 
 ## 邮箱密码组件
