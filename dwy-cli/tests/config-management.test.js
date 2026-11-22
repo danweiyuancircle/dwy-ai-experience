@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import fs from 'fs-extra'
 import path from 'node:path'
 import os from 'node:os'
-import { syncAll } from '../src/sync-all.js'
+import { refreshAll, syncAll } from '../src/sync-all.js'
 
 // shortcut: Node 22 的测试 IPC 在大量中文 stdout 下可能损坏；最低 CI 版本修复后可取消静默。
 // 终端文案与按键行为由 sync-selection.test.js 通过真实子进程单独验证。
@@ -122,12 +122,60 @@ test('仅有全局 Hook 文件、错误事件注册或禁用配置时，项目�
   }
 })
 
+test('同步与刷新清理旧 Codex 重复注册，并保留同名个人命令', async t => {
+  for (const mode of ['sync', 'refresh']) {
+    const opts = await fixture(t)
+    const hookOpts = { ...opts, selectedPlatforms: ['codex'], contentTypes: ['hooks'] }
+    await syncAll({ ...hookOpts, scope: 'global' })
+    const globalConfig = path.join(opts.codexHome, 'hooks.json')
+    if (mode === 'sync') {
+      const config = await fs.readJson(globalConfig)
+      config.hooks.PreToolUse[0].hooks[0].command = 'bash "$HOME/.codex/hooks/check.sh"'
+      await fs.writeJson(globalConfig, config)
+    }
+    const projectConfig = path.join(opts.projectDir, '.codex/hooks.json')
+    const projectHook = path.join(opts.projectDir, '.codex/hooks/check.sh')
+    const personal = { type: 'command', command: 'bash /personal/hooks/check.sh' }
+    await fs.outputJson(projectConfig, { hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [
+      { type: 'command', command: 'bash "$(git rev-parse --show-toplevel)"/.codex/hooks/check.sh' },
+      personal,
+    ] }] } })
+    // 刷新场景只留下旧注册，不能依赖脚本文件或项目同步状态识别它。
+    if (mode === 'sync') await fs.outputFile(projectHook, '# old project script')
+
+    if (mode === 'sync') await syncAll(hookOpts)
+    else await refreshAll(opts)
+
+    assert.deepEqual((await fs.readJson(projectConfig)).hooks.PreToolUse[0].hooks, [personal])
+    assert.equal(await fs.pathExists(projectHook), false)
+    assert.equal(await fs.pathExists(path.join(opts.codexHome, 'hooks/check.sh')), true)
+    assert.equal((await fs.readJson(globalConfig)).hooks.PreToolUse[0].hooks.length, 1)
+  }
+})
+
+test('CODEX_HOME 指向项目 .codex 时，去重保留唯一的全局注册和脚本', async t => {
+  const opts = await fixture(t)
+  const codexHome = path.join(opts.projectDir, '.codex')
+  const hookOpts = { ...opts, codexHome, selectedPlatforms: ['codex'], contentTypes: ['hooks'] }
+  await syncAll({ ...hookOpts, scope: 'global' })
+  const file = path.join(codexHome, 'hooks.json')
+  const before = await fs.readJson(file)
+  await syncAll(hookOpts)
+  const alias = path.join(opts.homeDir, 'codex-alias')
+  await fs.symlink(codexHome, alias, 'dir')
+  await syncAll({ ...hookOpts, codexHome: alias })
+  await refreshAll({ ...opts, codexHome })
+  assert.deepEqual(await fs.readJson(file), before)
+  assert.equal(await fs.pathExists(path.join(codexHome, 'hooks/check.sh')), true)
+})
+
 test('全局启用 Hooks 清理当前项目重复注册和脚本，移除只删托管项并保留个人配置', async t => {
   const opts = await fixture(t)
   await syncAll({ ...opts, selectedPlatforms: ['claude'], contentTypes: ['hooks'] })
   const localConfig = path.join(opts.projectDir, '.claude/settings.json')
   const personal = { type: 'command', command: 'bash /personal/hooks/check.sh' }
   const config = await fs.readJson(localConfig)
+  config.hooks.PreToolUse[0].hooks[0].command = 'bash $CLAUDE_PROJECT_DIR/.claude/hooks/check.sh'
   config.permissions = { allow: ['Read'] }
   config.hooks.PreToolUse[0].hooks.push(personal)
   await fs.writeJson(localConfig, config)

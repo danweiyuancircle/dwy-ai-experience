@@ -264,6 +264,15 @@ function globalHookCommand(configDir, name) {
   return `bash '${script.replace(/'/g, "'\\''")}'`
 }
 
+function legacyGlobalHookCommands(name) {
+  return [`bash "$HOME/.codex/hooks/${name}"`, `bash ~/.codex/hooks/${name}`]
+}
+
+/** 旧全局命令固定指向 HOME 下的默认目录，自定义 CODEX_HOME 不使用这两个写法。 */
+export function isLegacyGlobalCodexHookCommand(command, name, configDir, homeDir) {
+  return path.resolve(configDir) === path.resolve(homeDir, '.codex') && legacyGlobalHookCommands(name).includes(command)
+}
+
 /** 生成 Codex Hook 注册，继承检测和写入共用相同命令格式。 */
 export function buildCodexHooksJson(manifests, selectedHookNames, global, configDir) {
   const hooksJson = { hooks: {} }
@@ -303,8 +312,8 @@ export function isManagedCodexHookCommand(command, managedHookNames, configDir) 
   return [...managedHookNames].some(name => [
     globalHookCommand(configDir, name),
     `bash "$(git rev-parse --show-toplevel)/.codex/hooks/${name}"`,
-    `bash "$HOME/.codex/hooks/${name}"`,
-    `bash ~/.codex/hooks/${name}`,
+    `bash "$(git rev-parse --show-toplevel)"/.codex/hooks/${name}`,
+    ...legacyGlobalHookCommands(name),
   ].includes(command))
 }
 

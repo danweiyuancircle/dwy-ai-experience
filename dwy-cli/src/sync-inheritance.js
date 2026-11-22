@@ -1,7 +1,7 @@
 import fs from 'fs-extra'
 import path from 'node:path'
 import { buildClaudeHooksSettings, isManagedClaudeHookCommand, mergeClaudeHooks, loadHookManifests, scanHooks } from './sync.js'
-import { buildCodexHooksJson, hasManagedBaseline, isManagedCodexHookCommand, mergeCodexHooks } from './sync-codex.js'
+import { buildCodexHooksJson, hasManagedBaseline, isLegacyGlobalCodexHookCommand, isManagedCodexHookCommand, mergeCodexHooks } from './sync-codex.js'
 
 /** Hook 配置文件名由平台决定，Codex 根目录由调用方解析。 */
 export function hookConfigFile(platform, root) {
@@ -87,7 +87,8 @@ export async function globalHookNames({ platform, sourceDir, homeDir, codexHome 
     const registered = registrations.every(expected => {
       const configs = config.hooks?.[expected.event] || []
       return configs.some(cfg => cfg.matcher === expected.matcher && Array.isArray(cfg.hooks)
-        && cfg.hooks.some(item => item.type === 'command' && item.command === expected.command))
+        && cfg.hooks.some(item => item.type === 'command' && (item.command === expected.command
+          || (platform === 'codex' && isLegacyGlobalCodexHookCommand(item.command, hook.name, root, homeDir)))))
     })
     if (!registered) continue
     const stat = await fs.stat(path.join(root, 'hooks', hook.name)).catch(error => {

@@ -1,5 +1,13 @@
 # create-dwy
 
+## [0.39.1] - 2026-11-22
+
+### Fixed
+
+- 同步或刷新时识别旧版 Codex 和 Claude Code 的 Hook 命令。对应全局 Hook 有效时，一并清理项目中的重复脚本和注册，包括脚本已缺失的旧注册。
+- 项目 `.codex` 与 `CODEX_HOME` 指向同一目录时，保留这份共用配置和脚本，避免去重误删。
+- 更新开源库选型 Skill 后，既有的 `dwy-dependency-choice` 启用记录会迁移到 `dwy-open-source-selection`。
+
 ## [0.39.0] - 2026-11-19
 
 ### Added

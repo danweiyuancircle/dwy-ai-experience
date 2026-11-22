@@ -329,6 +329,7 @@ export function isManagedClaudeHookCommand(command, managedHookNames) {
   return [...managedHookNames].some(name => [
     `bash "$HOME/.claude/hooks/${name}"`,
     `bash "$CLAUDE_PROJECT_DIR/.claude/hooks/${name}"`,
+    `bash $CLAUDE_PROJECT_DIR/.claude/hooks/${name}`,
     `bash ~/.claude/hooks/${name}`,
   ].includes(command))
 }

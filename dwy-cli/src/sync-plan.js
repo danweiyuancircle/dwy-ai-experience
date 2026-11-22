@@ -346,6 +346,14 @@ export async function buildSyncPlan({
       return true
     }
     for (const platform of platforms.filter(p => PLATFORM_SYNC_TYPES[p].includes('hooks'))) {
+      const local = path.join(projectDir, platform === 'claude' ? '.claude' : '.codex')
+      const sharedCodexRoot = platform === 'codex' && (path.resolve(local) === path.resolve(codexHome)
+        || (await fs.pathExists(local) && await fs.pathExists(codexHome) && await fs.realpath(local) === await fs.realpath(codexHome)))
+      if (!global && sharedCodexRoot) {
+        if (remove) throw new Error('项目 Codex 目录即 CODEX_HOME，请选择全局范围移除 Hooks')
+        add('inherit', '项目 Codex 目录即 CODEX_HOME，使用同一份全局 Hooks', [], async () => {})
+        continue
+      }
       const available = scans.hooks.filter(hook => manifests.some(manifest => manifest.name === hook.name && (!manifest.platforms || manifest.platforms.includes(platform))))
       const provided = !global && !remove ? await globalHookNames({ platform, sourceDir, homeDir, codexHome }) : new Set()
       const hooks = remove ? [] : available.filter(hook => !provided.has(hook.name))
@@ -377,8 +385,7 @@ export async function buildSyncPlan({
       }
       if (provided.size) add('inherit', `${PLATFORM_LABELS[platform]} Hooks 使用全局：${[...provided].join('、')}；项目不重复安装`, [], async () => {})
       platformState(platform).hooks = remove ? [] : [...new Set([...hooks.map(hook => hook.name), ...retained(platform, 'hooks')])].sort()
-      if (global && !remove && !isHome) {
-        const local = path.join(projectDir, platform === 'claude' ? '.claude' : '.codex')
+      if (global && !remove && !isHome && !sharedCodexRoot) {
         const duplicates = new Set(available.map(hook => hook.name))
         if (await removeHooks(platform, local, projectDir, duplicates, `全局优先，清理当前项目 ${PLATFORM_LABELS[platform]} 重复 Hooks`)
           && nextProject.platforms[platform]) {
