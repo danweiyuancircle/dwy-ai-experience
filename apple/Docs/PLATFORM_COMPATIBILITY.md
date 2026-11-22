@@ -1,6 +1,8 @@
 # AppleAppKit 平台支持与适配记录
 
-更新日期 2026-11-22。本次版本为 `0.12.0`，发布状态与提交以对应 Git tag 和 GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
+更新日期 2026-11-22。本次版本为 `0.13.0`，发布状态与提交以对应 Git tag 和 GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
+
+0.13.0 提供 macOS 26 起的 `BusinessKitMac` 可选产品，多商品购买核心支持 iOS 18 和 macOS 26。验证覆盖 SwiftPM 回归、macOS 26 目标编译、iOS 18 Simulator SDK 的购买核心编译，以及本机示例窗口里的设置、帮助与模拟购买。实际付费、外部登录和系统热键注册由消费项目验收。
 
 0.12.0 更新 DesignKitMac 默认配色与字号。在 macOS 27.2.1 和 Xcode 27.2 验证四套配色的对比度、共享卡片的明暗与自定义渲染、AppKit 编辑器字号和新项目模板。真实业务应用的桌面交互与 VoiceOver 仍需按宿主验收。
 

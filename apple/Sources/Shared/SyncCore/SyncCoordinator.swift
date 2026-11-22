@@ -12,6 +12,21 @@ public struct SyncState: Sendable, Equatable {
     public let conflictCount: Int
     public let lastSuccessfulSync: Date?
     public let errorCode: String?
+
+    /// 让已有同步宿主和预览使用相同的状态模型。错误码只能包含可安全展示的状态标识。
+    public init(
+        phase: SyncPhase,
+        pendingCount: Int,
+        conflictCount: Int,
+        lastSuccessfulSync: Date?,
+        errorCode: String?
+    ) {
+        self.phase = phase
+        self.pendingCount = pendingCount
+        self.conflictCount = conflictCount
+        self.lastSuccessfulSync = lastSuccessfulSync
+        self.errorCode = errorCode
+    }
 }
 
 /// 自动触发时的有限重试策略；显式 synchronize 失败直接交还调用者。

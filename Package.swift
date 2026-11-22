@@ -27,6 +27,7 @@ let package = Package(
         .library(name: "DesignKitIOS", targets: ["DesignKitIOS"]),
         .library(name: "DesignKitMac", targets: ["DesignKitMac"]),
         .library(name: "DesignKitMacPlayground", targets: ["DesignKitMacPlayground"]),
+        .library(name: "BusinessKitMac", targets: ["BusinessKitMac"]),
         .library(name: "PurchaseCore", targets: ["PurchaseCore"]),
         .library(name: "AuthCore", targets: ["AuthCore"]),
         .library(name: "AuthUI", targets: ["AuthUI"]),
@@ -121,6 +122,20 @@ let package = Package(
             name: "DesignKitMacTests",
             dependencies: ["DesignKitMac"],
             path: "apple/Tests/DesignKitMacTests"
+        ),
+        .target(
+            name: "BusinessKitMac",
+            dependencies: [
+                "DesignKitMac", "DesignCore", "L10nKit", "PurchaseCore", "LogKit",
+                "AuthCore", "SyncCore",
+            ],
+            path: "apple/Sources/macOS/BusinessKitMac",
+            resources: [.process("Resources")]
+        ),
+        .testTarget(
+            name: "BusinessKitMacTests",
+            dependencies: ["BusinessKitMac", "DesignKitMac", "PurchaseCore", "AuthCore", "SyncCore"],
+            path: "apple/Tests/BusinessKitMacTests"
         ),
         .target(
             name: "DesignKitMacPlayground",
@@ -230,6 +245,12 @@ package.targets.append(.executableTarget(
     name: "MacControlsGallery",
     dependencies: ["DesignKitMacPlayground"],
     path: "apple/Examples/MacControls/Sources/MacControlsGallery"
+))
+package.products.append(.executable(name: "MacBusinessGallery", targets: ["MacBusinessGallery"]))
+package.targets.append(.executableTarget(
+    name: "MacBusinessGallery",
+    dependencies: ["BusinessKitMac", "DesignKitMac", "LogKit", "AuthCore", "SyncCore"],
+    path: "apple/Examples/MacBusiness/Sources/MacBusinessGallery"
 ))
 #endif
 

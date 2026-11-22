@@ -15,12 +15,12 @@ public final class LifetimeStore {
     public let productID: String
 
     /// StoreKit 真实买断。不含 DEBUG 开关。
-    public private(set) var storeKitPurchased = false
+    public var storeKitPurchased: Bool { store.purchasedProductIDs.contains(productID) }
     /// 当前可购商品；nil 表示还没拉到。
-    public private(set) var product: Product?
-    public private(set) var isLoadingProduct = false
-    public private(set) var isPurchasing = false
-    public private(set) var productLoadError: String?
+    public var product: Product? { store.products.first }
+    public var isLoadingProduct: Bool { store.isLoadingProducts }
+    public var isPurchasing: Bool { store.isPurchasing }
+    public var productLoadError: String? { store.productLoadError }
 
     #if DEBUG
     /// 仅 Debug：视为已购，方便截图 / 验门控。Release 无此字段。
@@ -32,7 +32,7 @@ public final class LifetimeStore {
     }
     #endif
 
-    private var didStart = false
+    private let store: StoreKitPurchaseStore
     private let defaults: UserDefaults
     private let onEntitlementChange: (@MainActor (Bool) -> Void)?
 
@@ -47,7 +47,7 @@ public final class LifetimeStore {
 
     /// 未购、有商品、未在购买中才可点买。
     public var canPurchase: Bool {
-        !isPurchased && product != nil && !isPurchasing
+        !isPurchased && product != nil && !isPurchasing && !store.isRestoring
     }
 
     /// 系统本地化价格；没拉到就是 nil，禁止假价占位。
@@ -63,99 +63,42 @@ public final class LifetimeStore {
         onEntitlementChange: (@MainActor (Bool) -> Void)? = nil
     ) {
         self.productID = productID
+        self.store = StoreKitPurchaseStore(productIDs: [productID], supportedTypes: [.nonConsumable])
         self.defaults = defaults
         self.onEntitlementChange = onEntitlementChange
         #if DEBUG
         self.debugUnlockAll = defaults.bool(forKey: PurchaseAccess.debugUnlockKey)
         #endif
+        store.onEntitlementChange = { [weak self] _ in
+            guard let self else { return }
+            self.onEntitlementChange?(self.isPurchased)
+        }
     }
 
     /// 幂等：拉商品、扫权益、听后续交易。
     public func startIfNeeded() {
-        guard !didStart else { return }
-        didStart = true
-        Task(priority: .utility) { [weak self] in
-            await self?.start()
-        }
+        store.startIfNeeded()
     }
 
     /// 发起买断。用户取消返回 false 不抛；失败抛 `StoreError`。
     @discardableResult
     public func purchase() async throws -> Bool {
-        startIfNeeded()
-        if product == nil { await loadProduct() }
-        guard let product else { throw StoreError.productUnavailable }
-        isPurchasing = true
-        defer { isPurchasing = false }
-        let result = try await product.purchase()
-        switch result {
-        case let .success(.verified(transaction)):
-            await transaction.finish()
-            storeKitPurchased = true
-            onEntitlementChange?(isPurchased)
-            return true
-        case .success(.unverified):
-            throw StoreError.unverified
-        case .userCancelled:
-            return false
-        case .pending:
-            throw StoreError.pending
-        @unknown default:
-            return false
+        switch try await store.purchase(productID) {
+        case .purchased: true
+        case .cancelled: false
+        case .pending: throw StoreError.pending
         }
     }
 
     /// 恢复购买：同步 App Store 后重扫权益。
     public func restore() async throws {
         startIfNeeded()
-        try await AppStore.sync()
-        await updateEntitlements()
+        try await store.restore()
     }
 
     /// 付费墙「重试」：再拉一次商品。
     public func reloadProduct() async {
         startIfNeeded()
-        await loadProduct()
-    }
-
-    private func start() async {
-        await loadProduct()
-        await updateEntitlements()
-        for await update in Transaction.updates {
-            if case let .verified(transaction) = update {
-                await transaction.finish()
-                await updateEntitlements()
-            }
-        }
-    }
-
-    private func loadProduct() async {
-        isLoadingProduct = true
-        defer { isLoadingProduct = false }
-        do {
-            let products = try await Product.products(for: [productID])
-            product = products.first { !$0.displayPrice.isEmpty } ?? products.first
-            productLoadError = product == nil ? StoreError.productUnavailable.localizedDescription : nil
-        } catch {
-            product = nil
-            productLoadError = error.localizedDescription
-        }
-    }
-
-    private func updateEntitlements() async {
-        var owned = false
-        for await result in Transaction.currentEntitlements {
-            if case let .verified(transaction) = result,
-               PurchaseAccess.matchesEntitlement(
-                productID: productID,
-                transactionProductID: transaction.productID,
-                revocationDate: transaction.revocationDate
-               )
-            {
-                owned = true
-            }
-        }
-        storeKitPurchased = owned
-        onEntitlementChange?(isPurchased)
+        await store.loadProducts()
     }
 }

@@ -25,6 +25,21 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.13.0 - 2026-11-22
+
+- 新增可选 macOS 产品 `BusinessKitMac`，提供共享设置面板、默认偏好与自定义设置页、购买模态、帮助反馈、原生保存分享与日志导出、快捷键设置、评分、账号及同步状态。使用 `swift run MacBusinessGallery` 可用示例配置体验接入流程。
+- `PurchaseCore` 新增可处理终身买断和自动续订的 `StoreKitPurchaseStore`，支持商品、恢复、待批准及已验证的有效权益。原 `LifetimeStore` 入口继续可用。
+- Skill 同步检查更新了 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/design-system.md`，补充可选产品、购买与接入说明。iOS 与 Swift 通用规则保持现有使用方式，iOS 仍可直接消费共用购买核心。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.12.0 能否不改 App 继续编 | 可以。新 macOS 产品按需选用，现有购买调用保留公开接口。 |
+| 不升会怎样 | 继续使用原设置和购买实现。共享业务页面与多商品购买核心从 0.13.0 起可用。 |
+| 升上来可选/必改项 | 新接入时核对应用偏好、窗口宿主、权限和商品。需要替换支付实现的应用先做 StoreKit 沙盒验收。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0，均未提高。 |
+
 ## 0.12.0 - 2026-11-22
 
 - `DesignKitMac` 默认采用 ADBox macOS 的冷静蓝、分层灰阶与语义状态色。系统明暗和增加对比度外观使用同一套主题角色。标准正文为 13 pt，次要文字为 11 pt。

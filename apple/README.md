@@ -44,7 +44,7 @@ MyApp/
 
 ## 生成
 
-以下命令从统一仓库根目录执行。`--platform ios|macos|apple` 分别生成 iOS、macOS、双端形态，统一精确依赖正式版本 `0.12.0`，分别接入 `DesignKitIOS` / `DesignKitMac`。生成工程前须确认该标签可访问。模板不含凭据。
+以下命令从统一仓库根目录执行。`--platform ios|macos|apple` 分别生成 iOS、macOS、双端形态，统一精确依赖正式版本 `0.13.0`，分别接入 `DesignKitIOS` / `DesignKitMac`。生成工程前须确认该标签可访问。模板不含凭据。
 
 使用现有 Python 3、Swift 6 与 XcodeGen。生成时通过 Swift 前端校验类型名，追加平台通过 SwiftPM 读取已有清单；SDK 编译与运行需要完整 Xcode。工具链未被全局选中时可按命令设置 DEVELOPER_DIR，不要求修改机器的全局选择。
 
@@ -74,7 +74,7 @@ iOS App 根注入 `EControlTheme`，已有基础组件满足需求时直接用�
 ```
 apple/Sources/Shared/       CoreKit LogKit L10nKit CacheKit DesignCore PurchaseCore AuthCore
 apple/Sources/iOS/          DesignKitIOS AuthGoogleIOS AuthAppleIOS AuthUI
-apple/Sources/macOS/        DesignKitMac
+apple/Sources/macOS/        DesignKitMac BusinessKitMac
 apple/Tests/               通用模块、认证与模板生成回归
 apple/Templates/common       共享业务核心、项目规则、文档和检查器
 apple/Templates/ios-app|macos-app  平台壳与业务 UI 目录
@@ -91,6 +91,8 @@ iOS 与 macOS 分别维护设计规范及平台组件，双端抽取方案见 [a
 
 macOS 26 原型已加入 `DesignKitMac`，包括按钮、菜单、选择、输入与表单。接入及限制见 [apple/Docs/MAC_CONTROLS.md](Docs/MAC_CONTROLS.md)，独立展示源代码位于 `apple/Examples/MacControls/`。原型未发布、ADBox 尚未迁移；窗口边缘下拉、完整辅助功能和 macOS 26 实机验收仍是发布门槛。
 
+`BusinessKitMac` 在共享控件上提供可组合的设置、购买、帮助、导出、快捷键、评分、账号与同步 UI。使用 `swift run MacBusinessGallery` 查看接入示例。详见 [macOS 业务 UI 接入指南](Docs/Mac-Business-Kit.md)。
+
 邮箱密码登录注册组件选择 `AuthCore` 和 `AuthUI`。接入说明见 `apple/Docs/EMAIL_PASSWORD_AUTH.md`，可运行示例见 `apple/Examples/EmailPasswordAuth/`。
 
 原生 Apple 登录选择 `AuthCore` 和 `AuthAppleIOS`。官方按钮、宿主窗口与会话取消说明见 `apple/Docs/APPLE_AUTH.md`。
@@ -100,7 +102,7 @@ macOS 26 原型已加入 `DesignKitMac`，包括按钮、菜单、选择、输�
 业务 App 对**跨仓库基础库只用已发布精确版本**，禁止引用本机源码路径；本产品内部包使用相对 path：
 
 ```swift
-.package(url: "https://github.com/danweiyuancircle/dwy-ai-experience.git", exact: "0.12.0")
+.package(url: "https://github.com/danweiyuancircle/dwy-ai-experience.git", exact: "0.13.0")
 // product 的 package 名是仓库名 dwy-ai-experience
 ```
 

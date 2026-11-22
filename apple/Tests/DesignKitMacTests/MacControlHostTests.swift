@@ -32,16 +32,17 @@ final class MacControlHostTests: XCTestCase {
     }
 
     func testPublicFieldShellMatchesConvenienceFieldAndSupportsNativeAccessory() {
-        let direct = measure(EFieldShell { TextField("Name", text: .constant("Text")).textFieldStyle(.plain) })
-        let convenience = measure(ETextField("Name", text: .constant("Text")))
+        let title = Text(verbatim: "Name")
+        // 两层使用相同的原生字段构造，避免 SwiftUI 按便利初始化重载选择不同的标签布局。
+        let direct = measure(EFieldShell { TextField(text: .constant("Text")) { title }.textFieldStyle(.plain) })
+        let convenience = measure(ETextField(title, text: .constant("Text")))
         XCTAssertEqual(direct.height, convenience.height, accuracy: 0.5)
-        let accessory = measure(EFieldShell {
-            HStack {
-                SecureField("Password", text: .constant("secret")).textFieldStyle(.plain)
-                Button("Reveal") {}
-            }
-        })
-        XCTAssertGreaterThanOrEqual(accessory.height, convenience.height)
+        let accessory = HStack {
+            SecureField("Password", text: .constant("secret")).textFieldStyle(.plain)
+            Button("Reveal") {}
+        }
+        let wrapped = measure(EFieldShell { accessory })
+        XCTAssertGreaterThanOrEqual(wrapped.height, max(EControlTheme.standard.fieldHeight, measure(accessory).height))
         let search = measure(EFieldShell(isSearch: true) { TextField("Search", text: .constant("")) }
             .eControlTheme(EControlTheme(searchHeight: 52)))
         XCTAssertGreaterThanOrEqual(search.height, 52)

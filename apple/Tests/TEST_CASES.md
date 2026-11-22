@@ -63,6 +63,12 @@ iOS `IOSControlTests` 另覆盖短暂原文与自定义图标、相同文本替�
 
 `MacFoundationComponentsTests` 检查浅色、深色及各自增加对比度的配色、文字与状态色对比度、标准字号和控件尺寸，以及应用强调色和悬停覆盖。另对照 AppKit 有效外观验证动态色解析，并渲染浅色、深色和自定义背景的共享卡片，检查实际像素。`MacControlHostTests` 用真实 AppKit Combo 验证应用的正文字号作用于原生编辑器，并核对 SwiftUI 字体映射。模板回归核对生成的 macOS 首页读取环境主题并由应用根注入 `.standard`。
 
+## macOS 业务 UI
+
+`swift test --filter BusinessKitMacTests` 覆盖设置分类和 AppKit 宿主布局、字号持久化与主题覆盖、购买待批准和取消、恢复后单次回调、过期弹框结果隔离、帮助链接与分享文件边界、日志初始化与临时文件清理、快捷键冲突与注册失败保留原设置、评分冷却和同步状态。使用 `swift run MacBusinessGallery` 预览全部接入点。
+
+`StoreKitPurchaseEntitlementTests` 检查买断、续订到期、宽限期、撤销和升级的权益判断。真实商品和账号的端到端验证由消费 App 在沙盒及目标系统完成。
+
 修改示例后运行 `python3 apple/Sources/macOS/DesignKitMacPlayground/Scripts/sync-examples.py --check`。测试不连接设备、不写应用偏好；离屏宿主与回调测试不能替代真实 IME、VoiceOver、下拉鼠标和屏幕边缘验收。
 
 ## 邮箱密码组件
