@@ -7,11 +7,12 @@ import { scanRules, scanSkills } from '../src/sync.js'
 import { copySkillsToProjectPlatforms } from '../src/sync-global-skills.js'
 
 const source = path.resolve('templates/ai-tools')
-const names = ['dwy-swift-development', 'dwy-apple-architecture', 'dwy-ios-development', 'dwy-macos-development', 'dwy-macos-local-debug']
+const names = ['dwy-swift-development', 'dwy-apple-architecture', 'dwy-ios-development', 'dwy-macos-development', 'dwy-apple-local-debug']
 
 test('Apple 开发技能可发现且引用的本地资料存在，旧规则不再作为独立规则分发', async () => {
   const skills = await scanSkills(source)
   const rules = await scanRules(source)
+  assert.ok(!skills.some(skill => skill.name === 'dwy-macos-local-debug'))
   for (const name of names) {
     const skill = skills.find(item => item.name === name)
     assert.ok(skill, `缺少 ${name}`)
@@ -31,6 +32,9 @@ test('Apple 技能经现有同步流程安装后附带资料和脚本可访问',
   try {
     const skills = (await scanSkills(source)).filter(item => names.includes(item.name))
     await copySkillsToProjectPlatforms({ projectDir: path.join(temp, 'project'), homeDir: path.join(temp, 'home'), platforms: ['codex'], skills })
+    const debugScripts = path.join(temp, 'project', '.agents', 'skills', 'dwy-apple-local-debug', 'scripts')
+    await fs.access(path.join(debugScripts, 'build_debug.py'))
+    await fs.access(path.join(debugScripts, 'ios_qa_device.py'))
     for (const skill of skills) {
       const entry = path.join(temp, 'project', '.agents', 'skills', skill.name)
       const content = await fs.readFile(path.join(entry, 'SKILL.md'), 'utf8')

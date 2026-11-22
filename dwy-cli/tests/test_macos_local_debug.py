@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 
 SCRIPT = (Path(__file__).resolve().parents[1]
-          / "templates/ai-tools/skills/Apple/dwy-macos-local-debug/scripts/build_debug.py")
+          / "templates/ai-tools/skills/Apple/dwy-apple-local-debug/scripts/build_debug.py")
 FUNCTIONS = runpy.run_path(str(SCRIPT))
 GLOBALS = FUNCTIONS["install"].__globals__
 

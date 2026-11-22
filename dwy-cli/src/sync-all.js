@@ -140,6 +140,7 @@ async function managedNames(root, global, codexHome) {
 
 const SKILL_RENAMES = new Map([
   ['dwy-dependency-choice', 'dwy-open-source-selection'],
+  ['dwy-macos-local-debug', 'dwy-apple-local-debug'],
 ])
 
 function includeRenamedSkills(names, skills) {

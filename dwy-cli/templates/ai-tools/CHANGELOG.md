@@ -1,5 +1,11 @@
 # ai-tools 内部版本
 
+## 0.42.0 - 2026-11-22
+
+### Changed
+
+- `skills/Apple/dwy-apple-local-debug/SKILL.md` 接替 `dwy-macos-local-debug`。保留 macOS 本地 Debug 打包流程，新增 iOS QA 模拟器选择、复用和启动流程。刷新时迁移旧名的已启用项。
+
 ## 0.41.0 - 2026-11-21
 
 ### Changed

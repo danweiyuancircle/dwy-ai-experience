@@ -13,6 +13,8 @@ description: 开发、排查、评审或适配 iOS 18+、iPadOS 18+ 应用时使
 
 系统回归默认覆盖 iOS 18 和当前最新支持的大版本；仅在受影响功能存在明确系统差异时增加中间版本，不再安排 iOS 17 的构建、设备或模拟器测试。屏幕尺寸、可访问性及关键业务验证仍按改动影响范围执行。
 
+在本机模拟器安装、更新或启动 Debug 应用时，使用 Apple 本地调试 Skill（`dwy-apple-local-debug`）选择并复用固定 QA 设备。
+
 按需阅读：[布局与安全区](references/layout.md)、[系统外观与 Liquid Glass](references/appearance.md)、[弹窗和锚点](references/presentations.md)、[iOS 踩坑](references/pitfalls.md)。界面变更先确定受影响系统、屏幕尺寸、滚动和交互，再验证布局、可访问性与视觉；编译通过不等于设备验收。
 
 界面开发与评审同时遵循 `dwy-swift-development` 的图标视觉一致性、按钮语义与样式一致性、重复能力封装与复用要求；跨页面检查同类入口，不仅检查当前页面。
