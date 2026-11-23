@@ -21,6 +21,7 @@ description: 使用或排查 AppleAppKit SwiftPM 自有基础库时使用，按�
 - DesignCore、DesignKitIOS、DesignKitMac：跨平台及平台界面能力。
 - AppleAppKit 0.12.0 起，`DesignKitMac` 的 `EControlTheme.standard` 默认使用冷静蓝、明暗灰阶及 13 pt 正文。应用可复制标准主题并按窗口或页面用 `.eControlTheme(_:)` 覆盖，字号统一用 `ETypography(bodySize:)` 派生。
 - AppleAppKit 0.13.0 起，macOS 可选产品 `BusinessKitMac` 提供设置、购买、帮助反馈、导出分享、快捷键、评分、账号及同步展示。可使用 `BusinessPreferences` 装配默认偏好，并按应用实际需求配置页面和服务。接入契约见对应版本的 `apple/Docs/Mac-Business-Kit.md`。
+- AppleAppKit 0.13.1 起，macOS 菜单式 `EPicker` 可用 `selectedLabel` 按当前值布局收起按钮，`maxLabelWidth` 只限制按钮上的标签。共享通用设置已接入，展开后保留完整选项及原生单选语义。
 - `PurchaseCore` 0.13.0 起可用 `StoreKitPurchaseStore` 管理已配置的买断和自动续订商品。继续使用买断接口时保留 `LifetimeStore`，应用按自身商品权益决定功能放行。正式业务消费前执行 StoreKit 沙盒验收。
 - DesignKitMac 0.10.0 起提供 `ePreventsSidebarCollapse`，用于 SwiftUI 原生分栏的侧栏内容。
 - `eWindowOverlay` 仅存在于 0.10.0 / 0.10.1，0.11.0 已移除。模态弹框改用 SwiftUI `.sheet` / `.alert` / `.confirmationDialog` 或 AppKit sheet；确认与错误提示用 `EAlert`、`eErrorAlert`，文件选择用 `EFileDialog`。迁移时删除宿主为页内弹框补的菜单禁用和事件监听阻断，按 sheet 重新验收键盘与焦点。

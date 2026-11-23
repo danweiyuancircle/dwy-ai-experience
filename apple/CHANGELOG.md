@@ -25,6 +25,21 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.13.1 - 2026-11-23
+
+- 修复 `BusinessGeneralSettings` 的通用设置布局。语言、外观和字号共用一张卡片，分隔线留在卡片内。
+- macOS 菜单式 `EPicker` 增加可选的 `selectedLabel` 和 `maxLabelWidth`。通用设置的菜单按钮按当前值布局，候选项的长度独立计算，语言按钮的标签宽度有上限。
+- Skill 同步检查更新了 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/design-system.md`，记录菜单式选择器的新入口和使用边界。iOS、权限、生命周期及最低工具链契约保持原样。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.13.0 能否不改 App 继续编 | 可以。使用 `BusinessGeneralSettings` 的应用随依赖升级获得修复。 |
+| 不升会怎样 | 通用设置分隔线仍可能各自成卡片，菜单按钮可能被未选中的长选项撑宽。 |
+| 升上来可选/必改项 | 没有必改项。自有设置页的菜单式 `EPicker` 可按需传入 `selectedLabel`。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0。 |
+
 ## 0.13.0 - 2026-11-22
 
 - 新增可选 macOS 产品 `BusinessKitMac`，提供共享设置面板、默认偏好与自定义设置页、购买模态、帮助反馈、原生保存分享与日志导出、快捷键设置、评分、账号及同步状态。使用 `swift run MacBusinessGallery` 可用示例配置体验接入流程。

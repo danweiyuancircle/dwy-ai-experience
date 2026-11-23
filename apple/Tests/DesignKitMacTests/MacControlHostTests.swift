@@ -137,6 +137,25 @@ final class MacControlHostTests: XCTestCase {
         XCTAssertGreaterThan(size.height, 100)
     }
 
+    func testMenuPickerMeasuresOnlyTheSelectedLabel() {
+        let longName = String(repeating: "Long language name ", count: 5)
+        func width(candidate: String, selected: Int, maximum: CGFloat? = nil) -> CGFloat {
+            measure(EPicker(Text("Language"), selection: .constant(selected), selectedLabel: {
+                Text(verbatim: $0 == 0 ? "System" : candidate)
+            }, maxLabelWidth: maximum) {
+                Text("System").tag(0)
+                Text(verbatim: candidate).tag(1)
+            }, width: nil).width
+        }
+
+        let short = width(candidate: "French", selected: 0)
+        XCTAssertEqual(width(candidate: longName, selected: 0), short, accuracy: 1)
+        XCTAssertEqual(width(candidate: longName, selected: 0, maximum: 100), short, accuracy: 1)
+        let capped = width(candidate: longName, selected: 1, maximum: 100)
+        XCTAssertGreaterThan(capped, short)
+        XCTAssertLessThan(capped, width(candidate: longName, selected: 1))
+    }
+
     private func measure<V: View>(_ view: V, width: CGFloat? = 320) -> NSSize {
         _ = NSApplication.shared
         let host = NSHostingView(rootView: view.frame(width: width))

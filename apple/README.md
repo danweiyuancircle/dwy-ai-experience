@@ -44,7 +44,7 @@ MyApp/
 
 ## 生成
 
-以下命令从统一仓库根目录执行。`--platform ios|macos|apple` 分别生成 iOS、macOS、双端形态，统一精确依赖正式版本 `0.13.0`，分别接入 `DesignKitIOS` / `DesignKitMac`。生成工程前须确认该标签可访问。模板不含凭据。
+以下命令从统一仓库根目录执行。`--platform ios|macos|apple` 分别生成 iOS、macOS、双端形态，统一精确依赖正式版本 `0.13.1`，分别接入 `DesignKitIOS` / `DesignKitMac`。生成工程前须确认该标签可访问。模板不含凭据。
 
 使用现有 Python 3、Swift 6 与 XcodeGen。生成时通过 Swift 前端校验类型名，追加平台通过 SwiftPM 读取已有清单；SDK 编译与运行需要完整 Xcode。工具链未被全局选中时可按命令设置 DEVELOPER_DIR，不要求修改机器的全局选择。
 
@@ -102,7 +102,7 @@ macOS 26 原型已加入 `DesignKitMac`，包括按钮、菜单、选择、输�
 业务 App 对**跨仓库基础库只用已发布精确版本**，禁止引用本机源码路径；本产品内部包使用相对 path：
 
 ```swift
-.package(url: "https://github.com/danweiyuancircle/dwy-ai-experience.git", exact: "0.13.0")
+.package(url: "https://github.com/danweiyuancircle/dwy-ai-experience.git", exact: "0.13.1")
 // product 的 package 名是仓库名 dwy-ai-experience
 ```
 

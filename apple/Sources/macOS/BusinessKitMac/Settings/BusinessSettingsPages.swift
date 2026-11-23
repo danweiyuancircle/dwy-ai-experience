@@ -9,6 +9,7 @@ public struct BusinessGeneralSettings<Language: Hashable & Identifiable>: View {
     @Binding private var language: Language
     @Binding private var appearance: ThemeMode
     @Binding private var textSize: BusinessTextSize
+    @Environment(\.eControlTheme) private var theme
     private let languages: [Language]
     private let languageTitle: Text
     private let appearanceTitle: Text
@@ -67,28 +68,30 @@ public struct BusinessGeneralSettings<Language: Hashable & Identifiable>: View {
     public var body: some View {
         let textSizeTitle = Text("Text Size", tableName: "Settings", bundle: .module)
         ECard {
-            ESettingsRow(languageTitle) {
-                EPicker(languageTitle, selection: $language) {
-                    ForEach(languages) { candidate in
-                        languageName(candidate).tag(candidate)
+            VStack(spacing: theme.spacing.formRow) {
+                ESettingsRow(languageTitle) {
+                    EPicker(languageTitle, selection: $language, selectedLabel: languageName, maxLabelWidth: 100) {
+                        ForEach(languages) { candidate in
+                            languageName(candidate).tag(candidate)
+                        }
                     }
-                }.labelsHidden()
-            }
-            Divider()
-            ESettingsRow(appearanceTitle) {
-                EPicker(appearanceTitle, selection: $appearance) {
-                    ForEach(ThemeMode.allCases) { mode in
-                        appearanceName(mode).tag(mode)
+                }
+                Divider()
+                ESettingsRow(appearanceTitle) {
+                    EPicker(appearanceTitle, selection: $appearance, selectedLabel: appearanceName) {
+                        ForEach(ThemeMode.allCases) { mode in
+                            appearanceName(mode).tag(mode)
+                        }
                     }
-                }.labelsHidden()
-            }
-            Divider()
-            ESettingsRow(textSizeTitle) {
-                EPicker(textSizeTitle, selection: $textSize) {
-                    ForEach(BusinessTextSize.allCases) { size in
-                        size.title.tag(size)
+                }
+                Divider()
+                ESettingsRow(textSizeTitle) {
+                    EPicker(textSizeTitle, selection: $textSize, selectedLabel: { $0.title }) {
+                        ForEach(BusinessTextSize.allCases) { size in
+                            size.title.tag(size)
+                        }
                     }
-                }.labelsHidden()
+                }
             }
         }
     }

@@ -12,3 +12,4 @@
 - 已采用 DesignKitMac 的项目，通用页面、表单、行样式和平台对话框优先走共享入口；缺口先补基础库，业务不复制通用样式和系统版本判断。任务、授权与危险操作语义保留在业务。
 - AppleAppKit 0.12.0 起，macOS 模板和 `DesignKitMac` 默认使用 `.standard` 的冷静蓝、明暗灰阶和 13 pt 正文。应用有品牌或密度需求时，从标准主题改相应角色并在窗口或子树注入 `.eControlTheme(theme)`。组件读 `@Environment(\.eControlTheme)`，静态令牌仅反映标准主题。改强调色须同时验证 `onAccent` 在浅色、深色和增加对比度下的可读性。
 - AppleAppKit 0.13.0 起，共享业务页面可选用 `BusinessKitMac` 的设置面板、购买、帮助反馈、文件保存分享、快捷键、评分、账号与同步入口。应用提供自定义页面、商品、偏好保存与权限策略。设置面板可装入原生 `Settings` window 或 `.sheet`。接口以所选版本的 `apple/Docs/Mac-Business-Kit.md` 为准。
+- macOS 菜单式 `EPicker` 从 AppleAppKit 0.13.1 起支持 `selectedLabel`，用于按选中值布局收起按钮。长文案可设置 `maxLabelWidth`，菜单项保持完整文案与原生单选勾选。

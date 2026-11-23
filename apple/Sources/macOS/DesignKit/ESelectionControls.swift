@@ -36,6 +36,8 @@ public struct EPicker<Selection: Hashable, Content: View>: View {
     private let title: Text
     @Binding private var selection: Selection
     private let presentation: EPickerPresentation
+    private let selectedLabel: ((Selection) -> Text)?
+    private let maxLabelWidth: CGFloat?
     private let content: Content
 
     /// 菜单选项可用 Label 提供图标或 Text 只显示文字；保留 ForEach、禁用与强类型 tag 语义。
@@ -54,14 +56,42 @@ public struct EPicker<Selection: Hashable, Content: View>: View {
         self.title = title
         self._selection = selection
         self.presentation = presentation
+        self.selectedLabel = nil
+        self.maxLabelWidth = nil
+        self.content = content()
+    }
+
+    /// 菜单收起时只测量选中值。maxLabelWidth 限制标签宽度，不影响系统菜单里的完整选项。
+    public init(_ title: Text, selection: Binding<Selection>,
+                selectedLabel: @escaping (Selection) -> Text, maxLabelWidth: CGFloat? = nil,
+                @ViewBuilder content: () -> Content) {
+        self.title = title
+        self._selection = selection
+        self.presentation = .menu
+        self.selectedLabel = selectedLabel
+        self.maxLabelWidth = maxLabelWidth
         self.content = content()
     }
 
     public var body: some View {
         let picker = Picker(selection: $selection) { content } label: { title }
-        switch presentation {
-        case .menu: picker.pickerStyle(.menu).labelStyle(.titleAndIcon)
-        case .segmented: picker.pickerStyle(.segmented)
+        if let selectedLabel {
+            let value = selectedLabel(selection)
+            Menu {
+                picker.pickerStyle(.inline).labelsHidden()
+            } label: {
+                value.lineLimit(1)
+                    .frame(maxWidth: maxLabelWidth)
+                    .fixedSize(horizontal: true, vertical: false)
+            }
+            .labelStyle(.titleAndIcon)
+            .accessibilityLabel(title)
+            .accessibilityValue(value)
+        } else {
+            switch presentation {
+            case .menu: picker.pickerStyle(.menu).labelStyle(.titleAndIcon)
+            case .segmented: picker.pickerStyle(.segmented)
+            }
         }
     }
 }
