@@ -227,7 +227,8 @@ const RULE_SKILL_MIGRATIONS = {
   'dwy-ios-pitfalls.md': ['dwy-ios-development'],
   'dwy-android-core.md': ['dwy-android-development'],
   'dwy-android-pitfalls.md': ['dwy-android-development'],
-  'dwy-android-support-only.md': ['dwy-android-development'],
+  // 旧规则原文随专用 Skill 保存，以便按原文核对后清理历史文件。
+  'dwy-android-support-only.md': ['dwy-android-support-only'],
   'dwy-android-layering.md': ['dwy-android-architecture'],
   'dwy-android-mvp.md': ['dwy-android-architecture'],
   'dwy-flutter-core.md': ['dwy-dart-development', 'dwy-flutter-development'],

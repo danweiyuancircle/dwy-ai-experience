@@ -1,14 +1,15 @@
 ---
 name: dwy-android-development
-description: 开发、修改或排查 Android 原生应用时使用；覆盖 Java、Kotlin、XML、系统适配及常见问题。
+description: 处理 Android 的工程配置、设备验证、系统适配和跨技术栈问题时使用。
 ---
 
-# Android 开发
+# Android 通用开发
 
-先检查项目现有语言、SDK、Gradle、依赖与设备目标；已有项目遵循实际技术栈，不擅自替换 Support、AndroidX 或 UI 框架。需要架构设计时同时使用可用的 `dwy-android-architecture`。
+先检查项目现有语言、SDK、Gradle、依赖与设备目标。已有项目沿用当前依赖体系与 UI 框架。需要架构设计时同时使用可用的 `dwy-android-architecture`。
 
-- [开发规范与界面适配](references/dwy-android-core.md)：按任务阅读语言、布局、资源和生命周期相关部分；其中 AndroidAutoSize 是团队特定选型，新项目也需按依赖选型规则核实，不能在未授权时自动添加。
-- [Support 老项目兼容](references/dwy-android-support-only.md)：仅项目实际使用 Support 时阅读。
+涉及具体代码时，按改动文件选用已启用的 `dwy-android-java`、`dwy-android-kotlin`、`dwy-android-xml` 或 `dwy-android-compose`。
+
+- [开发规范与界面适配](references/dwy-android-core.md)：系统和设备适配按任务查阅；未启用专门 Skill 时，仍可查其中适用的存量语言、布局、资源和生命周期约定。AndroidAutoSize 是团队特定选型，新项目需先按依赖选型规则核实。
 - [常见踩坑](references/dwy-android-pitfalls.md)：按工程、设备、界面或生命周期问题查阅。
 
 涉及 UI、系统权限或设备行为时，区分编译通过和目标设备实际验证。

@@ -4,7 +4,8 @@ import { spawn } from 'node:child_process'
 import fs from 'fs-extra'
 import os from 'node:os'
 import path from 'node:path'
-import { syncAll } from '../src/sync-all.js'
+import { fileURLToPath } from 'node:url'
+import { refreshAll, syncAll } from '../src/sync-all.js'
 import * as sync from '../src/sync.js'
 
 const items = [
@@ -24,6 +25,22 @@ test('分类 Tab 覆盖所有条目，同分类归组并按名称排序，不展
   assert.equal(vue.options[0].type, 'skills')
   assert.equal(tabs.flatMap(tab => tab.options).length, 4)
   assert.deepEqual(sync.buildCategoryTabs([], 'rules'), [])
+})
+
+const androidSkills = [
+  ...['architecture', 'compose', 'development', 'java', 'kotlin', 'support-only', 'xml'].map(name => `dwy-android-${name}`),
+  'dwy-androidx-only',
+].map(name => ({ name, category: 'Android' }))
+
+test('Android 使用四个 Tab 展示独立 Skill，其他 Android 条目归入通用', () => {
+  const tabs = sync.buildCategoryTabs([...androidSkills, { name: 'other-android', category: 'Android' }], 'skills')
+  assert.deepEqual(tabs.map(tab => [tab.label, tab.options.map(option => option.value)]), [
+    ['Android 通用', ['dwy-android-architecture', 'dwy-android-development', 'other-android']],
+    ['Android Support', ['dwy-android-java', 'dwy-android-support-only', 'dwy-android-xml']],
+    ['AndroidX', ['dwy-android-java', 'dwy-android-kotlin', 'dwy-android-xml', 'dwy-androidx-only']],
+    ['Android Compose', ['dwy-android-compose', 'dwy-android-kotlin']],
+  ])
+  assert.equal(sync.buildCategoryTabs(androidSkills, 'rules')[0].label, 'Android')
 })
 
 /** 用真实终端输入驱动选择器，验证分类切换、逐项勾选和阶段顺序。 */
@@ -90,6 +107,35 @@ const scans = {
   hooks: [{ name: 'hook.sh', category: 'Git' }],
 }
 const defaults = { skills: ['first', 'removed'], rules: [], commands: [], hooks: [] }
+
+test('Android 跨 Tab 勾选只同步一份 Skill，刷新后仍保留已启用项', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-android-skills-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  const androidSource = fileURLToPath(new URL('../templates/ai-tools/skills/Android/', import.meta.url))
+  await fs.copy(androidSource, path.join(sourceDir, 'skills/Android'))
+  await fs.ensureDir(projectDir)
+  const skills = await sync.scanSkills(sourceDir)
+  assert.deepEqual(skills.map(skill => skill.name), androidSkills.map(skill => skill.name))
+  const right = '\u001b[C'
+  const { result } = await runSelection(t, { skills }, { skills: ['dwy-android-java'] }, [
+    { label: 'Skills', keys: `${right} ${right}a\u001b[D a\r` },
+  ], { skillsOnly: true })
+  const expected = ['dwy-android-compose', 'dwy-android-java', 'dwy-android-kotlin', 'dwy-android-xml', 'dwy-androidx-only']
+  assert.deepEqual(result.skills.map(skill => skill.name), expected)
+  const opts = { sourceDir, projectDir, homeDir, codexHome: path.join(homeDir, '.codex') }
+  await syncAll({ ...opts, scope: 'project', selectedPlatforms: ['codex'], contentTypes: ['skills'], confirmed: true, selected: result })
+  const installed = path.join(projectDir, '.agents/skills')
+  const xmlSource = path.join(sourceDir, 'skills/Android/dwy-android-xml/SKILL.md')
+  await fs.appendFile(xmlSource, '\n验证刷新结果。\n')
+  await refreshAll(opts)
+  assert.deepEqual((await fs.readdir(installed)).sort(), expected)
+  assert.match(await fs.readFile(path.join(installed, 'dwy-android-xml/SKILL.md'), 'utf8'), /验证刷新结果/)
+  const support = skills.find(skill => skill.name === 'dwy-android-support-only')
+  await syncAll({ ...opts, scope: 'project', selectedPlatforms: ['codex'], contentTypes: ['skills'], confirmed: true, selected: { skills: [support] } })
+  assert.deepEqual(await fs.readdir(installed), [support.name])
+  assert.match(await fs.readFile(path.join(installed, support.name, 'references/support-compatibility.md'), 'utf8'), /android\.useAndroidX=false/)
+})
 
 test('无 Rules 模板的主交互只选择 Skills 和受支持 CLI', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-skills-only-ui-'))

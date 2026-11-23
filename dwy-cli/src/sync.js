@@ -183,8 +183,14 @@ export async function scanExisting(projectTargetDir, typePlural) {
   return new Set(entries.filter(name => name !== '.gitkeep' && name !== '.DS_Store'))
 }
 
+const ANDROID_STACK_TABS = [
+  ['Android Support', ['dwy-android-java', 'dwy-android-xml', 'dwy-android-support-only']],
+  ['AndroidX', ['dwy-android-java', 'dwy-android-kotlin', 'dwy-android-xml', 'dwy-androidx-only']],
+  ['Android Compose', ['dwy-android-compose', 'dwy-android-kotlin']],
+]
+
 /**
- * 按模板实际分类生成 Tab，每条独立勾选，不做包展开或跨分类关联。
+ * 按模板分类生成 Tab。Android 技术栈可共享同名 Skill，所有 Tab 按同一个名称勾选。
  *
  * @param {Array<{ name: string, category?: string, description?: string }>} items
  * @param {'skills' | 'rules'} type
@@ -205,11 +211,17 @@ export function buildCategoryTabs(items, type) {
   }
   return [...groups.entries()]
     .sort(([a], [b]) => a.localeCompare(b, 'zh'))
-    .map(([category, options]) => ({
-      id: category,
-      label: category,
-      options: options.sort((a, b) => a.label.localeCompare(b.label, 'zh')),
-    }))
+    .flatMap(([category, options]) => {
+      options.sort((a, b) => a.label.localeCompare(b.label, 'zh'))
+      if (type !== 'skills' || category !== 'Android') return [{ id: category, label: category, options }]
+
+      const stackNames = new Set(ANDROID_STACK_TABS.flatMap(([, names]) => names))
+      const tabs = [
+        ['Android 通用', options.filter(option => !stackNames.has(option.value))],
+        ...ANDROID_STACK_TABS.map(([label, names]) => [label, options.filter(option => names.includes(option.value))]),
+      ]
+      return tabs.filter(([, entries]) => entries.length).map(([label, entries]) => ({ id: label, label, options: entries }))
+    })
 }
 
 /**

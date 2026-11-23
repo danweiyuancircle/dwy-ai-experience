@@ -13,7 +13,7 @@ paths:
 
 写任何页面前必须先读本仓，再动手。读到的继承链、Contract 切法、基类名字、生命周期挂法、包怎么放，全部跟项目。禁止用记忆里的「标准 MVP」覆盖本仓。
 
-模块四层见 `dwy-android-layering`；注释 / 命名 / AppCompat 见 `dwy-android-core`。Support 与 AndroidX 也跟当前项目推断。
+模块四层见 `dwy-android-layering`；注释 / 命名 / AppCompat 见 `dwy-android-core`。
 
 ---
 

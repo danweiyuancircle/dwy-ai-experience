@@ -65,7 +65,7 @@ function symbol(state) {
 }
 
 /**
- * 本 Tab 已勾数 / 总数。只数该 Tab 自己的 value，跨 Tab 同名不影响。
+ * 本 Tab 已勾数 / 总数。跨 Tab 展示的同一 value 使用共享勾选状态。
  *
  * @param {{ options: { value: unknown }[] }} tab
  * @param {Iterable<unknown>} selectedValues

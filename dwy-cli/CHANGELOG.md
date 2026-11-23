@@ -1,5 +1,12 @@
 # create-dwy
 
+## [0.40.0] - 2026-11-23
+
+### Added
+
+- `dwy sync` 将 Android Skills 分为通用、Support、AndroidX 和 Compose 四个 Tab。Java、XML 和 Kotlin 等共享项可以跨 Tab 勾选，同步时只安装一份。
+- 新增独立的 Android Java、XML、Kotlin、Compose Skills，以及分别限制项目使用 Support Library 或 AndroidX 的可选约束。
+
 ## [0.39.1] - 2026-11-22
 
 ### Fixed

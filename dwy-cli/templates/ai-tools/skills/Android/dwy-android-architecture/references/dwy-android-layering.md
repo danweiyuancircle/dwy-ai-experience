@@ -13,7 +13,7 @@ paths:
 
 适用于多模块 Android 应用。注释 / 命名 / AppCompat 见 `dwy-android-core`。页面 MVP 与业务 Base 见 `dwy-android-mvp`。本文件只管**Gradle 模块层、引用边、版本写在哪**。模块**内部** Java 包仍按功能聚合（见 `dwy-android-core`「包组织」）。
 
-新项目强制本结构。未拆模块的存量**不回溯拆包**；新增模块必须按本文件落层。Support 老项目另走 `dwy-android-support-only`。
+新项目强制本结构。未拆模块的存量**不回溯拆包**；新增模块必须按本文件落层。
 
 单壳项目**不建** PlatformFoundation。
 

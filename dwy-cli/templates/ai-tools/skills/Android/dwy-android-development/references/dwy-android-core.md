@@ -89,7 +89,7 @@ Text("标题", fontSize = titleSize)
 
 **为什么只按宽**：高度含状态栏 / 刘海 / 手势条，按高适配会把系统栏算进设计高，全面屏变形。宽是稳定轴。
 
-`1.2.0+` 同时兼容 Support 与 AndroidX，按当前项目推断，**禁止**为接本库引入 `androidx.*`。Support 老项目见 `dwy-android-support-only`。
+按目标模块的实际依赖选用 AndroidAutoSize 版本，保持项目现有依赖体系。
 
 分端只体现在 **设计稿尺寸 + `design_width_in_dp`**。AutoSize 按宽铺满，不必再用 `values-television`、`productFlavor`、`UI_MODE_TYPE_TELEVISION` 去拆资源或运行时切换。
 
@@ -104,7 +104,7 @@ Text("标题", fontSize = titleSize)
 
 ### 依赖
 
-JCenter 已停，走 JitPack。用仍兼容 Support、不引入 AndroidX 的正式版。已核对过的起点是 `v1.2.1`（`1.2.0+` 才兼容 Support）。新 tag 先看传递依赖，拉进 AndroidX 就丢掉。具体 tag 按依赖新鲜度现查，不要把 `v1.2.1` 当成永远唯一坐标。
+使用项目已配置的来源和版本。需要调整时，核对候选版本、来源与目标变体的传递依赖。
 
 ```gradle
 // 起点先验。写入前确认该 tag 仍不带 androidx
@@ -1264,7 +1264,7 @@ if (trimmed.isNotEmpty()) { ... }
 | 23  | 字符串空判断用 `isEmpty` / `isNotEmpty` / `isNotBlank`,禁止 `length() > 0` / `== 0` / `!= 0` 及 `trim().length() > 0` 判空;详见 §八「字符串空判断」                                                                                                      | ✓        |
 | 24  | 有 AppCompat 对应类的控件必须用 AppCompat 版(XML / `new` / 自定义 View 父类),包名按当前项目推断;Switch 用 `SwitchCompat`;无对应类的布局容器保持原样                                                                                                                          | ✓        |
 | 25  | 布局 `dp`、字号 `sp`，禁止 `px` 和裸字面量（含 Compose `16.sp` / `16.px`）；数值走 `dimens.xml`。不要除掉 `fontScale`。TV / 固定版式才允许字号用 `dp` 并写明原因 | ✓        |
-| 26  | 屏幕适配走 AndroidAutoSize（Support 兼容线，起点先验 `v1.2.1`，不锁死这个 tag），只按宽；移动端 `design_width=390`（画布 `390×844`），TV `design_width=1280`（画布 `1280×720`）；禁止按高适配、禁止副单位；页面基类重写 `getResources()` 调 `AutoSizeCompat` | ✓        |
+| 26  | 采用 AndroidAutoSize 的项目只按宽适配，版本须兼容当前依赖体系。移动端 `design_width=390`（画布 `390×844`），TV `design_width=1280`（画布 `1280×720`）。页面基类按现有约定调用 `AutoSizeCompat` | ✓        |
 
 
 **不执行自检就提交代码 = 违规。**
