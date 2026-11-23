@@ -2,6 +2,69 @@
 import AppKit
 import SwiftUI
 
+/// 用同一窗口标识连接 SwiftUI、Window 菜单和 Dock 重开。每个应用自行决定新建哪个场景。
+@MainActor
+public struct EMainWindow {
+    public let identifier: NSUserInterfaceItemIdentifier
+
+    /// 标识应与设置窗和工具窗区分。SwiftUI 用 `marker` 标记，AppKit 可直接设置窗口的 identifier。
+    public init(id: String) {
+        identifier = NSUserInterfaceItemIdentifier(id)
+    }
+
+    /// 从显式菜单入口调用。有目标窗就调前，必要时恢复最小化，否则调用宿主的开窗动作。
+    public func show(in application: NSApplication = .shared, open: () -> Void) {
+        if let window = target(in: application.windows) {
+            if window.isMiniaturized { window.deminiaturize(nil) }
+            window.makeKeyAndOrderFront(nil)
+        } else {
+            open()
+        }
+        application.activate()
+    }
+
+    /// 在 `applicationShouldHandleReopen` 中返回此结果。已处理的重开交还 false，避免系统重复建窗。
+    public func handleDockReopen(in application: NSApplication, hasVisibleWindows: Bool, open: () -> Void) -> Bool {
+        guard !hasVisibleWindows else { return true }
+        show(in: application, open: open)
+        return false
+    }
+
+    /// 挂到目标场景内容的 background，等 SwiftUI 把视图装进 NSWindow 后再标记。
+    public var marker: some View {
+        EMainWindowMarker(identifier: identifier)
+            .frame(width: 0, height: 0)
+            .allowsHitTesting(false)
+            .accessibilityHidden(true)
+    }
+
+    func target(in windows: [NSWindow]) -> NSWindow? {
+        windows.first { $0.identifier == identifier && !$0.isMiniaturized }
+            ?? windows.first { $0.identifier == identifier }
+    }
+}
+
+private struct EMainWindowMarker: NSViewRepresentable {
+    let identifier: NSUserInterfaceItemIdentifier
+
+    func makeNSView(context: Context) -> MarkerView { MarkerView() }
+    func updateNSView(_ view: MarkerView, context: Context) {
+        view.identifier = identifier
+        view.markWindow()
+    }
+
+    final class MarkerView: NSView {
+        override func viewDidMoveToWindow() {
+            super.viewDidMoveToWindow()
+            markWindow()
+        }
+
+        func markWindow() {
+            if let identifier { window?.identifier = identifier }
+        }
+    }
+}
+
 /// 通用工具面板宿主；任务、授权和模态返回值由业务控制，不在关闭时推断取消。
 @MainActor
 open class EToolPanel: NSPanel {

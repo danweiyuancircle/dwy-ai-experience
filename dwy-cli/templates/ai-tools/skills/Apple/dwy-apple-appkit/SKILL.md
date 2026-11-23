@@ -24,7 +24,8 @@ description: 使用或排查 AppleAppKit SwiftPM 自有基础库时使用，按�
 - AppleAppKit 0.13.1 起，macOS 菜单式 `EPicker` 可用 `selectedLabel` 按当前值布局收起按钮，`maxLabelWidth` 只限制按钮上的标签。共享通用设置已接入，展开后保留完整选项及原生单选语义。
 - `PurchaseCore` 0.13.0 起可用 `StoreKitPurchaseStore` 管理已配置的买断和自动续订商品。继续使用买断接口时保留 `LifetimeStore`，应用按自身商品权益决定功能放行。正式业务消费前执行 StoreKit 沙盒验收。
 - DesignKitMac 0.10.0 起提供 `ePreventsSidebarCollapse`，用于 SwiftUI 原生分栏的侧栏内容。
-- `eWindowOverlay` 仅存在于 0.10.0 / 0.10.1，0.11.0 已移除。模态弹框改用 SwiftUI `.sheet` / `.alert` / `.confirmationDialog` 或 AppKit sheet；确认与错误提示用 `EAlert`、`eErrorAlert`，文件选择用 `EFileDialog`。迁移时删除宿主为页内弹框补的菜单禁用和事件监听阻断，按 sheet 重新验收键盘与焦点。
+- AppleAppKit 0.14.0 起，`DesignKitMac` 通过 `EMainWindow` 在 Window 菜单和 Dock 共用主窗恢复。`BusinessKitMac` 提供 `MacGlobalHotkey`，应用持有注册，停用或改绑前调用 `invalidate()`。接入见 `apple/Docs/Mac-Platform-Dialogs.md` 和 `apple/Docs/Mac-Business-Kit.md`。
+- `eWindowOverlay` 仅存在于 0.10.0 / 0.10.1，0.11.0 已移除。模态弹框改用 SwiftUI `.sheet` / `.alert` / `.confirmationDialog` 或 AppKit sheet，文件选择用 `EFileDialog`。迁移时删除宿主为页内弹框补的菜单禁用和事件监听阻断，按 sheet 重新验收键盘与焦点。
 - AuthCore、AuthUI、AuthGoogleIOS、AuthAppleIOS、AuthGoogleMac：认证核心与平台接入。
 - PurchaseCore：购买能力。
 - PermissionCore、PermissionIOS、按需 Permission*IOS、PermissionMac、PermissionUI：从 0.9.0 起提供权限状态、申请、设置引导与可选说明 UI；旧标签不具备这些产品。
@@ -40,3 +41,9 @@ iOS/macOS 接入方对已有且满足需求的共享组件必须直接使用，�
 已采用 `DesignKitMac` 的项目，通用控件、页面组合与平台 UI 入口优先使用基础库公开 API。通用颜色、字号、间距和圆角读取共享主题，不在产品维护第二套默认样式。共享组件的系统版本适配留在基础组件内部；能力缺口按上述业务组件与回流规则处理。原生 `NSAlert`、文件选择器和工具窗口可作为组件内部实现，业务不再分散配置展示细节；文件授权、危险操作、任务取消、权益和持久化仍属于业务。不要机械包装 Text/HStack 等布局原语，也不要将产品导航和品牌几何搬成全体默认值。相关组件以所选版本的 `apple/Docs/Mac-Shared-Compositions.md` 与 `apple/Docs/Mac-Platform-Dialogs.md` 为准。
 
 查到对应版本源码后：同步查 `apple/Docs/SYNC_CORE.md` 与 `apple/Examples/OfflineSync/`；Apple 登录、Google 登录和邮箱密码分别查 `apple/Docs/APPLE_AUTH.md`、`apple/Docs/GOOGLE_AUTH.md`、`apple/Docs/EMAIL_PASSWORD_AUTH.md` 与相应示例。具体文件是否存在以所选 tag 为准。
+
+### 反馈组件选型
+
+- 简短操作反馈直接使用 `EToast`，只用于用户错过也能继续的消息，如已复制、已保存。iOS 由宿主管理显示与消失时机，读屏期间保留提示。新代码禁止用 `ENotice.transient(...)`、`ENotice.transientSuccess(...)` 或 `ENoticeCenter` 间接构造 Toast。
+- 信息需要留在页面供用户阅读或处理，且用户可以继续当前操作时，使用 macOS `ENotice` 或 iOS `EInlineNotice`。例如表单校验失败或可稍后重试的断线。
+- 流程需要等用户确认、取消或关闭时，使用原生模态弹框。macOS 确认用 `EAlert`，iOS 确认用 `EConfirm`、单按钮提示用 `EAlert`。必须让用户关闭的错误由应用层持有消息并挂载 `.modifier(EErrorAlert(...))`。macOS 0.14.0 移除了小写错误弹框方法，升级时迁移到该类型。

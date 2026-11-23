@@ -1,6 +1,7 @@
 import AppKit
 import AuthCore
 import BusinessKitMac
+import Carbon.HIToolbox
 import DesignKitMac
 import LogKit
 import SwiftUI
@@ -8,9 +9,12 @@ import SyncCore
 
 @main
 struct MacBusinessGallery: App {
+    fileprivate static let mainWindow = EMainWindow(id: "business")
+    @NSApplicationDelegateAdaptor(GalleryDockDelegate.self) private var dockDelegate
     @State private var preferences = BusinessPreferences()
     @State private var shortcuts = Result { try makeGalleryShortcuts() }
     @State private var account = makeGalleryAccount()
+    @State private var globalHotkey: MacGlobalHotkey?
 
     init() {
         let logs = FileManager.default.temporaryDirectory.appendingPathComponent("MacBusinessGallery-Logs", isDirectory: true)
@@ -19,15 +23,18 @@ struct MacBusinessGallery: App {
     }
 
     var body: some Scene {
-        Window("Mac Business Kit", id: "business") {
-            BusinessGalleryHome(preferences: preferences, shortcuts: shortcuts, account: account)
+        Window("Mac Business Kit", id: Self.mainWindow.identifier.rawValue) {
+            BusinessGalleryHome(preferences: preferences, shortcuts: shortcuts, account: account,
+                                globalHotkey: $globalHotkey, installOpenAction: dockDelegate.installOpenAction)
                 .businessPreferences(preferences)
+                .background { Self.mainWindow.marker }
                 .onAppear {
                     NSApp.setActivationPolicy(.regular)
                     NSApp.activate()
                 }
         }
         .defaultSize(width: 800, height: 600)
+        .commands { GalleryWindowCommands() }
 
         Settings {
             gallerySettings(preferences: preferences, shortcuts: shortcuts, account: account)
@@ -37,10 +44,45 @@ struct MacBusinessGallery: App {
     }
 }
 
+@MainActor
+private final class GalleryDockDelegate: NSObject, NSApplicationDelegate {
+    private var openMain: (() -> Void)?
+
+    func installOpenAction(_ action: @escaping () -> Void) {
+        openMain = action
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        false
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        guard let openMain else { return true }
+        return MacBusinessGallery.mainWindow.handleDockReopen(in: sender, hasVisibleWindows: flag, open: openMain)
+    }
+}
+
+private struct GalleryWindowCommands: Commands {
+    @Environment(\.openWindow) private var openWindow
+
+    var body: some Commands {
+        CommandGroup(after: .windowList) {
+            Button("Show Gallery") {
+                let main = MacBusinessGallery.mainWindow
+                main.show { openWindow(id: main.identifier.rawValue) }
+            }
+        }
+    }
+}
+
 private struct BusinessGalleryHome: View {
+    @Environment(\.openWindow) private var openWindow
     let preferences: BusinessPreferences
     let shortcuts: Result<BusinessShortcutStore, any Error>
     let account: AuthSessionStore
+    @Binding var globalHotkey: MacGlobalHotkey?
+    let installOpenAction: (@escaping () -> Void) -> Void
+    @State private var hotkeyError: Text?
     @State private var showSettings = false
     @State private var showHelp = false
     @State private var showForm = false
@@ -83,6 +125,10 @@ private struct BusinessGalleryHome: View {
                         .keyboardShortcut((try? shortcuts.get())?.shortcut(for: "show-form")?.keyboardShortcut)
                 }
                 Divider()
+                ESettingsRow(Text("Global Gallery Shortcut"), detail: hotkeyError) {
+                    EButton(globalHotkey == nil ? "Enable ⌃⌥⇧⌘J" : "Disable Shortcut") { toggleGlobalHotkey() }
+                }
+                Divider()
                 ESettingsRow(Text("Review Eligibility"), detail: reviewMessage) {
                     EButton("Record Action") {
                         reviewMessage = review.recordSuccessfulEvent()
@@ -90,6 +136,11 @@ private struct BusinessGalleryHome: View {
                     }
                 }
             }
+        }
+        .onAppear {
+            let open = openWindow
+            let id = MacBusinessGallery.mainWindow.identifier.rawValue
+            installOpenAction { open(id: id) }
         }
         .sheet(isPresented: $showSettings) {
             gallerySettings(preferences: preferences, shortcuts: shortcuts, account: account,
@@ -146,6 +197,24 @@ private struct BusinessGalleryHome: View {
             ),
             onUnlocked: { _ in purchaseMessage = Text("Simulated purchase completed") }
         )
+    }
+
+    private func toggleGlobalHotkey() {
+        hotkeyError = nil
+        if let globalHotkey {
+            globalHotkey.invalidate()
+            self.globalHotkey = nil
+            return
+        }
+        let open = openWindow
+        let main = MacBusinessGallery.mainWindow
+        do {
+            globalHotkey = try MacGlobalHotkey(keyCode: UInt16(kVK_ANSI_J), modifiers: [.control, .option, .shift, .command]) {
+                main.show { open(id: main.identifier.rawValue) }
+            }
+        } catch {
+            hotkeyError = Text("Could not register the global shortcut.")
+        }
     }
 }
 

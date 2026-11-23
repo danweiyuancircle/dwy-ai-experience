@@ -56,7 +56,7 @@ public struct MacFileActions: View {
             }
         }
         .disabled(presenter.busy)
-        .eErrorAlert(title: localized("Export failed"), message: $presenter.errorMessage, dismissTitle: localized("OK"))
+        .modifier(EErrorAlert(title: localized("Export failed"), message: $presenter.errorMessage, dismissTitle: localized("OK")))
     }
 
     private func run(_ action: MacFileActionPresenter.Action) {

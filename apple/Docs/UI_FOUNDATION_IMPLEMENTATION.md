@@ -32,7 +32,7 @@ EComboBox 改用原生 NSComboBox，关闭自动补全，明确激活提交与�
 
 两端提示均处理消息替换、取消、焦点/交互停留与动态 VoiceOver。非关键成功可计时消失，重要错误持久显示。公告采用宿主 locale 并保留调用方资源 bundle。两端 API 保留各自生命周期模型，不强行合并为共享状态机。
 
-iOS 的 `ENoticeHost` 将短暂消息渲染为按内容收紧的 `EToast`，不显示关闭按钮；持久消息使用单行 `EInlineNotice`，动作与关闭同行，辅助字号允许纵向增长。两者共用主题背景、16pt 圆角、物理像素边框、语义图标，正文保持正常前景色。`ENotice.transient(verbatim:tone:systemImage:)` 用于已解析的短反馈，重复文本也创建新 ID；中心默认两秒，消费方可使用 `ENoticeCenter(dismissAfter: .milliseconds(1200))` 沿用原有时长。`ENoticeHost` 的 actions 槽仅用于持久消息，业务自行处理完成后关闭或更新提示。
+iOS 新代码直接用 `EToast` 显示短暂反馈，由宿主管理展示与消失时机。需要留在页面供用户阅读或处理的信息使用 `EInlineNotice`，动作与关闭同行，辅助字号允许纵向增长。两者共用主题背景、16pt 圆角、物理像素边框和语义图标。`ENotice` 的短暂消息构造器仅供既有调用兼容，新代码禁止通过 `ENotice` 或 `ENoticeCenter` 间接创建 Toast。`ENoticeHost` 的 actions 槽用于持久消息，业务处理完成后关闭或更新提示。
 
 ## 独立接入
 

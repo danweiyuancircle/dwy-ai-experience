@@ -103,14 +103,4 @@ public enum EFileDialog {
     }
 }
 
-extension View {
-    /// 错误不会自动消失；确认和关闭均清除当前消息，不隐式重试业务操作。
-    public func eErrorAlert(title: String, message: Binding<String?>, dismissTitle: String) -> some View {
-        alert(title, isPresented: Binding(get: { message.wrappedValue != nil }, set: { if !$0 { message.wrappedValue = nil } })) {
-            Button(dismissTitle) { message.wrappedValue = nil }
-        } message: {
-            if let value = message.wrappedValue { Text(verbatim: value) }
-        }
-    }
-}
 #endif

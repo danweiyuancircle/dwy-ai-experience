@@ -7,6 +7,24 @@ import UniformTypeIdentifiers
 
 @MainActor
 final class MacPlatformHostTests: XCTestCase {
+    func testMainWindowSelectsExistingWindowBeforeMinimizedWindow() {
+        let main = EMainWindow(id: "window-test-main")
+        let tool = NSWindow()
+        let minimized = MinimizedTestWindow()
+        let visible = NSWindow()
+        for window in [tool, minimized, visible] { window.isReleasedWhenClosed = false }
+        defer { for window in [tool, minimized, visible] { window.close() } }
+        minimized.identifier = main.identifier
+        visible.identifier = main.identifier
+
+        XCTAssertNil(main.target(in: [tool]))
+        XCTAssertTrue(main.target(in: [tool, minimized]) === minimized)
+        XCTAssertTrue(main.target(in: [tool, minimized, visible]) === visible)
+        XCTAssertTrue(main.handleDockReopen(in: .shared, hasVisibleWindows: true) {
+            XCTFail("Dock should defer to AppKit when windows are visible")
+        })
+    }
+
     func testCollapseGuardOnlyChangesTheContainingSplitViewItem() {
         let controller = NSSplitViewController()
         let sidebar = NSSplitViewItem(sidebarWithViewController: NSViewController())
@@ -89,5 +107,9 @@ final class MacPlatformHostTests: XCTestCase {
         XCTAssertEqual(window.toolbarStyle, .unifiedCompact)
         window.close()
     }
+}
+
+private final class MinimizedTestWindow: NSWindow {
+    override var isMiniaturized: Bool { true }
 }
 #endif

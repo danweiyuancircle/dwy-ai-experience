@@ -23,6 +23,10 @@
 
 ## 应用自定义
 
+`MacGlobalHotkey` 提供系统级热键注册。调用方传入 macOS 虚拟键码与 `NSEvent.ModifierFlags`，并在应用级状态持有返回的实例。注册失败会抛错，松键时在主线程调用动作。禁用或改绑前显式调用 `invalidate()`，确保旧组合立即释放。需要跟随连接、前后台或功能开关时，由宿主根据状态建立或释放注册。注册使用系统热键接口，无需监听所有按键或申请辅助功能权限。
+
+`BusinessShortcutStore` 的全局设置仍通过 `applyGlobal` 接入。其设置按字符保存，`MacGlobalHotkey` 接收物理键码，宿主应采用与其录入方式一致的转换。只需要固定组合时可直接使用 `MacGlobalHotkey`。`MacBusinessGallery` 提供显式启停示例，并用热键调前主窗。
+
 使用云端偏好的应用可以用 `BusinessGeneralSettings(languages:language:appearance:textSize:)` 接回自己的写入流程，并把生效的字号和语言注入各自窗口。登录、注销、同步开始和停止沿用应用的生命周期管理。
 
 从 0.13.1 起，通用设置把语言、外观和字号放在同一张卡片中。菜单收起时按当前值布局，语言标签过长时截断，展开后显示完整选项。自有设置页可用 `EPicker(_:selection:selectedLabel:maxLabelWidth:content:)` 获得同样的宽度行为，并继续为菜单选项提供与绑定类型一致的 `tag`。

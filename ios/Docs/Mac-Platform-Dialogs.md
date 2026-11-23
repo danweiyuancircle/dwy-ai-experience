@@ -6,8 +6,6 @@
 
 `EAlert` 接受宿主已解析的标题、说明与操作数组，返回原生 `NSApplication.ModalResponse`。按钮顺序不变；`.destructive` 不绑定 Return，`.cancel` 使用 Escape。表单内容放 `accessoryView`，校验通过 `setActionEnabled(_:at:)` 更新，密码在对话框结束后由宿主清空。
 
-SwiftUI 简单错误提示使用 `.eErrorAlert(title:message:dismissTitle:)`；消息保留到用户关闭，不自动重试或丢弃失败。
-
 ## 文件与目录选择
 
 `EFileDialog.chooseFile` 保留类型过滤，`chooseDirectory` 仅选择目录，两者取消返回 nil。组件只负责系统选择器展示，不读取所选文件、不存书签、不调用 `stopAccessingSecurityScopedResource()`。系统选择器产生的隐式 scope 和后续显式 scope 均由业务原有生命周期管理。

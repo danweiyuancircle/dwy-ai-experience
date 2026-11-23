@@ -39,7 +39,7 @@ public struct ENotice: Identifiable {
         isTransient = true
     }
 
-    /// 仅非关键成功可自动消失；VoiceOver 开启时仍持续展示供用户阅读。
+    /// 兼容旧调用；新代码直接使用 EToast。VoiceOver 开启时保留消息供用户阅读。
     public static func transientSuccess(_ message: LocalizedStringResource) -> Self { Self(success: message) }
 
     private init(transient message: String, tone: EStatusTone, systemImage: String) {
@@ -49,7 +49,7 @@ public struct ENotice: Identifiable {
         isTransient = true
     }
 
-    /// 已解析的短反馈不再查本地化；需阅读或操作的错误必须使用持久消息初始化器。
+    /// 兼容旧调用的原文短反馈；新代码直接使用 EToast。
     public static func transient(verbatim message: String, tone: EStatusTone = .success,
                                  systemImage: String? = nil) -> Self {
         Self(transient: message, tone: tone, systemImage: systemImage ?? tone.symbolName)
@@ -208,7 +208,7 @@ public struct ENoticeHost: View {
     }
 }
 
-/// 只绘制紧凑短反馈；呈现位置与计时由 ENoticeHost 和 ENoticeCenter 管理。
+/// 绘制紧凑短反馈；直接使用时由宿主管理呈现位置与消失时机。
 public struct EToast: View {
     @Environment(\.eControlTheme) private var theme
     @Environment(\.displayScale) private var displayScale

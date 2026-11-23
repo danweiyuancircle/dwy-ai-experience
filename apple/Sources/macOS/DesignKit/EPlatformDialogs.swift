@@ -103,14 +103,29 @@ public enum EFileDialog {
     }
 }
 
-extension View {
-    /// 错误不会自动消失；确认和关闭均清除当前消息，不隐式重试业务操作。
-    public func eErrorAlert(title: String, message: Binding<String?>, dismissTitle: String) -> some View {
-        alert(title, isPresented: Binding(get: { message.wrappedValue != nil }, set: { if !$0 { message.wrappedValue = nil } })) {
-            Button(dismissTitle) { message.wrappedValue = nil }
+/// 消息非 nil 时显示原生错误弹框；确认和关闭均清空绑定，业务重试由宿主负责。
+public struct EErrorAlert: ViewModifier {
+    private let title: String
+    @Binding private var message: String?
+    private let dismissTitle: String
+
+    /// 标题和按钮文案由宿主本地化，错误消息按原文显示。
+    public init(title: String, message: Binding<String?>, dismissTitle: String) {
+        self.title = title
+        _message = message
+        self.dismissTitle = dismissTitle
+    }
+
+    public func body(content: Content) -> some View {
+        content.alert(title, isPresented: Binding(
+            get: { message != nil },
+            set: { if !$0 { message = nil } }
+        )) {
+            Button(dismissTitle) { message = nil }
         } message: {
-            if let value = message.wrappedValue { Text(verbatim: value) }
+            if let message { Text(verbatim: message) }
         }
     }
 }
+
 #endif

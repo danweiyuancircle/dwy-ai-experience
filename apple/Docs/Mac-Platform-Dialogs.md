@@ -6,7 +6,7 @@
 
 `EAlert` 接受宿主已解析的标题、说明与操作数组，返回原生 `NSApplication.ModalResponse`。按钮顺序不变；`.destructive` 不绑定 Return，`.cancel` 使用 Escape。表单内容放 `accessoryView`，校验通过 `setActionEnabled(_:at:)` 更新，密码在对话框结束后由宿主清空。
 
-SwiftUI 简单错误提示使用 `.eErrorAlert(title:message:dismissTitle:)`；消息保留到用户关闭，不自动重试或丢弃失败。
+SwiftUI 错误弹框使用 `.modifier(EErrorAlert(title:message:dismissTitle:))`。传入非 nil 消息后显示原生弹框，关闭时清空绑定，重试由业务另行发起。
 
 ## 模态弹框与侧栏
 
@@ -25,6 +25,10 @@ SwiftUI 简单错误提示使用 `.eErrorAlert(title:message:dismissTitle:)`；�
 `EToolPanel` 用于工具面板；任务进度面板显式传 `closable: false`，避免关闭窗口被误当任务结束。需要模态参数返回的业务可以继承并自行管理 runModal/stopModal。`EToolWindow` 提供可缩放独立工具窗。内容通过 `setContent` 安装，业务继续持有 delegate、路由及授权。
 
 窗口内容默认接入共享控件主题；语言、locale 和应用主题实例由宿主显式注入。SwiftUI Settings 场景通过 `ESettingsWindowChrome` 在挂载后应用统一标题栏与缩放策略。
+
+`EMainWindow(id:)` 统一 Window 菜单和 Dock 的主窗恢复。SwiftUI 场景使用同一个 ID，并把 `main.marker` 放进场景内容的 `.background`。AppKit 宿主直接设置目标窗的 `identifier = main.identifier`。显式菜单入口调用 `main.show { openWindow(id: sceneID) }`，优先调前同 ID 的非最小化窗口，其次恢复已最小化窗口，最后由宿主新建。工具窗和设置窗使用各自的标识。
+
+要接管 Dock 重开，在宿主的 `NSApplicationDelegate.applicationShouldHandleReopen(_:hasVisibleWindows:)` 中返回 `main.handleDockReopen(in: sender, hasVisibleWindows: flag, open: openMain)`。宿主须在主场景挂载时保存可用的开窗动作，使动作在旧窗关闭后仍可调用。仍有可见窗时由 AppKit 处理激活。
 
 ## 开发预览
 

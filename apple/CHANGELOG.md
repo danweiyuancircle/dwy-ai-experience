@@ -25,6 +25,22 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.14.0 - 2026-11-23
+
+- macOS 错误弹框改用 `EErrorAlert`，由应用层持有错误消息并挂载。移除小写 `eErrorAlert`。短暂反馈用 `EToast`，页内持续反馈用 macOS `ENotice` 或 iOS `EInlineNotice`。
+- 新增 `EMainWindow`，让 Window 菜单和 Dock 共用主窗恢复，优先调前现有窗口或恢复最小化窗口。
+- `BusinessKitMac` 新增 `MacGlobalHotkey`，应用可持有系统热键注册，松键时接收动作，停用或改绑时释放注册。
+- Skill 同步检查更新了 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md`、`dwy-cli/templates/ai-tools/skills/Apple/dwy-ios-development/references/design-system.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md`，同步反馈选型、错误弹框迁移、主窗和热键接入。Swift 通用规则和最低工具链保持原样。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.13.2 能否不改 App 继续编 | 仍调用 `.eErrorAlert(...)` 的 macOS 项目需迁移。iOS 既有反馈 API 继续兼容。 |
+| 不升会怎样 | 继续使用既有弹框和窗口入口，无法获得主窗恢复和系统热键。 |
+| 升上来可选/必改项 | 小写错误弹框改为 `.modifier(EErrorAlert(...))`。主窗恢复和系统热键按需接入。 |
+| 最低系统 | iOS / iPadOS 18.0、macOS 26.0 Apple Silicon arm64、Swift 6.0。 |
+
 ## 0.13.2 - 2026-11-23
 
 - 修复 macOS 26 菜单按钮忽略已选标签宽度上限的问题。菜单仍使用系统单选行为，按钮通过 SwiftUI 布局标签和箭头。

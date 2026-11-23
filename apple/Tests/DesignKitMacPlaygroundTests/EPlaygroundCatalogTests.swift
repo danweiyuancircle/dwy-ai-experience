@@ -38,8 +38,9 @@ final class EPlaygroundCatalogTests: XCTestCase {
 
     func testCatalogCoversEveryPublicMacVisualComponent() throws {
         let directory = repositoryRoot.appendingPathComponent("apple/Sources/macOS/DesignKit")
-        let regex = try NSRegularExpression(pattern: #"public struct (E\w+)(?:<[^\n]+>)?: View"#)
-        var symbols: Set<String> = []
+        let regex = try NSRegularExpression(pattern: #"public struct (E\w+)(?:<[^\n]+>)?: View\b"#)
+        // The list style has a visual fixture even though it is applied as a modifier.
+        var symbols: Set<String> = ["EManagementListStyle"]
         for url in try FileManager.default.contentsOfDirectory(at: directory, includingPropertiesForKeys: nil) where url.pathExtension == "swift" {
             let source = try String(contentsOf: url, encoding: .utf8)
             let text = source as NSString
