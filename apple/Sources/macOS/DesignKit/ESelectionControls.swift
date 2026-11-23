@@ -80,18 +80,10 @@ public struct EPicker<Selection: Hashable, Content: View>: View {
             Menu {
                 picker.pickerStyle(.inline).labelsHidden()
             } label: {
-                HStack(spacing: 6) {
-                    value.lineLimit(1)
-                        .frame(maxWidth: maxLabelWidth)
-                        .fixedSize(horizontal: true, vertical: false)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .imageScale(.small)
-                        .accessibilityHidden(true)
-                }
+                value
             }
-            // SwiftUI 绘制按钮标签，避免 macOS 26 的原生标题忽略文字宽度。
             .menuStyle(.button)
-            .buttonStyle(.bordered)
+            .buttonStyle(EPickerMenuButtonStyle(value: value, maxLabelWidth: maxLabelWidth))
             .menuIndicator(.hidden)
             .labelStyle(.titleAndIcon)
             .accessibilityLabel(title)
@@ -102,6 +94,31 @@ public struct EPicker<Selection: Hashable, Content: View>: View {
             case .segmented: picker.pickerStyle(.segmented)
             }
         }
+    }
+}
+
+private struct EPickerMenuButtonStyle: ButtonStyle {
+    @Environment(\.eControlTheme) private var theme
+    @Environment(\.isEnabled) private var isEnabled
+    let value: Text
+    let maxLabelWidth: CGFloat?
+
+    func makeBody(configuration: Configuration) -> some View {
+        // macOS 26 会从 Menu 标签提取原生标题，宽度限制必须施加在真正绘制的按钮上。
+        HStack(spacing: theme.spacing.inline) {
+            value.lineLimit(1)
+                .frame(maxWidth: maxLabelWidth)
+                .fixedSize(horizontal: true, vertical: false)
+            Image(systemName: "chevron.up.chevron.down")
+                .imageScale(.small)
+                .accessibilityHidden(true)
+        }
+        .padding(.horizontal, theme.spacing.formRow)
+        .padding(.vertical, theme.spacing.inline)
+        .foregroundStyle(theme.colors.accent)
+        .background(theme.colors.accent.opacity(configuration.isPressed ? 0.16 : 0.08),
+                    in: RoundedRectangle(cornerRadius: theme.fieldRadius))
+        .opacity(isEnabled ? 1 : 0.5)
     }
 }
 
