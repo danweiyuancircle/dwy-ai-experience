@@ -41,8 +41,8 @@ if (wantsHelp(argv)) {
       process.exitCode = 1
     }
   }
-} else if (argv.length === 0 || argv[0] === 'sync') {
-  await runDwy()
+} else if (argv.length === 0 || (argv[0] === 'sync' && (argv.length === 1 || (argv.length === 2 && argv[1] === '--show-hidden')))) {
+  await runDwy({ showHidden: argv[1] === '--show-hidden' })
 } else {
   console.error(`未知命令: ${argv.join(' ')}`)
   printHelp()

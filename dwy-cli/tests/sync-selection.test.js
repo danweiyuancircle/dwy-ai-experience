@@ -108,6 +108,41 @@ const scans = {
 }
 const defaults = { skills: ['first', 'removed'], rules: [], commands: [], hooks: [] }
 
+test('隐藏目录仅影响交互展示，默认同步保留原入口且不补装到新平台', async t => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-hidden-skills-'))
+  t.after(() => fs.remove(root))
+  const sourceDir = path.join(root, 'templates'), projectDir = path.join(root, 'project'), homeDir = path.join(root, 'home')
+  const installed = path.join(projectDir, '.agents/skills/hidden-example/SKILL.md')
+  const original = path.join(sourceDir, 'skills/通用/hidden-example')
+  const hidden = path.join(sourceDir, 'skills/_hidden/hidden-example')
+  await fs.outputFile(path.join(original, 'SKILL.md'), '# Original')
+  await fs.outputFile(path.join(sourceDir, 'skills/部署/visible-example/SKILL.md'), '# Visible')
+  await fs.outputFile(path.join(sourceDir, 'skills/_hidden/unused-example/SKILL.md'), '# Unused')
+  await fs.ensureDir(projectDir)
+  const opts = { sourceDir, projectDir, homeDir, codexHome: path.join(homeDir, '.codex'), scope: 'project', confirmed: true }
+  await syncAll({ ...opts, selectedPlatforms: ['codex'], selected: { skills: [{ name: 'hidden-example' }] } })
+  await fs.move(original, hidden)
+  await fs.writeFile(path.join(hidden, 'SKILL.md'), '# Updated')
+  const code = showHidden => `
+    import { runDwy } from './dwy-cli/src/sync-all.js';
+    await runDwy(${JSON.stringify({ ...opts, selectedPlatforms: ['codex', 'claude'], showHidden })});
+    console.log('RESULT:{}');
+  `
+  const normal = await runProgram(t, code(false), [{ label: 'Skills', keys: ' \r' }])
+  assert.match(normal.transcript, /visible-example/)
+  assert.doesNotMatch(normal.transcript, /hidden-example|unused-example|隐藏 0|_hidden/)
+  assert.equal(await fs.readFile(installed, 'utf8'), '# Original')
+  assert.equal(await fs.pathExists(path.join(projectDir, '.claude/skills/hidden-example')), false)
+  await refreshAll(opts)
+  assert.equal(await fs.readFile(installed, 'utf8'), '# Updated')
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/unused-example')), false)
+  const expanded = await runProgram(t, code(true), [{ label: 'Skills', keys: '\u001b[C \u001b[B \r' }])
+  assert.match(expanded.transcript, /隐藏 \d\/2/)
+  assert.match(expanded.transcript, /hidden-example/)
+  assert.equal(await fs.pathExists(installed), false)
+  assert.equal(await fs.pathExists(path.join(projectDir, '.agents/skills/unused-example/SKILL.md')), true)
+})
+
 test('Android 跨 Tab 勾选只同步一份 Skill，刷新后仍保留已启用项', async t => {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), 'dwy-android-skills-'))
   t.after(() => fs.remove(root))

@@ -93,6 +93,7 @@ export async function buildSyncPlan({
   migratedRuleSources = {},
   contentActions = {},
   refreshSkills = false,
+  preservedSkillNames = new Set(),
   retiredCopies,
   skillScope = { destinations: ['project'], globalSkills: [] },
 }) {
@@ -158,10 +159,11 @@ export async function buildSyncPlan({
       if (!global && !skillScope.destinations.includes('project')) continue
       const roots = global ? ownedGlobalRoots(platform, homeDir, codexHome) : [resolveProjectSkillDir(projectDir, platform)]
       const retired = new Set(approved(platform, 'skills'))
-      const managed = new Set([...skillSources.keys(), ...retired])
+      const managed = new Set([...skillSources.keys(), ...retired].filter(name => !preservedSkillNames.has(name)))
       const names = new Set([...selectedSkillNames, ...retained(platform, 'skills')])
       const actualNames = new Set()
       for (const skill of scans.skills) {
+        if (preservedSkillNames.has(skill.name)) continue
         if (!global && await providedToProject(skill.name, platform)) continue
         if (!names.has(skill.name)) continue
         let dest = path.join(roots[0], skill.name)
@@ -195,14 +197,17 @@ export async function buildSyncPlan({
           if (global) removedGlobalPaths.add(dest)
         }
       }
-      platformState(platform).skills = [...new Set([...actualNames, ...retained(platform, 'skills')])].sort()
+      const state = platformState(platform)
+      // 隐藏项保留原平台的启用记录，避免复制到本次新增的平台。
+      const hidden = (state.skills || []).filter(name => preservedSkillNames.has(name))
+      state.skills = [...new Set([...actualNames, ...retained(platform, 'skills'), ...hidden])].sort()
     }
     if (global) {
       for (const platform of platforms.filter(p => PLATFORM_SYNC_TYPES[p].includes('skills'))) {
         const root = resolveProjectSkillDir(projectDir, platform)
         if (isHome || !await fs.pathExists(root)) continue
         for (const name of await fs.readdir(root)) {
-          if (!skillSources.has(name)) continue
+          if (!skillSources.has(name) || preservedSkillNames.has(name)) continue
           let provided = false
           for (const globalRoot of globalSkillRoots(platform, homeDir, codexHome)) {
             const candidate = path.join(globalRoot, name)

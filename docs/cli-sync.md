@@ -20,6 +20,10 @@ Python 基础库统一选择 `dwy-python-appkit`，覆盖 EAPI、认证、支付
 
 不再单独选择内容类型。Skills 用左右键切分类、上下键移动、Space 勾选、`a` 全选或清空当前分类；Enter 确认当前步骤，Esc 或 Ctrl+C 取消。
 
+`dwy sync --show-hidden` 在选择页显示「隐藏」Tab。DolphinDB、自媒体、产品 0 到 1 和内容创作归入该 Tab。普通同步保留已启用的隐藏 Skill，`dwy refresh` 仍会更新它们。维护模板时，将 Skill 目录移入或移出 `dwy-cli/templates/ai-tools/skills/_hidden/` 即可改变可见性，保持 Skill 目录名即可保留已有安装记录。更新目录只需分发模板。旧 CLI 会把 `_hidden` 显示成普通分类，升级后才支持默认隐藏。
+
+「部署」Tab 包含 Docker 工程规范、部署优先、镜像源和部署巡检。
+
 Android Skills 分为 `Android 通用`（通用开发、架构）、`Android Support`（仅 Support 约束、Java、XML）、`AndroidX`（仅 AndroidX 约束、Java、Kotlin、XML）和 `Android Compose`（Compose、Kotlin）。每个 Skill 可单独勾选。长期维护的项目按其依赖体系选用 `dwy-android-support-only` 或 `dwy-androidx-only`。仅选语言或 XML 时，AI 根据目标模块的依赖与源码判断。同一 Skill 出现在多个分类时共用勾选状态，`a` 改变共享项的状态会同时反映到其它分类，同步时只安装一份。
 
 同步前检查 GitHub `develop` 模板，首次获取可能需要等待。确认前只更新本地模板缓存，不改项目配置、全局配置或已安装共享 Skills；写入目标、迁移、刷新和清理均在确认后执行。

@@ -16,6 +16,7 @@ export function buildHelpText(version) {
     '用法：',
     '  dwy            选择范围、配置和 CLI，预览清单后同步',
     '  dwy sync       同上',
+    '  dwy sync --show-hidden  在 Skills 选择页同时显示隐藏分类',
     '  dwy upgrade    升级到 npm 最新正式版，并执行 dwy refresh',
     '  dwy refresh    无交互用最新模板刷新全部 dwy 共享 Skills、当前项目和全局已有的 Skills、规范、Hooks、Rules',
     '  dwy migrate    一键迁移老项目已有的托管 Skills，原目录先备份',

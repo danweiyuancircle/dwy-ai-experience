@@ -6,7 +6,7 @@ import { SEARCH_PLACEHOLDER, searchableMultiselect, searchableSelect } from './s
 import { normalizeSkillScope, resolveProjectSkillDir, resolveGlobalSkillDir, copySkillsToProjectPlatforms, deduplicateProjectSkills } from './sync-global-skills.js'
 import { ensureSharedSkills, refreshSharedSkills } from './skill-store.js'
 import { chalk } from './utils.js'
-import { interactiveSelect, loadHookManifests, readBaselineDoc, resolveSourceDir, scanExisting, scanHooks, scanRules, scanSkills } from './sync.js'
+import { HIDDEN_SKILL_CATEGORY, interactiveSelect, loadHookManifests, readBaselineDoc, resolveSourceDir, scanExisting, scanHooks, scanRules, scanSkills } from './sync.js'
 import { hasManagedBaseline, parseManagedRuleNames, scanExistingCodexHooks, scanExistingCodexSkills } from './sync-codex.js'
 import { scanExistingCursorRules } from './sync-cursor.js'
 import { selfUpgrade } from './self-upgrade.js'
@@ -351,7 +351,7 @@ export async function syncAll({
   selectedPlatforms: platformsOverride, contentTypes: typesOverride, staleRemovals: removalsOverride,
   skillScope: skillScopeOverride, syncMode: modeOverride, homeDir = os.homedir(),
   codexHome = process.env.CODEX_HOME || path.join(homeDir, '.codex'), scope: scopeOverride, confirmed,
-  contentActions: actionsOverride,
+  contentActions: actionsOverride, showHidden = false,
 } = {}) {
   const sourceDir = sourceDirOverride || await resolveSourceDir({ homeDir })
   if (!await fs.pathExists(sourceDir)) throw new Error('ai-tools templates not found in repo')
@@ -393,8 +393,11 @@ export async function syncAll({
   const defaults = buildSelectionDefaultsFromSyncState(current, targetState, platforms)
   for (const type of ['skills', 'rules', 'hooks']) defaults[type] = unionSets(defaults[type], current[type])
   includeRenamedSkills(defaults.skills, scans.skills)
-  const choices = !global && contentTypes.includes('skills')
-    ? { ...scans, skills: await projectSkillChoices(scans.skills, platforms, { homeDir, codexHome }) } : scans
+  const preservedSkillNames = new Set(!showHidden && !selectedOverride
+    ? scans.skills.filter(skill => skill.category === HIDDEN_SKILL_CATEGORY).map(skill => skill.name) : [])
+  const visibleSkills = scans.skills.filter(skill => !preservedSkillNames.has(skill.name))
+  const choices = { ...scans, skills: !global && contentTypes.includes('skills')
+    ? await projectSkillChoices(visibleSkills, platforms, { homeDir, codexHome }) : visibleSkills }
   const selected = selectedOverride
     ? { skills: selectedOverride.skills || [], rules: selectedOverride.rules || [], hooks: [], commands: [] }
     : await interactiveSelect(choices, defaults, { types: contentTypes })
@@ -464,6 +467,7 @@ export async function syncAll({
       return skill ? [[name, path.join(skill.sourcePath, 'references', name)]] : []
     })),
     contentActions,
+    preservedSkillNames,
     refreshSkills: mainFlow,
     skillScope: normalizeSkillScope(skillScopeOverride),
   })

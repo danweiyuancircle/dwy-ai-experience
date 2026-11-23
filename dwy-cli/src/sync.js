@@ -88,6 +88,9 @@ async function readEntryDescription(entryPath, fallback) {
   }
 }
 
+/** `_hidden` 仍按普通目录扫描，以保留旧 CLI 的同步与刷新兼容性。 */
+export const HIDDEN_SKILL_CATEGORY = '_hidden'
+
 export async function scanSkills(sourceDir) {
   const skillsDir = path.join(sourceDir, 'skills')
   if (!await fs.pathExists(skillsDir)) return []
@@ -210,9 +213,11 @@ export function buildCategoryTabs(items, type) {
     })
   }
   return [...groups.entries()]
-    .sort(([a], [b]) => a.localeCompare(b, 'zh'))
+    .sort(([a], [b]) => (type === 'skills' ? Number(a === HIDDEN_SKILL_CATEGORY) - Number(b === HIDDEN_SKILL_CATEGORY) : 0)
+      || a.localeCompare(b, 'zh'))
     .flatMap(([category, options]) => {
       options.sort((a, b) => a.label.localeCompare(b.label, 'zh'))
+      if (type === 'skills' && category === HIDDEN_SKILL_CATEGORY) return [{ id: category, label: '隐藏', options }]
       if (type !== 'skills' || category !== 'Android') return [{ id: category, label: category, options }]
 
       const stackNames = new Set(ANDROID_STACK_TABS.flatMap(([, names]) => names))

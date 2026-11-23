@@ -10,6 +10,7 @@ const help = execFileSync(process.execPath, [fileURLToPath(new URL('../bin/index
 
 test('dwy --help lists sync and upgrade, no hidden commands', () => {
   assert.match(help, /dwy sync/)
+  assert.match(help, /dwy sync --show-hidden/)
   assert.match(help, /dwy upgrade/)
   assert.match(help, /dwy refresh/)
   assert.match(help, /dwy migrate/)
