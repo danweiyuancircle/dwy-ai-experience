@@ -21,10 +21,8 @@ description: 使用或排查 AppleAppKit SwiftPM 自有基础库时使用，按�
 - DesignCore、DesignKitIOS、DesignKitMac：跨平台及平台界面能力。
 - AppleAppKit 0.12.0 起，`DesignKitMac` 的 `EControlTheme.standard` 默认使用冷静蓝、明暗灰阶及 13 pt 正文。应用可复制标准主题并按窗口或页面用 `.eControlTheme(_:)` 覆盖，字号统一用 `ETypography(bodySize:)` 派生。
 - AppleAppKit 0.13.0 起，macOS 可选产品 `BusinessKitMac` 提供设置、购买、帮助反馈、导出分享、快捷键、评分、账号及同步展示。可使用 `BusinessPreferences` 装配默认偏好，并按应用实际需求配置页面和服务。接入契约见对应版本的 `apple/Docs/Mac-Business-Kit.md`。
-- AppleAppKit 0.13.1 起，macOS 菜单式 `EPicker` 可用 `selectedLabel` 按当前值布局收起按钮，`maxLabelWidth` 只限制按钮上的标签。共享通用设置已接入，展开后保留完整选项及原生单选语义。
 - `PurchaseCore` 0.13.0 起可用 `StoreKitPurchaseStore` 管理已配置的买断和自动续订商品。继续使用买断接口时保留 `LifetimeStore`，应用按自身商品权益决定功能放行。正式业务消费前执行 StoreKit 沙盒验收。
 - DesignKitMac 0.10.0 起提供 `ePreventsSidebarCollapse`，用于 SwiftUI 原生分栏的侧栏内容。
-- AppleAppKit 0.14.0 起，`DesignKitMac` 通过 `EMainWindow` 在 Window 菜单和 Dock 共用主窗恢复。`BusinessKitMac` 提供 `MacGlobalHotkey`，应用持有注册，停用或改绑前调用 `invalidate()`。接入见 `apple/Docs/Mac-Platform-Dialogs.md` 和 `apple/Docs/Mac-Business-Kit.md`。
 - `eWindowOverlay` 仅存在于 0.10.0 / 0.10.1，0.11.0 已移除。模态弹框改用 SwiftUI `.sheet` / `.alert` / `.confirmationDialog` 或 AppKit sheet，文件选择用 `EFileDialog`。迁移时删除宿主为页内弹框补的菜单禁用和事件监听阻断，按 sheet 重新验收键盘与焦点。
 - AuthCore、AuthUI、AuthGoogleIOS、AuthAppleIOS、AuthGoogleMac：认证核心与平台接入。
 - PurchaseCore：购买能力。
@@ -46,4 +44,4 @@ iOS/macOS 接入方对已有且满足需求的共享组件必须直接使用，�
 
 - 简短操作反馈直接使用 `EToast`，只用于用户错过也能继续的消息，如已复制、已保存。iOS 由宿主管理显示与消失时机，读屏期间保留提示。新代码禁止用 `ENotice.transient(...)`、`ENotice.transientSuccess(...)` 或 `ENoticeCenter` 间接构造 Toast。
 - 信息需要留在页面供用户阅读或处理，且用户可以继续当前操作时，使用 macOS `ENotice` 或 iOS `EInlineNotice`。例如表单校验失败或可稍后重试的断线。
-- 流程需要等用户确认、取消或关闭时，使用原生模态弹框。macOS 确认用 `EAlert`，iOS 确认用 `EConfirm`、单按钮提示用 `EAlert`。必须让用户关闭的错误由应用层持有消息并挂载 `.modifier(EErrorAlert(...))`。macOS 0.14.0 移除了小写错误弹框方法，升级时迁移到该类型。
+- 流程需要等用户确认、取消或关闭时，使用原生模态弹框。macOS 确认用 `EAlert`，iOS 确认用 `EConfirm`、单按钮提示用 `EAlert`。必须让用户关闭的错误由应用层持有消息并挂载 `.modifier(EErrorAlert(...))`。macOS 接入前确认锁定版本提供该类型。

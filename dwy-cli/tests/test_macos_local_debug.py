@@ -1,9 +1,9 @@
 import runpy
-import sqlite3
+import sys
 import tempfile
 import unittest
-from contextlib import closing
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 
@@ -14,6 +14,26 @@ GLOBALS = FUNCTIONS["install"].__globals__
 
 
 class DebugBuildTests(unittest.TestCase):
+    def test_detects_indexed_rollback_and_registered_archive(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            installed = root / "Example.app"
+            rollback = root / "Example.previous"
+            archive = root / "Archive.noindex/Example.app"
+            for app in (installed, rollback, archive):
+                app.mkdir(parents=True)
+            with patch.dict(GLOBALS, {
+                "command": lambda *args, **kwargs: SimpleNamespace(
+                    stdout=f"{installed}\0{rollback}\0{root / 'removed.app'}\0"
+                ),
+                "registered_apps": lambda bundle_id: {installed, archive},
+            }):
+                with self.assertRaises(RuntimeError) as error:
+                    FUNCTIONS["check_visible_copies"]("com.example.fixture", {installed})
+                self.assertIn(str(rollback), str(error.exception))
+                self.assertIn(str(archive), str(error.exception))
+                self.assertNotIn("removed.app", str(error.exception))
+
     def test_second_running_install_blocks_update(self):
         installed = Path("/tmp/target/Example.app")
         running = {42: Path("/tmp/other/Example.app")}
@@ -36,47 +56,13 @@ class DebugBuildTests(unittest.TestCase):
                     FUNCTIONS["install"](candidate, installed, "com.example.fixture")
             self.assertEqual((installed / "marker").read_text(), "old")
 
-    def test_backup_verifies_uncheckpointed_wal_without_modifying_snapshot(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            source, backup = root / "source", root / "backup"
-            source.mkdir()
-            connect = sqlite3.connect
-            with closing(connect(source / "devices.sqlite")) as database:
-                database.execute("PRAGMA journal_mode=WAL")
-                database.execute("CREATE TABLE devices(id)")
-                database.execute("INSERT INTO devices VALUES (1)")
-                database.commit()
-                FUNCTIONS["command"]("/usr/bin/ditto", source, backup)
-
-                def connect_and_check(*args, **kwargs):
-                    copied = connect(*args, **kwargs)
-                    self.assertEqual(copied.execute("SELECT id FROM devices").fetchall(), [(1,)])
-                    return copied
-
-                with patch.object(sqlite3, "connect", side_effect=connect_and_check):
-                    FUNCTIONS["verify_backup"](source, backup)
-                FUNCTIONS["verify_backup"](source, backup)
-                (backup / "extra").touch()
-                with self.assertRaisesRegex(RuntimeError, "不一致"):
-                    FUNCTIONS["verify_backup"](source, backup)
-
-    def test_multiple_data_sources_only_replace_last_backup_after_validation(self):
-        with tempfile.TemporaryDirectory() as temporary:
-            root = Path(temporary)
-            data, prefs, state = root / "AppData", root / "account.plist", root / "state"
-            data.mkdir()
-            prefs.write_bytes(b"previous")
-            state.mkdir()
-            with patch.dict(GLOBALS, {"running_apps": lambda bundle_id: {}}):
-                FUNCTIONS["backup_data"]([data, prefs], state, "com.example.fixture")
-            snapshot = state / "Data/2-account.plist"
-            self.assertEqual(snapshot.read_bytes(), b"previous")
-            prefs.write_bytes(b"current")
-            with patch.dict(GLOBALS, {"running_apps": lambda bundle_id: {42: root / "Example.app"}}):
-                with self.assertRaisesRegex(RuntimeError, "备份期间"):
-                    FUNCTIONS["backup_data"]([data, prefs], state, "com.example.fixture")
-            self.assertEqual(snapshot.read_bytes(), b"previous")
+    def test_install_accepts_build_command_without_data_arguments(self):
+        args = ["build_debug.py", "--app", "Example.app", "--bundle-id", "com.example.fixture",
+                "--team-id", "ABC123", "--product", "build/Example.app", "--", "xcodebuild", "build"]
+        installs = []
+        with patch.object(sys, "argv", args), patch.dict(GLOBALS, {"build_and_install": installs.append}):
+            self.assertEqual(FUNCTIONS["main"](), 0)
+        self.assertEqual([install.build for install in installs], [["xcodebuild", "build"]])
 
 
 if __name__ == "__main__":

@@ -9,12 +9,10 @@ import os
 from pathlib import Path
 import plistlib
 import shutil
-import sqlite3
 import subprocess
 import sys
 import tempfile
 import time
-from contextlib import closing
 
 
 def command(*args, **kwargs):
@@ -54,6 +52,34 @@ def running_apps(bundle_id):
     return {pid: Path(path).resolve() for pid, path in json.loads(result)}
 
 
+def registered_apps(bundle_id):
+    """Read all LaunchServices paths for this Bundle ID without launching any app."""
+    result = command("/usr/bin/osascript", "-l", "JavaScript", "-e", """
+        ObjC.import("AppKit");
+        function run(args) {
+            const urls = $.NSWorkspace.sharedWorkspace.URLsForApplicationsWithBundleIdentifier(args[0]);
+            const paths = [];
+            for (let index = 0; index < urls.count; index++) {
+                paths.push(ObjC.unwrap(urls.objectAtIndex(index).path));
+            }
+            return JSON.stringify(paths);
+        }
+    """, bundle_id, stdout=subprocess.PIPE, text=True, timeout=15).stdout
+    return {Path(path).resolve() for path in json.loads(result) if Path(path).exists()}
+
+
+def check_visible_copies(bundle_id, allowed):
+    """Return discoverable paths and reject duplicates, including renamed bundles."""
+    spotlight = command("/usr/bin/mdfind", "-0", f"kMDItemCFBundleIdentifier == {json.dumps(bundle_id)}",
+                       stdout=subprocess.PIPE, text=True, timeout=15).stdout.split("\0")
+    visible = registered_apps(bundle_id) | {Path(path).resolve() for path in spotlight if path and Path(path).exists()}
+    duplicates = sorted(visible - allowed)
+    if duplicates:
+        paths = "\n".join(map(str, duplicates))
+        raise RuntimeError(f"Spotlight 或 LaunchServices 仍可发现同 Bundle ID 的副本：\n{paths}")
+    return visible
+
+
 def stop_installed(app, bundle_id):
     processes = running_apps(bundle_id)
     if any(path != app for path in processes.values()):
@@ -78,40 +104,6 @@ def stop_installed(app, bundle_id):
         if time.monotonic() >= deadline:
             raise RuntimeError("等待旧应用退出超时。")
         time.sleep(0.25)
-
-
-def verify_database(file, options):
-    with closing(sqlite3.connect(file.as_uri() + options, uri=True)) as database:
-        if database.execute("PRAGMA integrity_check").fetchall() != [("ok",)]:
-            raise RuntimeError(f"备份 SQLite 完整性校验失败：{file.name}")
-
-
-def verify_backup(container, backup):
-    """对照文件字节、目录和符号链接，并检查目录副本中的 SQLite 数据库。"""
-    if container.is_file():
-        if container.read_bytes() != backup.read_bytes():
-            raise RuntimeError("文件备份与原数据不一致。")
-        return
-    changes = command("/usr/bin/rsync", "-rlDcin", "--delete", f"{container}/", f"{backup}/",
-                      stdout=subprocess.PIPE, text=True, timeout=120).stdout
-    if changes:
-        raise RuntimeError("容器备份与原数据不一致。")
-    for file in backup.rglob("*"):
-        if file.is_symlink() or not file.is_file():
-            continue
-        with file.open("rb") as handle:
-            if handle.read(16) != b"SQLite format 3\x00":
-                continue
-        wal = file.with_name(file.name + "-wal")
-        if not wal.is_file():
-            verify_database(file, "?mode=ro&immutable=1")
-            continue
-        # SQLite 读取 WAL 时会写共享内存文件，校验使用临时副本以保留原备份。
-        with tempfile.TemporaryDirectory(dir=backup.parent) as temporary:
-            copied = Path(temporary) / file.name
-            shutil.copyfile(file, copied)
-            shutil.copyfile(wal, copied.with_name(wal.name))
-            verify_database(copied, "?mode=ro")
 
 
 def replace(source, destination):
@@ -154,43 +146,22 @@ def install(candidate, installed, bundle_id):
         raise
 
 
-def backup_data(paths, state, bundle_id):
-    """校验本轮全部备份后原子替换上次快照。"""
-    with tempfile.TemporaryDirectory(prefix=".backup-", dir=state) as temporary:
-        snapshot = Path(temporary) / "Data"
-        snapshot.mkdir()
-        for index, source in enumerate(paths, start=1):
-            target = snapshot / f"{index}-{source.name}"
-            command("/usr/bin/ditto", source, target, timeout=120)
-            verify_backup(source, target)
-        if running_apps(bundle_id):
-            raise RuntimeError("备份期间应用已被启动，请退出后重试。")
-        (snapshot / "sources.json").write_text(
-            json.dumps([str(path) for path in paths], ensure_ascii=False, indent=2) + "\n",
-            encoding="utf-8",
-        )
-        replace(snapshot, state / "Data")
-    print(f"已校验数据备份 {state / 'Data'}", flush=True)
-
-
 def build_and_install(args):
     """在整个构建和安装事务中持有按 Bundle ID 划分的锁。"""
     home = Path.home().resolve()
-    installed = (home / "Applications").resolve() / args.app
+    user_install = (home / "Applications").resolve() / args.app
+    system_install = Path("/Applications") / args.app
+    user_exists = user_install.exists() or user_install.is_symlink()
+    system_exists = system_install.exists() or system_install.is_symlink()
+    if user_exists and system_exists:
+        raise RuntimeError(f"两个安装位置都存在同名应用：\n{user_install}\n{system_install}")
+    installed = system_install if system_exists else user_install
     product_path = args.product.expanduser()
     product = product_path.resolve()
     state = home / "Library/Application Support/DWY Debug Build" / args.bundle_id
-    paths = [path.expanduser().resolve() for path in args.data]
     if (product_path.is_symlink() or product.suffix != ".app"
             or product == installed.resolve() or installed in product.parents):
         raise RuntimeError("构建产物必须是独立于安装路径的 .app。")
-    for path in paths:
-        if path == state or path in state.parents or state in path.parents:
-            raise RuntimeError(f"备份来源不可与备份目录重叠：{path}")
-        if not path.exists() and installed.exists():
-            raise RuntimeError(f"现有安装的预期数据路径未找到：{path}")
-        if path.is_file() and path.suffix != ".plist":
-            raise RuntimeError(f"单文件数据仅接受 plist；数据库应配置其所在目录：{path}")
     state.mkdir(mode=0o700, parents=True, exist_ok=True)
     with (state / "build.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -200,27 +171,22 @@ def build_and_install(args):
         if installed.exists():
             debug_bundle(installed, args.bundle_id, args.team_id)
             previous_inode = installed.stat().st_ino
-        stop_installed(installed, args.bundle_id)
+        check_visible_copies(args.bundle_id, {installed, product})
         command(*args.build)
         if product_path.is_symlink() or product_path.resolve() != product:
             raise RuntimeError("构建产物路径已变化，停止安装。")
         debug_bundle(product, args.bundle_id, args.team_id)
-
         installed.parent.mkdir(parents=True, exist_ok=True)
-        staging = Path(tempfile.mkdtemp(prefix=".adbox-debug-", dir=installed.parent))
-        # 交换后的旧包仅作回滚数据，避免在启动阶段出现第二个 .app 入口。
+        staging = Path(tempfile.mkdtemp(prefix=".dwy-debug-", suffix=".noindex", dir=installed.parent))
+        # Spotlight 会识别改名的旧包，因此回滚目录也需排除索引。
         candidate = staging / "Bundle"
         preserve_staging = False
         try:
             command("/usr/bin/ditto", product, candidate, timeout=120)
             debug_bundle(candidate, args.bundle_id, args.team_id)
+            stop_installed(installed, args.bundle_id)
             if running_apps(args.bundle_id):
-                raise RuntimeError("构建期间应用已被启动，请退出后重试。")
-            current_paths = [path for path in paths if path.exists()]
-            if previous_inode is not None and current_paths != paths:
-                raise RuntimeError("构建期间预期数据路径已变化，停止覆盖。")
-            if current_paths:
-                backup_data(current_paths, state, args.bundle_id)
+                raise RuntimeError("替换前应用已重新启动，请退出后重试。")
             if installed.is_symlink() or (installed.stat().st_ino if installed.exists() else None) != previous_inode:
                 raise RuntimeError("构建期间安装路径已变化，停止覆盖。")
             try:
@@ -234,7 +200,12 @@ def build_and_install(args):
         finally:
             if not preserve_staging:
                 shutil.rmtree(staging)
+        if product in registered_apps(args.bundle_id):
+            lsregister = "/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+            command(lsregister, "-u", product, timeout=15)
         shutil.rmtree(product)
+        if check_visible_copies(args.bundle_id, {installed}) != {installed}:
+            raise RuntimeError(f"未发现安装后的应用：{installed}")
         print(f"已安装并启动 {installed}")
 
 
@@ -244,9 +215,6 @@ def main():
     parser.add_argument("--bundle-id", required=True)
     parser.add_argument("--team-id", required=True)
     parser.add_argument("--product", required=True, type=Path, help="项目专用构建目录中的 .app；成功后由脚本清理")
-    storage = parser.add_mutually_exclusive_group(required=True)
-    storage.add_argument("--data", action="append", type=Path, default=[], help="数据目录或偏好 plist，可重复")
-    storage.add_argument("--stateless", action="store_true", help="仅用于已确认无持久化用户数据的应用")
     parser.add_argument("build", nargs=argparse.REMAINDER, help="-- 之后的项目 Debug 构建命令")
     args = parser.parse_args()
     if Path(args.app).name != args.app or not args.app.endswith(".app"):
@@ -266,7 +234,7 @@ def main():
         return 1
     except KeyboardInterrupt:
         return 130
-    except (OSError, subprocess.SubprocessError, sqlite3.Error, RuntimeError, ValueError, KeyError,
+    except (OSError, subprocess.SubprocessError, RuntimeError, ValueError, KeyError,
             plistlib.InvalidFileException) as error:
         print(f"macOS Debug 更新失败：{error}", file=sys.stderr)
         return 1

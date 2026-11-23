@@ -5,6 +5,8 @@
 ### Changed
 
 - `skills/Apple/dwy-apple-local-debug/SKILL.md` 接替 `dwy-macos-local-debug`。保留 macOS 本地 Debug 打包流程，新增 iOS QA 模拟器选择、复用和启动流程。刷新时迁移旧名的已启用项。
+- macOS Debug 安装同时核对 Spotlight 与 LaunchServices 的重复记录，启动失败时恢复旧应用。
+- 更新 AppleAppKit 反馈组件选型、macOS 模态弹框规范和全屏状态栏菜单排查资料。
 
 ## 0.41.0 - 2026-11-21
 

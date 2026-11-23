@@ -1,5 +1,17 @@
 # create-dwy
 
+## [0.42.0] - 2026-11-23
+
+### Added
+
+- Apple 本地调试 Skill 统一 macOS Debug 安装与 iOS QA 模拟器选择、复用和启动流程。
+
+### Changed
+
+- 将已启用的 `dwy-macos-local-debug` 迁移到 `dwy-apple-local-debug`。
+- macOS Debug 安装核对 Spotlight 与 LaunchServices 的重复记录，启动失败时恢复旧应用。
+- 更新 AppleAppKit 反馈组件选型、macOS 模态弹框规范和全屏状态栏菜单排查资料。
+
 ## [0.41.0] - 2026-11-23
 
 ### Added
