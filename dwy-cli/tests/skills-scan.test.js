@@ -80,9 +80,20 @@ test('parseCodexPluginList reads installed pluginId from JSON', () => {
       { pluginId: 'browser@openai-bundled', installed: true },
       { name: 'warp', marketplaceName: 'codex-warp', installed: true },
     ],
+    available: [],
   })
   assert.deepEqual(parseCodexPluginList(json), [
     'browser@openai-bundled',
     'warp@codex-warp',
   ])
+})
+
+test('parseCodexPluginList ignores trailing stderr noise after JSON', () => {
+  const json = JSON.stringify({
+    installed: [{ pluginId: 'slack@openai-curated', installed: true }],
+    available: [],
+  })
+  const noisy = `${json}\nWarning: failed to list remote marketplace plugins\n`
+  // JSON.parse 整段会失败，回退到 name@marketplace 文本抽取仍应命中已装项
+  assert.deepEqual(parseCodexPluginList(noisy), ['slack@openai-curated'])
 })

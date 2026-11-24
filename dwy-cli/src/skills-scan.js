@@ -37,8 +37,18 @@ export function parseCodexPluginList(raw) {
     try {
       data = JSON.parse(text)
     } catch {
-      // 非 JSON 时回退到与 Claude 相同的 name@marketplace 抽取
-      return parseClaudePluginList(text)
+      // stdout JSON 后偶发夹杂 Warning 行：截取首个完整对象再解析
+      const start = text.indexOf('{')
+      const end = text.lastIndexOf('}')
+      if (start >= 0 && end > start) {
+        try {
+          data = JSON.parse(text.slice(start, end + 1))
+        } catch {
+          return parseClaudePluginList(text)
+        }
+      } else {
+        return parseClaudePluginList(text)
+      }
     }
   }
   const installed = Array.isArray(data?.installed)
@@ -71,16 +81,18 @@ async function defaultListClaudePlugins() {
 }
 
 async function defaultListCodexPlugins() {
+  // Codex 会先尝试拉远程 marketplace；网络慢或解码失败时 stderr 有 Warning，
+  // 但本地已装列表仍写在 stdout。超时要留足远程失败回落时间，且只解析 stdout JSON。
   try {
-    const { stdout, stderr } = await execFileAsync('codex', ['plugin', 'list', '--json'], {
-      timeout: 20000,
+    const { stdout } = await execFileAsync('codex', ['plugin', 'list', '--json'], {
+      timeout: 90000,
       maxBuffer: 4 * 1024 * 1024,
       env: { ...process.env, FORCE_COLOR: '0' },
     })
-    return parseCodexPluginList(`${stdout}\n${stderr}`)
+    return parseCodexPluginList(stdout)
   } catch (error) {
-    const text = `${error.stdout || ''}\n${error.stderr || ''}`
-    if (text.trim()) return parseCodexPluginList(text)
+    const stdout = String(error.stdout || '')
+    if (stdout.trim()) return parseCodexPluginList(stdout)
     return []
   }
 }

@@ -1,5 +1,11 @@
 # create-dwy
 
+## [0.43.1] - 2026-11-24
+
+### Fixed
+
+- `dwy skills` 扫描 Codex Plugins 时，为 `codex plugin list --json` 留足远程 marketplace 失败回落时间，并只解析 stdout，避免超时后误报「已装 Codex Plugins：（无）」。
+
 ## [0.43.0] - 2026-11-24
 
 ### Added
