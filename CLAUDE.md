@@ -111,6 +111,7 @@ FastAPI 基础设施包，Python 3.11+，全异步。扁平模块：
 - **`dwy`** / **`dwy sync`**：依次选择范围 → Skills → 项目 Rules → 通用规范 → Hooks → CLI → 确认。Skills / Rules 使用分类 Tab；规范与 Hooks 默认启用，项目已有有效全局配置时跳过对应步骤。项目 Skills 被全部适用 CLI 的有效全局入口覆盖时标注“全局已启用”并禁选，部分 CLI 覆盖时只补缺少的项目入口。CLI 默认 Codex，并恢复当前范围其他已同步 CLI，最终计划重新核算覆盖；确认前不改项目、全局配置或已安装共享内容，确认后更新所选共享 Skills 并执行迁移、去重和同步。Commands 保留不处理，Cursor 仅支持项目规则。
 - **`dwy refresh`**：无交互获取最新模板，刷新全部共享 Skills 及全局、当前项目已有的 Skills 和配置，不显示选择或确认页；增删启用项使用 `dwy sync`。**`dwy migrate`**：迁移老项目的托管 Skills 入口。
 - **`dwy upgrade`**：将全局安装的 `create-dwy` 更新到公开 npm 的正式版 `latest`；源码仓不自升级。
+- **`dwy skills`**：管理第三方 Skills / Plugins 全局收藏，并用官方命令（`npx skills` / `claude plugin` / `codex plugin`）安装、更新、卸载；`catalog export/import` 用于换机。不下载外部内容，也不改模板 `dwy sync`。
 - **`dwy --help`** / **`dwy --version`**
 
 AI 模板随 CLI 包分发；优先使用 `DWY_TEMPLATE_SOURCE_DIR` 或显式本地来源，否则核对远端 `develop`，离线复用有效缓存或随包模板。仅模板变更无需单独发布 CLI，CLI 运行时代码变更按版本发布。使用与继承边界见 `docs/cli-sync.md`。

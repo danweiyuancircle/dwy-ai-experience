@@ -88,6 +88,8 @@ Skills 新增或变更推送到 `develop` 后，无需为内容变更单独发�
 
 产品流程 Skill 只声明 `pm-skills`、`superpowers` 的依赖名称和来源，由 AI 在使用时检查宿主已安装的 Skill/插件，缺失时按已有授权和项目工具安装规则处理。`dwy sync`、`dwy refresh` 和 `dwy upgrade` 均不下载、更新或删除这些外部依赖；已有副本及其许可证、版本记录保留，不固定安装目录或上游版本。
 
+用户主动管理第三方 Skills / Plugins 时使用 `dwy skills`：全局收藏写在 `~/.dwy/skills-catalog/catalog.json`，安装 / 更新 / 卸载调用官方 `npx skills`、`claude plugin` 或 `codex plugin`，dwy 本身不下载或复制第三方内容。换机可 `dwy skills catalog export` → 新机 `import` → `install --all`。dwy 模板 Skills 仍只由 `dwy sync` / `refresh` / `migrate` 管理。
+
 在项目目录执行可同时更新当前项目和全局。其他项目的共享 Skills 链接自动生效；项目独立规范、Hooks 和 Rules 需进入对应项目执行，不扫描其他目录。全局 Skills 增删、通用规范和 Hooks 启停、历史内容清理仍使用 `dwy sync`。
 
 已有会话可能缓存 Skill 内容，需要重新加载。个人 Skills、Rules、Hooks 不参与 `dwy migrate`；脚本层的 sync / migrate 接口仍须显式指定范围，不从上一次交互猜测。

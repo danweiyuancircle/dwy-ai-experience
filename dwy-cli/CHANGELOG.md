@@ -1,5 +1,11 @@
 # create-dwy
 
+## [0.43.0] - 2026-11-24
+
+### Added
+
+- `dwy skills`：全局收藏第三方 Skills / Plugins（`~/.dwy/skills-catalog`），交互或子命令选择后调用官方 `npx skills` / `claude plugin` / `codex plugin` 安装、更新、卸载；支持 `catalog export/import` 换机，不改 `dwy sync`。
+
 ## [0.42.0] - 2026-11-23
 
 ### Added

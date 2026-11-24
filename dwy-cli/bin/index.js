@@ -7,6 +7,7 @@ import { runDwy, migrateSkills, refreshAll } from '../src/sync-all.js'
 import { selfUpgrade } from '../src/self-upgrade.js'
 import { buildHelpText } from '../src/cli-help.js'
 import { manageTemplateSource } from '../src/template-source.js'
+import { runSkillsCommand } from '../src/skills-cmd.js'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const pkg = JSON.parse(readFileSync(resolve(__dirname, '..', 'package.json'), 'utf-8'))
@@ -21,10 +22,15 @@ function printHelp() {
   console.log(buildHelpText(pkg.version))
 }
 
-if (wantsHelp(argv)) {
-  printHelp()
-} else if (argv.includes('--version') || argv.includes('-V')) {
+if ((argv.includes('--version') || argv.includes('-V')) && argv[0] !== 'skills') {
   console.log(pkg.version)
+} else if (argv[0] === 'skills') {
+  try {
+    await runSkillsCommand(argv.slice(1))
+  } catch (error) {
+    console.error(error.message)
+    process.exitCode = 1
+  }
 } else if (['upgrade', 'refresh', 'migrate', 'source'].includes(argv[0])) {
   if (argv.length > (argv[0] === 'source' ? 2 : 1)) {
     console.error(`未知命令: dwy ${argv.join(' ')}`)
@@ -41,6 +47,8 @@ if (wantsHelp(argv)) {
       process.exitCode = 1
     }
   }
+} else if (wantsHelp(argv)) {
+  printHelp()
 } else if (argv.length === 0 || (argv[0] === 'sync' && (argv.length === 1 || (argv.length === 2 && argv[1] === '--show-hidden')))) {
   await runDwy({ showHidden: argv[1] === '--show-hidden' })
 } else {
