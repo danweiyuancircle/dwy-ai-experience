@@ -1,9 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { execFileSync } from 'node:child_process'
+import { execFileSync, spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
-const help = execFileSync(process.execPath, [fileURLToPath(new URL('../bin/index.js', import.meta.url)), '--help'], {
+const cli = fileURLToPath(new URL('../bin/index.js', import.meta.url))
+const help = execFileSync(process.execPath, [cli, '--help'], {
   encoding: 'utf8',
   env: { ...process.env, FORCE_COLOR: '0' },
 })
@@ -16,6 +17,7 @@ test('dwy --help lists sync and upgrade, no hidden commands', () => {
   assert.match(help, /dwy migrate/)
   assert.match(help, /dwy source/)
   assert.match(help, /dwy skills/)
+  assert.match(help, /dwy completion zsh/)
   assert.match(help, /skills-catalog|官方命令|npx skills/)
   assert.match(help, /同步步骤/)
   assert.match(help, /交互按键/)
@@ -27,6 +29,21 @@ test('dwy --help lists sync and upgrade, no hidden commands', () => {
   assert.match(help, /全局.*项目/)
   assert.doesNotMatch(help, /dwy scene/)
   assert.doesNotMatch(help, /隐藏命令/)
+})
+
+test('dwy completion zsh 输出与主帮助一致的顶层候选项', () => {
+  const commands = [...new Set([...help.matchAll(/^  dwy ([a-z][a-z-]*)\s/gm)].map(match => match[1]))]
+  const script = execFileSync(process.execPath, [cli, 'completion', 'zsh'], { encoding: 'utf8' })
+  assert.match(script, /^compdef _dwy dwy$/m)
+  assert.match(script, /CURRENT == 2/)
+  assert.deepEqual(script.match(/^\s*compadd -- (.+)$/m)?.[1].split(' '), commands)
+
+  for (const args of [[], ['bash'], ['zsh', 'extra']]) {
+    const invalid = spawnSync(process.execPath, [cli, 'completion', ...args], { encoding: 'utf8' })
+    assert.equal(invalid.status, 1)
+    assert.equal(invalid.stdout, '')
+    assert.match(invalid.stderr, /dwy completion zsh/)
+  }
 })
 
 test('实际帮助按内容选择后选 CLI，并说明全局继承与确认边界', () => {

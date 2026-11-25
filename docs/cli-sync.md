@@ -2,6 +2,16 @@
 
 `dwy` 与 `dwy sync` 使用同一交互流程。首次安装运行 `npm install -g create-dwy@latest`，进入项目目录后运行 `dwy`；用户主目录只能选择全局范围。
 
+## Zsh 命令补全
+
+在 `.zshrc` 中已有的 `compinit` 或 Shell 框架初始化之后加入下面这行。若尚未初始化补全，先执行 `autoload -Uz compinit` 和 `compinit`。
+
+```zsh
+source <(dwy completion zsh)
+```
+
+打开新的 Zsh 终端，输入 `dwy` 和空格，再按 Tab 查看顶层子命令。输入 `dwy ref` 后按 Tab 可补成 `dwy refresh`。
+
 ## 基础库 Skills
 
 Python 基础库统一选择 `dwy-python-appkit`，覆盖 EAPI、认证、支付、通知和设备指纹；Vue 基础库统一选择 `dwy-vue-appkit`，覆盖 EUI、EKIT、Admin Kit 和 Auth Web。各包接入资料及版本记录在入口的 `references/` 下，按任务读取，不再逐包选择 Skill，也不要求安装全部基础包。

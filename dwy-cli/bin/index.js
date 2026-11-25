@@ -5,7 +5,7 @@ import { fileURLToPath } from 'url'
 import { dirname, resolve } from 'path'
 import { runDwy, migrateSkills, refreshAll } from '../src/sync-all.js'
 import { selfUpgrade } from '../src/self-upgrade.js'
-import { buildHelpText } from '../src/cli-help.js'
+import { buildHelpText, buildZshCompletion } from '../src/cli-help.js'
 import { manageTemplateSource } from '../src/template-source.js'
 import { runSkillsCommand } from '../src/skills-cmd.js'
 
@@ -49,6 +49,13 @@ if ((argv.includes('--version') || argv.includes('-V')) && argv[0] !== 'skills')
   }
 } else if (wantsHelp(argv)) {
   printHelp()
+} else if (argv[0] === 'completion') {
+  if (argv.length === 2 && argv[1] === 'zsh') {
+    console.log(buildZshCompletion())
+  } else {
+    console.error('用法：dwy completion zsh')
+    process.exitCode = 1
+  }
 } else if (argv.length === 0 || (argv[0] === 'sync' && (argv.length === 1 || (argv.length === 2 && argv[1] === '--show-hidden')))) {
   await runDwy({ showHidden: argv[1] === '--show-hidden' })
 } else {

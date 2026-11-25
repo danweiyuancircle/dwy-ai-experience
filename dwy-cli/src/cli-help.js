@@ -3,6 +3,30 @@
  * 已实现的入口必须出现在这里；禁止把可用命令藏进「隐藏」段。
  */
 
+const commandUsage = [
+  ['sync', '同上'],
+  ['sync --show-hidden', '在 Skills 选择页同时显示隐藏分类'],
+  ['upgrade', '升级到 npm 最新正式版，并执行 dwy refresh'],
+  ['refresh', '无交互用最新模板刷新全部 dwy 共享 Skills、当前项目和全局已有的 Skills、规范、Hooks、Rules'],
+  ['migrate', '一键迁移老项目已有的托管 Skills，原目录先备份'],
+  ['source [路径|--clear]', '查看、设置或清除本地模板路径'],
+  ['skills', '管理第三方 Skills / Plugins 收藏，并用官方命令安装、更新、卸载'],
+  ['skills list|catalog|add|install|update|remove', '非交互子命令；详见 dwy skills --help'],
+  ['completion zsh', '输出 Zsh 子命令补全脚本'],
+]
+
+/** 生成在 Zsh 初始化 compinit 后加载的顶层命令补全脚本。 */
+export function buildZshCompletion() {
+  const commands = new Set(commandUsage.map(([usage]) => usage.split(' ', 1)[0]))
+  return [
+    '_dwy() {',
+    '  (( CURRENT == 2 )) || return 1',
+    `  compadd -- ${[...commands].join(' ')}`,
+    '}',
+    'compdef _dwy dwy',
+  ].join('\n')
+}
+
 /**
  * 主帮助：`dwy --help`。
  * version 来自 package.json，调用方传入，避免本模块读盘。
@@ -15,14 +39,7 @@ export function buildHelpText(version) {
     '',
     '用法：',
     '  dwy            选择范围、配置和 CLI，预览清单后同步',
-    '  dwy sync       同上',
-    '  dwy sync --show-hidden  在 Skills 选择页同时显示隐藏分类',
-    '  dwy upgrade    升级到 npm 最新正式版，并执行 dwy refresh',
-    '  dwy refresh    无交互用最新模板刷新全部 dwy 共享 Skills、当前项目和全局已有的 Skills、规范、Hooks、Rules',
-    '  dwy migrate    一键迁移老项目已有的托管 Skills，原目录先备份',
-    '  dwy source [路径|--clear]  查看、设置或清除本地模板路径',
-    '  dwy skills     管理第三方 Skills / Plugins 收藏，并用官方命令安装、更新、卸载',
-    '  dwy skills list|catalog|add|install|update|remove  非交互子命令；详见 dwy skills --help',
+    ...commandUsage.map(([usage, description]) => `  dwy ${usage.padEnd(10)}  ${description}`),
     '  dwy --help     显示本说明',
     '  dwy --version  显示版本',
     '',
