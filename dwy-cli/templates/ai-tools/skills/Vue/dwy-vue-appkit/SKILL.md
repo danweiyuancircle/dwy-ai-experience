@@ -20,7 +20,7 @@ description: 使用或排查 DWY 自有 Vue 基础包，包括 EUI、EKIT、后�
 | 管理后台装配、布局与分页列表 | `@dwydev/admin-kit` | [Admin Kit](references/admin-kit/guide.md) |
 | 管理员 Cookie 登录和会话界面 | `@dwydev/auth-web` | [Auth Web](references/auth-web/guide.md) |
 
-只读任务涉及的资料，按需依赖，不要求整套安装。组合使用时核对实际包的 peerDependencies、公开子入口、样式和根 Provider；不能只检查各包自身版本。产品路由、账户策略、权限与业务状态仍归宿主。Vue 开发规范使用 `dwy-vue-development`，分层使用 `dwy-vue-architecture`。
+新建或扩展管理后台时，必须读取 Admin Kit 和 EUI 的接入资料，并遵循 `dwy-vue-development` 的强制复用规则。其他场景按任务读取资料和选择依赖。组合使用时核对实际包的 peerDependencies、公开子入口、样式和根 Provider；不能只检查各包自身版本。产品路由、账户策略、权限与业务状态仍归宿主。Vue 开发规范使用 `dwy-vue-development`，分层使用 `dwy-vue-architecture`。
 
 ## 维护基础包时
 

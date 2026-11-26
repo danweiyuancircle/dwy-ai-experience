@@ -1,5 +1,5 @@
 ---
-description: 已使用 eui 和 ekit 的项目如何查找和复用基础能力
+description: Vue 项目复用 EUI、EKIT 和 Admin Kit 的强制规则
 paths:
   - "**/*.vue"
   - "**/*.ts"
@@ -7,7 +7,7 @@ paths:
 
 # Vue 团队基础能力
 
-本资料适用于已采用 eui 或 ekit 的项目；版本及公开接口以实际安装包和对应 Skill 为准。项目未采用时此处仅用于了解能力，不要求引入或替换现有实现。
+管理后台按本文件的强制规则选型。其他 Vue 项目已采用 EUI 或 EKIT 时，复用对应库的能力。版本及公开接口以实际使用的包和对应 Skill 为准。
 
 `@dwydev/eui` 与 `@dwydev/ekit` 是团队内部 npm 基础库，分别覆盖 UI 组件层与通用工具层。
 
@@ -17,6 +17,7 @@ paths:
 
 | 能力域 | 归属 |
 |--------|------|
+| 管理后台布局、菜单与路由装配、分页列表等通用能力 | admin-kit |
 | 通用 UI 组件（Button / Input / Select / Dialog / Drawer / Form / Table 等） | eui |
 | 主题 / 设计 tokens / 暗色模式 | eui |
 | 表单校验（vee-validate + zod 集成） | eui + ekit |
@@ -31,17 +32,19 @@ paths:
 
 ### 查阅方式（关键）
 
-**在编写任何 Vue 代码前，以及调用任何 eui / ekit 提供的 API 之前，必须先用 `Skill` 工具加载对应 skill 查阅当前最新接口。** 本文件只规定约束与边界，**不固化**组件 props、函数签名 —— 这些会随版本演进，固化在 rule 里会与实际包不同步。
+**在编写任何 Vue 代码前，以及调用 Admin Kit、EUI 或 EKIT 的 API 之前，必须先用 `Skill` 工具加载对应 Skill，查阅实际使用版本的接口。** 组件 props 和函数签名以实际包为准。
 
 ```
 Skill 工具调用：
-  - skill="dwy-vue-appkit"  按需查 EUI 组件、EKIT 工具及其实际版本契约
+  - skill="dwy-vue-appkit"  查 Admin Kit、EUI、EKIT 的对应资料及实际版本契约
 ```
 
 ---
 
 ## 二、强制规则
 
+- **管理后台必须使用 `@dwydev/admin-kit`。** 新建后台时接入该库。扩展现有后台时，新建或改动的后台通用能力必须复用 Admin Kit 已提供的实现，包括后台布局、菜单与路由装配、分页列表。现有后台缺少依赖时，先核对接入所需的版本和兼容性。禁止自行实现已有的后台通用能力。
+- **管理后台的基础控件必须使用 `@dwydev/eui`。** 业务组件可以按业务需要开发，内部已有对应 EUI 组件的按钮、输入、选择、弹层、表单和表格必须复用 EUI。原生 HTML 可用于布局和内容语义。
 - **禁止**业务代码出现 `axios` / `fetch` / `new XMLHttpRequest`，HTTP 走 ekit `createRequest`
 - **禁止**直接 `localStorage.getItem` / `setItem` / `removeItem`，走 ekit storage / `useStorage`
 - **禁止**直接 `document.cookie` 或单独引入 `js-cookie`，走 ekit cookie
@@ -113,11 +116,12 @@ export function createUser(data: UserCreate) {
 
 ## 七、违规检测清单（基础库相关）
 
-AI 编写或审查 Vue 代码时，涉及 eui / ekit 必须检查以下违规模式（通用框架违规清单见 `dwy-vue-core` 第十四节）：
+AI 编写或审查 Vue 代码时，涉及 Admin Kit、EUI 或 EKIT 必须检查以下违规模式（通用框架违规清单见 `dwy-vue-core` 第十四节）：
 
 | 检查项 | 违规模式 | 严重程度 |
 |--------|---------|---------|
-| 未查 skill | 使用 eui / ekit API 前未先查 `dwy-vue-appkit` skill | 高 |
+| 未查 skill | 使用 Admin Kit、EUI 或 EKIT API 前未先查 `dwy-vue-appkit` skill | 高 |
+| Admin Kit 未复用 | 新建或扩展管理后台时自行实现 Admin Kit 已提供的通用能力 | 高 |
 | ekit 重复造轮子 | 自造 HTTP / storage / cookie / date / 校验 / 脱敏 等 ekit 已提供能力 | 高 |
 | eui 重复造轮子 | 自造已有 UI 组件（Button / Input / Dialog 等） | 高 |
 | 组件直调 axios | 组件内 `axios.get` / `fetch` / `new XMLHttpRequest` | **致命 → STOP** |
