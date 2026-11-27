@@ -9,11 +9,13 @@ description: 开发、排查、评审或适配 macOS 应用时使用，涵盖设
 
 开发前必须同时核对官方 Skill、可用 MCP、Xcode/CLI 与实际 macOS SDK；遵循 `dwy-swift-development` 的 `references/official-tooling.md`，即使该 Skill 未安装也不能省略四项核对。确认选中工具链、SDK、部署版本和目标架构，不能只读 Skill 或只看到构建成功就跳过核对。
 
-新应用默认最低 macOS 26+，仅支持 Apple Silicon `arm64`，不支持 Intel `x86_64`；默认不为 macOS 15 及以下版本或 Intel 编写兼容实现、安排测试。具体支持范围按实际项目上下文决定：先读取项目约定、实际 deployment target、架构与调用方要求，现有项目不因启用 Skill 自动升级系统下限或移除架构。新 API 按 SDK 与实际支持的运行时版本判断。
+新应用默认最低 macOS 26+，默认不为 macOS 15 及以下版本编写兼容实现或安排测试。先读取项目约定与实际 deployment target，现有项目不因启用 Skill 自动升级系统下限。新 API 按 SDK 与实际支持的运行时版本判断。
 
 最低系统基线为 macOS 26.0：新应用及已明确迁移的项目须统一 App、扩展、测试目标的 `MACOSX_DEPLOYMENT_TARGET`、XcodeGen 的 `deploymentTarget` 与本项目 Swift Package 的 macOS 平台声明；同时更新当前支持说明。构建后回读 App 和扩展的 `LSMinimumSystemVersion` 及 Mach-O 的 `minos`，确认均不低于 26.0。macOS 26 已提供的 API 可直接使用，不为已停止支持的系统新增兼容分支；高于项目最低版本的 API 仍须判断可用性。
 
-检查源码、二进制依赖、构建设置和发布产物与项目支持架构一致；默认只构建、发布和验证 `arm64`，不生成 Intel 或 Universal 产物。实际运行和界面验收分别报告，未完成的验证明确标注，不能以交叉编译代替目标设备验证。共享库的支持范围按调用方要求决定，不直接套用新应用默认值。
+先核对项目约定、实际构建与发布配置，以及共享库调用方的架构要求。项目上下文没有明确架构要求时，默认仅支持 Apple Silicon `arm64`。只有上下文明确要求 Intel `x86_64` 时，才将 Intel 纳入实现、构建、发布和验证范围。现有项目已明确支持的架构继续按项目约定执行。
+
+检查源码、二进制依赖、构建设置和发布产物与项目支持架构一致。实际运行和界面验收分别报告，未完成的验证明确标注，不能以交叉编译代替目标设备验证。
 
 按需阅读 [窗口与系统外观](references/ui-adaptation.md)、[弹窗差异](references/presentations.md) 和 [macOS 踩坑](references/pitfalls.md)。界面变更先确定目标系统、窗口尺寸、键鼠和辅助功能验证；签名或启动通过不等于目标系统交互与视觉验收。
 
