@@ -1,6 +1,6 @@
 # 购买与恢复
 
-先按 `version-resolution.md` 确认项目是否实际包含 `dwy_iap`，再查同份源码的 `flutter/packages/dwy_iap/README.md`、公开导出及测试。
+先按 `version-resolution.md` 确认项目是否实际包含 `dwy_iap`，再查同份源码的 `flutter/packages/eiap/README.md`、公开导出及测试。
 
 - 核对该版本支持的商品类型；目前仓库契约仅覆盖一次性买断，不能据此推断旧版本或其他版本支持订阅、消耗品。
 - 购买和恢复会产生待处理结果；按实际接口确认购买事件订阅、恢复、完成交付及资源释放的生命周期，不能只处理购买按钮的 Future。

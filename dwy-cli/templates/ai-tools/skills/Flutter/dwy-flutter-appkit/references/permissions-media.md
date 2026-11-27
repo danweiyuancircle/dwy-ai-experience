@@ -1,6 +1,6 @@
 # 权限与媒体
 
-先按 `version-resolution.md` 确认实际源码，再分别查 `flutter/packages/dwy_permission/README.md` 与 `flutter/packages/dwy_media/README.md` 的能力、宿主配置、公开入口及测试。不要按包名推断支持所有平台。
+先按 `version-resolution.md` 确认实际源码，再分别查 `flutter/packages/epermission/README.md` 与 `flutter/packages/emedia/README.md` 的能力、宿主配置、公开入口及测试。不要按包名推断支持所有平台。
 
 - `dwy_permission` 用于其实际支持的运行时权限；`dwy_media` 用于相册枚举、系统媒体选择器和拍照。按真实入口选能力，不为使用系统选择器额外索取整个相册权限。
 - 权限状态不能压成一个 Bool；核对该版本如何表达有限访问、拒绝、永久拒绝与受限，以及查询和申请的差异。打开设置成功不等于获得授权，回到应用后重新查询。

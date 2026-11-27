@@ -1,6 +1,26 @@
 # DWY Component Playground
 
-使用独立 Cupertino UI 和 DWY 主题，支持桌面侧栏与窄屏目录面板。图片页使用 `dwy_image` 公共 API；没有远程演示图片、默认 HTTP 请求或权限申请。
+使用独立 Cupertino UI 和 DWY 主题的文档式 Playground：左侧目录有搜索和分类，窄屏（宽度小于 900）改为顶部“组件目录”底部面板。右侧详情显示组件名、所属包、实时预览（可切换示例状态并重置）、支持的能力、用法与约束，以及可复制的 Dart 示例。“主题与令牌”条目展示品牌色、圆角令牌和浅深外观；“玻璃导航栏”条目说明纯色背景看不出折射、`SingleChildScrollView` 需自己读取顶部内边距。图片页使用 `dwy_image` 公共 API；没有远程演示图片、默认 HTTP 请求或权限申请。
+
+## 目录结构
+
+- `lib/catalog/entry.dart`：`CatalogEntry`（id、分类、包、`symbols`、能力、约束、示例代码、预览构造器、状态列表）。
+- `lib/catalog/catalog.dart`：目录数据 `galleryCatalog`，每个公开组件一个条目。
+- `lib/features/gallery/`：目录导航、详情页、`examples/` 下的各组件示例。
+- `test/catalog_test.dart`：防漂移测试。新增 `dwy_design` / `dwy_image` 公开 API 后必须补充目录条目，否则测试失败。
+
+## 运行
+
+```bash
+flutter build web --release
+python3 -m http.server 8090 --directory build/web   # http://127.0.0.1:8090/
+```
+
+Flutter Web 默认不生成语义树，用浏览器自动化操作时先点击 `flt-semantics-placeholder`。
+
+## 宿主工程
+
+`ios/`、`macos/` 由 `flutter create --platforms=macos,ios .` 生成，`web/` 未改动，iOS 部署目标设为 18.0。Bundle ID 仍是生成的 `com.example.dwyComponentGallery`，签名和正式 ID 待真实发布时设置。本机 Xcode 安装不完整且未安装 CocoaPods，iOS / macOS 未构建、未运行。
 
 ## 图片示例
 

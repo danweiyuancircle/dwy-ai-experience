@@ -4,12 +4,12 @@
 
 ## dwy_design
 
-- 查对应源码的 `flutter/docs/design-system.md`、`flutter/packages/dwy_design/lib/dwy_design.dart` 和 `flutter/examples/component_gallery/`；该包的接入说明在设计系统文档，不依赖一个未必存在的包 README。
+- 查对应源码的 `flutter/docs/design-system.md`、`flutter/packages/edesign/lib/dwy_design.dart` 和 `flutter/examples/component_gallery/`；该包的接入说明在设计系统文档，不依赖一个未必存在的包 README。
 - 应用根从 `dwy_design` 导入 `CupertinoApp` 和 `DwyTheme.create`。浅深色默认跟随系统，品牌色与字体按应用装配，令牌有项目级配置时通过 `DwyTheme.withTokens` 放在根 `builder`。核对实际依赖版本的 API。
-- 共用按钮、表单输入、设置项、状态、确认与 Sheet 使用 DWY 入口。导航栏、Tab、日期滚轮等使用 `dwy_design` 导出的官方控件，保留原 API，继承同一套主题。应用依赖 `dwy_design`，由共享库管理所导出控件的上游版本。业务交互留在项目 Feature 或应用共享 UI，数据、控制器、焦点和导航由消费方负责。
+- 共用按钮、表单输入、设置项、状态、确认与 Sheet **必须**使用 DWY 入口，应用层不得手写等价 UI。页面需要玻璃导航栏时用 `DwyScaffold`，并在 `main()` 调 `DwyGlass.initialize()`、根 `builder` 用 `DwyGlass.wrap`，细节见设计系统文档“玻璃效果（可选）”。导航栏、Tab、日期滚轮等使用 `dwy_design` 导出的官方控件，保留原 API，继承同一套主题。应用依赖 `dwy_design`，由共享库管理所导出控件的上游版本。业务交互留在项目 Feature 或应用共享 UI，数据、控制器、焦点和导航由消费方负责。
 
 ## dwy_image
 
-- 查实际版本的 `flutter/packages/dwy_image/README.md`，确认来源、缩略解码与缓存接口。默认占位、加载和重试采用 Cupertino，项目可按需传自定义 builder。
+- 查实际版本的 `flutter/packages/eimage/README.md`，确认来源、缩略解码与缓存接口。默认占位、加载和重试采用 Cupertino，项目可按需传自定义 builder。
 - 按产品/账户划分缓存 namespace；认证头不能代替账户隔离。同一命名空间的实例约束、退出账号时消费者移除与清理/释放顺序，以该版本契约为准。
 - 临时文件保留至解码完成；释放实例不等于删除缓存。私有图片退出清理、重启与原生缓存行为需实际验收，Gallery 预览只证明其覆盖的界面。

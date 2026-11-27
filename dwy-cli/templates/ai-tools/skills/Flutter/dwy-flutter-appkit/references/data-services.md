@@ -10,4 +10,4 @@
 | `dwy_secure_storage` | 按账户建立作用域，只清自己的键；不承诺卸载即撤销凭据。核对 Keychain/Keystore、备份和恢复配置；部分删除失败必须向业务报告 |
 | `dwy_database` | 产品拥有路径、schema、DAO 和迁移；使用持久目录。核对 isolate 和 owner 生命周期，停写并结束事务/订阅后再关闭；迁移失败不能删库冒充恢复 |
 
-数据库代码生成与迁移示例按对应源码的 `flutter/packages/dwy_database/example/` 查找，不把示例业务表移入共享库。分析、单测、磁盘持久化和移动端插件验收分别记录，内存替身不能证明设备存储行为。
+数据库代码生成与迁移示例按对应源码的 `flutter/packages/edatabase/example/` 查找，不把示例业务表移入共享库。分析、单测、磁盘持久化和移动端插件验收分别记录，内存替身不能证明设备存储行为。

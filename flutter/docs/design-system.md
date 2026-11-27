@@ -51,9 +51,20 @@ class ExampleApp extends StatelessWidget {
 | `showDwyConfirmation` | 仅确认返回 `true`，其余退出返回 `false` |
 | `showDwySheet<T>` | 底部安全区、键盘避让、滚动与拖拽联动，使用 `Navigator.pop(context, result)` 返回结果 |
 
+### 玻璃效果（可选）
+
+玻璃材质由 `liquid_glass_widgets 1.17.5` 提供，只在 `dwy_design` 内部依赖，调用方不直接引用。官方实现可用后在包内替换，调用方代码不变。
+
+- `main()` 中 `await DwyGlass.initialize()`，预加载 shader。
+- `CupertinoApp.builder` 中用 `DwyGlass.wrap(child: ...)` 包住子树。后端库读取 SDK 自带的 Cupertino 主题，本工作区使用 `cupertino_ui`，所以内部加了官方兼容桥；该桥已被上游标记为弃用，随后端库一起移除。
+- 页面用 `DwyScaffold` 替换 `CupertinoPageScaffold` + `CupertinoNavigationBar`。栏按钮用 `DwyBarAction`，必须提供无障碍标签。
+- `DwyScaffold` 让 body 延伸到玻璃栏下方，只抬高 `MediaQuery.padding.top`。`SafeArea`、`ListView` 会自动避开；`SingleChildScrollView` 要自己读这个值。
+- 纯色背景看不出折射效果，需要传渐变或图片作为 `background`。
+- 其余控件（按钮、输入、设置行）仍是 Cupertino 控件，没有玻璃化。
+
 导航栏、Tab、日期选择器等从 `dwy_design` 导入，使用官方控件原有 API。编辑表单、筛选面板等业务组件放在对应 Feature 或应用共享 UI，由业务层提供数据、校验与动作。跨项目出现相同交互后再评估抽取范围。
 
-Gallery 在 `flutter/examples/component_gallery/`，包含浅深、品牌色、令牌、输入搜索、分组、弹层和图片示例。
+Gallery 在 `flutter/examples/component_gallery/`，是文档式 Playground：目录、搜索、组件详情（实时预览、状态切换、能力、约束、Dart 示例），覆盖浅深、品牌色、令牌、输入搜索、分组、弹层、玻璃导航栏和图片示例。`dwy_design` / `dwy_image` 的公开 API 必须在 `lib/catalog/catalog.dart` 有目录条目，由 `test/catalog_test.dart` 强制。
 
 ## 旧实现归档 · 停用
 

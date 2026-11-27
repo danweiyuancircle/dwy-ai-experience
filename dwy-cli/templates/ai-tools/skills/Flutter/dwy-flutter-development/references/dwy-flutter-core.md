@@ -13,7 +13,20 @@
 
 ## 统一 UI 与适配
 
-- 产品优先组合共享组件；通用组件属于 Foundation，产品专属组合留在 Feature。
+- 已采用 `dwy_design` 时必须使用其已有组件，禁止在页面手写等价实现：
+
+| 禁止在业务页面直接写 | 改用 |
+| --- | --- |
+| 裸 `CupertinoButton`、自绘按钮、`GestureDetector` 包文字当按钮 | `DwyButton` |
+| 裸 `CupertinoTextField`、`CupertinoSearchTextField` | `DwyTextField`、`DwySearchField` |
+| 手写设置分组与行 | `DwySettingsGroup`、`DwySettingsTile` |
+| 手写空态、加载、错误与重试 | `DwyStatusView` |
+| 直接 `showCupertinoDialog` / `showCupertinoModalPopup` 做确认或底部面板 | `showDwyConfirmation`、`showDwySheet` |
+| 手写 `CupertinoPageScaffold` + 导航栏做玻璃页面 | `DwyScaffold` |
+| 页面里硬编码颜色、间距、圆角 | `DwyTheme.tokensOf(context)` 与主题色 |
+
+  以上以所用版本 `dwy_design` 实际导出为准。导航栏、Tab、日期选择器等从 `dwy_design` 导入官方控件。只有核实组件缺失或确实无法满足需求时，才在 Feature 或应用 UI 层补具体缺口，并优先组合共享组件。
+- 通用组件属于 Foundation，产品专属组合留在 Feature。
 - 默认中性灰白 + 蓝强调色、系统字体、浅深跟随系统；通过主题令牌及组件主题定制，不在各页面散写另一套颜色和尺寸。
 - 基础组件处理禁用、加载、错误、语义标签及足够的点击区域；禁用父组件时检查内部开关和按钮是否仍可触发。
 - 用约束和响应式布局处理手机/平板/桌面预览；测试窄屏、大字体、长文案、键盘及安全区域，不写死状态栏/手势区高度。

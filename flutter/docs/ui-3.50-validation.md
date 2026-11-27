@@ -10,7 +10,7 @@
 
 | 本轮实际执行 | 结果 |
 | --- | --- |
-| `flutter analyze packages/dwy_design packages/dwy_image examples/component_gallery` | 通过，无诊断 |
+| `flutter analyze packages/edesign packages/eimage examples/component_gallery` | 通过，无诊断 |
 | dwy_design：`flutter test` | 10 项通过 |
 | dwy_image：`flutter test` | 8 项通过 |
 | component_gallery：`flutter test` | 5 项通过 |

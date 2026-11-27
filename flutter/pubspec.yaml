@@ -3,15 +3,15 @@ publish_to: none
 environment:
   sdk: '>=3.14.0 <4.0.0'
 workspace:
-  - packages/dwy_database
-  - packages/dwy_design
-  - packages/dwy_iap
-  - packages/dwy_image
-  - packages/dwy_log
-  - packages/dwy_media
-  - packages/dwy_network
-  - packages/dwy_permission
-  - packages/dwy_preferences
-  - packages/dwy_secure_storage
-  - packages/dwy_sign_in
+  - packages/edatabase
+  - packages/edesign
+  - packages/eiap
+  - packages/eimage
+  - packages/elog
+  - packages/emedia
+  - packages/enetwork
+  - packages/epermission
+  - packages/epreferences
+  - packages/esecure-storage
+  - packages/esign-in
   - examples/component_gallery

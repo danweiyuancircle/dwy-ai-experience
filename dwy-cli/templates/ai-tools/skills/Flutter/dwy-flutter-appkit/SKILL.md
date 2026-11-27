@@ -26,7 +26,8 @@ description: 使用或排查 DWY 自有 Flutter、Dart 基础包、设计组件�
 ## 共同约束
 
 - 按需依赖，不建立强制引入全部能力的聚合入口。无 UI 的 Flutter 插件仍可能依赖引擎和原生配置，不能当作纯 Dart。
-- 产品组合品牌和业务，复用基础件，不复制已有组件；产品 schema、DTO、账户策略留在产品。架构归属使用 `dwy-flutter-architecture`。
+- **项目接入自有基础包或 UI 库后，新增和修改的代码必须直接复用实际版本中满足需求的公开能力。** 适用于 `dwy_design` 组件以及网络、缓存、数据库等基础能力。禁止手写、复制、另接入第三方等价实现或再套同功能包装。只有核实能力缺失或接口确实无法满足需求时，才补具体缺口，优先组合已有能力。开发和评审时检查本次涉及的页面、业务组件及模块。
+- 产品 schema、DTO、账户策略留在产品。UI 缺口处理见 `dwy-flutter-development`，架构归属使用 `dwy-flutter-architecture`。
 - Flutter 3.50 基线使用独立 `cupertino_ui` 与 `dwy_design` 统一 Android 和 iOS 的 Apple 风格。以实际版本的 `CupertinoThemeData`、公开入口和示例为准，UI 包版本与 SDK 分开核对。
 - 区分包声明下限、项目开发版本和实测范围。Gallery 或 Preview 的较高要求不自动成为所有包的最低要求；改包下限时追踪消费方。
 

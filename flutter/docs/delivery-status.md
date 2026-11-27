@@ -16,6 +16,16 @@
 
 首次封装统一从Flutter3.50.0 stable / Dart3.14.0起步，不保留旧下限或旧UI兼容入口。精确基线见 `flutter/docs/development-baseline.md`；历史交接与安装提案不代表当前状态。
 
+## 2026-11-27 · Playground
+
+| 项目 | 当前事实 |
+| --- | --- |
+| Playground | 文档式目录、详情、防漂移测试；Gallery 27 项测试通过；Web 构建后用 Playwright 在 1280x800 和 430x900 截图并检查 |
+| iOS / macOS 宿主 | 已用 `flutter create --platforms=macos,ios .` 生成，iOS 目标 18.0；Xcode 不完整、未安装 CocoaPods，未构建、未运行 |
+| Android 宿主 | 未生成；Android licenses 未接受 |
+
+以下两项来自前一版待办，其中 Web 可视验收已完成，原生构建与设备验证仍待办。
+
 ## 前一版待办
 
 1. 使用官方CLI生成Playground移动宿主，设置iOS18 / Android10支持基线，执行构建和目标系统验证。

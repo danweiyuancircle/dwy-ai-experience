@@ -1,7 +1,8 @@
-import 'package:dwy_design/dwy_design.dart';
 import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:dwy_design/dwy_design.dart';
 
 import '../features/gallery/gallery_page.dart';
+import 'gallery_settings.dart';
 
 /// Playground assembly owns theme configuration; component state stays local.
 class GalleryApp extends StatefulWidget {
@@ -31,19 +32,24 @@ class _GalleryAppState extends State<GalleryApp> {
     ),
     localizationsDelegates: GlobalCupertinoLocalizations.delegates,
     supportedLocales: const [Locale('zh'), Locale('en')],
-    builder: (context, child) => DwyTheme.withTokens(
-      tokens: DwyTokens(controlRadius: _rounded ? 24 : 12),
-      child: child!,
+    builder: (context, child) => DwyGlass.wrap(
+      child: DwyTheme.withTokens(
+        tokens: DwyTokens(controlRadius: _rounded ? 24 : 12),
+        child: GallerySettingsScope(
+          settings: GallerySettings(
+            themeMode: _mode,
+            primary: _primary,
+            rounded: _rounded,
+            customButtons: _customButtons,
+            onThemeMode: (value) => setState(() => _mode = value),
+            onPrimary: (value) => setState(() => _primary = value),
+            onRounded: (value) => setState(() => _rounded = value),
+            onCustomButtons: (value) => setState(() => _customButtons = value),
+          ),
+          child: child!,
+        ),
+      ),
     ),
-    home: GalleryPage(
-      themeMode: _mode,
-      primary: _primary,
-      rounded: _rounded,
-      customButtons: _customButtons,
-      onThemeMode: (value) => setState(() => _mode = value),
-      onPrimary: (value) => setState(() => _primary = value),
-      onRounded: (value) => setState(() => _rounded = value),
-      onCustomButtons: (value) => setState(() => _customButtons = value),
-    ),
+    home: const GalleryPage(),
   );
 }

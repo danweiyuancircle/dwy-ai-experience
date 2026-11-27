@@ -1,6 +1,6 @@
 # 登录凭据
 
-先按 `version-resolution.md` 确认项目是否实际包含 `dwy_sign_in`，再查同份源码的 `flutter/packages/dwy_sign_in/README.md`、公开导出及测试；提供商与 API 以该版本为准。
+先按 `version-resolution.md` 确认项目是否实际包含 `dwy_sign_in`，再查同份源码的 `flutter/packages/esign-in/README.md`、公开导出及测试；提供商与 API 以该版本为准。
 
 - 本包获取第三方凭据，应用后端验证后换发自家会话；拿到 identity token 不等于自家账户已登录。会话保存、账户绑定和注销策略属于产品。
 - Apple 的姓名/邮箱可能仅首次授权返回，不用后续空值覆盖已有用户资料。authorization code 的透传与撤销按实际接口和服务端流程核对。
