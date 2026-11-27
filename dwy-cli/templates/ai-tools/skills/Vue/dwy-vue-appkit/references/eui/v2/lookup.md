@@ -11,6 +11,7 @@ node_modules/@dwydev/eui/dist/component-manifest.json
 - 组件名 → `componentToDir["EButton"]` → 目录 `button`
 - `directories["button"].types` → `components/button/types.d.ts`
 - 拼接 `node_modules/@dwydev/eui/dist/` + 该路径
+- 目录有 `importPath` 时，从该子入口导入组件，并使用该目录的 `types` 路径
 
 `<2.1.0` 没有 manifest：直接 `ls dist/components/`。
 

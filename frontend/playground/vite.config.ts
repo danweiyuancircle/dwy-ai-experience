@@ -8,6 +8,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@dwydev/eui/theme': resolve(__dirname, '../eui/src/theme/index.css'),
+      '@dwydev/eui/charts': resolve(__dirname, '../eui/src/charts/index.ts'),
+      '@dwydev/eui/motion': resolve(__dirname, '../eui/src/motion/index.ts'),
       '@dwydev/eui': resolve(__dirname, '../eui/src/index.ts'),
       '@dwydev/ekit': resolve(__dirname, '../ekit/src/index.ts'),
       // 开发期直连源码，免先 build admin

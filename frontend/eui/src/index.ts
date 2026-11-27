@@ -200,6 +200,8 @@ export { ESlider } from './components/slider'
 export type { ESliderProps, ESliderEmits } from './components/slider'
 export { ESpinner } from './components/spinner'
 export type { ESpinnerProps } from './components/spinner'
+export { ETransition } from './components/transition'
+export type { ETransitionProps } from './components/transition'
 export { ELabel } from './components/label'
 export type { ELabelProps } from './components/label'
 export { EKbd } from './components/kbd'
@@ -328,6 +330,7 @@ import { EToggle } from './components/toggle'
 import { EToggleGroup, EToggleGroupItem } from './components/toggle-group'
 import { ESlider } from './components/slider'
 import { ESpinner } from './components/spinner'
+import { ETransition } from './components/transition'
 import { ELabel } from './components/label'
 import { EKbd } from './components/kbd'
 import { ESeparator } from './components/separator'
@@ -440,6 +443,7 @@ const components: Record<string, any> = {
   EToggleGroupItem,
   ESlider,
   ESpinner,
+  ETransition,
   ELabel,
   EKbd,
   ESeparator,

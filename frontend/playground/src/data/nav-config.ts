@@ -44,6 +44,7 @@ export const modules: ModuleConfig[] = [
           { name: 'Kbd 键盘', path: '/eui/kbd' },
           { name: 'Separator 分隔线', path: '/eui/separator' },
           { name: 'Spinner 加载', path: '/eui/spinner' },
+          { name: 'Motion 动效', path: '/eui/motion' },
           { name: 'Empty 空状态', path: '/eui/empty' },
           { name: 'Label 标签', path: '/eui/label' },
           { name: 'AspectRatio 宽高比', path: '/eui/aspect-ratio' },
@@ -83,6 +84,7 @@ export const modules: ModuleConfig[] = [
         title: '数据展示 Data',
         items: [
           { name: 'Table 表格', path: '/eui/table' },
+          { name: 'Charts 图表', path: '/eui/charts' },
 
           { name: 'Descriptions 描述', path: '/eui/descriptions' },
           { name: 'Statistic 统计', path: '/eui/statistic' },

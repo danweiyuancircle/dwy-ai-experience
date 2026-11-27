@@ -48,12 +48,17 @@ const pkg = JSON.parse(readFileSync(join(pkgRoot, 'package.json'), 'utf8'))
 const componentToDir = {}
 const directories = {}
 
-const dirs = readdirSync(componentsDir).filter((name) =>
-  statSync(join(componentsDir, name)).isDirectory(),
-)
+const dirs = readdirSync(componentsDir)
+  .filter((name) => statSync(join(componentsDir, name)).isDirectory())
+  .sort()
+  .map((name) => ({ name, relativePath: `components/${name}` }))
 
-for (const kebab of dirs.sort()) {
-  const dir = join(componentsDir, kebab)
+for (const name of ['charts', 'motion']) {
+  dirs.push({ name, relativePath: name, importPath: `${pkg.name}/${name}` })
+}
+
+for (const { name, relativePath, importPath } of dirs) {
+  const dir = join(pkgRoot, 'src', relativePath)
   const vueFiles = readdirSync(dir)
     .filter((f) => /^E.+\.vue$/.test(f))
     .map((f) => f.replace(/\.vue$/, ''))
@@ -62,13 +67,14 @@ for (const kebab of dirs.sort()) {
 
   const hasTypes = existsSync(join(dir, 'types.ts'))
 
-  directories[kebab] = {
-    types: hasTypes ? `components/${kebab}/types.d.ts` : null,
+  directories[name] = {
+    types: hasTypes ? `${relativePath}/types.d.ts` : null,
     components: vueFiles,
+    ...(importPath && { importPath }),
   }
 
-  for (const name of vueFiles) {
-    componentToDir[name] = kebab
+  for (const component of vueFiles) {
+    componentToDir[component] = name
   }
 }
 
@@ -102,6 +108,11 @@ const manifest = {
 if (!existsSync(distDir)) {
   console.error(`dist 目录不存在: ${distDir}\n请先 pnpm build`)
   process.exit(1)
+}
+
+const invalidModule = readdirSync(distDir, { recursive: true }).find(file => /[?#].*\.js$/.test(file))
+if (invalidModule) {
+  throw new Error(`产物模块路径包含 URL 分隔符: ${invalidModule}`)
 }
 
 const outPath = join(distDir, 'component-manifest.json')

@@ -92,6 +92,50 @@ import { EButton, EInput, ETable } from '@dwydev/eui'
 
 适合对打包体积敏感的场景，支持 Tree-shaking。
 
+### 可选图表与动效
+
+`ETransition` 从 `@dwydev/eui` 导入，使用单个子节点及 Vue 的 `v-if` 或 `v-show`。预设为 `fade`（默认）、`slide-up` 和 `scale`，`appear` 控制初次挂载是否播放。
+
+使用图表时安装相同版本的 Unovis Vue 和 TypeScript 包。使用布局动效时安装 Motion for Vue。
+
+```bash
+pnpm add @unovis/vue@1.8.1 @unovis/ts@1.8.1
+pnpm add motion-v@2.13.0
+```
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import { EButton, ECard, ETransition } from '@dwydev/eui'
+import { ELineChart } from '@dwydev/eui/charts'
+import { EMotionList } from '@dwydev/eui/motion'
+
+const visible = ref(true)
+const tasks = ref([{ id: 1, title: '审核内容' }, { id: 2, title: '处理工单' }])
+const categories = ['周一', '周二', '周三']
+const series = [{ key: 'resolved', label: '已处理', values: [4, null, 0] }]
+</script>
+
+<template>
+  <ECard title="处理趋势">
+    <EButton @click="visible = !visible">切换图表</EButton>
+    <ETransition preset="slide-up">
+      <ELineChart v-if="visible" label="处理趋势" :categories="categories" :series="series" />
+    </ETransition>
+  </ECard>
+  <EButton @click="tasks = [...tasks].reverse()">反转任务顺序</EButton>
+  <EMotionList :items="tasks" item-key="id">
+    <template #default="{ item }">{{ item.title }}</template>
+  </EMotionList>
+</template>
+```
+
+- `ELineChart` 和 `EBarChart` 使用 `categories` 与 `series`，各系列的 `values` 按标签顺序传入。用 `null` 表示缺失，`0` 会保留。系列 `key` 要稳定且唯一。
+- `EDonutChart` 接收带 `key`、`label`、`value` 的 `items`，数值须为有限非负数。总和为零时显示空态。
+- 三种图表共享 `label`、`height`（默认 240 px）、`loading` 与 `formatValue`。颜色从当前 EUI 主题继承，具体数值可在图下方展开。
+- `EMotionList` 渲染 `ul/li`，`item-key` 指向稳定、唯一的字符串或数字字段。排序和增删由业务控制。基础转场、列表和图表遵循系统的减少动态效果设置。
+- 组合图、图表联动、手势或复杂动画编排可在应用中直接使用原库。图表可继续放在 `ECard` 或 AdminKit 的 `ChartCard` 内。[Unovis Vue](https://unovis.dev/docs/quick-start/) · [Motion for Vue](https://motion.dev/docs/vue)
+
 ## 5. 全局配置 EConfigProvider（必须）
 
 **EConfigProvider 是使用 EUI 的前置条件。** 必须在 App 根组件用 `<EConfigProvider>` 包裹整个应用，否则以下功能不生效：

@@ -2,6 +2,16 @@
 
 Vue 3 组件库，基于 Reka UI、Tailwind CSS 4 和 vee-validate。应用根节点必须配置 `EConfigProvider`；样式接入见仓库 `docs/eui-integration-guide.md`。
 
+## 图表与动效
+
+| 入口 | 组件 | 安装 |
+| --- | --- | --- |
+| `@dwydev/eui` | `ETransition`，预设 `fade`、`slide-up`、`scale` | 基础安装即可 |
+| `@dwydev/eui/charts` | `ELineChart`、`EBarChart`、`EDonutChart` | `pnpm add @unovis/vue@1.8.1 @unovis/ts@1.8.1` |
+| `@dwydev/eui/motion` | `EMotionList`，按稳定 ID 动画化增删与重排 | `pnpm add motion-v@2.13.0` |
+
+图表沿用 EUI 的图表色板与浅色、深色主题，可展开数据明细。更复杂的图种、手势和动画编排可在业务页直接导入 Unovis 或 Motion for Vue。完整示例见 `docs/eui-integration-guide.md`。
+
 ## 日期选择器国际化
 
 `EDatePicker` 默认占位为「请选择日期」，区间为「开始日期 至 结束日期」。在 `EConfigProvider.locale` 中局部覆盖 `datePickerPlaceholder`、`datePickerStartPlaceholder`、`datePickerEndPlaceholder`、`datePickerRangeSeparator` 即可统一文案，运行期切换立即生效。单日、月、年模式共用 `datePickerPlaceholder`。

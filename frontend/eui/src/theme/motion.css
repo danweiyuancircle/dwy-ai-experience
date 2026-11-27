@@ -1,0 +1,28 @@
+.eui-fade-enter-active, .eui-fade-leave-active {
+  transition: opacity 180ms ease-out;
+}
+
+.eui-slide-up-enter-active, .eui-slide-up-leave-active {
+  transition: opacity 180ms ease-out, translate 180ms ease-out;
+}
+
+.eui-scale-enter-active, .eui-scale-leave-active {
+  transition: opacity 120ms ease-out, scale 120ms ease-out;
+}
+
+.eui-fade-enter-from, .eui-fade-leave-to,
+.eui-slide-up-enter-from, .eui-slide-up-leave-to,
+.eui-scale-enter-from, .eui-scale-leave-to {
+  opacity: 0;
+}
+
+.eui-slide-up-enter-from, .eui-slide-up-leave-to { translate: 0 8px; }
+.eui-scale-enter-from, .eui-scale-leave-to { scale: .98; }
+
+@media (prefers-reduced-motion: reduce) {
+  .eui-fade-enter-active, .eui-fade-leave-active,
+  .eui-slide-up-enter-active, .eui-slide-up-leave-active,
+  .eui-scale-enter-active, .eui-scale-leave-active {
+    transition: none;
+  }
+}

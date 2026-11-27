@@ -1,0 +1,15 @@
+.eui-chart {
+  --vis-axis-tick-label-color: var(--muted-foreground);
+  --vis-axis-tick-color: var(--border);
+  --vis-axis-grid-color: var(--border);
+  --vis-axis-tick-label-hide-transition: none;
+  --vis-crosshair-circle-stroke-color: var(--popover);
+  --vis-donut-background-color: transparent;
+  --vis-donut-central-label-text-color: var(--foreground);
+  --vis-tooltip-background-color: var(--popover);
+  --vis-tooltip-text-color: var(--popover-foreground);
+  --vis-tooltip-border-color: var(--border);
+  --vis-tooltip-border-radius: var(--radius);
+  --vis-tooltip-backdrop-filter: none;
+  --vis-tooltip-transition-duration: 0ms;
+}

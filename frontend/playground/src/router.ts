@@ -8,6 +8,8 @@ const router = createRouter({
     // EUI Components (existing demos, prefixed with /eui)
     { path: '/eui', component: () => import('./views/EuiOverview.vue') },
     { path: '/eui/integration', component: () => import('./views/EuiIntegrationDoc.vue') },
+    { path: '/eui/charts', component: () => import('./views/ChartsDemo.vue') },
+    { path: '/eui/motion', component: () => import('./views/MotionDemo.vue') },
     { path: '/eui/button', component: () => import('./views/ButtonDemo.vue') },
     { path: '/eui/input', component: () => import('./views/InputDemo.vue') },
     { path: '/eui/select', component: () => import('./views/SelectDemo.vue') },
