@@ -83,7 +83,8 @@ jobs:
             uv venv "$ENVIRONMENT"
             REQUIREMENT="$WHEEL"
             if [ "$EXTRA" != base ]; then REQUIREMENT="${WHEEL}[$EXTRA]"; fi
-            uv pip install --python "$ENVIRONMENT/bin/python" --default-index https://pypi.org/simple "$REQUIREMENT"
+            # Match the EAPI patch used by source CI so the wheel cannot resolve an older patch.
+            uv pip install --python "$ENVIRONMENT/bin/python" --default-index https://pypi.org/simple "$REQUIREMENT" 'dwyeapi==0.12.2'
             if [ "$EXTRA" = analytics ] || [ "$EXTRA" = ratings ]; then
               uv pip install --python "$ENVIRONMENT/bin/python" --default-index https://pypi.org/simple 'aiosqlite==0.22.1'
             fi
