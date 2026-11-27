@@ -1,0 +1,35 @@
+#if os(iOS)
+import SwiftUI
+import DesignKitIOS
+
+/// Optional 选择需提供 nil tag；候选变化不会替调用方改选值。
+struct PickerExample: View {
+    let isEmpty: Bool
+    @State private var selected: Int?
+    @State private var segment = 0
+
+    init(isEmpty: Bool = false) { self.isEmpty = isEmpty }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EPicker(selection: $selected) {
+                Text("No selection").tag(nil as Int?)
+                if !isEmpty {
+                    Text("First option").tag(1 as Int?)
+                    Text("Disabled option").tag(2 as Int?).disabled(true)
+                    Text("Third option").tag(3 as Int?)
+                }
+            } label: {
+                Text("Choose an option")
+            }
+            EPicker(selection: $segment, presentation: .segmented) {
+                Text("First").tag(0)
+                Text("Second").tag(1)
+            } label: {
+                Text("Segment")
+            }
+            Text(verbatim: "Selected segment: \(segment)")
+        }
+    }
+}
+#endif

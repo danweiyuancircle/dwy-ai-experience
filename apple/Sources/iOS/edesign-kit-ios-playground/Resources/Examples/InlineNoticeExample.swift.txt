@@ -1,0 +1,23 @@
+import SwiftUI
+import DesignKitIOS
+
+/// 持久提示没有计时或模态蒙层，操作由调用方给出。
+struct InlineNoticeExample: View {
+    @State private var count = 0
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EInlineNotice(tone: .warning) {
+                Text("The current option was removed. Choose another option.")
+            } actions: {
+                EButton("Choose", emphasis: .tertiary) { count += 1 }
+            }
+            EInlineNotice(tone: .neutral) {
+                Text("Changes stay local until you save")
+            } actions: {
+                EmptyView()
+            }
+            Text(verbatim: "Action count: \(count)")
+        }
+    }
+}

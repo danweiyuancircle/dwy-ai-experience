@@ -1,0 +1,24 @@
+import SwiftUI
+import DesignKitIOS
+
+/// 纯图标操作必须提供可访问名称。
+struct IconActionExample: View {
+    let isBusy: Bool
+    @State private var count = 0
+
+    init(isBusy: Bool = false) { self.isBusy = isBusy }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                EIconAction(accessibilityLabel: Text("Add item"), emphasis: .primary, isBusy: isBusy, action: { count += 1 }) {
+                    Image(systemName: "plus")
+                }
+                EIconAction(accessibilityLabel: Text("Delete item"), role: .destructive, action: { count += 1 }) {
+                    Image(systemName: "trash")
+                }
+            }
+            Text(verbatim: "Tap count: \(count)")
+        }
+    }
+}

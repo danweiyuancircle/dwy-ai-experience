@@ -1,0 +1,15 @@
+#if os(iOS)
+import SwiftUI
+import DesignKitIOS
+
+/// 直接使用 EToast 时，位置与消失时机由宿主管理。
+struct ToastExample: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EToast(Text("Copied"))
+            EToast(Text("Upload failed. Check the connection and try again later."), tone: .error)
+            EToast(Text("Added to favorites"), tone: .success, systemImage: "star")
+        }
+    }
+}
+#endif

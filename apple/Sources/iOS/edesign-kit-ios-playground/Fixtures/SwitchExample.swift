@@ -1,0 +1,18 @@
+#if os(iOS)
+import SwiftUI
+import DesignKitIOS
+
+/// 绑定只表达用户选择，后台提交由调用方管理。
+struct SwitchExample: View {
+    @State private var notifications = true
+    @State private var sync = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ESwitch(isOn: $notifications) { Text("Notifications") }
+            ESwitch(isOn: $sync) { Text("Background sync") }
+            Text(verbatim: "Notifications: \(notifications), sync: \(sync)")
+        }
+    }
+}
+#endif

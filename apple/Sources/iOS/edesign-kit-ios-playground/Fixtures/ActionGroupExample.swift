@@ -1,0 +1,23 @@
+#if os(iOS)
+import SwiftUI
+import DesignKitIOS
+
+/// 动作区纵向铺满，按钮角色由调用方给出。
+struct ActionGroupExample: View {
+    let isBusy: Bool
+    @State private var count = 0
+
+    init(isBusy: Bool = false) { self.isBusy = isBusy }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EActionGroup {
+                EButton("Save", emphasis: .primary, isBusy: isBusy) { count += 1 }
+                EButton("Cancel") { count += 1 }
+                EButton("Delete", role: .destructive) { count += 1 }
+            }
+            Text(verbatim: "Action count: \(count)")
+        }
+    }
+}
+#endif

@@ -1,0 +1,19 @@
+import SwiftUI
+import DesignKitIOS
+
+/// 外壳承载任意原生编辑器，焦点与组合输入仍由编辑器负责。
+struct FieldShellExample: View {
+    let isInvalid: Bool
+    @State private var text = ""
+
+    init(isInvalid: Bool = false) { self.isInvalid = isInvalid }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EFieldShell(isInvalid: isInvalid) {
+                TextField("Native editor", text: $text)
+            }
+            Text(verbatim: "Character count: \(text.count)")
+        }
+    }
+}

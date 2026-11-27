@@ -56,7 +56,7 @@
 | 进度遮罩 | `apple/Sources/Foundation/DesignKit/BlockingProgressOverlay.swift` | 显示进度和可选取消动作，不启动任务、不自行设置超时、不把取消显示成成功 |
 | 分享/收键盘/触觉 | `apple/Sources/Foundation/DesignKit/ShareSheet.swift`、`apple/Sources/Foundation/DesignKit/KeyboardDismiss.swift`、`apple/Sources/Foundation/DesignKit/Haptics.swift` | UIKit 适配留本端；分享锚点、多 scene、滚动不被手势拦截、偏好注入须验证 |
 
-通用组件落在 `apple/Sources/iOS/DesignKit/`。建议按 Controls、Feedback、Presentation 分组，随着实际抽取创建，不预先铺空目录。
+通用组件落在 `apple/Sources/iOS/edesign-kit/`。建议按 Controls、Feedback、Presentation 分组，随着实际抽取创建，不预先铺空目录。
 
 ## 不直接复制的内容
 

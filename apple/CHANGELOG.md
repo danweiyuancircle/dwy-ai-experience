@@ -25,6 +25,25 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.15.0 - 2026-11-26
+
+- `DesignKitMac` 新增文本语义封装 `EText`、`.eText(_:tone:)` 与 `ETextRole`，把 `ETypography` 字体角色和 `ESemanticColors` 文字色接到普通文本上，业务页面不再裸写 `.font(.caption)`、`.foregroundStyle(.secondary)`。`tone` 复用 `EStatusTone`。
+- `DesignKitMacPlayground` 详情页新增结构化“支持的能力”清单（每个组件中英说明新增 `## Capabilities` / `## 能力` 节，由 `EPlaygroundCatalog.Documentation.capabilities` 解析）、侧栏“主题与令牌”页（颜色浅深色十六进制、字体角色、间距、圆角、控件尺寸，均读取注入的 `EControlTheme`），以及 `--page`、`--appearance`、`--language`、`--scenario` 启动参数用于直达页面和截图。Playground 为可选开发产品，不影响应用链接的 `DesignKitMac`。Skill 同步检查（Playground 部分）：`dwy-apple-appkit` 与 `dwy-macos-development` 未引用 Playground 的目录结构、启动参数或资源格式，公开产品、初始化、最低系统和工具链均无变化，无需更新；该结论基于对两份 Skill 的关键词检索，发版前需与上一 tag 的实际差异再核对。
+- 新增可选产品 `DesignKitIOSPlayground`（iOS 18）：组件目录（搜索与分类）、详情预览、示例状态切换与重置、能力与约束、可复制 Swift 示例、主题与令牌页，入口 `IOSPlayground()`，运行方式见 `apple/Examples/IOSControls/README.md` 的 `IOSPlayground` scheme。Skill 同步检查（iOS Playground 部分）：`dwy-apple-appkit` 与 `dwy-ios-development` 未引用 Playground 目录、示例路径或资源格式，现有公开产品、初始化、最低系统和工具链契约无变化，无需更新；该结论基于关键词检索，发版前需与上一 tag 实际差异再核对。
+- 纯新增，既有 API 与行为不变。
+- Skill 同步检查更新了 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 与 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/design-system.md`：已采用 `DesignKitMac` 的项目从“优先使用”改为“必须使用”，并新增业务页面禁止直写的清单（系统字体与 `.secondary`、裸控件、`NSOpenPanel`/`NSAlert` 等），删除“不要机械包装 Text”的表述。iOS、权限、生命周期及最低工具链契约保持原样。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.14.0 能否不改 App 继续编 | 可以。仅新增公开类型与修饰符，没有删除或改名。 |
+| 不升会怎样 | 继续可用，但拿不到文本角色封装，页面只能继续各自写 `.font` 与 `.foregroundStyle`。 |
+| 破坏面 | 无。 |
+| 持久化键变化 | 无。 |
+
+---
+
 ## 0.14.1 - 2026-11-28
 
 - macOS 弹窗关闭按钮统一为 24 pt 可见圆盘、34 pt 点击区域。设置弹窗将分类标题与关闭按钮排在同一行，滚动正文时仍可关闭。

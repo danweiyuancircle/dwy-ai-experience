@@ -29,7 +29,7 @@ description: 开发、排查、评审或适配 macOS 应用时使用，涵盖设
 
 界面开发与评审同时遵循 `dwy-swift-development` 的图标视觉一致性、按钮语义与样式一致性、重复能力封装与复用要求；跨页面检查同类入口，不仅检查当前窗口。
 
-涉及设计规范、全局 token、主题或组件抽取时，先读取项目现有规范，再读 [设计规范与组件复用](references/design-system.md)；不得把某个产品的品牌或几何规格直接变成所有 Mac 项目的要求。
+已采用 `DesignKitMac` 的项目，业务页面和业务组件的控件、文本样式、弹框、文件选择和反馈必须使用实际版本中满足需求的公开组件，禁止手写等价 UI。替换入口见 `dwy-apple-appkit`，只有实际缺失或无法满足需求的部分才在 `BusinessUI/` 补充。涉及设计规范、全局 token、主题或组件抽取时，先读取项目现有规范，再读 [设计规范与组件复用](references/design-system.md)；不得把某个产品的品牌或几何规格直接变成所有 Mac 项目的要求。
 
 macOS 单端与双端项目内部均按 App①、Features②、BizFoundation③、Foundation④四层；BusinessUI 属于②，产品平台业务适配属于③，不增加第五层。新项目使用统一生成器的 macos 或 apple 形态，按 `dwy-apple-architecture` 的目录与依赖规则执行；只生成所选平台，追加另一端不搬已有壳或升级依赖。
 

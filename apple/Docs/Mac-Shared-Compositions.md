@@ -13,6 +13,7 @@
 | `EApplicationIcon` | 从本机 Launch Services 或显式路径读取原色 Logo，缺失时使用指定 SF Symbol |
 | `EProgressPanelContent` | 任务进度、说明和动作区布局；取消不会伪装为任务已经结束 |
 | `EContentState` | 加载/空态/失败组合；`systemImage` 只指定展示图标，状态与动作由业务提供 |
+| `EText`、`.eText(_:tone:)` | 文本语义角色（`body`、`secondary`、`caption`、`title`、`sectionTitle`、`pageTitle`、`monospaced`）。字体读 `ETypography`，颜色读 `ESemanticColors`，`tone` 复用 `EStatusTone` 表达成功/警告/失败色，状态仍须配有文字。修饰符可用于 `Text`、`Label` 等任意视图，业务页面不再裸写 `.font(.caption)`、`.foregroundStyle(.secondary)` |
 
 新页面通过 `@Environment(\.eControlTheme)` 读取根主题。标准页面令牌 `EPalette`、`ETypeScale`、`ESpace`、`ERadius` 为已有静态消费方提供标准主题映射；它们不读取某个 View 子树的自定义环境。需要品牌或密度覆盖的组件应读取环境，不在项目复制静态数值表。
 
@@ -45,4 +46,4 @@ struct SharedSettingsExample: View {
 
 组件回归见 `apple/Tests/DesignKitMacTests/MacRecoveredCompositionTests.swift`。本轮改动仍需随共享库版本发布后更新消费方锁文件；本地 workspace 联调不是远程发布证明。
 
-可操作的组合示例为 `apple/Sources/macOS/DesignKitMacPlayground/ERecoveredCompositionsPreview.swift`，公开入口 `ERecoveredCompositionsPreview()`。演示支持中英文、局部表单状态及排序，不写业务偏好。根目录的 Playground catalog 统一负责展示入口。
+可操作的组合示例为 `apple/Sources/macOS/edesign-kit-mac-playground/ERecoveredCompositionsPreview.swift`，公开入口 `ERecoveredCompositionsPreview()`。演示支持中英文、局部表单状态及排序，不写业务偏好。根目录的 Playground catalog 统一负责展示入口。

@@ -10,7 +10,7 @@ RightFlow 的侧栏品牌单独处理：只保留真实应用 Logo，48 pt，水
 
 ## 已有能力
 
-- `apple/Sources/Shared/DesignCore/Motion.swift` 已导出 `Motion.spring`、`press`、`snappy`、`soft`、`page`、`overlay`，以及 `ScalePressButtonStyle` 和 `.scalePress()`。
+- `apple/Sources/Shared/edesign-core/Motion.swift` 已导出 `Motion.spring`、`press`、`snappy`、`soft`、`page`、`overlay`，以及 `ScalePressButtonStyle` 和 `.scalePress()`。
 - 按压样式已读取系统的减少动态效果设置，开启时保留透明度反馈、取消缩放。
 - `DesignKitIOS` 和 `DesignKitMac` 已依赖 `DesignCore`。共享层不含 UIKit、AppKit；具体平台组件分别维护。
 - RightFlow 已通过 AppleAppKit 版本依赖使用 DesignCore，但当前菜单配置与预览主要直接更新状态，尚未使用统一的显式动效入口。
@@ -45,7 +45,7 @@ SF Symbols 的一次性状态反馈优先直接使用原生 symbolEffect；有�
 
 ## 文件与验证范围
 
-- 扩展 `apple/Sources/Shared/DesignCore/Motion.swift`，按职责需要将 ViewModifier 拆到同目录，保持公开入口少而明确。
+- 扩展 `apple/Sources/Shared/edesign-core/Motion.swift`，按职责需要将 ViewModifier 拆到同目录，保持公开入口少而明确。
 - 新建 `apple/Tests/DesignCoreTests`，在根 `Package.swift` 注册测试目标；验证预设映射、减少动态效果策略以及原 API 兼容性，同步测试用例索引。
 - 在 `apple/Examples/Motion` 提供同源双平台示例，覆盖悬停、列表重排和反馈转场；显示真实系统减少动态效果设置，不覆盖只读环境值。
 - 补充 iOS 示例与模拟器验收；分别检查触控、macOS 指针/键盘、减少动态效果、快速重复切换和页面销毁后的取消。

@@ -1,0 +1,20 @@
+#if os(iOS)
+import SwiftUI
+import DesignKitIOS
+
+/// 确认回调只表达用户意图；取消不调用业务动作。
+struct ConfirmExample: View {
+    @State private var isPresented = false
+    @State private var confirmCount = 0
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EButton("Show confirmation") { isPresented = true }
+                .modifier(EConfirm(title: Text("Delete item?"), message: Text("This action cannot be undone."),
+                                   isPresented: $isPresented, confirmTitle: Text("Delete"), cancelTitle: Text("Cancel"),
+                                   isDestructive: true) { confirmCount += 1 })
+            Text(verbatim: "Confirmed: \(confirmCount)")
+        }
+    }
+}
+#endif

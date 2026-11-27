@@ -56,7 +56,7 @@ func makeAuthSession(baseURL: URL, namespace: String) throws -> AuthSessionStore
 
 ## 服务端与长期登录
 
-服务端实现位于 `backend/packages/auth/src/dwy_auth/`；具体装配、错误码和迁移步骤见 `backend/packages/auth/README.md`。
+服务端实现位于 `backend/packages/eauth/src/dwy_auth/`；具体装配、错误码和迁移步骤见 `backend/packages/eauth/README.md`。
 
 - 邮箱功能通过 EmailAuthConfig 和 EmailCodeSender 显式装配；EapiEmailCodeSender 复用本轮 eapi 邮件传输接口与 Resend 模板。
 - 验证码、尝试次数、限流使用应用数据库事务，不依赖 Redis；HMAC secret 由宿主密钥配置提供，所有 worker 一致，不写客户端。
@@ -82,7 +82,7 @@ func makeAuthSession(baseURL: URL, namespace: String) throws -> AuthSessionStore
 
 ```sh
 DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer swift test --disable-automatic-resolution
-PYTHONPATH=backend/packages/auth/src:backend/src backend/.venv/bin/python -m pytest backend/packages/auth/tests -q
+PYTHONPATH=backend/packages/eauth/src:backend/src backend/.venv/bin/python -m pytest backend/packages/eauth/tests -q
 ```
 
 在示例目录生成工程：

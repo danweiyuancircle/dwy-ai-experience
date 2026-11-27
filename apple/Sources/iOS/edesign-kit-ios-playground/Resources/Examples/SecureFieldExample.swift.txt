@@ -1,0 +1,18 @@
+import SwiftUI
+import DesignKitIOS
+
+/// 密码始终使用 SecureField；示例只显示长度，不回显内容。
+struct SecureFieldExample: View {
+    let isInvalid: Bool
+    @State private var password = ""
+
+    init(isInvalid: Bool = false) { self.isInvalid = isInvalid }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            ESecureField(Text("Password"), text: $password, isInvalid: isInvalid)
+                .textContentType(.newPassword)
+            Text(verbatim: "Character count: \(password.count)")
+        }
+    }
+}

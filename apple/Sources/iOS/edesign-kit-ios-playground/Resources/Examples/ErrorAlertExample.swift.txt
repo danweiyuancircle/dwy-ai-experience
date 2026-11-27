@@ -1,0 +1,15 @@
+import SwiftUI
+import DesignKitIOS
+
+/// 消息非 nil 时显示原文，关闭会把绑定清为 nil；不自动消失或重试。
+struct ErrorAlertExample: View {
+    @State private var message: String?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EButton("Show error alert") { message = "server.error.key" }
+                .modifier(EErrorAlert(title: Text("Failure"), message: $message, dismissTitle: Text("Got it")))
+            Text(verbatim: "Has message: \(message != nil)")
+        }
+    }
+}

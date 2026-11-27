@@ -61,15 +61,21 @@ iOS `IOSControlTests` 另覆盖短暂原文与自定义图标、相同文本替�
 
 根 `swift test` 覆盖 `DesignKitMacTests` 与 `DesignKitMacPlaygroundTests`。前者验证主题/布局、公开字段壳与便利字段等价、原生 Combo 字号、可选焦点绑定、候选/标记文本与提交边界、Toast 原文/资源及生命周期，以及短提示自然收窄、相较旧通知卡减少高度、长文案在限定宽度换行增高；后者验证全部 22 个可视组件目录、双语资源、复制源码与 fixture 逐字一致、检索、两种宽度与状态宿主布局、公开独立和项目入口。
 
+`EPlaygroundCatalogTests` 另覆盖：每个组件的中英说明都含结构化“能力 / Capabilities”清单（至少 2 条、标题与说明非空、两种语言条数一致）；主题与令牌页的颜色、间距、圆角、控件尺寸全部读取注入的 `EControlTheme`（改主题值后令牌随之变化）；动态色在浅色/深色外观下分别解析为期望十六进制；启动参数 `--page`/`--appearance`/`--language`/`--scenario` 的解析与非法值回退。人工运行与截图用 `swift run --scratch-path /tmp/dwy-mac-build MacControlsGallery --page tokens --appearance dark`，截图不进入自动测试。
+
+`MacTextStyleTests` 验证文本角色的字体与颜色解析到 `ETypography`/`ESemanticColors`、`tone` 覆盖角色颜色且 `.neutral` 不改变原色、注入更大正文字号后 `EText` 与 `.eText` 修饰的视图高度随之增大，并覆盖 `Text`、`LocalizedStringResource`、`verbatim` 三种初始化。
+
 `MacFoundationComponentsTests` 检查浅色、深色及各自增加对比度的配色、文字与状态色对比度、标准字号和控件尺寸，以及应用强调色和悬停覆盖。另对照 AppKit 有效外观验证动态色解析，并渲染浅色、深色和自定义背景的共享卡片，检查实际像素。`MacControlHostTests` 用真实 AppKit Combo 验证应用的正文字号作用于原生编辑器，并核对 SwiftUI 字体映射。模板回归核对生成的 macOS 首页读取环境主题并由应用根注入 `.standard`。
 
 ## macOS 业务 UI
 
 `swift test --filter BusinessKitMacTests` 覆盖设置分类和 AppKit 宿主布局、字号持久化与主题覆盖、购买待批准和取消、恢复后单次回调、过期弹框结果隔离、帮助链接与分享文件边界、日志初始化与临时文件清理、快捷键冲突与注册失败保留原设置、评分冷却和同步状态。使用 `swift run MacBusinessGallery` 预览全部接入点。
 
+`BusinessSettingsRowsTests` 验证信息、开关、菜单、导航四种设置行铺满给定宽度且高度合理，`BusinessSettingsGroup` 只在行与行之间加分隔线，条件行不显示时不留下多余分隔线。
+
 `StoreKitPurchaseEntitlementTests` 检查买断、续订到期、宽限期、撤销和升级的权益判断。真实商品和账号的端到端验证由消费 App 在沙盒及目标系统完成。
 
-修改示例后运行 `python3 apple/Sources/macOS/DesignKitMacPlayground/Scripts/sync-examples.py --check`。测试不连接设备、不写应用偏好；离屏宿主与回调测试不能替代真实 IME、VoiceOver、下拉鼠标和屏幕边缘验收。
+修改示例后运行 `python3 apple/Sources/macOS/edesign-kit-mac-playground/Scripts/sync-examples.py --check`。测试不连接设备、不写应用偏好；离屏宿主与回调测试不能替代真实 IME、VoiceOver、下拉鼠标和屏幕边缘验收。
 
 ## 邮箱密码组件
 
@@ -87,7 +93,7 @@ Playground 目录新增 page-header、settings-page、item-row、sidebar-item、
 
 ## iOS 原生弹框
 
-公开组件为 `EAlert`、`EConfirm`、`EErrorAlert`，源码 `apple/Sources/iOS/DesignKit/EAlerts.swift`。独立宿主 `apple/Examples/IOSControls/IOSControlsApp.swift` 通过公开产品导入并挂载，`--dialogs-preview` 直接展示；用例位于 `apple/Examples/IOSControls/UITests/IOSControlsUITests.swift`。
+公开组件为 `EAlert`、`EConfirm`、`EErrorAlert`，源码 `apple/Sources/iOS/edesign-kit/EAlerts.swift`。独立宿主 `apple/Examples/IOSControls/IOSControlsApp.swift` 通过公开产品导入并挂载，`--dialogs-preview` 直接展示；用例位于 `apple/Examples/IOSControls/UITests/IOSControlsUITests.swift`。
 
 | 用例 | 实际边界 |
 |---|---|
@@ -96,6 +102,28 @@ Playground 目录新增 page-header、settings-page、item-row、sidebar-item、
 | `testErrorAlertPreservesRawMessageAndClearsBindingOnDismiss` | 初始 nil 不呈现；原文错误不做 key 查找；关闭清空绑定，相同错误可重新打开 |
 
 按 `apple/Examples/IOSControls/README.md` 生成工程并运行 `IOSControlsUITests`；`swift test` 的 macOS 条件编译不能代表这些 iOS 弹框交互通过。测试不覆盖真实业务删除、异步请求成功、VoiceOver 朗读或多 scene 同时呈现。
+
+## iOS Playground
+
+`apple/Tests/DesignKitIOSPlaygroundTests/IOSPlaygroundCatalogTests.swift`，执行 `swift test --filter DesignKitIOSPlaygroundTests`。目录、文档、搜索、预览选项为平台无关代码，macOS 可执行；视图与 fixture 在 `#if os(iOS)`，这些测试不证明它们已编译或渲染。
+
+| 用例 | 实际边界 |
+|---|---|
+| `testStableIdentitiesAreUniqueAndNamespaced` | 24 个组件 id 唯一且为 `designkit.ios.*` |
+| `testCatalogCoversEveryPublicIOSVisualComponent` | 扫描 `apple/Sources/iOS/edesign-kit` 公开 E* `View`/`ViewModifier`，每个都有目录项，目录也无多余符号 |
+| `testEveryComponentBelongsToExactlyOneNonEmptyCategory` | 每个组件仅属一个分类，分类非空且标题中英文完整 |
+| `testDocumentationIsBilingualAndListsCapabilities` | 中英说明非空单行，至少 3 条能力、至少 1 条约束 |
+| `testTextResolvesChineseOnlyForChineseLocales` | `zh*` 走中文，其他走英文 |
+| `testSearchMatchesSymbolAndStableIDCaseInsensitively` | 符号/id 搜索不区分大小写 |
+| `testTokensDestinationIsSearchableByThemeKeywords` | 主题/令牌页可用 theme/token/主题/令牌 检索 |
+| `testChromeAndAppearanceTitlesAreBilingual` | 界面文案、外观选项中英文完整 |
+| `testScenariosAlwaysStartNormalAndMatchFixtureParameters` | 首个状态为 normal，按组件提供 disabled/busy/invalid/empty |
+| `testBundledExampleMatchesCompiledFixtureWithoutPlatformGuard` | 复制用示例资源与真实 fixture 逐字一致（去掉最外层 `#if os(iOS)`） |
+| `testGuardStrippingOnlyRemovesOutermostWrapper` | 只去最外层平台守卫 |
+| `testFixturesReferenceOnlyPublicDesignKitIOSSymbols` | fixture 只引用公开 DesignKitIOS 符号与自身组件 |
+| `testPreviewOptionsInheritByDefaultAndResetRestoresDefaults` | 预览选项默认继承宿主，重置恢复默认 |
+
+未自动覆盖：NavigationSplitView 在 iPhone/iPad 的折叠、预览渲染、`UIPasteboard` 复制、Dynamic Type、VoiceOver，需按 `apple/Examples/IOSControls/README.md` 运行 `IOSPlayground` 人工验收。
 
 ## DesignCore 动效
 

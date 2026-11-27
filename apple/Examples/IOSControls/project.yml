@@ -27,6 +27,21 @@ targets:
     dependencies:
       - package: AppleAppKit
         product: DesignKitIOS
+  IOSPlayground:
+    type: application
+    platform: iOS
+    sources:
+      - path: PlaygroundApp
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.dwy.examples.ios-playground
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        TARGETED_DEVICE_FAMILY: '1,2'
+    dependencies:
+      - package: AppleAppKit
+        product: DesignKitIOSPlayground
   IOSControlsTests:
     type: bundle.unit-test
     platform: iOS
@@ -52,6 +67,12 @@ targets:
     dependencies:
       - target: IOSControls
 schemes:
+  IOSPlayground:
+    build:
+      targets:
+        IOSPlayground: all
+    run:
+      config: Debug
   IOSControls:
     build:
       targets:

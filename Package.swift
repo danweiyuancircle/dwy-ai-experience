@@ -25,6 +25,7 @@ let package = Package(
         .library(name: "CacheKit", targets: ["CacheKit"]),
         .library(name: "DesignCore", targets: ["DesignCore"]),
         .library(name: "DesignKitIOS", targets: ["DesignKitIOS"]),
+        .library(name: "DesignKitIOSPlayground", targets: ["DesignKitIOSPlayground"]),
         .library(name: "DesignKitMac", targets: ["DesignKitMac"]),
         .library(name: "DesignKitMacPlayground", targets: ["DesignKitMacPlayground"]),
         .library(name: "BusinessKitMac", targets: ["BusinessKitMac"]),
@@ -43,12 +44,12 @@ let package = Package(
         .package(url: "https://github.com/google/GoogleUtilities.git", exact: "8.1.4"),
     ],
     targets: [
-        .target(name: "PermissionCore", path: "apple/Sources/Shared/PermissionCore", resources: [.copy("Resources/ThirdPartyNotices.txt")]),
+        .target(name: "PermissionCore", path: "apple/Sources/Shared/epermission-core", resources: [.copy("Resources/ThirdPartyNotices.txt")]),
         .testTarget(name: "PermissionCoreTests", dependencies: ["PermissionCore"], path: "apple/Tests/PermissionCoreTests"),
         .target(
             name: "SyncCore",
             dependencies: [.product(name: "GRDB", package: "GRDB.swift")],
-            path: "apple/Sources/Shared/SyncCore"
+            path: "apple/Sources/Shared/esync-core"
         ),
         .testTarget(
             name: "SyncCoreTests",
@@ -60,39 +61,39 @@ let package = Package(
 
         .target(
             name: "CoreKit",
-            path: "apple/Sources/Shared/CoreKit"
+            path: "apple/Sources/Shared/ecore-kit"
         ),
         .target(
             name: "L10nKit",
-            path: "apple/Sources/Shared/L10nKit"
+            path: "apple/Sources/Shared/el10n-kit"
         ),
         .target(
             name: "LogKit",
             dependencies: [
                 .product(name: "Puppy", package: "Puppy"),
             ],
-            path: "apple/Sources/Shared/LogKit"
+            path: "apple/Sources/Shared/elog-kit"
         ),
         .target(
             name: "CacheKit",
-            path: "apple/Sources/Shared/CacheKit"
+            path: "apple/Sources/Shared/ecache-kit"
         ),
         .target(
             name: "AuthCore",
             dependencies: ["CoreKit", "L10nKit"],
-            path: "apple/Sources/Shared/AuthCore"
+            path: "apple/Sources/Shared/eauth-core"
         ),
         .target(
             name: "AuthUI",
             dependencies: ["AuthCore", "L10nKit", .product(name: "GoogleSignInSwift", package: "GoogleSignIn-iOS", condition: .when(platforms: [.iOS, .macOS]))],
-            path: "apple/Sources/iOS/AuthUI",
+            path: "apple/Sources/iOS/eauth-ui",
             resources: [.process("Resources")]
         ),
         // ThemeMode / Motion 等纯 SwiftUI 共享令牌；不含 UIKit/AppKit。
         .target(
             name: "DesignCore",
             dependencies: ["L10nKit"],
-            path: "apple/Sources/Shared/DesignCore"
+            path: "apple/Sources/Shared/edesign-core"
         ),
         .testTarget(
             name: "DesignCoreTests",
@@ -106,17 +107,30 @@ let package = Package(
         .target(
             name: "DesignKitIOS",
             dependencies: ["DesignCore", "L10nKit"],
-            path: "apple/Sources/iOS/DesignKit"
+            path: "apple/Sources/iOS/edesign-kit"
         ),
         .testTarget(
             name: "DesignKitIOSTests",
             dependencies: ["DesignKitIOS"],
             path: "apple/Tests/DesignKitIOSTests"
         ),
+        // 目录/搜索/文档为平台无关代码，macOS 上可 swift test；视图仅在 iOS 编译。
+        .target(
+            name: "DesignKitIOSPlayground",
+            dependencies: ["DesignKitIOS"],
+            path: "apple/Sources/iOS/edesign-kit-ios-playground",
+            exclude: ["Scripts", "README.md"],
+            resources: [.copy("Resources/Examples")]
+        ),
+        .testTarget(
+            name: "DesignKitIOSPlaygroundTests",
+            dependencies: ["DesignKitIOSPlayground"],
+            path: "apple/Tests/DesignKitIOSPlaygroundTests"
+        ),
         .target(
             name: "DesignKitMac",
             dependencies: ["DesignCore", "L10nKit"],
-            path: "apple/Sources/macOS/DesignKit"
+            path: "apple/Sources/macOS/edesign-kit"
         ),
         .testTarget(
             name: "DesignKitMacTests",
@@ -129,7 +143,7 @@ let package = Package(
                 "DesignKitMac", "DesignCore", "L10nKit", "PurchaseCore", "LogKit",
                 "AuthCore", "SyncCore",
             ],
-            path: "apple/Sources/macOS/BusinessKitMac",
+            path: "apple/Sources/macOS/ebusiness-kit-mac",
             resources: [.process("Resources")]
         ),
         .testTarget(
@@ -140,7 +154,7 @@ let package = Package(
         .target(
             name: "DesignKitMacPlayground",
             dependencies: ["DesignKitMac"],
-            path: "apple/Sources/macOS/DesignKitMacPlayground",
+            path: "apple/Sources/macOS/edesign-kit-mac-playground",
             exclude: ["Scripts", "README.md"],
             resources: [.process("Resources/en.lproj"), .process("Resources/zh-Hans.lproj"), .copy("Resources/Documentation"), .copy("Resources/Examples"), .copy("Resources/Index.md")]
         ),
@@ -156,13 +170,13 @@ let package = Package(
                 "AuthCore",
                 .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS", condition: .when(platforms: [.iOS])),
             ],
-            path: "apple/Sources/iOS/AuthGoogleIOS"
+            path: "apple/Sources/iOS/eauth-google-ios"
         ),
         // Apple 系统授权不依赖 Google SDK；AuthCore 保持跨平台。
         .target(
             name: "AuthAppleIOS",
             dependencies: ["AuthCore"],
-            path: "apple/Sources/iOS/AuthAppleIOS"
+            path: "apple/Sources/iOS/eauth-apple-ios"
         ),
         .testTarget(
             name: "AuthAppleIOSTests",
@@ -174,7 +188,7 @@ let package = Package(
         .target(
             name: "AuthGoogleMac",
             dependencies: ["AuthCore", .product(name: "GoogleSignIn", package: "GoogleSignIn-iOS", condition: .when(platforms: [.macOS]))],
-            path: "apple/Sources/macOS/AuthGoogleMac"
+            path: "apple/Sources/macOS/eauth-google-mac"
         ),
         .testTarget(
             name: "AuthGoogleMacTests",
@@ -185,7 +199,7 @@ let package = Package(
         .target(
             name: "PurchaseCore",
             dependencies: ["L10nKit"],
-            path: "apple/Sources/Shared/PurchaseCore"
+            path: "apple/Sources/Shared/epurchase-core"
         ),
 
         // MARK: Tests
@@ -262,14 +276,14 @@ package.products += [
 package.targets += [
     .target(name: "PermissionsKit", path: "apple/ThirdParty/PermissionsKit/Sources/PermissionsKit",
             resources: [.process("Resources")]),
-    .target(name: "PermissionIOS", dependencies: ["PermissionCore"], path: "apple/Sources/iOS/PermissionIOS"),
+    .target(name: "PermissionIOS", dependencies: ["PermissionCore"], path: "apple/Sources/iOS/epermission-ios"),
 ]
 
 package.targets += [
     .target(name: "CameraPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/CameraPermission"),
     .target(name: "PermissionCameraIOS", dependencies: ["PermissionIOS", "PermissionCore", "CameraPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionCameraIOS"),
+            path: "apple/Sources/iOS/epermission-camera-ios"),
 ]
 package.products.append(.library(name: "PermissionCameraIOS", targets: ["PermissionCameraIOS"]))
 
@@ -277,7 +291,7 @@ package.targets += [
     .target(name: "PhotoLibraryPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/PhotoLibraryPermission"),
     .target(name: "PermissionPhotoLibraryIOS", dependencies: ["PermissionIOS", "PermissionCore", "PhotoLibraryPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionPhotoLibraryIOS"),
+            path: "apple/Sources/iOS/epermission-photo-library-ios"),
 ]
 package.products.append(.library(name: "PermissionPhotoLibraryIOS", targets: ["PermissionPhotoLibraryIOS"]))
 
@@ -285,7 +299,7 @@ package.targets += [
     .target(name: "MicrophonePermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/MicrophonePermission"),
     .target(name: "PermissionMicrophoneIOS", dependencies: ["PermissionIOS", "PermissionCore", "MicrophonePermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionMicrophoneIOS"),
+            path: "apple/Sources/iOS/epermission-microphone-ios"),
 ]
 package.products.append(.library(name: "PermissionMicrophoneIOS", targets: ["PermissionMicrophoneIOS"]))
 
@@ -293,7 +307,7 @@ package.targets += [
     .target(name: "ContactsPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/ContactsPermission"),
     .target(name: "PermissionContactsIOS", dependencies: ["PermissionIOS", "PermissionCore", "ContactsPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionContactsIOS"),
+            path: "apple/Sources/iOS/epermission-contacts-ios"),
 ]
 package.products.append(.library(name: "PermissionContactsIOS", targets: ["PermissionContactsIOS"]))
 
@@ -301,7 +315,7 @@ package.targets += [
     .target(name: "SpeechRecognizerPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/SpeechRecognizerPermission"),
     .target(name: "PermissionSpeechIOS", dependencies: ["PermissionIOS", "PermissionCore", "SpeechRecognizerPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionSpeechIOS"),
+            path: "apple/Sources/iOS/epermission-speech-ios"),
 ]
 package.products.append(.library(name: "PermissionSpeechIOS", targets: ["PermissionSpeechIOS"]))
 
@@ -309,7 +323,7 @@ package.targets += [
     .target(name: "MotionPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/MotionPermission"),
     .target(name: "PermissionMotionIOS", dependencies: ["PermissionIOS", "PermissionCore", "MotionPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionMotionIOS"),
+            path: "apple/Sources/iOS/epermission-motion-ios"),
 ]
 package.products.append(.library(name: "PermissionMotionIOS", targets: ["PermissionMotionIOS"]))
 
@@ -317,7 +331,7 @@ package.targets += [
     .target(name: "MediaLibraryPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/MediaLibraryPermission"),
     .target(name: "PermissionMediaLibraryIOS", dependencies: ["PermissionIOS", "PermissionCore", "MediaLibraryPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionMediaLibraryIOS"),
+            path: "apple/Sources/iOS/epermission-media-library-ios"),
 ]
 package.products.append(.library(name: "PermissionMediaLibraryIOS", targets: ["PermissionMediaLibraryIOS"]))
 
@@ -325,7 +339,7 @@ package.targets += [
     .target(name: "BluetoothPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/BluetoothPermission"),
     .target(name: "PermissionBluetoothIOS", dependencies: ["PermissionIOS", "PermissionCore", "BluetoothPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionBluetoothIOS"),
+            path: "apple/Sources/iOS/epermission-bluetooth-ios"),
 ]
 package.products.append(.library(name: "PermissionBluetoothIOS", targets: ["PermissionBluetoothIOS"]))
 
@@ -333,7 +347,7 @@ package.targets += [
     .target(name: "TrackingPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/TrackingPermission"),
     .target(name: "PermissionTrackingIOS", dependencies: ["PermissionIOS", "PermissionCore", "TrackingPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionTrackingIOS"),
+            path: "apple/Sources/iOS/epermission-tracking-ios"),
 ]
 package.products.append(.library(name: "PermissionTrackingIOS", targets: ["PermissionTrackingIOS"]))
 
@@ -341,32 +355,32 @@ package.targets += [
     .target(name: "SiriPermission", dependencies: ["PermissionsKit"],
             path: "apple/ThirdParty/PermissionsKit/Sources/SiriPermission"),
     .target(name: "PermissionSiriIOS", dependencies: ["PermissionIOS", "PermissionCore", "SiriPermission", "PermissionsKit"],
-            path: "apple/Sources/iOS/PermissionSiriIOS"),
+            path: "apple/Sources/iOS/epermission-siri-ios"),
 ]
 package.products.append(.library(name: "PermissionSiriIOS", targets: ["PermissionSiriIOS"]))
 
 package.targets.append(.target(name: "PermissionNotificationIOS", dependencies: ["PermissionIOS", "PermissionCore"],
-                              path: "apple/Sources/iOS/PermissionNotificationIOS"))
+                              path: "apple/Sources/iOS/epermission-notification-ios"))
 package.products.append(.library(name: "PermissionNotificationIOS", targets: ["PermissionNotificationIOS"]))
 
 package.targets.append(.target(name: "PermissionCalendarIOS", dependencies: ["PermissionIOS", "PermissionCore"],
-                              path: "apple/Sources/iOS/PermissionCalendarIOS"))
+                              path: "apple/Sources/iOS/epermission-calendar-ios"))
 package.products.append(.library(name: "PermissionCalendarIOS", targets: ["PermissionCalendarIOS"]))
 
 package.targets.append(.target(name: "PermissionRemindersIOS", dependencies: ["PermissionIOS", "PermissionCore"],
-                              path: "apple/Sources/iOS/PermissionRemindersIOS"))
+                              path: "apple/Sources/iOS/epermission-reminders-ios"))
 package.products.append(.library(name: "PermissionRemindersIOS", targets: ["PermissionRemindersIOS"]))
 
 package.targets.append(.target(name: "PermissionHealthIOS", dependencies: ["PermissionIOS", "PermissionCore"],
-                              path: "apple/Sources/iOS/PermissionHealthIOS"))
+                              path: "apple/Sources/iOS/epermission-health-ios"))
 package.products.append(.library(name: "PermissionHealthIOS", targets: ["PermissionHealthIOS"]))
 
 package.targets.append(.target(name: "PermissionFaceIDIOS", dependencies: ["PermissionIOS", "PermissionCore"],
-                              path: "apple/Sources/iOS/PermissionFaceIDIOS"))
+                              path: "apple/Sources/iOS/epermission-face-id-ios"))
 package.products.append(.library(name: "PermissionFaceIDIOS", targets: ["PermissionFaceIDIOS"]))
 
 package.targets.append(.target(name: "PermissionLocationIOS", dependencies: ["PermissionIOS", "PermissionCore"],
-                              path: "apple/Sources/iOS/PermissionLocationIOS"))
+                              path: "apple/Sources/iOS/epermission-location-ios"))
 package.products.append(.library(name: "PermissionLocationIOS", targets: ["PermissionLocationIOS"]))
 
 package.targets += [
@@ -396,7 +410,7 @@ package.targets += [
                            "PermissionFlowMediaStatus", "PermissionFlowScreenRecordingStatus"],
             path: "apple/ThirdParty/PermissionFlow/Sources/PermissionFlowExtendedStatus"),
     .target(name: "PermissionMac", dependencies: ["PermissionCore", "PermissionFlow", "PermissionFlowExtendedStatus", "SystemSettingsKit"],
-            path: "apple/Sources/macOS/PermissionMac"),
+            path: "apple/Sources/macOS/epermission-mac"),
     .testTarget(name: "PermissionMacTests", dependencies: ["PermissionMac", "PermissionFlow"], path: "apple/Tests/PermissionMacTests"),
 ]
 
@@ -406,7 +420,7 @@ package.targets += [
     .target(name: "PermissionUI", dependencies: [
         .target(name: "DesignKitIOS", condition: .when(platforms: [.iOS])),
         .target(name: "DesignKitMac", condition: .when(platforms: [.macOS])),
-    ], path: "apple/Sources/Shared/PermissionUI"),
+    ], path: "apple/Sources/Shared/epermission-ui"),
     .testTarget(name: "PermissionIOSTests", dependencies: ["PermissionCore", "PermissionIOS",
         "PermissionCameraIOS",
         "PermissionPhotoLibraryIOS",

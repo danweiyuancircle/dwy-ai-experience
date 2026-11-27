@@ -7,7 +7,7 @@
 | 范围 | iOS 18+ | macOS 26+ Apple Silicon |
 |---|---|---|
 | 产品 | DesignKitIOS | DesignKitMac |
-| 源码 | `apple/Sources/iOS/DesignKit/` | `apple/Sources/macOS/DesignKit/` |
+| 源码 | `apple/Sources/iOS/edesign-kit/` | `apple/Sources/macOS/edesign-kit/` |
 | 主题 | EControlTheme、EAccentColors | EControlTheme、ESemanticColors、ETypography、ESpacing |
 | 操作 | EButton、EIconAction、EMenu、EActionGroup | EButton、EIconAction、EMenu、EActionGroup |
 | 选择 | EPicker（menu/segmented）、ESwitch | EPicker（menu/segmented）、ESwitch、ECheckbox |
@@ -100,8 +100,8 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodegen generate
 
 新增公开字段壳 EFieldShell、支持原文和提示级别的 EToastMessage，以及 EComboBox 的可选双向焦点绑定与原生语义字号。EToastTitle 明确区分本地化资源和用户原文；直接读取旧 title 属性的消费者须适配枚举。
 
-可选产品 DesignKitMacPlayground 单向依赖 DesignKitMac，覆盖全部 22 个可视组件；每项含直接编译的 fixture、双语约束说明与可复制源码。脚本检查源码和复制资源逐字一致，目录使用稳定 ID 和辅助功能标识。统一预览设置位于窗口顶部，切换组件保留；详情默认显示预览与用途摘要，完整说明和代码折叠。预览通过独立 NSHostingView 局部覆盖环境，不修改 ThemeManager、NSApp.appearance 或用户偏好。接入与维护见 `apple/Sources/macOS/DesignKitMacPlayground/README.md`。
+可选产品 DesignKitMacPlayground 单向依赖 DesignKitMac，覆盖全部 22 个可视组件；每项含直接编译的 fixture、双语约束说明与可复制源码。脚本检查源码和复制资源逐字一致，目录使用稳定 ID 和辅助功能标识。统一预览设置位于窗口顶部，切换组件保留；详情默认显示预览与用途摘要，完整说明和代码折叠。预览通过独立 NSHostingView 局部覆盖环境，不修改 ThemeManager、NSApp.appearance 或用户偏好。接入与维护见 `apple/Sources/macOS/edesign-kit-mac-playground/README.md`。
 
 本机完整 SwiftPM 227 项通过；实际窗口验证了统一外观设置在切换组件后保留，深色只改变预览子树，具体操作与结果的辅助功能标识不再被祖先覆盖。基础库现场下拉验收仍有 CUA 超时边界，不宣称完整鼠标/IME/VoiceOver 矩阵通过。
 
-ADBox 在自己的 MacUI 模块组合 Pro 动作、代理表单等项目展示；权益、设备操作、持久化与任务归属留在应用。开发工程单独链接 Playground 产品，正式基准工程不链接；iOS 不新增 Playground。应用集成验证及数据保护证据由 ADBox 项目记录，基础库测试不代表业务页面已验收。
+ADBox 在自己的 MacUI 模块组合 Pro 动作、代理表单等项目展示；权益、设备操作、持久化与任务归属留在应用。开发工程单独链接 Playground 产品，正式基准工程不链接；iOS 的可选 `DesignKitIOSPlayground` 同理（见 `apple/Sources/iOS/edesign-kit-ios-playground/README.md`）。应用集成验证及数据保护证据由 ADBox 项目记录，基础库测试不代表业务页面已验收。

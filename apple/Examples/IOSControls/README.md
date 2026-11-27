@@ -28,3 +28,14 @@ DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project app
 系统弹框使用 `EAlert`、`EConfirm`、`EErrorAlert`，以 `.modifier(...)` 挂载，接收宿主提供的 `Text` 文案。`EConfirm` 仅确认时调用业务回调，取消不操作；`isDestructive: true` 标记危险动作。`EErrorAlert` 接收可选原文消息，关闭清空为 nil，不自动消失或重试。完整用法见 `apple/Docs/IOS_DESIGN_SYSTEM.md`。
 
 `--dialogs-preview` 可直接预览三类弹框。UI 回归覆盖中英文提示与关闭再开、确认/取消与调用次数、危险按钮，以及错误原文和关闭后的绑定清理；操作只修改内存计数，不删除文件或调用业务服务。
+
+## 组件 Playground
+
+同一工程的 `IOSPlayground` target（scheme `IOSPlayground`，入口 `apple/Examples/IOSControls/PlaygroundApp/IOSPlaygroundApp.swift`）承载 `DesignKitIOSPlayground` 产品：组件目录、详情预览、示例状态切换与重置、能力与约束说明、可复制 Swift 示例、主题与令牌页。不含在 `IOSControls` 的 UITest 目标内，不改变其界面层级。
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodegen generate --spec apple/Examples/IOSControls/project.yml
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer xcodebuild -project apple/Examples/IOSControls/IOSControls.xcodeproj -scheme IOSPlayground -destination 'platform=iOS Simulator,name=YOUR_EXISTING_SIMULATOR' build
+```
+
+或在 Xcode 打开 `apple/Examples/IOSControls/IOSControls.xcodeproj`，选择 `IOSPlayground` scheme 运行。iPhone 为单栏导航，iPad 横屏为双栏。目录、文档、搜索逻辑的测试在 macOS 执行 `swift test --filter DesignKitIOSPlaygroundTests`；视图渲染、复制与自适应布局需在模拟器或真机人工确认。详见 `apple/Sources/iOS/edesign-kit-ios-playground/README.md`。

@@ -2,7 +2,7 @@
 
 最低 macOS 26、Apple Silicon；通过可选公开产品 `DesignKitMacPlayground` 展示 `DesignKitMac`，不引用 ADBox。由根 `Package.swift` 的 `MacControlsGallery` executable target 构建。
 
-默认入口装配 `EPlayground()`。目录逐项展示全部 22 个可视组件，支持检索、状态预览、局部明暗/语言/字号覆盖，提供双语用途、调用约束与可复制 Swift。局部覆盖不写应用偏好。维护入口与同源校验见 `apple/Sources/macOS/DesignKitMacPlayground/README.md`。
+默认入口装配 `EPlayground()`。目录逐项展示全部 22 个可视组件，支持检索、状态预览、局部明暗/语言/字号覆盖，提供双语用途、调用约束与可复制 Swift。局部覆盖不写应用偏好。维护入口与同源校验见 `apple/Sources/macOS/edesign-kit-mac-playground/README.md`。
 
 通过 `swift run MacControlsGallery --platform-host-preview` 直接打开平台对话框示例。打开 sheet 后，验证输入框焦点、Return 触发 Done、Escape 触发 Cancel；点击底页或按 Command-B 不得增加底页计数，关闭后应恢复。此示例不执行文件修改。
 

@@ -19,6 +19,8 @@ macOS 弹窗显式关闭入口使用 DesignKitMac 的 `ESheetCloseButton`（0.14
 
 先查项目 Package.resolved、实际 checkout 和已使用的产品；版本范围不是锁定版本。源码及示例只在与项目锁定版本一致时作为依据。
 
+**项目接入 AppleAppKit 产品后，新增和修改的代码必须直接复用实际版本中满足需求的公开能力。** 适用于 UI 组件、同步、权限、认证、购买、日志和缓存等。禁止手写、复制、另接入第三方等价实现或再套同功能包装。只有核实能力缺失或接口确实无法满足需求时，才补具体缺口，优先组合已有能力。开发和评审时检查本次涉及的页面、业务组件及模块。
+
 - SyncCore：同步；CoreKit、LogKit、L10nKit、CacheKit：基础功能、日志、本地化与缓存。
 - DesignCore、DesignKitIOS、DesignKitMac：跨平台及平台界面能力。
 - AppleAppKit 0.12.0 起，`DesignKitMac` 的 `EControlTheme.standard` 默认使用冷静蓝、明暗灰阶及 13 pt 正文。应用可复制标准主题并按窗口或页面用 `.eControlTheme(_:)` 覆盖，字号统一用 `ETypography(bodySize:)` 派生。
@@ -38,7 +40,20 @@ iOS/macOS 接入方对已有且满足需求的共享组件必须直接使用，�
 
 按目标平台查 Package.swift、对应公开声明和 apple/README.md，再核对初始化、生命周期、系统版本与错误处理。找不到确切版本时查对应语义化 Git tag；不可用时说明缺口，不以默认分支替代。使用新产品或新增依赖遵守项目选择和授权，不擅自安装。
 
-已采用 `DesignKitMac` 的项目，通用控件、页面组合与平台 UI 入口优先使用基础库公开 API。通用颜色、字号、间距和圆角读取共享主题，不在产品维护第二套默认样式。共享组件的系统版本适配留在基础组件内部；能力缺口按上述业务组件与回流规则处理。原生 `NSAlert`、文件选择器和工具窗口可作为组件内部实现，业务不再分散配置展示细节；文件授权、危险操作、任务取消、权益和持久化仍属于业务。不要机械包装 Text/HStack 等布局原语，也不要将产品导航和品牌几何搬成全体默认值。相关组件以所选版本的 `apple/Docs/Mac-Shared-Compositions.md` 与 `apple/Docs/Mac-Platform-Dialogs.md` 为准。
+已采用 `DesignKitMac` 的项目，通用控件、页面组合、文本样式与平台 UI 入口**必须**使用基础库公开 API，不得在页面里手写同类实现。通用颜色、字号、间距和圆角读取共享主题，不在产品维护第二套默认样式。共享组件的系统版本适配留在基础组件内部；能力缺口按上述业务组件与回流规则处理。原生 `NSAlert`、文件选择器和工具窗口可作为组件内部实现，业务不再分散配置展示细节；文件授权、危险操作、任务取消、权益和持久化仍属于业务。不要机械包装 HStack/VStack 等布局原语，也不要将产品导航和品牌几何搬成全体默认值。
+
+业务页面禁止出现以下写法，须改用对应共享入口（评审与自检按此清单逐项核对）：
+
+| 禁止在业务页面直接写 | 改用 |
+| --- | --- |
+| `.font(.caption)`、`.font(.footnote)`、`.font(.headline)` 等系统字体；`.foregroundStyle(.secondary)`；`.font(.system(size:))` | `EText(_:role:tone:)` 或 `.eText(_:tone:)`，字体与颜色来自 `ETypography` 与 `ESemanticColors`（0.15.0 起） |
+| 裸 `Button`、`Toggle`、`Picker`、`TextField`、`SecureField`、`Menu` | `EButton`、`EIconAction`、`ESwitch`、`EPicker`、`ETextField`、`ESecureField`、`EMenu` |
+| 裸 `ProgressView` 与手写空态、失败态 | `EContentState`、`EProgressPanelContent` |
+| `NSOpenPanel`、`NSSavePanel` | `EFileDialog` |
+| `NSAlert`，以及 `.alert` 中手写错误文案 | `EAlert`、`EErrorAlert` |
+| 手写 Toast 与持续提示条 | `EToast`、`ENotice` |
+
+共享库没有对应入口时，不在页面里临时手写：先在 `BusinessUI/` 封装业务组件，通用缺口按回流规则补进基础库。系统原生控件仅限基础库没有对应物的 AppKit 宿主（如 `NSToolbar`、`NSTableView`、`NSPanel` 窗口外壳）。相关组件以所选版本的 `apple/Docs/Mac-Shared-Compositions.md` 与 `apple/Docs/Mac-Platform-Dialogs.md` 为准。
 
 查到对应版本源码后：同步查 `apple/Docs/SYNC_CORE.md` 与 `apple/Examples/OfflineSync/`；Apple 登录、Google 登录和邮箱密码分别查 `apple/Docs/APPLE_AUTH.md`、`apple/Docs/GOOGLE_AUTH.md`、`apple/Docs/EMAIL_PASSWORD_AUTH.md` 与相应示例。具体文件是否存在以所选 tag 为准。
 

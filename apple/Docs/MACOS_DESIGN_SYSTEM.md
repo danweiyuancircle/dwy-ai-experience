@@ -41,7 +41,7 @@
 
 ## 组件与实际来源
 
-以下 ADBox 路径相对 ADBox 仓库根；公共落点为基础库 `apple/Sources/macOS/DesignKit/`。
+以下 ADBox 路径相对 ADBox 仓库根；公共落点为基础库 `apple/Sources/macOS/edesign-kit/`。
 
 | 组件族 | ADBox 当前来源 | 目标边界 |
 |---|---|---|
@@ -60,11 +60,11 @@
 
 目前公共库已写入：
 
-- `apple/Sources/macOS/DesignKit/EControlTheme.swift`：主题、场景、输入外壳。
-- `apple/Sources/macOS/DesignKit/EButtons.swift`：EButton、EIconAction、EActionGroup。
-- `apple/Sources/macOS/DesignKit/ESelectionControls.swift`：EMenu、EPicker、ESwitch。
-- `apple/Sources/macOS/DesignKit/EFields.swift`：ETextField、ESecureField、ESearchField、EField。
-- `apple/Sources/macOS/DesignKit/EComboBox.swift`：建议下拉与输入法键盘守卫。
+- `apple/Sources/macOS/edesign-kit/EControlTheme.swift`：主题、场景、输入外壳。
+- `apple/Sources/macOS/edesign-kit/EButtons.swift`：EButton、EIconAction、EActionGroup。
+- `apple/Sources/macOS/edesign-kit/ESelectionControls.swift`：EMenu、EPicker、ESwitch。
+- `apple/Sources/macOS/edesign-kit/EFields.swift`：ETextField、ESecureField、ESearchField、EField。
+- `apple/Sources/macOS/edesign-kit/EComboBox.swift`：建议下拉与输入法键盘守卫。
 
 这些是从 ADBox 需求提炼的原型接口，尚未发布，ADBox 仍使用旧版本依赖。后续按本规范收敛，不能为了已写入而冻结不足的接口。
 

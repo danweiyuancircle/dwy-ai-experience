@@ -11,7 +11,7 @@ description: 开发、排查或评审 Swift、SwiftUI 和 Apple 平台共享代�
 
 每项 Apple 开发开始前，必须核对匹配的官方 Skill、可用 MCP、CLI 和实际 SDK，按 [官方能力与工具链核对](references/official-tooling.md) 执行；不能只检查 Skill 就跳过工具和 SDK。SwiftUI、App Intents 等具体技术找到来源可核实、适用的 Apple 官方 Skill 后必须实际读取并使用；没有适用项时记录查找范围并使用 Apple 官方文档，不把第三方 Skill 冒充官方。
 
-项目使用 AppleAppKit 时先查可用的 `dwy-apple-appkit`，按项目锁定版本复用同步、基础工具、设计、认证和购买等已有能力；未安装该 Skill 时核实实际依赖与源码，不自动安装依赖。
+项目使用 AppleAppKit 时先查可用的 `dwy-apple-appkit`，必须直接复用锁定版本中满足需求的同步、基础工具、设计、认证和购买等公开能力。未安装该 Skill 时按项目实际依赖与源码执行同一规则。
 
 涉及弹窗、popover 或其锚点时读取 [弹层与锚点](references/presentations.md)，落实模态输入隔离、焦点与关闭行为，再读取对应平台 Skill 中的差异。
 

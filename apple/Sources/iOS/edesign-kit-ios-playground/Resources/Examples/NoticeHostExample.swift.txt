@@ -1,0 +1,15 @@
+import SwiftUI
+import DesignKitIOS
+
+/// 一个 ENoticeCenter 对应一个宿主；真实页面建议把宿主放在 safeAreaInset。
+struct NoticeHostExample: View {
+    @State private var center = ENoticeCenter()
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EButton("Show persistent error") { center.show(ENotice("Connection lost", tone: .error)) }
+            EButton("Show short success") { center.show(.transientSuccess("Copied")) }
+            ENoticeHost(center: center, dismissLabel: Text("Dismiss notice"))
+        }
+    }
+}

@@ -1,6 +1,6 @@
 # macOS 平台对话框与窗口
 
-`DesignKitMac` 提供 `EAlert`、`EFileDialog`、`EToolPanel`、`EToolWindow` 和 `ESettingsWindowChrome`。系统适配在 `apple/Sources/macOS/DesignKit/EPlatformDialogs.swift` 与 `apple/Sources/macOS/DesignKit/EWindows.swift` 集中维护。
+`DesignKitMac` 提供 `EAlert`、`EFileDialog`、`EToolPanel`、`EToolWindow` 和 `ESettingsWindowChrome`。系统适配在 `apple/Sources/macOS/edesign-kit/EPlatformDialogs.swift` 与 `apple/Sources/macOS/edesign-kit/EWindows.swift` 集中维护。
 
 ## 对话框
 

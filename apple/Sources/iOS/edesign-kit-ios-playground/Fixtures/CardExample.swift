@@ -1,0 +1,16 @@
+#if os(iOS)
+import SwiftUI
+import DesignKitIOS
+
+/// 内容卡只用不透明动态底色与分隔线。
+struct CardExample: View {
+    var body: some View {
+        ECard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Content card").font(.headline)
+                Text("Cards do not own navigation or glass effects")
+            }
+        }
+    }
+}
+#endif

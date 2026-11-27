@@ -1,0 +1,16 @@
+import SwiftUI
+import DesignKitIOS
+
+/// 通过 .modifier 挂载到当前 scene 的视图；关闭后回写 isPresented。
+struct AlertExample: View {
+    @State private var isPresented = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            EButton("Show alert") { isPresented = true }
+                .modifier(EAlert(title: Text("Information"), message: Text("Changes remain local to this demonstration"),
+                                 isPresented: $isPresented, dismissTitle: Text("Got it")))
+            Text(verbatim: "Presented: \(isPresented)")
+        }
+    }
+}

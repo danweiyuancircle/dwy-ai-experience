@@ -1,0 +1,15 @@
+#if os(iOS)
+import SwiftUI
+import DesignKitIOS
+
+/// 图标与文字共同表达状态，状态色独立于品牌色。
+struct StatusBadgeExample: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            ForEach(EStatusTone.allCases, id: \.self) { tone in
+                EStatusBadge(Text(verbatim: tone.rawValue), tone: tone)
+            }
+        }
+    }
+}
+#endif
