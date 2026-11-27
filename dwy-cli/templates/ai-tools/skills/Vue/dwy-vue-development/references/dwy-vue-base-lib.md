@@ -7,7 +7,7 @@ paths:
 
 # Vue 团队基础能力
 
-管理后台按本文件的强制规则选型。其他 Vue 项目已采用 EUI 或 EKIT 时，复用对应库的能力。版本及公开接口以实际使用的包和对应 Skill 为准。
+管理后台按本文件的强制规则选型。任何 Vue 项目接入 EUI、EKIT、Admin Kit 或 Auth Web 后，新增和修改的代码都必须直接复用对应库中满足需求的公开能力。先按 `dwy-vue-appkit` 核对实际使用版本的接口，只有实际缺失或无法满足的部分才自行补充。
 
 `@dwydev/eui` 与 `@dwydev/ekit` 是团队内部 npm 基础库，分别覆盖 UI 组件层与通用工具层。
 
@@ -45,6 +45,7 @@ Skill 工具调用：
 
 - **管理后台必须使用 `@dwydev/admin-kit`。** 新建后台时接入该库。扩展现有后台时，新建或改动的后台通用能力必须复用 Admin Kit 已提供的实现，包括后台布局、菜单与路由装配、分页列表。现有后台缺少依赖时，先核对接入所需的版本和兼容性。禁止自行实现已有的后台通用能力。
 - **管理后台的基础控件必须使用 `@dwydev/eui`。** 业务组件可以按业务需要开发，内部已有对应 EUI 组件的按钮、输入、选择、弹层、表单和表格必须复用 EUI。原生 HTML 可用于布局和内容语义。
+- **已采用 `@dwydev/eui` 的 Vue 项目，页面和业务组件必须使用 EUI 已提供的组件**（按钮、输入、选择、弹层、表单、表格、反馈等），禁止手写或引入第三方等价组件，也不得自写样式模拟。现有项目的存量手写 UI 不要求一次性替换，新建和改动的部分必须遵守。EUI 没有对应组件时，先在项目组件层封装并优先组合 EUI，再评估回流 EUI。
 - **禁止**业务代码出现 `axios` / `fetch` / `new XMLHttpRequest`，HTTP 走 ekit `createRequest`
 - **禁止**直接 `localStorage.getItem` / `setItem` / `removeItem`，走 ekit storage / `useStorage`
 - **禁止**直接 `document.cookie` 或单独引入 `js-cookie`，走 ekit cookie

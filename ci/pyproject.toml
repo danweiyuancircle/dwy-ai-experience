@@ -15,10 +15,10 @@ exclude-newer-package = { apprise = "2026-10-25T00:00:00Z" }
 
 [tool.uv.sources]
 dwyeapi = { path = "../backend", editable = true }
-dwy-device-fingerprint = { path = "../backend/packages/device-fingerprint", editable = true }
-dwy-auth = { path = "../backend/packages/auth", editable = true }
-dwy-notify = { path = "../backend/packages/notify", editable = true }
-dwy-wechatpay-notify = { path = "../backend/packages/wechatpay-notify", editable = true }
-dwy-apple-notify = { path = "../backend/packages/apple-notify", editable = true }
-dwy-email-notify = { path = "../backend/packages/email-notify", editable = true }
-dwy-payment = { path = "../backend/packages/payment", editable = true }
+dwy-device-fingerprint = { path = "../backend/packages/edevice-fingerprint", editable = true }
+dwy-auth = { path = "../backend/packages/eauth", editable = true }
+dwy-notify = { path = "../backend/packages/enotify", editable = true }
+dwy-wechatpay-notify = { path = "../backend/packages/ewechatpay-notify", editable = true }
+dwy-apple-notify = { path = "../backend/packages/eapple-notify", editable = true }
+dwy-email-notify = { path = "../backend/packages/eemail-notify", editable = true }
+dwy-payment = { path = "../backend/packages/epayment", editable = true }

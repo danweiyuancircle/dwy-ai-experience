@@ -53,8 +53,8 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.uv.sources]
-dwy-device-fingerprint = { path = "packages/device-fingerprint", editable = true }
-dwy-auth = { path = "packages/auth", editable = true }
+dwy-device-fingerprint = { path = "packages/edevice-fingerprint", editable = true }
+dwy-auth = { path = "packages/eauth", editable = true }
 
 [tool.setuptools.packages.find]
 where = ["src"]

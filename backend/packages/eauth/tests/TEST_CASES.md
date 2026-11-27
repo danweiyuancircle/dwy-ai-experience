@@ -1,6 +1,6 @@
 # 账户与会话测试
 
-在 `backend/packages/auth` 目录执行 `python -m pytest tests -q`，覆盖独立用户认证与管理员认证测试。
+在 `backend/packages/eauth` 目录执行 `python -m pytest tests -q`，覆盖独立用户认证与管理员认证测试。
 
 | 文件 | 覆盖行为 |
 | --- | --- |
@@ -60,8 +60,8 @@ Review 修补回归：password_reset 发码绑定 subject/凭据代次，改邮�
 
 ## 准入与 Apple 管理整合
 
-- `backend/packages/auth/tests/test_admission.py`：注册、首次外部登录、会话签发失败时原子回滚；低层入口不能绕过准入；外部证明独立预算；拒绝刷新不消费旧 token。
-- `backend/packages/auth/tests/test_apple_auth.py`：Apple 准入先于上游授权，拒绝后回滚主体与会话并保留撤销任务；Apple 管理挑战绑定当前主体与用途，proof 和挑战只消费一次，非法材料不访问上游。
+- `backend/packages/eauth/tests/test_admission.py`：注册、首次外部登录、会话签发失败时原子回滚；低层入口不能绕过准入；外部证明独立预算；拒绝刷新不消费旧 token。
+- `backend/packages/eauth/tests/test_apple_auth.py`：Apple 准入先于上游授权，拒绝后回滚主体与会话并保留撤销任务；Apple 管理挑战绑定当前主体与用途，proof 和挑战只消费一次，非法材料不访问上游。
 - `backend/tests/test_auth_apple.py`：管理挑战要求当前会话，邮箱管理将 Apple 重新认证路由到专用授权服务；请求总预算覆盖准入证明。
 
 ## JWT 滑动会话 (`test_session_backend.py`)

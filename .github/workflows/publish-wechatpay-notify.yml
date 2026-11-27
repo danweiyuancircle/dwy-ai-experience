@@ -25,7 +25,7 @@ jobs:
         run: python scripts/private_release.py check
 
       - name: Verify license and tag match package metadata
-        working-directory: backend/packages/wechatpay-notify
+        working-directory: backend/packages/ewechatpay-notify
         run: |
           python - <<'PY'
           import os
@@ -45,25 +45,25 @@ jobs:
       - name: Test
         run: |
           uv sync --project ci --frozen
-          uv run --project ci --frozen pytest -c backend/packages/wechatpay-notify/pyproject.toml backend/packages/wechatpay-notify/tests -q
-          uv run --project ci --frozen ruff check --config backend/packages/wechatpay-notify/pyproject.toml backend/packages/wechatpay-notify/src backend/packages/wechatpay-notify/tests
+          uv run --project ci --frozen pytest -c backend/packages/ewechatpay-notify/pyproject.toml backend/packages/ewechatpay-notify/tests -q
+          uv run --project ci --frozen ruff check --config backend/packages/ewechatpay-notify/pyproject.toml backend/packages/ewechatpay-notify/src backend/packages/ewechatpay-notify/tests
 
       - name: Build
-        working-directory: backend/packages/wechatpay-notify
+        working-directory: backend/packages/ewechatpay-notify
         run: uv build --out-dir dist --default-index https://pypi.org/simple
 
       - name: Verify installable distributions
         run: >-
-          python scripts/check_python_distribution.py backend/packages/wechatpay-notify
+          python scripts/check_python_distribution.py backend/packages/ewechatpay-notify
           --module dwy_wechatpay_notify --extras fastapi
           --import-module dwy_wechatpay_notify.fastapi
 
       - name: Verify installed core wheel
         run: |
           uv venv "$RUNNER_TEMP/wechatpay-notify-smoke"
-          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/wechatpay-notify/dist").glob("*.whl")).resolve())')
+          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/ewechatpay-notify/dist").glob("*.whl")).resolve())')
           uv pip install --python "$RUNNER_TEMP/wechatpay-notify-smoke/bin/python" --default-index https://pypi.org/simple "$WHEEL"
-          "$RUNNER_TEMP/wechatpay-notify-smoke/bin/python" backend/packages/wechatpay-notify/tests/wheel_smoke.py
+          "$RUNNER_TEMP/wechatpay-notify-smoke/bin/python" backend/packages/ewechatpay-notify/tests/wheel_smoke.py
 
       - name: Stage universal wheel only
         run: |
@@ -71,7 +71,7 @@ jobs:
           import os
           import shutil
           from pathlib import Path
-          wheels = list(Path("backend/packages/wechatpay-notify/dist").glob("*.whl"))
+          wheels = list(Path("backend/packages/ewechatpay-notify/dist").glob("*.whl"))
           assert len(wheels) == 1 and wheels[0].name.endswith("-py3-none-any.whl")
           target = Path(os.environ["RUNNER_TEMP"]) / "dwy-wechatpay-notify-wheel"
           target.mkdir()

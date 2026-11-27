@@ -54,7 +54,7 @@ Logo 使用 GitHub 固定资产提交 `8c86735ec6bcfeee24f101fdccbc900b9d7bc2dd`
 从 `0.1.5` 起提供 `ratings` extra，仅使用现有固定版本 HTTPX；旧版 `0.1.4` 不包含该入口。开发时也可从仓库根安装源码：
 
 ```bash
-pip install './backend/packages/apple-notify[ratings]'
+pip install './backend/packages/eapple-notify[ratings]'
 ```
 
 宿主提供会话工厂、通知发送器和迁移，库不读取 `.env`、不创建数据库，不需要 Apple 账号或私钥：

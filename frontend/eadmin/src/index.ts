@@ -1,7 +1,7 @@
 /**
  * @dwy/admin-shell
  * 管理系统扩展站路由框架：模块装配 + AdminShell 布局（EAdminLayout）+ 页头/面包屑约定。
- * 发布包名 @dwydev/admin-kit。源码目录仍是 frontend/admin-shell。
+ * 发布包名 @dwydev/admin-kit。源码位于 frontend/eadmin。
  * 不并入 eui：本包是应用壳框架，eui 只提供 EAdminLayout 等视觉原语。
  */
 

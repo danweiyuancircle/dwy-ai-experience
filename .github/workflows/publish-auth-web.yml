@@ -33,7 +33,7 @@ jobs:
 
       - name: Verify tag matches package version
         id: verify
-        working-directory: frontend/auth-web
+        working-directory: frontend/eauth
         run: |
           PKG_NAME=$(node -p "require('./package.json').name")
           PKG_VERSION=$(node -p "require('./package.json').version")
@@ -53,11 +53,11 @@ jobs:
       - name: Test
         run: |
           pnpm --dir frontend/eui build
-          pnpm --dir frontend/auth-web test
+          pnpm --dir frontend/eauth test
 
       - name: Build
-        run: pnpm --dir frontend/auth-web build
+        run: pnpm --dir frontend/eauth build
 
       - name: Publish
-        working-directory: frontend/auth-web
+        working-directory: frontend/eauth
         run: npm publish --access public

@@ -156,9 +156,9 @@ const list = usePagedList({
 ```sh
 pnpm --dir frontend/eui build
 pnpm --dir frontend/ekit build
-pnpm --dir frontend/admin-shell test
-pnpm --dir frontend/admin-shell build
-pnpm --dir frontend/admin-shell smoke:pack
+pnpm --dir frontend/eadmin test
+pnpm --dir frontend/eadmin build
+pnpm --dir frontend/eadmin smoke:pack
 ```
 
 smoke 将本轮实际 admin-kit/EUI/ekit tgz 安装到干净目录，检查根/子入口、类型、分页生命周期和 Vite 打包后的真实 EUI SSR；不依赖源码 alias 或共享仓库外的私有产物。它验证 Vue/Vite 消费模式，不承诺现有 ekit 可由原生 Node 无打包直接加载。其他固定依赖从官方 npm registry 安装，冷缓存需要网络。
@@ -168,7 +168,7 @@ smoke 将本轮实际 admin-kit/EUI/ekit tgz 安装到干净目录，检查根/�
 ## 开发
 
 ```bash
-cd frontend/admin-shell
+cd frontend/eadmin
 pnpm test
 pnpm build
 ```

@@ -12,12 +12,12 @@ A public source monorepo for shared libraries and development tools, with public
 | `dwy-cli/templates/ai-tools/` | Distributable skills, rules, hooks, and hook manifests |
 | `dwy-cli/templates/project/` | Project scaffolding templates |
 | `backend/src/dwyeapi/` | `dwyeapi`: FastAPI infrastructure |
-| `backend/packages/device-fingerprint/` | `dwy-device-fingerprint`: standalone device identity |
-| `backend/packages/auth/` | `dwy-auth`: application authentication and separate admin sessions |
+| `backend/packages/edevice-fingerprint/` | `dwy-device-fingerprint`: standalone device identity |
+| `backend/packages/eauth/` | `dwy-auth`: application authentication and separate admin sessions |
 | `frontend/eui/` | `@dwydev/eui`: Vue components |
 | `frontend/ekit/` | `@dwydev/ekit`: frontend utilities |
-| `frontend/admin-shell/` | `@dwydev/admin-kit`: administrator application framework |
-| `frontend/auth-web/` | `@dwydev/auth-web`: Web authentication and Cookie sessions |
+| `frontend/eadmin/` | `@dwydev/admin-kit`: administrator application framework |
+| `frontend/eauth/` | `@dwydev/auth-web`: Web authentication and Cookie sessions |
 | `frontend/playground/` | Documentation and component demos |
 | `apple/` | AppleAppKit: iOS/macOS frameworks, authentication, tests, and templates |
 | `ci/`, `scripts/`, `.github/` | Shared validation and build/release tooling |
@@ -35,7 +35,7 @@ pnpm install --frozen-lockfile
 uv sync --project ci --frozen
 
 pnpm build:frontend
-pnpm --dir frontend/auth-web build
+pnpm --dir frontend/eauth build
 pnpm --dir frontend/playground dev
 node dwy-cli/bin/index.js --help
 ```
@@ -45,11 +45,11 @@ The locked Python development environment under `ci/` references the local EAPI,
 ## Validation
 
 ```bash
-uv run --project ci --frozen pytest backend/tests backend/packages/auth/tests scripts/tests -q -o asyncio_mode=auto
+uv run --project ci --frozen pytest backend/tests backend/packages/eauth/tests scripts/tests -q -o asyncio_mode=auto
 pnpm --dir frontend/eui test
 pnpm --dir frontend/ekit test
-pnpm --dir frontend/admin-shell test
-pnpm --dir frontend/auth-web test
+pnpm --dir frontend/eadmin test
+pnpm --dir frontend/eauth test
 pnpm --dir dwy-cli test
 swift test
 ```

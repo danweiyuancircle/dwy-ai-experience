@@ -7,7 +7,7 @@ eapi 体系下独立的跨平台设备指纹核心，Python 3.9+，零运行时�
 源码仓库根目录安装：
 
 ```bash
-uv pip install ./backend/packages/device-fingerprint
+uv pip install ./backend/packages/edevice-fingerprint
 ```
 
 安装公开 PyPI 已发布版本：
@@ -78,9 +78,9 @@ python -m pip install 'dwyeapi[device]'
 在仓库根目录运行：
 
 ```bash
-uv run --directory backend/packages/device-fingerprint --extra dev --frozen pytest
-uv run --directory backend/packages/device-fingerprint --extra dev --frozen ruff check src tests
-uv build --project backend/packages/device-fingerprint --default-index https://pypi.org/simple
+uv run --directory backend/packages/edevice-fingerprint --extra dev --frozen pytest
+uv run --directory backend/packages/edevice-fingerprint --extra dev --frozen ruff check src tests
+uv build --project backend/packages/edevice-fingerprint --default-index https://pypi.org/simple
 ```
 
 macOS/Windows/Linux 原生读取测试需要设置 `DWY_DEVICE_NATIVE_TEST=1`；常规测试使用受控系统边界模拟，不打印真实原始身份。

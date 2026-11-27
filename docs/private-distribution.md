@@ -8,16 +8,16 @@ GitHub 源码仓库 `https://github.com/danweiyuancircle/dwy-ai-experience` 公�
 | --- | --- | --- | --- |
 | `@dwydev/eui` | `frontend/eui/` | `@dwydev/eui@VERSION` | `.github/workflows/publish-eui.yml` |
 | `@dwydev/ekit` | `frontend/ekit/` | `@dwydev/ekit@VERSION` | `.github/workflows/publish-ekit.yml` |
-| `@dwydev/admin-kit` | `frontend/admin-shell/` | `@dwydev/admin-kit@VERSION` | `.github/workflows/publish-admin.yml` |
-| `@dwydev/auth-web` | `frontend/auth-web/` | `@dwydev/auth-web@VERSION` | `.github/workflows/publish-auth-web.yml` |
+| `@dwydev/admin-kit` | `frontend/eadmin/` | `@dwydev/admin-kit@VERSION` | `.github/workflows/publish-admin.yml` |
+| `@dwydev/auth-web` | `frontend/eauth/` | `@dwydev/auth-web@VERSION` | `.github/workflows/publish-auth-web.yml` |
 | `create-dwy` | `dwy-cli/` | `create-dwy@VERSION` | `.github/workflows/publish-cli.yml` |
 | `dwyeapi` | `backend/` | `dwyeapi@VERSION` | `.github/workflows/publish-eapi.yml` |
-| `dwy-auth` | `backend/packages/auth/` | `dwy-auth@VERSION` | `.github/workflows/publish-auth.yml` |
-| `dwy-payment` | `backend/packages/payment/` | `dwy-payment@VERSION` | `.github/workflows/publish-payment.yml` |
-| `dwy-device-fingerprint` | `backend/packages/device-fingerprint/` | `dwy-device-fingerprint@VERSION` | `.github/workflows/publish-device-fingerprint.yml` |
-| `dwy-notify` | `backend/packages/notify/` | `dwy-notify@VERSION` | `.github/workflows/publish-notify.yml` |
-| `dwy-apple-notify` | `backend/packages/apple-notify/` | `dwy-apple-notify@VERSION` | `.github/workflows/publish-apple-notify.yml` |
-| `dwy-email-notify` | `backend/packages/email-notify/` | `dwy-email-notify@VERSION` | `.github/workflows/publish-email-notify.yml` |
+| `dwy-auth` | `backend/packages/eauth/` | `dwy-auth@VERSION` | `.github/workflows/publish-auth.yml` |
+| `dwy-payment` | `backend/packages/epayment/` | `dwy-payment@VERSION` | `.github/workflows/publish-payment.yml` |
+| `dwy-device-fingerprint` | `backend/packages/edevice-fingerprint/` | `dwy-device-fingerprint@VERSION` | `.github/workflows/publish-device-fingerprint.yml` |
+| `dwy-notify` | `backend/packages/enotify/` | `dwy-notify@VERSION` | `.github/workflows/publish-notify.yml` |
+| `dwy-apple-notify` | `backend/packages/eapple-notify/` | `dwy-apple-notify@VERSION` | `.github/workflows/publish-apple-notify.yml` |
+| `dwy-email-notify` | `backend/packages/eemail-notify/` | `dwy-email-notify@VERSION` | `.github/workflows/publish-email-notify.yml` |
 
 `VERSION` 必须与对应包元数据一致。正常分支推送只验证代码，不发布 registry 包。修改后需要发布新版本，不能覆盖已经存在的 npm/PyPI 版本，也不重打已交付标签。
 

@@ -18,9 +18,9 @@ ADBox 继续可选登录、离线使用；认证服务负责联网认证，客�
 
 已核对的代码基线：dwy-shared `9226fd155166bf926951762a39c7b399547af5e5`；ai-quant develop `6e54f25f83daf779701ab4d17ec87f86c8544356`。
 
-- `backend/packages/auth/src/dwy_auth/email_auth.py:45`：发送适配已调用 EAPI 现成 `send_verification_code`；auth 管理用途隔离的 challenge。
-- `backend/packages/auth/src/dwy_auth/email_auth.py:371`：密码重置、验证码消费、旧会话撤销已有同事务基础。
-- `backend/packages/auth/src/dwy_auth/storage.py:28`：当前用户表仍以 `google_subject` 表示单一第三方，需要推广为独立外部身份。
+- `backend/packages/eauth/src/dwy_auth/email_auth.py:45`：发送适配已调用 EAPI 现成 `send_verification_code`；auth 管理用途隔离的 challenge。
+- `backend/packages/eauth/src/dwy_auth/email_auth.py:371`：密码重置、验证码消费、旧会话撤销已有同事务基础。
+- `backend/packages/eauth/src/dwy_auth/storage.py:28`：当前用户表仍以 `google_subject` 表示单一第三方，需要推广为独立外部身份。
 - 参考项目 quant-cloud 的 `backend/packages/dwy-auth/src/dwy_auth/services/user.py:112`：现有密码登录按邮箱查询，不能直接称为已有用户名登录。
 - 参考项目 quant-cloud 的 `backend/packages/dwy-auth/src/dwy_auth/models.py:12`：现有 User 包含角色、资料等字段，需要拆开认证与业务模型。
 - 参考项目 quant-cloud 的 `backend/packages/dwy-auth/src/dwy_auth/protocols.py:21`：已有用户生命周期 Hook，可作为应用接入设计参考。

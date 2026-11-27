@@ -10,7 +10,7 @@ apprise = "2026-10-25T00:00:00Z"
 
 [manifest]
 overrides = [
-    { name = "dwy-notify", editable = "../backend/packages/notify" },
+    { name = "dwy-notify", editable = "../backend/packages/enotify" },
     { name = "dwyeapi", extras = ["dev", "device"], editable = "../backend" },
 ]
 
@@ -433,7 +433,7 @@ wheels = [
 [[package]]
 name = "dwy-apple-notify"
 version = "0.2.1"
-source = { editable = "../backend/packages/apple-notify" }
+source = { editable = "../backend/packages/eapple-notify" }
 dependencies = [
     { name = "dwy-notify" },
     { name = "dwyeapi", extra = ["dev", "device"] },
@@ -495,7 +495,7 @@ provides-extras = ["iap", "asc", "reviews", "analytics", "ratings", "dev"]
 [[package]]
 name = "dwy-auth"
 version = "0.2.0"
-source = { editable = "../backend/packages/auth" }
+source = { editable = "../backend/packages/eauth" }
 dependencies = [
     { name = "anyio" },
     { name = "bcrypt" },
@@ -535,7 +535,7 @@ provides-extras = ["dev"]
 [[package]]
 name = "dwy-device-fingerprint"
 version = "0.1.1"
-source = { editable = "../backend/packages/device-fingerprint" }
+source = { editable = "../backend/packages/edevice-fingerprint" }
 
 [package.metadata]
 requires-dist = [
@@ -547,7 +547,7 @@ provides-extras = ["dev"]
 [[package]]
 name = "dwy-email-notify"
 version = "0.1.2"
-source = { editable = "../backend/packages/email-notify" }
+source = { editable = "../backend/packages/eemail-notify" }
 dependencies = [
     { name = "dwy-notify" },
     { name = "dwyeapi", extra = ["dev", "device"] },
@@ -579,7 +579,7 @@ provides-extras = ["resend", "dev"]
 [[package]]
 name = "dwy-notify"
 version = "0.3.3"
-source = { editable = "../backend/packages/notify" }
+source = { editable = "../backend/packages/enotify" }
 dependencies = [
     { name = "apprise" },
     { name = "dwyeapi", extra = ["dev", "device"] },
@@ -602,7 +602,7 @@ provides-extras = ["sqlalchemy", "dev"]
 [[package]]
 name = "dwy-payment"
 version = "0.3.0"
-source = { editable = "../backend/packages/payment" }
+source = { editable = "../backend/packages/epayment" }
 dependencies = [
     { name = "dwy-wechatpay-notify" },
     { name = "dwyeapi", extra = ["dev", "device"] },
@@ -662,19 +662,19 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "dwy-apple-notify", extras = ["iap", "asc", "reviews", "analytics", "ratings", "dev"], editable = "../backend/packages/apple-notify" },
-    { name = "dwy-auth", extras = ["dev"], editable = "../backend/packages/auth" },
-    { name = "dwy-email-notify", extras = ["resend", "dev"], editable = "../backend/packages/email-notify" },
-    { name = "dwy-notify", extras = ["dev", "sqlalchemy"], editable = "../backend/packages/notify" },
-    { name = "dwy-payment", extras = ["dev", "alipay"], editable = "../backend/packages/payment" },
-    { name = "dwy-wechatpay-notify", extras = ["fastapi"], editable = "../backend/packages/wechatpay-notify" },
+    { name = "dwy-apple-notify", extras = ["iap", "asc", "reviews", "analytics", "ratings", "dev"], editable = "../backend/packages/eapple-notify" },
+    { name = "dwy-auth", extras = ["dev"], editable = "../backend/packages/eauth" },
+    { name = "dwy-email-notify", extras = ["resend", "dev"], editable = "../backend/packages/eemail-notify" },
+    { name = "dwy-notify", extras = ["dev", "sqlalchemy"], editable = "../backend/packages/enotify" },
+    { name = "dwy-payment", extras = ["dev", "alipay"], editable = "../backend/packages/epayment" },
+    { name = "dwy-wechatpay-notify", extras = ["fastapi"], editable = "../backend/packages/ewechatpay-notify" },
     { name = "dwyeapi", extras = ["dev", "device"], editable = "../backend" },
 ]
 
 [[package]]
 name = "dwy-wechatpay-notify"
 version = "0.1.1"
-source = { editable = "../backend/packages/wechatpay-notify" }
+source = { editable = "../backend/packages/ewechatpay-notify" }
 dependencies = [
     { name = "dwy-notify" },
     { name = "pydantic" },
@@ -735,8 +735,8 @@ requires-dist = [
     { name = "arq", marker = "extra == 'dev'", specifier = ">=0.26.0" },
     { name = "arq", marker = "extra == 'tasks'", specifier = ">=0.26.0" },
     { name = "bcrypt", specifier = ">=4.0.0" },
-    { name = "dwy-auth", marker = "extra == 'auth'", editable = "../backend/packages/auth" },
-    { name = "dwy-device-fingerprint", marker = "extra == 'device'", editable = "../backend/packages/device-fingerprint" },
+    { name = "dwy-auth", marker = "extra == 'auth'", editable = "../backend/packages/eauth" },
+    { name = "dwy-device-fingerprint", marker = "extra == 'device'", editable = "../backend/packages/edevice-fingerprint" },
     { name = "dwyeapi", extras = ["email"], marker = "extra == 'auth'" },
     { name = "fakeredis", marker = "extra == 'dev'", specifier = ">=2.0.0" },
     { name = "fastapi", specifier = ">=0.100.0" },

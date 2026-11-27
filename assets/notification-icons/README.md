@@ -26,4 +26,4 @@
 - 使用现有 Lucide 0.468.0，固定上游提交 [`f12b0de177fbc2a6795e99be065887e72b237123`](https://github.com/lucide-icons/lucide/tree/f12b0de177fbc2a6795e99be065887e72b237123/icons)。随素材复制或分发同目录 `LICENSE.lucide.txt`。
 - 画布 `256 × 256`、背景圆角 `48`；原始 `24 × 24` 图形使用 `translate(56 56) scale(6)`，白色线框宽 `1.8`，圆线帽和圆连接。保留外围留白，适应圆形头像裁切。
 - 修改 SVG 后同步导出同名 PNG，保持 `256 × 256` 和透明圆角；现有 PNG 使用 macOS AppKit 原尺寸栅格化，不截图、不引入图片生成流程。验收时检查小尺寸辨识度及圆形裁切。
-- 此目录是后续维护入口。`backend/packages/webhooks/assets/` 与 `backend/packages/apple-notify/src/dwy_apple_notify/assets/` 保留历史兼容快照，已有固定提交或包标签引用不改动；新增使用此目录，不在历史目录继续扩充。
+- 此目录是后续维护入口。`backend/packages/ewebhooks/assets/` 与 `backend/packages/eapple-notify/src/dwy_apple_notify/assets/` 保留历史兼容快照，已有固定提交或包标签引用不改动；新增使用此目录，不在历史目录继续扩充。

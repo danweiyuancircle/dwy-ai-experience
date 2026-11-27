@@ -1,6 +1,6 @@
 # 管理员 Web 认证迁移
 
-目录调整说明（2026-10-22）：当前包位于 `frontend/auth-web/`；下文命令、路径、产物和哈希保留初次迁移时的证据，不代表当前目录。当前构建与消费验收命令见 `frontend/auth-web/README.md`。
+目录调整说明（2026-10-22）：当时包迁至 `frontend/auth-web/`；下文命令、路径、产物和哈希保留初次迁移时的证据，不代表当前目录。当前构建与消费验收命令见 `frontend/eauth/README.md`。
 
 `modules/auth/web` 提供私有 `@dwydev/auth-web@0.1.0`，迁入管理员登录组件、Cookie API 和内存会话。品牌、可信首页/登录路径、回跳参数与同源 backend 根地址由宿主注入。未迁入业务导航、用户/交易/配置页面；Google-only 应用用户与管理员 Cookie 保持不同会话，没有新增 Google Web、邮箱验证码或业务 App 登录 UI。
 

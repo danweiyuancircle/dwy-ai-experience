@@ -33,7 +33,7 @@ jobs:
 
       - name: Verify tag matches package version
         id: verify
-        working-directory: frontend/admin-shell
+        working-directory: frontend/eadmin
         run: |
           PKG_NAME=$(node -p "require('./package.json').name")
           PKG_VERSION=$(node -p "require('./package.json').version")
@@ -51,7 +51,7 @@ jobs:
           echo "package_version=$PKG_VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Build release notes
-        working-directory: frontend/admin-shell
+        working-directory: frontend/eadmin
         run: |
           python3 ../../.github/scripts/extract_changelog_section.py \
             CHANGELOG.md \
@@ -59,24 +59,24 @@ jobs:
             "${{ steps.verify.outputs.release_name }}" \
             > ../../.github/release-body-admin.md
 
-      # peer 依赖 eui 在 monorepo 内，先保证能 resolve 再打 admin-shell
+      # peer 依赖 eui 在 monorepo 内，先保证能 resolve 再打包 Admin Kit
       - name: Test
         run: |
           pnpm --dir frontend/eui build
           pnpm --dir frontend/ekit build
-          pnpm --dir frontend/admin-shell test
+          pnpm --dir frontend/eadmin test
 
       - name: Build
-        run: pnpm --dir frontend/admin-shell build
+        run: pnpm --dir frontend/eadmin build
 
       - name: Verify published EUI dependency
-        working-directory: frontend/admin-shell
+        working-directory: frontend/eadmin
         run: |
           EUI_RANGE=$(node -p "require('./package.json').peerDependencies['@dwydev/eui']")
           npm view "@dwydev/eui@$EUI_RANGE" version --registry=https://registry.npmjs.org/
 
       - name: Publish
-        working-directory: frontend/admin-shell
+        working-directory: frontend/eadmin
         run: npm publish --access public
 
       - name: Create GitHub Release

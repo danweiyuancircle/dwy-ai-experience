@@ -24,7 +24,7 @@
 
 `tests/test_device.py`：3 项门面测试，验证类型和函数复用同一核心、缺 extra 不影响 eapi 基础导入、无关导入错误不被掩盖。
 
-独立核心位于 `packages/device-fingerprint/tests/`，不加载 eapi 的全局 fixtures，当前 74 项常规测试与 1 项显式原生验收：
+独立核心位于 `packages/edevice-fingerprint/tests/`，不加载 eapi 的全局 fixtures，当前 74 项常规测试与 1 项显式原生验收：
 
 | 测试文件 | 覆盖 |
 | --- | --- |
@@ -37,7 +37,7 @@
 在仓库根目录运行核心常规测试：
 
 ```bash
-uv run --directory backend/packages/device-fingerprint --extra dev --frozen pytest
+uv run --directory backend/packages/edevice-fingerprint --extra dev --frozen pytest
 ```
 
 macOS/Windows/Linux 原生验收在 `.github/workflows/device-fingerprint.yml` 的 Python 3.9/3.11/3.15 矩阵执行。Windows runner 不运行依赖 POSIX 匿名管道的 macOS 内部测试，该部分由 Linux/macOS runner 验证。
@@ -660,7 +660,7 @@ python -m pytest tests/test_health.py -v
 
 - `backend/tests/test_auth_runtime.py`：真实 SQLite/HTTP 邮箱闭环、应用资料与权限、可选匿名、凭据不回显、160KiB 总限制与 128KiB 准入证明、投递失败、Google 与通用 Provider 登录、绑定/解绑二次认证与请求 IP、用户名共享密码、改密撤销、应用非 JWT 会话、宿主 Authorization 上限；新增原子注册/登录准入、当前账号邮箱更新、登录入口列表及旧会话撤销。
 - `backend/tests/test_auth_apple.py`：Apple 专用登录与绑定保持原信封；准入材料转发；限用途管理挑战要求当前会话，Apple-only 重新认证走专用授权服务；错误及请求超限不回显凭据。
-- `packages/auth/tests/test_runtime.py`：23 项（含参数化），业务用户适配、app_id 隔离、方法禁用、challenge/证明用途与单次核销、凭据版本失效、外部身份显式关联与最后身份保护、注销同库回滚、Provider 保留名、PostgreSQL 表名长度预算。
-- `packages/auth/tests/test_session_backend.py`：默认 JWT 真实 SQLite，claims/期限/跨应用、refresh CAS/重放撤销、事务回滚、64 字符 Provider、4096 次轮换资源上限。PostgreSQL 场景仅在 `APP_CLOUD_TEST_POSTGRES_URL` 配置时运行。
-- `packages/auth/tests/test_lifecycle.py`：legacy Google-only 三表实际登录、轮换、注销、重建账号兼容；不对已有产品隐式增加邮箱迁移。
+- `packages/eauth/tests/test_runtime.py`：23 项（含参数化），业务用户适配、app_id 隔离、方法禁用、challenge/证明用途与单次核销、凭据版本失效、外部身份显式关联与最后身份保护、注销同库回滚、Provider 保留名、PostgreSQL 表名长度预算。
+- `packages/eauth/tests/test_session_backend.py`：默认 JWT 真实 SQLite，claims/期限/跨应用、refresh CAS/重放撤销、事务回滚、64 字符 Provider、4096 次轮换资源上限。PostgreSQL 场景仅在 `APP_CLOUD_TEST_POSTGRES_URL` 配置时运行。
+- `packages/eauth/tests/test_lifecycle.py`：legacy Google-only 三表实际登录、轮换、注销、重建账号兼容；不对已有产品隐式增加邮箱迁移。
 - 独立 wheel：core 在无 EAPI/FastAPI 环境真实异步 SQLite 操作；聚合 `dwyeapi[auth]` 自动解析 email/Resend 依赖。安装测试必须使用本轮产物，禁止旧同版本缓存替代。

@@ -29,7 +29,7 @@ jobs:
 
       - name: Verify tag matches package version
         id: verify
-        working-directory: backend/packages/apple-notify
+        working-directory: backend/packages/eapple-notify
         run: |
           PKG_NAME=$(python - <<'PY'
           import tomllib
@@ -61,21 +61,21 @@ jobs:
       - name: Test
         run: |
           uv sync --project ci --frozen
-          uv run --project ci --frozen pytest -c backend/packages/apple-notify/pyproject.toml backend/packages/apple-notify/tests -q
-          uv run --project ci --frozen ruff check --config backend/packages/apple-notify/pyproject.toml backend/packages/apple-notify/src backend/packages/apple-notify/tests
+          uv run --project ci --frozen pytest -c backend/packages/eapple-notify/pyproject.toml backend/packages/eapple-notify/tests -q
+          uv run --project ci --frozen ruff check --config backend/packages/eapple-notify/pyproject.toml backend/packages/eapple-notify/src backend/packages/eapple-notify/tests
 
       - name: Build
-        working-directory: backend/packages/apple-notify
+        working-directory: backend/packages/eapple-notify
         run: uv build --out-dir dist --default-index https://pypi.org/simple
 
       - name: Verify installable distributions
         run: >-
-          python scripts/check_python_distribution.py backend/packages/apple-notify
+          python scripts/check_python_distribution.py backend/packages/eapple-notify
           --module dwy_apple_notify --extras iap,asc,reviews,analytics,ratings
 
       - name: Verify installed wheel
         run: |
-          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/apple-notify/dist").glob("*.whl")).resolve())')
+          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/eapple-notify/dist").glob("*.whl")).resolve())')
           for pair in base:base iap:apple asc:asc analytics:analytics reviews:base ratings:ratings; do
             EXTRA="${pair%%:*}"
             SCRIPT="${pair##*:}"
@@ -88,7 +88,7 @@ jobs:
             if [ "$EXTRA" = analytics ] || [ "$EXTRA" = ratings ]; then
               uv pip install --python "$ENVIRONMENT/bin/python" --default-index https://pypi.org/simple 'aiosqlite==0.22.1'
             fi
-            "$ENVIRONMENT/bin/python" "backend/packages/apple-notify/tests/${SCRIPT}_wheel_smoke.py" "${{ steps.verify.outputs.package_version }}"
+            "$ENVIRONMENT/bin/python" "backend/packages/eapple-notify/tests/${SCRIPT}_wheel_smoke.py" "${{ steps.verify.outputs.package_version }}"
             if [ "$EXTRA" = reviews ]; then
               "$ENVIRONMENT/bin/python" -c 'from dwy_apple_notify.reviews import install_review_monitor; assert callable(install_review_monitor)'
             fi
@@ -100,7 +100,7 @@ jobs:
           import os
           import shutil
           from pathlib import Path
-          wheels = list(Path("backend/packages/apple-notify/dist").glob("*.whl"))
+          wheels = list(Path("backend/packages/eapple-notify/dist").glob("*.whl"))
           assert len(wheels) == 1 and wheels[0].name.endswith("-py3-none-any.whl")
           target = Path(os.environ["RUNNER_TEMP"]) / "dwy-apple-notify-wheel"
           target.mkdir()

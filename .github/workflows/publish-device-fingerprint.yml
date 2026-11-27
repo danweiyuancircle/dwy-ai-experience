@@ -33,7 +33,7 @@ jobs:
 
       - name: Verify tag matches package version
         id: verify
-        working-directory: backend/packages/device-fingerprint
+        working-directory: backend/packages/edevice-fingerprint
         run: |
           PKG_NAME=$(python - <<'PY'
           import tomllib
@@ -65,16 +65,16 @@ jobs:
       - name: Test
         run: |
           uv sync --project ci --frozen
-          uv run --project ci --frozen pytest -c backend/packages/device-fingerprint/pyproject.toml backend/packages/device-fingerprint/tests -q
+          uv run --project ci --frozen pytest -c backend/packages/edevice-fingerprint/pyproject.toml backend/packages/edevice-fingerprint/tests -q
 
       - name: Build
-        working-directory: backend/packages/device-fingerprint
+        working-directory: backend/packages/edevice-fingerprint
         run: uv build --out-dir dist --default-index https://pypi.org/simple
 
       - name: Verify installable distributions
-        run: python scripts/check_python_distribution.py backend/packages/device-fingerprint --module dwy_device
+        run: python scripts/check_python_distribution.py backend/packages/edevice-fingerprint --module dwy_device
 
       - name: Publish
         uses: pypa/gh-action-pypi-publish@7245906fb61fa33a13554f9d5fb856fe61758086
         with:
-          packages-dir: backend/packages/device-fingerprint/dist/
+          packages-dir: backend/packages/edevice-fingerprint/dist/

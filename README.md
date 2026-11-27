@@ -13,12 +13,12 @@
 | `dwy-cli/templates/project/` | 项目脚手架模板 |
 | [`assets/notification-icons/`](assets/notification-icons/README.md) | 共享通知图标：购买、订阅、退款、告警、审核、报表、邮件与普通通知，提供 SVG / PNG |
 | `backend/src/dwyeapi/` | `dwyeapi`：FastAPI 基础设施 |
-| `backend/packages/device-fingerprint/` | `dwy-device-fingerprint`：独立设备指纹包 |
-| `backend/packages/auth/` | `dwy-auth`：应用认证与独立管理员会话 |
+| `backend/packages/edevice-fingerprint/` | `dwy-device-fingerprint`：独立设备指纹包 |
+| `backend/packages/eauth/` | `dwy-auth`：应用认证与独立管理员会话 |
 | `frontend/eui/` | `@dwydev/eui`：Vue 组件库 |
 | `frontend/ekit/` | `@dwydev/ekit`：前端工具库 |
-| `frontend/admin-shell/` | `@dwydev/admin-kit`：管理端基础框架 |
-| `frontend/auth-web/` | `@dwydev/auth-web`：网页认证组件与 Cookie 会话 |
+| `frontend/eadmin/` | `@dwydev/admin-kit`：管理端基础框架 |
+| `frontend/eauth/` | `@dwydev/auth-web`：网页认证组件与 Cookie 会话 |
 | `frontend/playground/` | 文档与组件演示站 |
 | `apple/` | AppleAppKit：iOS/macOS 框架、客户端认证、测试与模板 |
 | `ci/`、`scripts/`、`.github/` | 跨包验证与构建发布工具 |
@@ -36,7 +36,7 @@ pnpm install --frozen-lockfile
 uv sync --project ci --frozen
 
 pnpm build:frontend
-pnpm --dir frontend/auth-web build
+pnpm --dir frontend/eauth build
 pnpm --dir frontend/playground dev
 node dwy-cli/bin/index.js --help
 ```
@@ -46,11 +46,11 @@ Python 锁定开发环境统一位于 `ci/`，其中引用本仓库的 EAPI、�
 ## 验证
 
 ```bash
-uv run --project ci --frozen pytest backend/tests backend/packages/auth/tests scripts/tests -q -o asyncio_mode=auto
+uv run --project ci --frozen pytest backend/tests backend/packages/eauth/tests scripts/tests -q -o asyncio_mode=auto
 pnpm --dir frontend/eui test
 pnpm --dir frontend/ekit test
-pnpm --dir frontend/admin-shell test
-pnpm --dir frontend/auth-web test
+pnpm --dir frontend/eadmin test
+pnpm --dir frontend/eauth test
 pnpm --dir dwy-cli test
 swift test
 ```

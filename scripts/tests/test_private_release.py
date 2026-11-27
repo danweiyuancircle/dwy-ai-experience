@@ -28,7 +28,7 @@ class PrivateReleaseTests(unittest.TestCase):
     def test_npm_packages_are_publicly_publishable_but_workspace_is_not(self):
         """根工作区不得作为包上传，独立分发包允许公开发布。"""
         self.assertIs(json.loads((ROOT / "package.json").read_text())["private"], True)
-        for directory in ("frontend/eui", "frontend/ekit", "frontend/admin-shell", "frontend/auth-web", "dwy-cli"):
+        for directory in ("frontend/eui", "frontend/ekit", "frontend/eadmin", "frontend/eauth", "dwy-cli"):
             with self.subTest(directory=directory):
                 value = json.loads((ROOT / directory / "package.json").read_text())
                 self.assertIsNot(value.get("private"), True)
@@ -63,9 +63,9 @@ class PrivateReleaseTests(unittest.TestCase):
 
     def test_python_packages_allow_public_uploads(self):
         """在用 Python 分发包都允许上传公开 PyPI。"""
-        for directory in ("backend", "backend/packages/auth", "backend/packages/device-fingerprint",
-                          "backend/packages/notify", "backend/packages/apple-notify",
-                          "backend/packages/email-notify", "backend/packages/payment"):
+        for directory in ("backend", "backend/packages/eauth", "backend/packages/edevice-fingerprint",
+                          "backend/packages/enotify", "backend/packages/eapple-notify",
+                          "backend/packages/eemail-notify", "backend/packages/epayment"):
             with self.subTest(directory=directory):
                 value = tomllib.loads((ROOT / directory / "pyproject.toml").read_text())
                 self.assertNotIn("Private :: Do Not Upload", value["project"].get("classifiers", []))
@@ -74,14 +74,14 @@ class PrivateReleaseTests(unittest.TestCase):
         """共享轮包必须经过同一验收与构建，不能只在业务项目本地存在。"""
         workflow = (ROOT / ".github/workflows/private-release.yml").read_text()
         manifest = tomllib.loads((ROOT / "ci/pyproject.toml").read_text())
-        for directory, name in (("notify", "dwy-notify"), ("apple-notify", "dwy-apple-notify"),
-                                ("email-notify", "dwy-email-notify"), ("payment", "dwy-payment")):
+        for directory, name in (("enotify", "dwy-notify"), ("eapple-notify", "dwy-apple-notify"),
+                                ("eemail-notify", "dwy-email-notify"), ("epayment", "dwy-payment")):
             with self.subTest(package=name):
                 self.assertIn(f"backend/packages/{directory}/tests", workflow)
                 self.assertIn(f"uv build --project backend/packages/{directory}", workflow)
                 self.assertTrue(any(value.startswith(name + "[")
                                     for value in manifest["project"]["dependencies"]))
-        self.assertNotIn("backend/packages/webhooks", workflow)
+        self.assertNotIn("backend/packages/ewebhooks", workflow)
         self.assertFalse((ROOT / ".github/workflows/publish-webhooks.yml").exists())
 
     def test_github_public_and_private_repositories_are_accessible(self):

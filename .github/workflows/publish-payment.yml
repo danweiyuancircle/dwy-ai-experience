@@ -27,7 +27,7 @@ jobs:
         run: python scripts/private_release.py check
 
       - name: Verify license and tag match package metadata
-        working-directory: backend/packages/payment
+        working-directory: backend/packages/epayment
         run: |
           python - <<'PY'
           import os
@@ -47,16 +47,16 @@ jobs:
       - name: Test
         run: |
           uv sync --project ci --frozen
-          uv run --project ci --frozen pytest -c backend/packages/payment/pyproject.toml backend/packages/payment/tests -q
-          uv run --project ci --frozen ruff check --config backend/packages/payment/pyproject.toml backend/packages/payment/src backend/packages/payment/tests
+          uv run --project ci --frozen pytest -c backend/packages/epayment/pyproject.toml backend/packages/epayment/tests -q
+          uv run --project ci --frozen ruff check --config backend/packages/epayment/pyproject.toml backend/packages/epayment/src backend/packages/epayment/tests
 
       - name: Build
-        working-directory: backend/packages/payment
+        working-directory: backend/packages/epayment
         run: uv build --out-dir dist --default-index https://pypi.org/simple
 
       - name: Verify installable distributions including Alipay
         run: >-
-          python scripts/check_python_distribution.py backend/packages/payment
+          python scripts/check_python_distribution.py backend/packages/epayment
           --module dwy_payment --extras alipay
           --import-module dwy_payment.refunds
           --import-module dwy_payment.gateways.alipay_precreate
@@ -64,9 +64,9 @@ jobs:
       - name: Verify installed core wheel without optional Alipay
         run: |
           uv venv "$RUNNER_TEMP/payment-smoke"
-          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/payment/dist").glob("*.whl")).resolve())')
+          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/epayment/dist").glob("*.whl")).resolve())')
           uv pip install --python "$RUNNER_TEMP/payment-smoke/bin/python" --default-index https://pypi.org/simple "$WHEEL"
-          "$RUNNER_TEMP/payment-smoke/bin/python" backend/packages/payment/tests/wheel_smoke.py
+          "$RUNNER_TEMP/payment-smoke/bin/python" backend/packages/epayment/tests/wheel_smoke.py
 
       - name: Stage universal wheel only
         run: |
@@ -74,7 +74,7 @@ jobs:
           import os
           import shutil
           from pathlib import Path
-          wheels = list(Path("backend/packages/payment/dist").glob("*.whl"))
+          wheels = list(Path("backend/packages/epayment/dist").glob("*.whl"))
           assert len(wheels) == 1 and wheels[0].name.endswith("-py3-none-any.whl")
           target = Path(os.environ["RUNNER_TEMP"]) / "dwy-payment-wheel"
           target.mkdir()

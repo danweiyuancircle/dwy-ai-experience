@@ -29,7 +29,7 @@ jobs:
 
       - name: Verify tag matches package version
         id: verify
-        working-directory: backend/packages/email-notify
+        working-directory: backend/packages/eemail-notify
         run: |
           PKG_NAME=$(python - <<'PY'
           import tomllib
@@ -61,24 +61,24 @@ jobs:
       - name: Test
         run: |
           uv sync --project ci --frozen
-          uv run --project ci --frozen pytest -c backend/packages/email-notify/pyproject.toml backend/packages/email-notify/tests -q
-          uv run --project ci --frozen ruff check --config backend/packages/email-notify/pyproject.toml backend/packages/email-notify/src backend/packages/email-notify/tests
+          uv run --project ci --frozen pytest -c backend/packages/eemail-notify/pyproject.toml backend/packages/eemail-notify/tests -q
+          uv run --project ci --frozen ruff check --config backend/packages/eemail-notify/pyproject.toml backend/packages/eemail-notify/src backend/packages/eemail-notify/tests
 
       - name: Build
-        working-directory: backend/packages/email-notify
+        working-directory: backend/packages/eemail-notify
         run: uv build --out-dir dist --default-index https://pypi.org/simple
 
       - name: Verify installable distributions
         run: >-
-          python scripts/check_python_distribution.py backend/packages/email-notify
+          python scripts/check_python_distribution.py backend/packages/eemail-notify
           --module dwy_email_notify --extras resend
 
       - name: Verify installed wheel
         run: |
           uv venv "$RUNNER_TEMP/email-notify-smoke"
-          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/email-notify/dist").glob("*.whl")).resolve())')
+          WHEEL=$(python -c 'from pathlib import Path; print(next(Path("backend/packages/eemail-notify/dist").glob("*.whl")).resolve())')
           uv pip install --python "$RUNNER_TEMP/email-notify-smoke/bin/python" --default-index https://pypi.org/simple "${WHEEL}[resend]"
-          "$RUNNER_TEMP/email-notify-smoke/bin/python" backend/packages/email-notify/tests/wheel_smoke.py
+          "$RUNNER_TEMP/email-notify-smoke/bin/python" backend/packages/eemail-notify/tests/wheel_smoke.py
 
       - name: Stage universal wheel only
         run: |
@@ -86,7 +86,7 @@ jobs:
           import os
           import shutil
           from pathlib import Path
-          wheels = list(Path("backend/packages/email-notify/dist").glob("*.whl"))
+          wheels = list(Path("backend/packages/eemail-notify/dist").glob("*.whl"))
           assert len(wheels) == 1 and wheels[0].name.endswith("-py3-none-any.whl")
           target = Path(os.environ["RUNNER_TEMP"]) / "dwy-email-notify-wheel"
           target.mkdir()

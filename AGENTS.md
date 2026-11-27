@@ -20,16 +20,18 @@ Compact instructions for OpenCode sessions working in `dwy-shared`.
 |-----------|-----------------|---------|------|
 | `frontend/eui/` | pnpm | `@dwydev/eui` | Vue 3 component library (~95 components) |
 | `frontend/ekit/` | pnpm | `@dwydev/ekit` | Vue 3 utility library |
-| `frontend/admin-shell/` | pnpm | `@dwydev/admin-kit` | Vue 3 administrator framework |
-| `frontend/auth-web/` | pnpm | `@dwydev/auth-web` | Administrator login components and Cookie sessions |
+| `frontend/eadmin/` | pnpm | `@dwydev/admin-kit` | Vue 3 administrator framework |
+| `frontend/eauth/` | pnpm | `@dwydev/auth-web` | Administrator login components and Cookie sessions |
 | `frontend/playground/` | pnpm | — | Docs portal (Vite SPA) |
 | `dwy-cli/` | pnpm | `create-dwy` | CLI scaffold + Claude config sync |
 | `backend/` | uv | `dwyeapi` | FastAPI infrastructure (Python 3.11+) |
-| `backend/packages/device-fingerprint/` | uv | `dwy-device-fingerprint` | Standalone native device fingerprint package |
-| `backend/packages/auth/` | uv | `dwy-auth` | Application authentication and independent administrator sessions |
+| `backend/packages/edevice-fingerprint/` | uv | `dwy-device-fingerprint` | Standalone native device fingerprint package |
+| `backend/packages/eauth/` | uv | `dwy-auth` | Application authentication and independent administrator sessions |
 | `apple/` | SwiftPM (root `Package.swift`) | `AppleAppKit` | iOS/macOS frameworks, authentication, tests, and templates |
 
 `pnpm-workspace.yaml` only covers `frontend/*` and `dwy-cli`. Python backend is managed separately by uv and **not** in the pnpm workspace.
+
+自有库的源码目录统一使用 `e` 前缀。平台工作区目录、公开包名、模块名和导入入口保持各自的既有约定。
 
 **Package manager**: use the pnpm version declared by root `package.json`; the workspace lockfile is `pnpm-lock.yaml`. Do not use yarn.
 

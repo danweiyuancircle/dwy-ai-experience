@@ -14,4 +14,4 @@ description: 开发、修改或排查 Python 应用、脚本或基础库时使�
 
 自有库导航：基础设施查 `dwy-python-appkit`；认证查 `dwy-auth`；支付查 `dwy-payment`；通用通知查 `dwy-notify`；Webhook 查 `dwy-webhooks`；Apple、邮件和微信支付来源分别查 `dwy-apple-notify`、`dwy-email-notify`、`dwy-wechatpay-notify`；设备信息查 `dwy-device-fingerprint`。对应 Skill 未安装时直接核实项目实际依赖和源码，不自动安装。
 
-参考资料中的强制选型只适用于已经采用该技术栈或用户明确选择的新项目；现有项目以其依赖、版本和用户要求为准。
+项目已接入自有基础包时，必须按 `dwy-python-appkit` 核对实际版本并复用现有公开能力。参考资料中的强制选型适用于已采用该技术栈或用户明确选择的新项目；现有项目以其依赖、版本和用户要求为准。

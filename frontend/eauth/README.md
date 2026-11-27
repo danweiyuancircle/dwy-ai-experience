@@ -31,10 +31,10 @@ await session.restore() // 新页面会话必须由服务器校验 Cookie
 从仓库根运行：
 
 ```sh
-pnpm --dir frontend/auth-web test
-pnpm --dir frontend/auth-web build
-pnpm --dir frontend/auth-web pack
-node frontend/auth-web/scripts/smoke-pack.mjs
+pnpm --dir frontend/eauth test
+pnpm --dir frontend/eauth build
+pnpm --dir frontend/eauth pack
+node frontend/eauth/scripts/smoke-pack.mjs
 ```
 
-Node 26 的实验性全局 localStorage 会覆盖 jsdom，可仅在本地单测命令前设置 `NODE_OPTIONS=--no-experimental-webstorage`；CI 使用仓库固定 Node 22.14。测试清单见 `frontend/auth-web/tests/TEST_CASES.md`。
+Node 26 的实验性全局 localStorage 会覆盖 jsdom，可仅在本地单测命令前设置 `NODE_OPTIONS=--no-experimental-webstorage`；CI 使用仓库固定 Node 22.14。测试清单见 `frontend/eauth/tests/TEST_CASES.md`。

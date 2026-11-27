@@ -46,43 +46,43 @@ jobs:
           uv sync --project ci --frozen
       - name: Python contracts and package tests
         run: |
-          uv run --project ci --frozen pytest backend/tests backend/packages/auth/tests backend/packages/notify/tests scripts/tests -q -o asyncio_mode=auto
-          uv run --project ci --frozen pytest -c backend/packages/apple-notify/pyproject.toml backend/packages/apple-notify/tests -q
-          uv run --project ci --frozen pytest -c backend/packages/email-notify/pyproject.toml backend/packages/email-notify/tests -q
-          uv run --project ci --frozen pytest -c backend/packages/payment/pyproject.toml backend/packages/payment/tests -q
-          uv run --project ci --frozen pytest -c backend/packages/device-fingerprint/pyproject.toml backend/packages/device-fingerprint/tests -q
-          uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py backend/packages/auth/src scripts/private_release.py
-          uv run --project ci --frozen ruff check backend/src/dwyeapi/device.py backend/packages/device-fingerprint/src backend/packages/device-fingerprint/tests
-          uv run --project ci --frozen ruff check --config backend/packages/apple-notify/pyproject.toml backend/packages/apple-notify/src backend/packages/apple-notify/tests
-          uv run --project ci --frozen ruff check --config backend/packages/email-notify/pyproject.toml backend/packages/email-notify/src backend/packages/email-notify/tests
-          uv run --project ci --frozen ruff check --config backend/packages/notify/pyproject.toml backend/packages/notify/src backend/packages/notify/tests
-          uv run --project ci --frozen ruff check --config backend/packages/payment/pyproject.toml backend/packages/payment/src backend/packages/payment/tests
+          uv run --project ci --frozen pytest backend/tests backend/packages/eauth/tests backend/packages/enotify/tests scripts/tests -q -o asyncio_mode=auto
+          uv run --project ci --frozen pytest -c backend/packages/eapple-notify/pyproject.toml backend/packages/eapple-notify/tests -q
+          uv run --project ci --frozen pytest -c backend/packages/eemail-notify/pyproject.toml backend/packages/eemail-notify/tests -q
+          uv run --project ci --frozen pytest -c backend/packages/epayment/pyproject.toml backend/packages/epayment/tests -q
+          uv run --project ci --frozen pytest -c backend/packages/edevice-fingerprint/pyproject.toml backend/packages/edevice-fingerprint/tests -q
+          uv run --project ci --frozen ruff check backend/src/dwyeapi/identity.py backend/packages/eauth/src scripts/private_release.py
+          uv run --project ci --frozen ruff check backend/src/dwyeapi/device.py backend/packages/edevice-fingerprint/src backend/packages/edevice-fingerprint/tests
+          uv run --project ci --frozen ruff check --config backend/packages/eapple-notify/pyproject.toml backend/packages/eapple-notify/src backend/packages/eapple-notify/tests
+          uv run --project ci --frozen ruff check --config backend/packages/eemail-notify/pyproject.toml backend/packages/eemail-notify/src backend/packages/eemail-notify/tests
+          uv run --project ci --frozen ruff check --config backend/packages/enotify/pyproject.toml backend/packages/enotify/src backend/packages/enotify/tests
+          uv run --project ci --frozen ruff check --config backend/packages/epayment/pyproject.toml backend/packages/epayment/src backend/packages/epayment/tests
       - name: Web and CLI regression
         run: |
           pnpm --dir frontend/eui build
           pnpm --dir frontend/ekit build
-          pnpm --dir frontend/admin-shell build
+          pnpm --dir frontend/eadmin build
           pnpm --dir frontend/eui test
           pnpm --dir frontend/ekit test
-          pnpm --dir frontend/admin-shell test
-          pnpm --dir frontend/auth-web test
+          pnpm --dir frontend/eadmin test
+          pnpm --dir frontend/eauth test
           pnpm --dir dwy-cli test
       - name: Build and pack release artifacts
         run: |
           mkdir -p private-dist
-          pnpm --dir frontend/auth-web build
+          pnpm --dir frontend/eauth build
           pnpm --dir frontend/eui pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           pnpm --dir frontend/ekit pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
-          pnpm --dir frontend/admin-shell pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
-          pnpm --dir frontend/auth-web pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
+          pnpm --dir frontend/eadmin pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
+          pnpm --dir frontend/eauth pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           pnpm --dir dwy-cli pack --pack-destination "$GITHUB_WORKSPACE/private-dist"
           uv build --project backend --out-dir "$GITHUB_WORKSPACE/private-dist"
-          uv build --project backend/packages/device-fingerprint --out-dir "$GITHUB_WORKSPACE/private-dist" --default-index https://pypi.org/simple
-          uv build --project backend/packages/auth --out-dir "$GITHUB_WORKSPACE/private-dist"
-          uv build --project backend/packages/notify --out-dir "$GITHUB_WORKSPACE/private-dist"
-          uv build --project backend/packages/apple-notify --out-dir "$GITHUB_WORKSPACE/private-dist"
-          uv build --project backend/packages/email-notify --out-dir "$GITHUB_WORKSPACE/private-dist"
-          uv build --project backend/packages/payment --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/edevice-fingerprint --out-dir "$GITHUB_WORKSPACE/private-dist" --default-index https://pypi.org/simple
+          uv build --project backend/packages/eauth --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/enotify --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/eapple-notify --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/eemail-notify --out-dir "$GITHUB_WORKSPACE/private-dist"
+          uv build --project backend/packages/epayment --out-dir "$GITHUB_WORKSPACE/private-dist"
           # uv 自动生成的目录忽略标记不是发布产物；其余非白名单文件仍需拒绝。
           rm -f private-dist/.gitignore
           python3 scripts/private_release.py manifest --directory private-dist --tag "0.0.0-ci.$GITHUB_RUN_ID" --revision "$GITHUB_SHA"

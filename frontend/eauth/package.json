@@ -5,7 +5,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/danweiyuancircle/dwy-ai-experience.git",
-    "directory": "frontend/auth-web"
+    "directory": "frontend/eauth"
   },
   "description": "Vue 管理员同源 Cookie 登录与内存会话；独立于 Google 应用用户认证",
   "main": "./dist/index.js",

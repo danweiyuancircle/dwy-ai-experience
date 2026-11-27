@@ -6,7 +6,7 @@ Python distribution `dwy-auth==0.2.0`, import `dwy_auth`. Install the independen
 
 Upgrading runtime hosts from 0.1.1 requires a host-owned Alembic revision: add the `auth_runtime_credential_versions` table from `build_runtime_tables`, plus nullable `subject` and `credential_version` columns on `auth_runtime_email_challenges`. Snapshot these definitions in the revision; do not import a future builder inside historical migrations. Existing accounts and sessions remain intact; application admission remains opt-in.
 
-When upgrading a preview integration, update both the dependency name and Python imports. The new wheel exports only `dwy_auth`; no legacy namespace alias is shipped. The source package is `backend/packages/auth` and release tags use `dwy-auth@VERSION`.
+When upgrading a preview integration, update both the dependency name and Python imports. The new wheel exports only `dwy_auth`; no legacy namespace alias is shipped. The source package is `backend/packages/eauth` and release tags use `dwy-auth@VERSION`.
 
 User authentication uses the existing Google subject identity, app-scoped SQL tables, 15-minute opaque access tokens, rotating refresh families, device revocation and transactional account deletion. The application owns its engine/session factory, metadata and Alembic history. No migrations are created or run automatically. Google configuration accepts one explicit Web OAuth audience; a missing configuration closes login.
 
