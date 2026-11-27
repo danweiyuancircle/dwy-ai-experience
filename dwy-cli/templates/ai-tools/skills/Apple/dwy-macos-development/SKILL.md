@@ -19,6 +19,12 @@ description: 开发、排查、评审或适配 macOS 应用时使用，涵盖设
 
 问号或信息按钮触发的简短只读说明必须使用锚定到按钮的 `.popover`。需要独占输入的弹框必须使用系统模态（`.sheet`、`.alert`、`.confirmationDialog`、AppKit sheet / modal），禁止用 overlay、ZStack 或透明拦截层在页面内叠加模拟模态；不给底页自绘蒙层或模糊。实现与评审弹框时按 [弹窗差异](references/presentations.md) 核对呈现方式、键盘和验收要求。
 
+**菜单标题按点击后的实际行为判断是否加省略号。**
+
+- 自定义状态栏菜单、上下文菜单和应用内菜单中，仅用于打开页面或窗口、启动工具的入口，以及立即完成的命令，标题末尾不得加省略号，例如「设置」「取色器」「退出」。
+- 命令必须等待用户输入、选择或确认才能完成时，标题末尾用单个 `…`，例如「另存为…」「打开文件…」。评审时按实际点击行为核对各语言的菜单标题。
+- macOS 标准应用菜单沿用平台标准标题，例如「设置…」。[Apple 菜单设计规范](https://developer.apple.com/design/human-interface-guidelines/menus) · [Apple 菜单栏设计规范](https://developer.apple.com/design/human-interface-guidelines/the-menu-bar)
+
 界面开发与评审同时遵循 `dwy-swift-development` 的图标视觉一致性、按钮语义与样式一致性、重复能力封装与复用要求；跨页面检查同类入口，不仅检查当前窗口。
 
 涉及设计规范、全局 token、主题或组件抽取时，先读取项目现有规范，再读 [设计规范与组件复用](references/design-system.md)；不得把某个产品的品牌或几何规格直接变成所有 Mac 项目的要求。
