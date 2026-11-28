@@ -5,6 +5,7 @@ import Foundation
 public enum EPlaygroundComponent: String, CaseIterable, Identifiable, Sendable {
     case button = "button"
     case iconAction = "icon-action"
+    case sheetCloseButton = "sheet-close-button"
     case menu = "menu"
     case actionGroup = "action-group"
     case picker = "picker"
@@ -42,6 +43,7 @@ public enum EPlaygroundComponent: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .button: "EButton"
         case .iconAction: "EIconAction"
+        case .sheetCloseButton: "ESheetCloseButton"
         case .menu: "EMenu"
         case .actionGroup: "EActionGroup"
         case .picker: "EPicker"
@@ -77,6 +79,7 @@ public enum EPlaygroundComponent: String, CaseIterable, Identifiable, Sendable {
         switch self {
         case .button: "ButtonExample"
         case .iconAction: "IconActionExample"
+        case .sheetCloseButton: "SheetCloseButtonExample"
         case .menu: "MenuExample"
         case .actionGroup: "ActionGroupExample"
         case .picker: "PickerExample"
@@ -110,7 +113,7 @@ public enum EPlaygroundComponent: String, CaseIterable, Identifiable, Sendable {
 
     var category: EPlaygroundCategory {
         switch self {
-        case .button, .iconAction, .menu, .actionGroup: .actions
+        case .button, .iconAction, .sheetCloseButton, .menu, .actionGroup: .actions
         case .picker, .switchControl, .checkbox: .selection
         case .textField, .secureField, .searchField, .comboBox, .field, .fieldShell: .input
         case .card, .settingsRow, .labelValue: .content

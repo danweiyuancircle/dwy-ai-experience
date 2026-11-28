@@ -151,6 +151,66 @@ struct IconActionExample: View {
 #endif
 ```
 
+## designkit.mac.sheet-close-button
+
+Source: `apple/Sources/macOS/DesignKitMacPlayground/Fixtures/SheetCloseButtonExample.swift`
+
+# ESheetCloseButton
+
+ID: designkit.mac.sheet-close-button
+Module: DesignKitMac
+Platform: macOS 26.0+
+Package: 0.11.0
+API available since: AppleAppKit 0.14.1
+
+## Purpose
+Dismiss a sheet with a compact, accessible close button.
+
+## Capabilities
+- Provides a 34 pt target around a 24 pt symbol disc.
+- Supports Escape and a localized accessibility label.
+
+## Parameters, state and constraints
+Supply the localized label and a closure that dismisses the sheet. The host owns the presentation state.
+
+# ESheetCloseButton
+
+ID: designkit.mac.sheet-close-button
+Module: DesignKitMac
+Platform: macOS 26.0+
+Package: 0.11.0
+API 起始版本：AppleAppKit 0.14.1
+
+## 用途
+在弹窗中提供带辅助功能名称的紧凑关闭按钮。
+
+## 能力
+- 24 pt 图形圆盘与 34 pt 点击区域。
+- 支持 Escape 和本地化辅助功能名称。
+
+## 参数、状态与约束
+传入本地化名称和关闭回调，弹窗的展示状态由宿主持有。
+
+```swift
+#if os(macOS)
+import SwiftUI
+import DesignKitMac
+
+struct SheetCloseButtonExample: View {
+    var bundle: Bundle = .main
+    @State private var showsSheet = false
+
+    var body: some View {
+        Button { showsSheet = true } label: { Text("Show sheet", bundle: bundle) }
+            .sheet(isPresented: $showsSheet) {
+                ESheetCloseButton(Text("Close", bundle: bundle)) { showsSheet = false }
+                    .padding()
+            }
+    }
+}
+#endif
+```
+
 ## designkit.mac.menu
 
 Source: `apple/Sources/macOS/DesignKitMacPlayground/Fixtures/MenuExample.swift`

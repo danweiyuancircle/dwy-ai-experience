@@ -28,6 +28,7 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 ## 0.15.0 - 2026-11-28
 
 - 移除 `DesignKitMac.EToolPanel`。平台示例改为展示独立工具窗，生成的新项目固定使用本版。
+- 补充 0.14.1 关闭按钮的可运行示例与中英文说明，使公开组件目录完整覆盖现有控件。
 - Skill 同步检查更新了 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md`，按确认、工具窗口和面板三种用途说明迁移方式。
 
 ### 兼容性
