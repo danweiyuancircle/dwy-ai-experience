@@ -13,6 +13,7 @@
 "Change externally" = "从外部修改绑定";
 "Character count: %lld" = "字符数：%lld";
 "Choose an option" = "选择一项";
+"Close" = "关闭";
 "Clear message" = "清空消息";
 "Clear search" = "清空搜索";
 "Confirm cancellation" = "确认取消完成";
@@ -93,6 +94,7 @@
 "Selected segment: %lld" = "当前分段：%lld";
 "Selection" = "选择";
 "Show success" = "显示成功提示";
+"Show sheet" = "打开弹窗";
 "Submit count: %lld" = "提交次数：%lld";
 "Succeeded" = "成功";
 "Suggestions" = "建议";

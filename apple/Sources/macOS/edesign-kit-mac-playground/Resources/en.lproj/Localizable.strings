@@ -13,6 +13,7 @@
 "Change externally" = "Change externally";
 "Character count: %lld" = "Character count: %lld";
 "Choose an option" = "Choose an option";
+"Close" = "Close";
 "Clear message" = "Clear message";
 "Clear search" = "Clear search";
 "Confirm cancellation" = "Confirm cancellation";
@@ -93,6 +94,7 @@
 "Selected segment: %lld" = "Selected segment: %lld";
 "Selection" = "Selection";
 "Show success" = "Show success";
+"Show sheet" = "Show sheet";
 "Submit count: %lld" = "Submit count: %lld";
 "Succeeded" = "Succeeded";
 "Suggestions" = "Suggestions";
