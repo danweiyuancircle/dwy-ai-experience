@@ -13,7 +13,7 @@
 
 - 需要独占输入的弹框（编辑、管理、表单、确认、选择）必须用系统模态承载：SwiftUI `.sheet`、`.alert`、`.confirmationDialog`、`.fileImporter`，AppKit `beginSheet` / `runModal`。项目已采用 AppleAppKit 时，确认用 `EAlert`，必须由用户关闭的错误用 `.modifier(EErrorAlert(...))`（先确认锁定版本提供该类型），文件选择用 `EFileDialog`。短暂反馈与页内持续提示按 `dwy-apple-appkit` 的反馈组件选型处理。
 - 禁止用 `ZStack`、`.overlay`、透明拦截层或同窗口子视图自绘模态弹框。页内叠加需要自行拦截鼠标、键盘、快捷键、菜单命令、焦点与辅助功能，范围难以完整覆盖，底页误操作风险高。AppleAppKit 0.11.0 已移除 `eWindowOverlay`，不再提供页内模态承载。
-- 指向某个入口的轻量编辑用 `popover`；明确设计为非模态、可与主窗口并行操作的面板用 `EToolPanel` / `EToolWindow` 或独立窗口，不伪装成模态。
+- 指向某个入口的轻量编辑用 `popover`；明确设计为非模态、可与主窗口并行操作的面板用 `EToolWindow` 或原生 `NSPanel`，不伪装成模态。
 - macOS sheet 附着于所属窗口，系统负责窗口级输入隔离和焦点。不给底页或整窗自绘灰色蒙层、半透明变暗层或背景模糊；系统自身的呈现效果保持原样。
 - sheet 的确认按钮使用 `.keyboardShortcut(.defaultAction)`，取消或关闭按钮使用 `.keyboardShortcut(.cancelAction)` 以响应 Escape。尺寸用内容 `.frame` 或 `presentationSizing` 控制，不套用 iPhone detent。多层模态由上一层 sheet 继续呈现，关闭后交还下一层。
 - 应用级 `Commands` 在 sheet 显示时仍可能对主窗口生效时，按同一呈现状态禁用会修改底页数据的命令。

@@ -2,24 +2,6 @@
 import AppKit
 import SwiftUI
 
-/// 通用工具面板宿主；任务、授权和模态返回值由业务控制，不在关闭时推断取消。
-@MainActor
-open class EToolPanel: NSPanel {
-    /// 任务窗口可关闭性须由宿主显式选择；不自动中止业务任务。
-    public init(title: String, size: NSSize, closable: Bool = true) {
-        super.init(contentRect: NSRect(origin: .zero, size: size),
-                   styleMask: closable ? [.titled, .closable] : [.titled], backing: .buffered, defer: false)
-        self.title = title
-        isReleasedWhenClosed = false
-        hidesOnDeactivate = false
-    }
-
-    /// 每个独立宿主显式设置共享控件主题；语言、主题管理器等业务环境由内容注入。
-    public func setContent<Content: View>(@ViewBuilder content: () -> Content) {
-        contentView = NSHostingView(rootView: content().eControlTheme(.standard))
-    }
-}
-
 /// 可调整尺寸的独立工具窗；代理与内容替换策略由宿主业务持有。
 @MainActor
 public final class EToolWindow: NSWindow {

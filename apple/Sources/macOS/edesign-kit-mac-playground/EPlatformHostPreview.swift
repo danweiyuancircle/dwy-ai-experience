@@ -6,7 +6,7 @@ import DesignKitMac
 /// 平台桥接的独立演示；选择结果只显示路径，不创建书签、不读取文件也不执行危险操作。
 public struct EPlatformHostPreview: View {
     @State private var selectedPath: String?
-    @State private var panel: EToolPanel?
+    @State private var window: EToolWindow?
     @State private var showsSheet = false
     @State private var sheetText = ""
     @State private var backgroundActions = 0
@@ -31,17 +31,17 @@ public struct EPlatformHostPreview: View {
                 selected.stopAccessingSecurityScopedResource()
             }
             if let selectedPath { Text(verbatim: selectedPath).textSelection(.enabled) }
-            EButton("Show tool panel") {
-                panel?.close()
-                let panel = EToolPanel(title: "Shared tool panel", size: NSSize(width: 400, height: 180))
-                panel.setContent {
+            EButton("Show tool window") {
+                window?.close()
+                let window = EToolWindow(title: "Shared tool window", size: NSSize(width: 400, height: 180))
+                window.setContent {
                     EProgressPanelContent(title: Text("Preview only")) {
-                        EButton("Close") { [weak panel] in panel?.close() }
+                        EButton("Close") { [weak window] in window?.close() }
                     }
                 }
-                self.panel = panel
-                panel.center()
-                panel.makeKeyAndOrderFront(nil)
+                self.window = window
+                window.center()
+                window.makeKeyAndOrderFront(nil)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -61,7 +61,7 @@ public struct EPlatformHostPreview: View {
             .padding()
             .frame(width: 360)
         }
-        .onDisappear { panel?.close(); panel = nil }
+        .onDisappear { window?.close(); window = nil }
     }
 }
 #endif

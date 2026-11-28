@@ -4,7 +4,7 @@ import Foundation
 /// 避免展示代码与实际预览代码分叉。
 public enum IOSPlaygroundCatalog {
     /// 与 `apple/CHANGELOG.md` 的 AppleAppKit 版本对齐；发版时一起更新。
-    public static let version = "0.15.0"
+    public static let version = "0.16.0"
 
     public enum ResourceError: Error, LocalizedError {
         case missing(String)

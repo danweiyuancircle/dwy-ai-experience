@@ -1,8 +1,8 @@
 # AppleAppKit 平台支持与适配记录
 
-更新日期 2026-11-23。本次版本为 `0.14.0`，发布状态与提交以对应 Git tag 和 GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
+更新日期 2026-11-28。本次版本为 `0.15.0`，发布状态与提交以对应 Git tag 和 GitHub Release 为准。本页记录 AppleAppKit 共享版本的平台边界，以及各产品和场景的验证范围。
 
-0.14.0 更新 macOS 错误弹框、主窗恢复和系统热键。SwiftPM 宿主测试覆盖主窗选择、热键注册与释放。最低系统版本保持一致。
+0.15.0 移除 macOS 工具面板封装。既有面板调用方按场景迁移到 `EAlert`、`EToolWindow` 或原生 `NSPanel`。最低系统版本保持一致。
 
 0.13.0 提供 macOS 26 起的 `BusinessKitMac` 可选产品，多商品购买核心支持 iOS 18 和 macOS 26。验证覆盖 SwiftPM 回归、macOS 26 目标编译、iOS 18 Simulator SDK 的购买核心编译，以及本机示例窗口里的设置、帮助与模拟购买。实际付费、外部登录和系统热键注册由消费项目验收。
 

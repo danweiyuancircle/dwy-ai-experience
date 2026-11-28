@@ -25,7 +25,7 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
-## 0.15.0 - 2026-11-26
+## 0.16.0 - 2026-11-26
 
 - `DesignKitMac` 新增文本语义封装 `EText`、`.eText(_:tone:)` 与 `ETextRole`，把 `ETypography` 字体角色和 `ESemanticColors` 文字色接到普通文本上，业务页面不再裸写 `.font(.caption)`、`.foregroundStyle(.secondary)`。`tone` 复用 `EStatusTone`。
 - `DesignKitMacPlayground` 详情页新增结构化“支持的能力”清单（每个组件中英说明新增 `## Capabilities` / `## 能力` 节，由 `EPlaygroundCatalog.Documentation.capabilities` 解析）、侧栏“主题与令牌”页（颜色浅深色十六进制、字体角色、间距、圆角、控件尺寸，均读取注入的 `EControlTheme`），以及 `--page`、`--appearance`、`--language`、`--scenario` 启动参数用于直达页面和截图。Playground 为可选开发产品，不影响应用链接的 `DesignKitMac`。Skill 同步检查（Playground 部分）：`dwy-apple-appkit` 与 `dwy-macos-development` 未引用 Playground 的目录结构、启动参数或资源格式，公开产品、初始化、最低系统和工具链均无变化，无需更新；该结论基于对两份 Skill 的关键词检索，发版前需与上一 tag 的实际差异再核对。
@@ -37,12 +37,26 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 | 项 | 结论 |
 |----|------|
-| 相对 0.14.0 能否不改 App 继续编 | 可以。仅新增公开类型与修饰符，没有删除或改名。 |
+| 相对 0.15.0 能否不改 App 继续编 | 可以。仅新增公开类型与修饰符，没有删除或改名。 |
 | 不升会怎样 | 继续可用，但拿不到文本角色封装，页面只能继续各自写 `.font` 与 `.foregroundStyle`。 |
 | 破坏面 | 无。 |
 | 持久化键变化 | 无。 |
 
 ---
+
+## 0.15.0 - 2026-11-28
+
+- 移除 `DesignKitMac.EToolPanel`。平台示例改为展示独立工具窗，生成的新项目固定使用本版。
+- Skill 同步检查更新了 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md`，按确认、工具窗口和面板三种用途说明迁移方式。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.14.1 能否不改 App 继续编 | 使用 `EToolPanel` 的 macOS 应用需要迁移。其余公开 API 可继续使用。 |
+| 不升会怎样 | 仍可使用原有工具面板。 |
+| 升上来可选/必改项 | 确认操作使用 `EAlert`，可缩放的工具窗使用 `EToolWindow`，需要面板行为的工具使用 AppKit `NSPanel` 并由宿主管理生命周期。 |
+| 最低系统与存储 | iOS / iPadOS 18.0、macOS 26.0、Swift 6.0，持久化格式不变。 |
 
 ## 0.14.1 - 2026-11-28
 

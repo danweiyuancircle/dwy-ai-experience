@@ -1,6 +1,6 @@
 # macOS 平台对话框与窗口
 
-`DesignKitMac` 提供 `EAlert`、`EFileDialog`、`EToolPanel`、`EToolWindow` 和 `ESettingsWindowChrome`。系统适配在 `ios/Sources/macOS/DesignKit/EPlatformDialogs.swift` 与 `ios/Sources/macOS/DesignKit/EWindows.swift` 集中维护。
+`DesignKitMac` 提供 `EAlert`、`EFileDialog`、`EToolWindow` 和 `ESettingsWindowChrome`。系统适配在 `ios/Sources/macOS/DesignKit/EPlatformDialogs.swift` 与 `ios/Sources/macOS/DesignKit/EWindows.swift` 集中维护。
 
 ## 对话框
 
@@ -12,10 +12,10 @@
 
 ## 窗口宿主
 
-`EToolPanel` 用于工具面板；任务进度面板显式传 `closable: false`，避免关闭窗口被误当任务结束。需要模态参数返回的业务可以继承并自行管理 runModal/stopModal。`EToolWindow` 提供可缩放独立工具窗。内容通过 `setContent` 安装，业务继续持有 delegate、路由及授权。
+确认操作使用 `EAlert`。`EToolWindow` 提供可缩放的独立工具窗，通过 `setContent` 安装内容。需要 AppKit 面板行为时，宿主使用 `NSPanel`，显式设置关闭策略，负责任务取消、代理和授权的生命周期。
 
 窗口内容默认接入共享控件主题；语言、locale 和应用主题实例由宿主显式注入。SwiftUI Settings 场景通过 `ESettingsWindowChrome` 在挂载后应用统一标题栏与缩放策略。
 
 ## 开发预览
 
-`DesignKitMacPlayground` 的独立 `EPlatformHostPreview()` 可实际打开无写入副作用的确认框、目录选择器与工具面板。也可作为 `EPlayground(projectTitle:)` 的宿主示例内容使用。通用组合的八个展示入口已纳入基础组件目录，并提供中英说明及可复制、已编译的示例。
+`DesignKitMacPlayground` 的独立 `EPlatformHostPreview()` 可实际打开无写入副作用的确认框、目录选择器与独立工具窗。也可作为 `EPlayground(projectTitle:)` 的宿主示例内容使用。通用组合的八个展示入口已纳入基础组件目录，并提供中英说明及可复制、已编译的示例。
