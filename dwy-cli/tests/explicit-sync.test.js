@@ -204,6 +204,7 @@ test('内置 Codex Hooks 在全局和项目注册中显示 dwy 功能描述', as
   for (const global of [true, false]) {
     const config = buildCodexHooksJson(manifests, names, global, '/test/.codex')
     assert.deepEqual(config.hooks.PreToolUse.flatMap(group => group.hooks.map(hook => hook.statusMessage)), [
+      'dwy：检查提交中的临时测试代码',
       'dwy：检查提交中的敏感信息',
       'dwy：检查提交命令中的反引号',
       'dwy：检查提交信息中的 AI 签名',

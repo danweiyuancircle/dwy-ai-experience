@@ -1,5 +1,13 @@
 [
   {
+    "name": "pre-git-commit-testcode-check.sh",
+    "event": "PreToolUse",
+    "matcher": "Bash",
+    "platforms": ["claude", "codex"],
+    "statusMessage": "dwy：检查提交中的临时测试代码",
+    "timeout": 30
+  },
+  {
     "name": "pre-git-commit-sensitive-check.sh",
     "event": "PreToolUse",
     "matcher": "Bash",
