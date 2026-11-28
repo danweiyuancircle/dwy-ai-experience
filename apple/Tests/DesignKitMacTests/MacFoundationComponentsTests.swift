@@ -6,6 +6,19 @@ import XCTest
 
 @MainActor
 final class MacFoundationComponentsTests: XCTestCase {
+    func testSheetCloseButtonKeepsCompactDiscInsideLargerTarget() throws {
+        let button = ESheetCloseButton(Text("Close")) {}
+        XCTAssertEqual(NSHostingView(rootView: button).fittingSize, CGSize(width: 34, height: 34))
+        let renderer = ImageRenderer(content: button)
+        renderer.scale = 2
+        let bitmap = NSBitmapImageRep(cgImage: try XCTUnwrap(renderer.cgImage))
+        let center = bitmap.pixelsHigh / 2
+        let opaqueWidth = (0..<bitmap.pixelsWide).filter {
+            (bitmap.colorAt(x: $0, y: center)?.alphaComponent ?? 0) > 0.5
+        }.count
+        XCTAssertEqual(Double(opaqueWidth) / 2, 24, accuracy: 1)
+    }
+
     func testToastChangesIdentityAndCancelsExpiryWhenAssistiveStateChanges() {
         let id = UUID()
         let normal = EToastLifetime(id: id, hovering: false, focused: false, voiceOver: false)

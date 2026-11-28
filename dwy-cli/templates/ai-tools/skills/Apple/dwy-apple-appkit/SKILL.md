@@ -5,6 +5,8 @@ description: 使用或排查 AppleAppKit SwiftPM 自有基础库时使用，按�
 
 # AppleAppKit 自有基础库
 
+macOS 弹窗显式关闭入口使用 DesignKitMac 的 `ESheetCloseButton`（0.14.1 起）。可见圆盘直径 24 pt、点击区域 34 × 34 pt；标题同行，保留 Esc 和本地化辅助功能名称。通用浮动操作继续使用 `EIconAction`。
+
 ## 维护 AppleAppKit 版本时
 
 仅在维护 AppleAppKit 源码仓库时适用：更新版本、Changelog 或创建/发布语义化 tag 前，对照上一发布 tag 检查本 Skill 与平台引用资料是否仍准确，覆盖公开产品/API、初始化/生命周期、权限配置、最低系统/工具链、废弃迁移及示例路径。需要同步的内容必须进入新 tag；无需更新时在该版本 Changelog 中记录“Skill 同步检查：无需更新”及具体依据。该检查不授权更新消费者依赖、推送/发布或修改全局 Skills。

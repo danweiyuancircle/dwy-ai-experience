@@ -6,6 +6,8 @@
 
 ## 接入顺序
 
+macOS 弹窗的显式关闭入口使用 `ESheetCloseButton`。可见圆盘直径 24 pt，透明点击区为 34 × 34 pt，标题与按钮同行。自定义弹窗传入本地化名称与关闭回调；组件处理 Esc。普通浮动工具按钮继续使用 `EIconAction`。
+
 1. macOS target 链接 `BusinessKitMac`，使用一个 `BusinessPreferences` 实例。在主窗口、SwiftUI `Settings` 场景以及独立 AppKit 宿主根视图注入 `.businessPreferences(preferences, theme:)`。已有自定义配色可以传入应用的 `EControlTheme`。
 2. 把 `BusinessSettingsPanel` 放入标准 `Settings` 窗口或原生 `.sheet`。每个 `BusinessSettingsSection` 提供稳定 ID、标题、SF Symbol 和任意 SwiftUI 内容。用 `BusinessGeneralSettings` 和 `BusinessAboutSettings` 组装通用分类。
 3. 购买入口通过 `.macPaywall(isPresented:configuration:store:onUnlocked:)` 挂到所属窗口。用 `MacPaywallConfiguration` 配置标题、方案、权益和法律链接，从 StoreKit 商品取得实际价格。

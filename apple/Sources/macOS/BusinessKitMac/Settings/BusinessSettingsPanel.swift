@@ -51,11 +51,11 @@ public struct BusinessSettingsPanel: View {
             sidebar(selected: section?.id)
             VStack(spacing: 0) {
                 if let onClose {
-                    MacBusinessSheetHeader(onClose: onClose)
+                    MacBusinessSheetHeader(title: section?.title, onClose: onClose)
                 }
                 if let section {
                     ESettingsPage {
-                        EPageHeader(title: section.title)
+                        if onClose == nil { EPageHeader(title: section.title) }
                         section.content()
                     }
                     // 每个分类有自己的滚动与焦点范围。

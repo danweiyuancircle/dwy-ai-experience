@@ -23,13 +23,7 @@ public struct MacBusinessSheetHeader: View {
                     .accessibilityAddTraits(.isHeader)
             }
             Spacer(minLength: theme.spacing.group)
-            EIconAction(
-                Text("Close", tableName: "Settings", bundle: .module),
-                role: .cancel,
-                action: onClose
-            ) { Image(systemName: "xmark") }
-            .eControlPlacement(.floating)
-            .keyboardShortcut(.cancelAction)
+            ESheetCloseButton(Text("Close", tableName: "Settings", bundle: .module), action: onClose)
         }
         .padding(.horizontal, theme.spacing.pageInset)
         .padding(.vertical, theme.spacing.controlGroup)

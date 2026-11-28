@@ -123,6 +123,35 @@ public struct EIconAction<Icon: View>: View {
     }
 }
 
+/// macOS 弹窗关闭入口。标题由宿主本地化，Esc 与点击执行同一关闭动作。
+public struct ESheetCloseButton: View {
+    @Environment(\.eControlTheme) private var theme
+    private let title: Text
+    private let action: () -> Void
+
+    public init(_ title: Text, action: @escaping () -> Void) {
+        self.title = title
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(role: .cancel, action: action) {
+            Image(systemName: "xmark")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(theme.colors.text)
+                .frame(width: 24, height: 24)
+                .background(theme.colors.elevatedSurface, in: Circle())
+                .overlay { Circle().strokeBorder(theme.colors.separator) }
+                .frame(width: 34, height: 34)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(title)
+        .help(title)
+        .keyboardShortcut(.cancelAction)
+    }
+}
+
 struct EButtonChrome: ViewModifier {
     @Environment(\.eControlPlacement) private var placement
     let emphasis: EButtonEmphasis

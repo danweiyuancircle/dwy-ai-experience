@@ -25,6 +25,11 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.14.1 - 2026-11-28
+
+- macOS 弹窗关闭按钮统一为 24 pt 可见圆盘、34 pt 点击区域。设置弹窗将分类标题与关闭按钮排在同一行，滚动正文时仍可关闭。
+- 兼容已有调用；自定义弹窗可直接使用 DesignKitMac 的 `ESheetCloseButton`。Skill 已同步更新 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md`。
+
 ## 0.14.0 - 2026-11-23
 
 - macOS 错误弹框改用 `EErrorAlert`，由应用层持有错误消息并挂载。移除小写 `eErrorAlert`。短暂反馈用 `EToast`，页内持续反馈用 macOS `ENotice` 或 iOS `EInlineNotice`。
