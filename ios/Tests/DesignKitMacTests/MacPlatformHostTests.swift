@@ -42,20 +42,13 @@ final class MacPlatformHostTests: XCTestCase {
         XCTAssertEqual(alert.runModal(), .alertSecondButtonReturn)
     }
 
-    func testToolHostsKeepCloseAndLifetimePolicyAndCanHostSharedContent() {
-        let panel = EToolPanel(title: "Progress", size: NSSize(width: 400, height: 180), closable: false)
-        XCTAssertFalse(panel.styleMask.contains(.closable))
-        XCTAssertFalse(panel.isReleasedWhenClosed)
-        XCTAssertFalse(panel.hidesOnDeactivate)
-        panel.setContent { EButton("Cancel", action: {}) }
-        XCTAssertNotNil(panel.contentView)
+    func testToolWindowKeepsCloseAndLifetimePolicyAndCanHostSharedContent() {
         let window = EToolWindow(title: "Tool", size: NSSize(width: 640, height: 480))
         XCTAssertTrue(window.styleMask.contains(.closable))
         XCTAssertTrue(window.styleMask.contains(.resizable))
         XCTAssertFalse(window.isReleasedWhenClosed)
         window.setContent { Text("Ready") }
         XCTAssertNotNil(window.contentView)
-        panel.close()
         window.close()
     }
 

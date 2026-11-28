@@ -25,6 +25,7 @@ macOS 弹窗显式关闭入口使用 DesignKitMac 的 `ESheetCloseButton`（0.14
 - AppleAppKit 0.13.0 起，macOS 可选产品 `BusinessKitMac` 提供设置、购买、帮助反馈、导出分享、快捷键、评分、账号及同步展示。可使用 `BusinessPreferences` 装配默认偏好，并按应用实际需求配置页面和服务。接入契约见对应版本的 `apple/Docs/Mac-Business-Kit.md`。
 - `PurchaseCore` 0.13.0 起可用 `StoreKitPurchaseStore` 管理已配置的买断和自动续订商品。继续使用买断接口时保留 `LifetimeStore`，应用按自身商品权益决定功能放行。正式业务消费前执行 StoreKit 沙盒验收。
 - DesignKitMac 0.10.0 起提供 `ePreventsSidebarCollapse`，用于 SwiftUI 原生分栏的侧栏内容。
+- AppleAppKit 0.15.0 移除 macOS 的 `EToolPanel`。确认使用 `EAlert`；可缩放工具窗使用 `EToolWindow`。依赖面板行为的工具由宿主管理原生 `NSPanel`、内容、关闭策略与任务生命周期。
 - `eWindowOverlay` 仅存在于 0.10.0 / 0.10.1，0.11.0 已移除。模态弹框改用 SwiftUI `.sheet` / `.alert` / `.confirmationDialog` 或 AppKit sheet，文件选择用 `EFileDialog`。迁移时删除宿主为页内弹框补的菜单禁用和事件监听阻断，按 sheet 重新验收键盘与焦点。
 - AuthCore、AuthUI、AuthGoogleIOS、AuthAppleIOS、AuthGoogleMac：认证核心与平台接入。
 - PurchaseCore：购买能力。

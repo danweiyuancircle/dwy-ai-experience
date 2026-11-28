@@ -25,6 +25,20 @@ Apple App Kit（统一公开仓库中的 Apple 产品）版本记录。
 
 ---
 
+## 0.15.0 - 2026-11-28
+
+- 移除 `DesignKitMac.EToolPanel`。平台示例改为展示独立工具窗，生成的新项目固定使用本版。
+- Skill 同步检查更新了 `dwy-cli/templates/ai-tools/skills/Apple/dwy-apple-appkit/SKILL.md` 和 `dwy-cli/templates/ai-tools/skills/Apple/dwy-macos-development/references/presentations.md`，按确认、工具窗口和面板三种用途说明迁移方式。
+
+### 兼容性
+
+| 项 | 结论 |
+|----|------|
+| 相对 0.14.1 能否不改 App 继续编 | 使用 `EToolPanel` 的 macOS 应用需要迁移。其余公开 API 可继续使用。 |
+| 不升会怎样 | 仍可使用原有工具面板。 |
+| 升上来可选/必改项 | 确认操作使用 `EAlert`，可缩放的工具窗使用 `EToolWindow`，需要面板行为的工具使用 AppKit `NSPanel` 并由宿主管理生命周期。 |
+| 最低系统与存储 | iOS / iPadOS 18.0、macOS 26.0、Swift 6.0，持久化格式不变。 |
+
 ## 0.14.1 - 2026-11-28
 
 - macOS 弹窗关闭按钮统一为 24 pt 可见圆盘、34 pt 点击区域。设置弹窗将分类标题与关闭按钮排在同一行，滚动正文时仍可关闭。
