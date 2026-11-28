@@ -288,6 +288,7 @@ struct EPlaygroundFixture: View {
         switch component {
         case .button: ButtonExample(bundle: .module, isBusy: scenario == .busy)
         case .iconAction: IconActionExample(bundle: .module, isBusy: scenario == .busy)
+        case .sheetCloseButton: SheetCloseButtonExample(bundle: .module)
         case .menu: MenuExample(bundle: .module)
         case .actionGroup: ActionGroupExample(bundle: .module, isBusy: scenario == .busy)
         case .picker: PickerExample(bundle: .module, isEmpty: scenario == .empty)
